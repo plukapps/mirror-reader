@@ -26,6 +26,7 @@ class SettingsRepositoryImpl @Inject constructor(
             val updated = transform(prefs.toSettings())
             prefs[SCROLL] = updated.scroll
             prefs[THEME] = updated.theme.name
+            prefs[PAGE_ANIMATION] = updated.pageAnimation
             // En décimas enteras: un Float degradaría 1.4 a 1.3999999.
             prefs[FONT_TENTHS] = (updated.fontScale * 10).roundToInt()
         }
@@ -37,6 +38,7 @@ class SettingsRepositoryImpl @Inject constructor(
             scroll = this[SCROLL] ?: defaults.scroll,
             theme = runCatching { ReadingTheme.valueOf(this[THEME] ?: "") }.getOrDefault(defaults.theme),
             fontScale = (this[FONT_TENTHS] ?: (defaults.fontScale * 10).roundToInt()) / 10.0,
+            pageAnimation = this[PAGE_ANIMATION] ?: defaults.pageAnimation,
         )
     }
 
@@ -44,5 +46,6 @@ class SettingsRepositoryImpl @Inject constructor(
         val SCROLL = booleanPreferencesKey("scroll")
         val THEME = stringPreferencesKey("theme")
         val FONT_TENTHS = intPreferencesKey("fontTenths")
+        val PAGE_ANIMATION = booleanPreferencesKey("pageAnimation")
     }
 }

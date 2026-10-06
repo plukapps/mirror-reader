@@ -37,4 +37,12 @@ class ReaderSettingsTest {
         assertEquals(2.5, ReaderSettings(fontScale = 2.5).biggerFont().fontScale, 0.0001)
         assertEquals(0.5, ReaderSettings(fontScale = 0.5).smallerFont().fontScale, 0.0001)
     }
+
+    // RDR-009: la animación de página viene activada y se puede desactivar
+    @Test
+    fun pageAnimationIsOnByDefaultAndToggles() {
+        assertEquals(true, ReaderSettings().pageAnimation)
+        assertEquals(false, ReaderSettings().togglePageAnimation().pageAnimation)
+        assertEquals(true, ReaderSettings().togglePageAnimation().togglePageAnimation().pageAnimation)
+    }
 }

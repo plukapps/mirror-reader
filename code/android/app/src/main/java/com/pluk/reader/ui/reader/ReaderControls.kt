@@ -4,6 +4,7 @@ import com.pluk.reader.domain.model.ReaderSettings
 import com.pluk.reader.domain.model.ReadingTheme
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
+import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -38,11 +39,12 @@ fun ReaderControls(
     onNextTheme: () -> Unit,
     onSmallerFont: () -> Unit,
     onBiggerFont: () -> Unit,
+    onTogglePageAnimation: () -> Unit,
     onTocSelected: (TocEntry) -> Unit,
 ) {
     var showToc by remember { mutableStateOf(false) }
 
-    AnimatedVisibility(visible = visible, enter = fadeIn(), exit = fadeOut()) {
+    AnimatedVisibility(visible = visible, enter = fadeIn(), exit = fadeOut(tween(CONTROLS_FADE_OUT_MS))) {
         Surface(tonalElevation = 3.dp, modifier = Modifier.fillMaxWidth().statusBarsPadding()) {
             Column(modifier = Modifier.padding(horizontal = 8.dp)) {
                 Row(
@@ -63,6 +65,9 @@ fun ReaderControls(
                     }
                     TextButton(onClick = onSmallerFont) { Text("A−") }
                     TextButton(onClick = onBiggerFont) { Text("A+") }
+                    TextButton(onClick = onTogglePageAnimation) {
+                        Text(if (settings.pageAnimation) "Efecto" else "Sin efecto")
+                    }
                 }
                 Text(
                     text = progressPercent?.let { "$it %" } ?: "",
@@ -101,3 +106,6 @@ fun ReaderControls(
         )
     }
 }
+
+/** Lo que tarda en desaparecer la barra. El paso de página espera este tiempo para no capturarla (RDR-009). */
+const val CONTROLS_FADE_OUT_MS = 80

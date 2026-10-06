@@ -3,10 +3,13 @@ package com.pluk.reader.ui.reader
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
+import android.os.SystemClock
+import android.view.MotionEvent
 import android.view.View
 import android.view.ViewGroup
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.createEmptyComposeRule
+import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.fragment.app.FragmentContainerView
@@ -21,6 +24,7 @@ import dagger.hilt.android.testing.HiltAndroidRule
 import dagger.hilt.android.testing.HiltAndroidTest
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertNull
+import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -210,6 +214,106 @@ class ReaderScreenTest {
         runBlocking { positionRepository.save(bookId, "{no es json") }
         launch(copyAsset("minimal.epub")).use { scenario ->
             waitUntil { navigator(scenario) != null }
+        }
+    }
+
+    // --- Paso de página (RDR-009) ---
+
+    private fun progression(scenario: ActivityScenario<MainActivity>): Double =
+        navigator(scenario)?.currentLocator?.value?.locations?.progression ?: -1.0
+
+    private fun screenSize(scenario: ActivityScenario<MainActivity>): Pair<Float, Float> {
+        var size = 0f to 0f
+        scenario.onActivity { size = it.window.decorView.width.toFloat() to it.window.decorView.height.toFloat() }
+        return size
+    }
+
+    private fun touch(action: Int, downTime: Long, x: Float, y: Float) {
+        val event = MotionEvent.obtain(downTime, SystemClock.uptimeMillis(), action, x, y, 0)
+        instrumentation.sendPointerSync(event)
+        event.recycle()
+    }
+
+    private fun tap(x: Float, y: Float) {
+        val downTime = SystemClock.uptimeMillis()
+        touch(MotionEvent.ACTION_DOWN, downTime, x, y)
+        touch(MotionEvent.ACTION_UP, downTime, x, y)
+    }
+
+    private fun swipe(fromX: Float, toX: Float, y: Float) {
+        val downTime = SystemClock.uptimeMillis()
+        touch(MotionEvent.ACTION_DOWN, downTime, fromX, y)
+        for (i in 1..8) {
+            touch(MotionEvent.ACTION_MOVE, downTime, fromX + (toX - fromX) * i / 8, y)
+            Thread.sleep(16)
+        }
+        touch(MotionEvent.ACTION_UP, downTime, toX, y)
+    }
+
+    // RDR-009: tocar el borde derecho avanza y la captura de la animación desaparece al terminar
+    @Test
+    fun tappingRightEdgeAdvancesAndEndsTheAnimation() {
+        launch(copyAsset("minimal.epub")).use { scenario ->
+            waitUntil { navigator(scenario) != null }
+            val before = progression(scenario)
+            val (w, h) = screenSize(scenario)
+            tap(w * 0.9f, h * 0.5f)
+            waitUntil { progression(scenario) > before }
+            waitUntil { runCatching { compose.onNodeWithTag("page-turn-snapshot").assertDoesNotExist() }.isSuccess }
+        }
+    }
+
+    // RDR-009: tocar el borde izquierdo retrocede
+    @Test
+    fun tappingLeftEdgeGoesBack() {
+        launch(copyAsset("minimal.epub")).use { scenario ->
+            waitUntil { navigator(scenario) != null }
+            val (w, h) = screenSize(scenario)
+            tap(w * 0.9f, h * 0.5f)
+            waitUntil { progression(scenario) > 0.0 }
+            val advanced = progression(scenario)
+            waitUntil { runCatching { compose.onNodeWithTag("page-turn-snapshot").assertDoesNotExist() }.isSuccess }
+            tap(w * 0.1f, h * 0.5f)
+            waitUntil { progression(scenario) < advanced }
+        }
+    }
+
+    // RDR-009: deslizar hacia la izquierda avanza
+    @Test
+    fun swipingLeftAdvances() {
+        launch(copyAsset("minimal.epub")).use { scenario ->
+            waitUntil { navigator(scenario) != null }
+            val before = progression(scenario)
+            val (w, h) = screenSize(scenario)
+            swipe(w * 0.8f, w * 0.2f, h * 0.5f)
+            waitUntil { progression(scenario) > before }
+        }
+    }
+
+    // RDR-009: con la animación desactivada el paso de página sigue funcionando, sin captura
+    @Test
+    fun pageTurnWorksWithAnimationDisabled() {
+        runBlocking { settingsRepository.update { it.togglePageAnimation() } }
+        launch(copyAsset("minimal.epub")).use { scenario ->
+            waitUntil { navigator(scenario) != null }
+            val before = progression(scenario)
+            val (w, h) = screenSize(scenario)
+            tap(w * 0.9f, h * 0.5f)
+            waitUntil { progression(scenario) > before }
+            compose.onNodeWithTag("page-turn-snapshot").assertDoesNotExist()
+        }
+    }
+
+    // Un toque en el centro muestra u oculta los controles
+    @Test
+    fun tappingCenterTogglesControls() {
+        launch(copyAsset("minimal.epub")).use { scenario ->
+            waitUntil { navigator(scenario) != null }
+            compose.onNodeWithText("Índice").assertIsDisplayed()
+            val (w, h) = screenSize(scenario)
+            tap(w * 0.5f, h * 0.5f)
+            waitUntil { runCatching { compose.onNodeWithText("Índice").assertDoesNotExist() }.isSuccess }
+            assertTrue(progression(scenario) <= 0.01)
         }
     }
 }

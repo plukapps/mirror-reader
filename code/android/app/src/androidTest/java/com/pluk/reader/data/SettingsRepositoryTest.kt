@@ -51,7 +51,7 @@ class SettingsRepositoryTest {
     // RDR-002, RDR-003
     @Test
     fun settingsRoundTrip() = runBlocking {
-        val wanted = ReaderSettings(scroll = true, theme = ReadingTheme.SEPIA, fontScale = 1.4)
+        val wanted = ReaderSettings(scroll = true, theme = ReadingTheme.SEPIA, fontScale = 1.4, pageAnimation = false)
         repository.update { wanted }
         // La escala 1.4 debe volver exacta, sin degradarse a 1.3999999.
         assertEquals(wanted, repository.settings.first())

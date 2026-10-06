@@ -28,6 +28,7 @@ Plan de referencia: `specs/plans/2026-10-06-android-epub-viewer.md`
 - **K-015** Capa de datos: Room (posición) y DataStore (ajustes) con repositorios. Plan `2026-10-06-android-architecture.md`, Tarea 2.
 - **K-016** Pantalla del lector en Compose, reemplaza a `ReaderActivity`. Plan `2026-10-06-android-architecture.md`, Tarea 3.
 - **K-017** Pruebas con Hilt, limpieza y cierre de docs. Plan `2026-10-06-android-architecture.md`, Tarea 4.
+- **K-018** Animación de paso de página (deslizar con paralaje). Rama `feat/page-turn-animation`. RDR-009.
 
 ## Hecho
 

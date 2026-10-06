@@ -182,4 +182,24 @@ class ReaderViewModelTest {
         vm.release()
         assertTrue(host.cleared)
     }
+
+    // RDR-009: el ajuste de animación se persiste por el repositorio
+    @Test
+    fun pageAnimationToggleIsPersisted() = runTest(dispatcher) {
+        val vm = viewModel(FakeBooks(Result.success(book())))
+        vm.awaitReady()
+        vm.togglePageAnimation()
+        assertEquals(false, vm.awaitReady { !it.settings.pageAnimation }.settings.pageAnimation)
+        assertEquals(false, settings.state.value.pageAnimation)
+    }
+
+    // RDR-009: al pasar de página se ocultan los controles (para que no salgan en la captura)
+    @Test
+    fun hidingControlsIsIdempotent() = runTest(dispatcher) {
+        val vm = viewModel(FakeBooks(Result.success(book())))
+        assertTrue(vm.awaitReady().controlsVisible)
+        vm.hideControls()
+        vm.hideControls()
+        assertEquals(false, vm.awaitReady { !it.controlsVisible }.controlsVisible)
+    }
 }

@@ -99,8 +99,13 @@ class ReaderViewModel @Inject constructor(
     fun nextTheme() = updateSettings { it.nextTheme() }
     fun biggerFont() = updateSettings { it.biggerFont() }
     fun smallerFont() = updateSettings { it.smallerFont() }
+    fun togglePageAnimation() = updateSettings { it.togglePageAnimation() }
     fun toggleControls() {
         controlsVisible.value = !controlsVisible.value
+    }
+
+    fun hideControls() {
+        controlsVisible.value = false
     }
 
     private fun updateSettings(transform: (ReaderSettings) -> ReaderSettings) {
