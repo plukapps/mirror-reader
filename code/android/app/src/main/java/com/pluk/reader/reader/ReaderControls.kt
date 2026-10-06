@@ -1,5 +1,9 @@
 package com.pluk.reader.reader
 
+import com.pluk.reader.domain.model.ReaderSettings
+import com.pluk.reader.domain.model.ReadingTheme
+import com.pluk.reader.domain.progressPercent
+import com.pluk.reader.ui.reader.TocEntry
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -53,9 +57,9 @@ fun ReaderControls(
                     TextButton(onClick = onNextTheme) {
                         Text(
                             when (settings.theme) {
-                                ReaderTheme.LIGHT -> "Claro"
-                                ReaderTheme.DARK -> "Oscuro"
-                                ReaderTheme.SEPIA -> "Sepia"
+                                ReadingTheme.LIGHT -> "Claro"
+                                ReadingTheme.DARK -> "Oscuro"
+                                ReadingTheme.SEPIA -> "Sepia"
                             },
                         )
                     }

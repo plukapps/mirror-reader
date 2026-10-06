@@ -1,5 +1,7 @@
 package com.pluk.reader.reader
 
+import com.pluk.reader.domain.progressPercent
+import com.pluk.reader.ui.reader.flattenToc
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue

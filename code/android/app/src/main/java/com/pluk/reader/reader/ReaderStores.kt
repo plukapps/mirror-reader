@@ -1,5 +1,7 @@
 package com.pluk.reader.reader
 
+import com.pluk.reader.domain.model.ReaderSettings
+import com.pluk.reader.domain.model.ReadingTheme
 import android.content.Context
 import org.json.JSONObject
 import org.readium.r2.shared.publication.Locator
@@ -34,7 +36,7 @@ class PrefsSettingsStore(context: Context) : SettingsStore {
         val defaults = ReaderSettings()
         return ReaderSettings(
             scroll = prefs.getBoolean("scroll", defaults.scroll),
-            theme = runCatching { ReaderTheme.valueOf(prefs.getString("theme", null) ?: "") }
+            theme = runCatching { ReadingTheme.valueOf(prefs.getString("theme", null) ?: "") }
                 .getOrDefault(defaults.theme),
             fontScale = prefs.getInt("fontTenths", (defaults.fontScale * 10).roundToInt()) / 10.0,
         )

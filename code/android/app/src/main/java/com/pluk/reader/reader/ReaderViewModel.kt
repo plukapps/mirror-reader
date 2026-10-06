@@ -1,5 +1,10 @@
 package com.pluk.reader.reader
 
+import com.pluk.reader.domain.model.ReaderSettings
+import com.pluk.reader.domain.progressPercent
+import com.pluk.reader.data.epub.PublicationLoader
+import com.pluk.reader.ui.reader.flattenToc
+import com.pluk.reader.ui.reader.TocEntry
 import android.app.Application
 import android.net.Uri
 import androidx.lifecycle.AndroidViewModel

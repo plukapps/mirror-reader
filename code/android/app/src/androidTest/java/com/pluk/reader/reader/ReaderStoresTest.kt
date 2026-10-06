@@ -1,5 +1,7 @@
 package com.pluk.reader.reader
 
+import com.pluk.reader.domain.model.ReaderSettings
+import com.pluk.reader.domain.model.ReadingTheme
 import android.content.Context
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
@@ -66,7 +68,7 @@ class ReaderStoresTest {
     @Test
     fun settingsRoundTrip() {
         val store = PrefsSettingsStore(context)
-        val settings = ReaderSettings(scroll = true, theme = ReaderTheme.SEPIA, fontScale = 1.4)
+        val settings = ReaderSettings(scroll = true, theme = ReadingTheme.SEPIA, fontScale = 1.4)
         store.save(settings)
         assertEquals(settings, store.load())
     }

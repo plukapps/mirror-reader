@@ -1,4 +1,4 @@
-package com.pluk.reader.theme
+package com.pluk.reader.ui.theme
 
 import android.os.Build
 import androidx.compose.foundation.isSystemInDarkTheme

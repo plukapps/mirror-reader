@@ -1,4 +1,4 @@
-package com.pluk.reader.reader
+package com.pluk.reader.domain
 
 import kotlin.math.roundToInt
 

@@ -19,8 +19,6 @@ Plan de referencia: `specs/plans/2026-10-06-android-epub-viewer.md`
 
 ## En curso
 
-- **K-014** Hilt, esqueleto de capas y navegación de una sola actividad. Plan `2026-10-06-android-architecture.md`, Tarea 1.
-
 ## Revisión
 
 - **K-001** Proyecto base con Readium y fixture de prueba. Plan, Tarea 1. Compila con Readium 3.4.0 (AGP 9.1.0, Gradle 9.3.1, compileSdk 37, desugaring).
@@ -30,6 +28,7 @@ Plan de referencia: `specs/plans/2026-10-06-android-epub-viewer.md`
 - **K-005** Tabla de contenidos y progreso. Plan, Tarea 5. RDR-004, 005.
 - **K-006** Recordar posición y ajustes. Plan, Tarea 6. RDR-006.
 - **K-007** Verificación manual con EPUB de ejemplo y cierre de docs. Plan, Tarea 7. Verificado en emulador con el EPUB de prueba (abre, tema oscuro, A+, ocultar barra). Pendiente: recorrer la lista manual con tu EPUB real.
+- **K-014** Hilt, esqueleto de capas y navegación de una sola actividad. Plan `2026-10-06-android-architecture.md`, Tarea 1.
 
 ## Hecho
 

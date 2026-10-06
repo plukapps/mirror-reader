@@ -1,4 +1,4 @@
-package com.pluk.reader.reader
+package com.pluk.reader.ui.reader
 
 import org.readium.r2.shared.publication.Link
 

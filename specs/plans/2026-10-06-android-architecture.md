@@ -48,8 +48,8 @@ com.pluk.reader/
 
 **Criterios de aceptación**
 - [ ] Plugins y dependencias de Hilt (KSP), Navigation Compose y Hilt Navigation Compose compilan con AGP 9.1.
-- [ ] `ReaderApp` con `@HiltAndroidApp`. `MainActivity` es `@AndroidEntryPoint`, hereda de `FragmentActivity` y aloja un `NavHost` con las rutas `home` y `reader`.
-- [ ] Los paquetes de las cuatro capas existen y el código actual está movido a ellos (`ReaderSettings` y progreso a `domain`, `PublicationLoader` a `data/epub`, tema a `ui/theme`).
+- [ ] `ReaderApp` con `@HiltAndroidApp`. `MainActivity` es `@AndroidEntryPoint`, hereda de `FragmentActivity` y aloja un `NavHost` con la ruta `home`. La ruta `reader` llega en la Tarea 3; mientras tanto `home` sigue abriendo `ReaderActivity`.
+- [ ] Los paquetes de las cuatro capas existen y el código actual está movido a ellos (`ReaderSettings` y progreso a `domain` —el enum de tema se renombró `ReadingTheme` para no chocar con el tema Compose `ReaderTheme`—, `PublicationLoader` a `data/epub`, tema a `ui/theme`).
 - [ ] La app sigue funcionando: `home` abre el selector y navega a `reader`.
 
 **Verificación:** `./gradlew :app:testDebugUnitTest :app:assembleDebug`; los tests existentes se adaptan a los nuevos paquetes.

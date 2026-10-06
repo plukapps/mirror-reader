@@ -1,5 +1,7 @@
 package com.pluk.reader.reader
 
+import com.pluk.reader.data.epub.PublicationLoader
+import com.pluk.reader.data.epub.LoadException
 import android.net.Uri
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry

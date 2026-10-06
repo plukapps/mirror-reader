@@ -1,7 +1,10 @@
-package com.pluk.reader.reader
+package com.pluk.reader.data.epub
 
 import android.content.Context
 import android.net.Uri
+import dagger.hilt.android.qualifiers.ApplicationContext
+import javax.inject.Inject
+import javax.inject.Singleton
 import org.readium.r2.shared.publication.Publication
 import org.readium.r2.shared.util.asset.AssetRetriever
 import org.readium.r2.shared.util.getOrElse
@@ -12,7 +15,8 @@ import org.readium.r2.streamer.parser.DefaultPublicationParser
 
 class LoadException(message: String, cause: Throwable? = null) : Exception(message, cause)
 
-class PublicationLoader(context: Context) {
+@Singleton
+class PublicationLoader @Inject constructor(@ApplicationContext context: Context) {
     private val appContext = context.applicationContext
     private val httpClient = DefaultHttpClient()
     private val assetRetriever = AssetRetriever(appContext.contentResolver, httpClient)

@@ -1,5 +1,8 @@
 package com.pluk.reader.reader
 
+import com.pluk.reader.domain.model.ReaderSettings
+import com.pluk.reader.domain.model.ReadingTheme
+import com.pluk.reader.ui.reader.toEpubPreferences
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import org.junit.Assert.assertEquals
 import org.junit.Test
@@ -21,9 +24,9 @@ class ReaderSettingsMappingTest {
     // RDR-003
     @Test
     fun themeMapsToReadiumTheme() {
-        assertEquals(Theme.DARK, ReaderSettings(theme = ReaderTheme.DARK).toEpubPreferences().theme)
-        assertEquals(Theme.SEPIA, ReaderSettings(theme = ReaderTheme.SEPIA).toEpubPreferences().theme)
-        assertEquals(Theme.LIGHT, ReaderSettings(theme = ReaderTheme.LIGHT).toEpubPreferences().theme)
+        assertEquals(Theme.DARK, ReaderSettings(theme = ReadingTheme.DARK).toEpubPreferences().theme)
+        assertEquals(Theme.SEPIA, ReaderSettings(theme = ReadingTheme.SEPIA).toEpubPreferences().theme)
+        assertEquals(Theme.LIGHT, ReaderSettings(theme = ReadingTheme.LIGHT).toEpubPreferences().theme)
     }
 
     // RDR-002

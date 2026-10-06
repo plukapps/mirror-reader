@@ -1,5 +1,7 @@
 package com.pluk.reader.reader
 
+import com.pluk.reader.domain.model.ReaderSettings
+import com.pluk.reader.domain.model.ReadingTheme
 import org.junit.Assert.assertEquals
 import org.junit.Test
 
@@ -16,10 +18,10 @@ class ReaderSettingsTest {
     @Test
     fun themeCyclesLightDarkSepiaLight() {
         var s = ReaderSettings()
-        assertEquals(ReaderTheme.LIGHT, s.theme)
-        s = s.nextTheme(); assertEquals(ReaderTheme.DARK, s.theme)
-        s = s.nextTheme(); assertEquals(ReaderTheme.SEPIA, s.theme)
-        s = s.nextTheme(); assertEquals(ReaderTheme.LIGHT, s.theme)
+        assertEquals(ReadingTheme.LIGHT, s.theme)
+        s = s.nextTheme(); assertEquals(ReadingTheme.DARK, s.theme)
+        s = s.nextTheme(); assertEquals(ReadingTheme.SEPIA, s.theme)
+        s = s.nextTheme(); assertEquals(ReadingTheme.LIGHT, s.theme)
     }
 
     // RDR-002

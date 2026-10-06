@@ -1,5 +1,7 @@
 package com.pluk.reader.reader
 
+import com.pluk.reader.domain.progressPercent
+import com.pluk.reader.ui.reader.toEpubPreferences
 import android.content.ActivityNotFoundException
 import android.content.Intent
 import android.os.Bundle
@@ -16,7 +18,7 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import com.pluk.reader.R
-import com.pluk.reader.theme.ReaderTheme
+import com.pluk.reader.ui.theme.ReaderTheme
 import kotlinx.coroutines.launch
 import org.readium.r2.navigator.epub.EpubNavigatorFragment
 import org.readium.r2.navigator.input.InputListener

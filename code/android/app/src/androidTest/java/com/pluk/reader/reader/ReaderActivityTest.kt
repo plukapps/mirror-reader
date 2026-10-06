@@ -1,5 +1,6 @@
 package com.pluk.reader.reader
 
+import com.pluk.reader.domain.model.ReadingTheme
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
@@ -183,9 +184,9 @@ class ReaderActivityTest {
             scenario.onActivity { ViewModelProvider(it)[ReaderViewModel::class.java].nextTheme() }
         }
         ActivityScenario.launch<ReaderActivity>(readerIntent(uri)).use { scenario ->
-            var theme: ReaderTheme? = null
+            var theme: ReadingTheme? = null
             scenario.onActivity { theme = ViewModelProvider(it)[ReaderViewModel::class.java].settings.value.theme }
-            assertTrue(theme == ReaderTheme.DARK)
+            assertTrue(theme == ReadingTheme.DARK)
         }
     }
 }
