@@ -25,5 +25,6 @@ Supabase.
 
 ## Consecuencias
 
+- Según ADR 0005, el cliente Android consume el backend con Retrofit, OkHttp y Gson mediante la API REST de Supabase (PostgREST para datos, GoTrue para cuentas, Storage para archivos). No se usa el SDK de Supabase para Kotlin, para no sumar un cliente fuera del stack definido. Esto se debe validar en la rebanada de sincronización.
 - La lógica de sincronización la escribimos nosotros.
 - Cambiar de backend implica reemplazar este ADR, no los specs de producto.

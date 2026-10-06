@@ -7,7 +7,7 @@ Lector de EPUB multiplataforma (Android, iOS, Mac, web). El usuario sube sus pro
 - `specs/` — fuente de verdad del producto (SDD). Empezar por `specs/README.md`.
   - `specs/product/` qué hace la app, `specs/platforms/` alcance por plataforma, `specs/adr/` decisiones técnicas.
   - `specs/plans/` planes de implementación, uno por rebanada.
-- `code/android/` — app Android (Kotlin, Compose, Readium).
+- `code/android/` — app Android (Kotlin, Compose, Hilt, Room, DataStore, Readium). Stack y capas: `specs/adr/0005-android-stack-and-architecture.md`.
 - `design/` — diseños y maquetas.
 - `KANBAN.md` — tablero de trabajo.
 
@@ -63,6 +63,14 @@ Todo el trabajo se gestiona en `KANBAN.md`. Reglas:
 - Nunca guardar en el repo libros de terceros ni credenciales. Los EPUB de muestra van en `code/android/samples/` (ignorada por git).
 
 ## Android
+
+Arquitectura MVVM en capas, un solo módulo Gradle, paquetes `com.pluk.reader.{ui,domain,data,di}`:
+
+- `ui`: pantallas Compose, `ViewModel` (un `StateFlow<UiState>` por pantalla), navegación (Navigation Compose, una sola actividad), tema.
+- `domain`: modelos propios, interfaces de repositorio y casos de uso con lógica. Sin Android ni Compose.
+- `data`: repositorios, Room, DataStore Preferences, motor de EPUB (Readium) y, desde la rebanada de sync, Retrofit, OkHttp y Gson.
+- `di`: módulos de Hilt (con KSP, no kapt).
+- Coroutines y Flow para lo asíncrono. Sin `SharedPreferences`. Sin dependencias sin uso.
 
 - Raíz del proyecto Gradle: `code/android`. Namespace y applicationId `com.pluk.reader`. `minSdk 26`.
 - Motor de EPUB: Readium Kotlin Toolkit 3.4.0 (ADR 0004, provisional).

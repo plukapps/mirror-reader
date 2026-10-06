@@ -22,3 +22,4 @@ Nativo: Kotlin en Android, Swift en iOS y Mac, web aparte.
 - Más código que mantener, a cargo de una sola persona. Por eso se construye por fases, empezando por Android.
 - El spec es el contrato común. Los criterios de aceptación no dependen de la plataforma.
 - iOS y Mac pueden compartir código Swift.
+- El stack y la arquitectura de Android se concretan en ADR 0005.

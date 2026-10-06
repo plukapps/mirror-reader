@@ -12,6 +12,11 @@ Todo lo definido en `product/`: biblioteca, lector, anotaciones, sincronización
 - **AND-002** Debe ser compatible con TalkBack y respetar el tamaño de fuente del sistema.
 - **AND-003** Debe recibir EPUB desde "Compartir / Abrir con" (LIB-001).
 - **AND-004** Debe cumplir las políticas de Google Play (incluida la eliminación de cuenta, CMP-001).
+- **AND-005** La pantalla del lector es una pantalla de Compose dentro de una sola actividad. Ver ADR 0005.
+
+## Arquitectura
+
+Stack y capas definidos en `specs/adr/0005-android-stack-and-architecture.md`: Compose, Navigation Compose, MVVM en capas (ui, domain, data, di), Hilt, Coroutines y Flow, Room, DataStore y, para el backend, Retrofit, OkHttp y Gson.
 
 ## Decisiones
 
