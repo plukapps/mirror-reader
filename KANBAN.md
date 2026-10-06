@@ -13,7 +13,6 @@ Plan de referencia: `specs/plans/2026-10-06-android-epub-viewer.md`
 
 ## Listo
 
-- **K-006** Recordar posición y ajustes. Plan, Tarea 6. RDR-006.
 - **K-007** Verificación manual con EPUB de ejemplo y cierre de docs. Plan, Tarea 7.
 
 ## En curso
@@ -25,6 +24,7 @@ Plan de referencia: `specs/plans/2026-10-06-android-epub-viewer.md`
 - **K-003** Mostrar el libro en pantalla. Plan, Tarea 3. RDR-007, AND-003.
 - **K-004** Ajustes de lectura: paginado o scroll, tema, tamaño. Plan, Tarea 4. RDR-001, 002, 003.
 - **K-005** Tabla de contenidos y progreso. Plan, Tarea 5. RDR-004, 005.
+- **K-006** Recordar posición y ajustes. Plan, Tarea 6. RDR-006.
 
 ## Hecho
 

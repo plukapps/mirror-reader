@@ -30,12 +30,14 @@ sealed interface ReaderState {
 @OptIn(ExperimentalReadiumApi::class)
 class ReaderViewModel(app: Application) : AndroidViewModel(app) {
     private val loader = PublicationLoader(app)
+    private val locatorStore: LocatorStore = PrefsLocatorStore(app)
+    private val settingsStore: SettingsStore = PrefsSettingsStore(app)
     private val _state = MutableStateFlow<ReaderState>(ReaderState.Loading)
     val state: StateFlow<ReaderState> = _state.asStateFlow()
     val session: ReaderSession? get() = (_state.value as? ReaderState.Ready)?.session
     private var started = false
 
-    private val _settings = MutableStateFlow(ReaderSettings())
+    private val _settings = MutableStateFlow(settingsStore.load())
     val settings: StateFlow<ReaderSettings> = _settings.asStateFlow()
 
     private val _controlsVisible = MutableStateFlow(true)
@@ -49,6 +51,7 @@ class ReaderViewModel(app: Application) : AndroidViewModel(app) {
 
     fun onLocatorChanged(locator: Locator) {
         _progress.value = progressPercent(locator.locations.totalProgression)
+        session?.let { locatorStore.save(it.bookId, locator) }
     }
 
     fun toggleScroll() = update { it.toggleScroll() }
@@ -58,7 +61,7 @@ class ReaderViewModel(app: Application) : AndroidViewModel(app) {
     fun toggleControls() { _controlsVisible.value = !_controlsVisible.value }
 
     private fun update(transform: (ReaderSettings) -> ReaderSettings) {
-        _settings.value = transform(_settings.value)
+        _settings.value = transform(_settings.value).also(settingsStore::save)
     }
 
     fun open(uri: Uri) {
@@ -69,7 +72,12 @@ class ReaderViewModel(app: Application) : AndroidViewModel(app) {
                 onSuccess = { publication ->
                     val bookId = publication.metadata.identifier ?: uri.toString()
                     _state.value = ReaderState.Ready(
-                        ReaderSession(publication, EpubNavigatorFactory(publication), bookId),
+                        ReaderSession(
+                            publication,
+                            EpubNavigatorFactory(publication),
+                            bookId,
+                            initialLocator = locatorStore.load(bookId),
+                        ),
                     )
                 },
                 onFailure = { _state.value = ReaderState.Failed(it.message ?: "No se pudo abrir el libro.") },

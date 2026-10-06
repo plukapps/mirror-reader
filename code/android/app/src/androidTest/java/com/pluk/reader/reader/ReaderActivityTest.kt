@@ -10,6 +10,8 @@ import androidx.compose.ui.test.junit4.createEmptyComposeRule
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.lifecycleScope
+import kotlinx.coroutines.launch
 import androidx.test.core.app.ActivityScenario
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
@@ -138,6 +140,52 @@ class ReaderActivityTest {
                 }
                 href.endsWith("ch2.xhtml")
             }
+        }
+    }
+
+    // Foco de revisión 4: cerrar y reabrir vuelve a la misma posición (RDR-006)
+    @Test
+    fun reopeningBookRestoresPosition() {
+        val uri = copyAsset("minimal.epub")
+        val bookId = "urn:uuid:11111111-2222-3333-4444-555555555555"
+
+        ActivityScenario.launch<ReaderActivity>(readerIntent(uri)).use { scenario ->
+            waitUntil { hasNavigator(scenario) }
+            scenario.onActivity { activity ->
+                val vm = ViewModelProvider(activity)[ReaderViewModel::class.java]
+                val navigator = activity.supportFragmentManager
+                    .findFragmentByTag(ReaderActivity.NAVIGATOR_TAG) as EpubNavigatorFragment
+                navigator.go(vm.session!!.publication.readingOrder[1], animated = false)
+            }
+            waitUntil { PrefsLocatorStore(context).load(bookId)?.href.toString().endsWith("ch2.xhtml") }
+        }
+
+        ActivityScenario.launch<ReaderActivity>(readerIntent(uri)).use { scenario ->
+            waitUntil { hasNavigator(scenario) }
+            waitUntil {
+                var href = ""
+                scenario.onActivity { activity ->
+                    val navigator = activity.supportFragmentManager
+                        .findFragmentByTag(ReaderActivity.NAVIGATOR_TAG) as EpubNavigatorFragment
+                    href = navigator.currentLocator.value.href.toString()
+                }
+                href.endsWith("ch2.xhtml")
+            }
+        }
+    }
+
+    // RDR-002, RDR-003: los ajustes sobreviven al cierre
+    @Test
+    fun settingsPersistAcrossLaunches() {
+        val uri = copyAsset("minimal.epub")
+        ActivityScenario.launch<ReaderActivity>(readerIntent(uri)).use { scenario ->
+            waitUntil { hasNavigator(scenario) }
+            scenario.onActivity { ViewModelProvider(it)[ReaderViewModel::class.java].nextTheme() }
+        }
+        ActivityScenario.launch<ReaderActivity>(readerIntent(uri)).use { scenario ->
+            var theme: ReaderTheme? = null
+            scenario.onActivity { theme = ViewModelProvider(it)[ReaderViewModel::class.java].settings.value.theme }
+            assertTrue(theme == ReaderTheme.DARK)
         }
     }
 }
