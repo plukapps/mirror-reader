@@ -41,6 +41,16 @@ class ReaderViewModel(app: Application) : AndroidViewModel(app) {
     private val _controlsVisible = MutableStateFlow(true)
     val controlsVisible: StateFlow<Boolean> = _controlsVisible.asStateFlow()
 
+    private val _progress = MutableStateFlow<Int?>(null)
+    val progress: StateFlow<Int?> = _progress.asStateFlow()
+
+    val toc: List<TocEntry>
+        get() = session?.publication?.let { flattenToc(it.tableOfContents) }.orEmpty()
+
+    fun onLocatorChanged(locator: Locator) {
+        _progress.value = progressPercent(locator.locations.totalProgression)
+    }
+
     fun toggleScroll() = update { it.toggleScroll() }
     fun nextTheme() = update { it.nextTheme() }
     fun biggerFont() = update { it.biggerFont() }

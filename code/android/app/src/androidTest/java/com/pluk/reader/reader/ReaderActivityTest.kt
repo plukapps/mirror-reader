@@ -5,6 +5,10 @@ import android.content.Intent
 import android.net.Uri
 import android.widget.TextView
 import androidx.core.view.isVisible
+import androidx.compose.ui.test.assertIsDisplayed
+import androidx.compose.ui.test.junit4.createEmptyComposeRule
+import androidx.compose.ui.test.onNodeWithText
+import androidx.compose.ui.test.performClick
 import androidx.lifecycle.ViewModelProvider
 import androidx.test.core.app.ActivityScenario
 import androidx.test.ext.junit.runners.AndroidJUnit4
@@ -14,6 +18,7 @@ import org.readium.r2.navigator.epub.EpubNavigatorFragment
 import org.readium.r2.shared.ExperimentalReadiumApi
 import org.junit.Assert.assertTrue
 import org.junit.Before
+import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import java.io.File
@@ -23,6 +28,9 @@ import java.io.File
 class ReaderActivityTest {
     private val instrumentation = InstrumentationRegistry.getInstrumentation()
     private val context: Context = instrumentation.targetContext
+
+    @get:Rule
+    val compose = createEmptyComposeRule()
 
     @Before
     fun cleanState() {
@@ -109,6 +117,26 @@ class ReaderActivityTest {
                     scroll = navigator.settings.value.scroll
                 }
                 scroll
+            }
+        }
+    }
+
+    // RDR-004: el índice lista los capítulos y navega al elegido
+    @Test
+    fun tocDialogListsChaptersAndNavigates() {
+        ActivityScenario.launch<ReaderActivity>(readerIntent(copyAsset("minimal.epub"))).use { scenario ->
+            waitUntil { hasNavigator(scenario) }
+            compose.onNodeWithText("Índice").performClick()
+            compose.onNodeWithText("Capítulo 1").assertIsDisplayed()
+            compose.onNodeWithText("Capítulo 2").assertIsDisplayed().performClick()
+            waitUntil {
+                var href = ""
+                scenario.onActivity { activity ->
+                    val navigator = activity.supportFragmentManager
+                        .findFragmentByTag(ReaderActivity.NAVIGATOR_TAG) as EpubNavigatorFragment
+                    href = navigator.currentLocator.value.href.toString()
+                }
+                href.endsWith("ch2.xhtml")
             }
         }
     }

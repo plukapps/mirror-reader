@@ -8,6 +8,7 @@ import android.widget.TextView
 import androidx.activity.viewModels
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.platform.ComposeView
 import androidx.core.view.isVisible
 import androidx.fragment.app.FragmentActivity
@@ -46,14 +47,21 @@ class ReaderActivity : FragmentActivity(), EpubNavigatorFragment.Listener {
         findViewById<ComposeView>(R.id.controls).setContent {
             val settings by viewModel.settings.collectAsState()
             val visible by viewModel.controlsVisible.collectAsState()
+            val progress by viewModel.progress.collectAsState()
+            val state by viewModel.state.collectAsState()
+            // El índice depende de que el libro esté cargado, por eso se deriva del estado.
+            val toc = remember(state) { viewModel.toc }
             ReaderTheme {
                 ReaderControls(
                     visible = visible,
                     settings = settings,
+                    progressPercent = progress,
+                    toc = toc,
                     onToggleScroll = viewModel::toggleScroll,
                     onNextTheme = viewModel::nextTheme,
                     onSmallerFont = viewModel::smallerFont,
                     onBiggerFont = viewModel::biggerFont,
+                    onTocSelected = { entry -> navigator()?.go(entry.link, animated = false) },
                 )
             }
         }
@@ -74,6 +82,9 @@ class ReaderActivity : FragmentActivity(), EpubNavigatorFragment.Listener {
         supportFragmentManager.findFragmentByTag(NAVIGATOR_TAG) as? EpubNavigatorFragment
 
     private fun setUpNavigator(navigator: EpubNavigatorFragment) {
+        navigator.lifecycleScope.launch {
+            navigator.currentLocator.collect(viewModel::onLocatorChanged)
+        }
         // Toques en los bordes pasan de página. Un toque en el centro muestra u oculta los controles.
         navigator.addInputListener(DirectionalNavigationAdapter(navigator))
         navigator.addInputListener(object : InputListener {
