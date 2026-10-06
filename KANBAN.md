@@ -13,7 +13,6 @@ Plan de referencia: `specs/plans/2026-10-06-android-epub-viewer.md`
 
 ## Listo
 
-- **K-002** Cargar un EPUB desde una URI. Plan, Tarea 2. LIB-002.
 - **K-003** Mostrar el libro en pantalla. Plan, Tarea 3. RDR-007, AND-003.
 - **K-004** Ajustes de lectura: paginado o scroll, tema, tamaño. Plan, Tarea 4. RDR-001, 002, 003.
 - **K-005** Tabla de contenidos y progreso. Plan, Tarea 5. RDR-004, 005.
@@ -25,6 +24,7 @@ Plan de referencia: `specs/plans/2026-10-06-android-epub-viewer.md`
 ## Revisión
 
 - **K-001** Proyecto base con Readium y fixture de prueba. Plan, Tarea 1. Compila con Readium 3.4.0 (AGP 9.1.0, Gradle 9.3.1, compileSdk 37, desugaring).
+- **K-002** Cargar un EPUB desde una URI. Plan, Tarea 2. LIB-002.
 
 ## Hecho
 
