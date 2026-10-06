@@ -6,14 +6,21 @@ import android.os.Bundle
 import android.widget.ProgressBar
 import android.widget.TextView
 import androidx.activity.viewModels
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.ui.platform.ComposeView
 import androidx.core.view.isVisible
 import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import com.pluk.reader.R
+import com.pluk.reader.theme.ReaderTheme
 import kotlinx.coroutines.launch
 import org.readium.r2.navigator.epub.EpubNavigatorFragment
+import org.readium.r2.navigator.input.InputListener
+import org.readium.r2.navigator.input.TapEvent
+import org.readium.r2.navigator.util.DirectionalNavigationAdapter
 import org.readium.r2.shared.ExperimentalReadiumApi
 import org.readium.r2.shared.util.AbsoluteUrl
 import org.readium.r2.shared.util.toUri
@@ -25,6 +32,10 @@ class ReaderActivity : FragmentActivity(), EpubNavigatorFragment.Listener {
     override fun onCreate(savedInstanceState: Bundle?) {
         // El factory debe estar instalado antes de super.onCreate para que Android
         // pueda restaurar el fragmento tras una recreación. Sin sesión no hay nada que restaurar.
+        // Se registra antes de super.onCreate para cubrir también el fragmento restaurado.
+        supportFragmentManager.addFragmentOnAttachListener { _, fragment ->
+            if (fragment is EpubNavigatorFragment) setUpNavigator(fragment)
+        }
         val existing = viewModel.session
         existing?.let(::installFragmentFactory)
         super.onCreate(if (existing != null) savedInstanceState else null)
@@ -32,16 +43,51 @@ class ReaderActivity : FragmentActivity(), EpubNavigatorFragment.Listener {
 
         intent.data?.let(viewModel::open)
 
+        findViewById<ComposeView>(R.id.controls).setContent {
+            val settings by viewModel.settings.collectAsState()
+            val visible by viewModel.controlsVisible.collectAsState()
+            ReaderTheme {
+                ReaderControls(
+                    visible = visible,
+                    settings = settings,
+                    onToggleScroll = viewModel::toggleScroll,
+                    onNextTheme = viewModel::nextTheme,
+                    onSmallerFont = viewModel::smallerFont,
+                    onBiggerFont = viewModel::biggerFont,
+                )
+            }
+        }
+
         lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
                 viewModel.state.collect(::render)
             }
         }
+        lifecycleScope.launch {
+            repeatOnLifecycle(Lifecycle.State.STARTED) {
+                viewModel.settings.collect { navigator()?.submitPreferences(it.toEpubPreferences()) }
+            }
+        }
+    }
+
+    private fun navigator(): EpubNavigatorFragment? =
+        supportFragmentManager.findFragmentByTag(NAVIGATOR_TAG) as? EpubNavigatorFragment
+
+    private fun setUpNavigator(navigator: EpubNavigatorFragment) {
+        // Toques en los bordes pasan de página. Un toque en el centro muestra u oculta los controles.
+        navigator.addInputListener(DirectionalNavigationAdapter(navigator))
+        navigator.addInputListener(object : InputListener {
+            override fun onTap(event: TapEvent): Boolean {
+                viewModel.toggleControls()
+                return true
+            }
+        })
     }
 
     private fun installFragmentFactory(session: ReaderSession) {
         supportFragmentManager.fragmentFactory = session.factory.createFragmentFactory(
             initialLocator = session.initialLocator,
+            initialPreferences = viewModel.settings.value.toEpubPreferences(),
             listener = this,
         )
     }

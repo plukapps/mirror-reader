@@ -5,16 +5,20 @@ import android.content.Intent
 import android.net.Uri
 import android.widget.TextView
 import androidx.core.view.isVisible
+import androidx.lifecycle.ViewModelProvider
 import androidx.test.core.app.ActivityScenario
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
 import com.pluk.reader.R
+import org.readium.r2.navigator.epub.EpubNavigatorFragment
+import org.readium.r2.shared.ExperimentalReadiumApi
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
 import java.io.File
 
+@OptIn(ExperimentalReadiumApi::class)
 @RunWith(AndroidJUnit4::class)
 class ReaderActivityTest {
     private val instrumentation = InstrumentationRegistry.getInstrumentation()
@@ -86,6 +90,26 @@ class ReaderActivityTest {
                 visible
             }
             assertTrue(!hasNavigator(scenario))
+        }
+    }
+
+    // RDR-001: el ajuste llega al navegador
+    @Test
+    fun scrollSettingIsAppliedToNavigator() {
+        ActivityScenario.launch<ReaderActivity>(readerIntent(copyAsset("minimal.epub"))).use { scenario ->
+            waitUntil { hasNavigator(scenario) }
+            scenario.onActivity { activity ->
+                ViewModelProvider(activity)[ReaderViewModel::class.java].toggleScroll()
+            }
+            waitUntil {
+                var scroll = false
+                scenario.onActivity { activity ->
+                    val navigator = activity.supportFragmentManager
+                        .findFragmentByTag(ReaderActivity.NAVIGATOR_TAG) as EpubNavigatorFragment
+                    scroll = navigator.settings.value.scroll
+                }
+                scroll
+            }
         }
     }
 }

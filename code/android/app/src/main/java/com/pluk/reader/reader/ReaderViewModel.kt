@@ -35,6 +35,22 @@ class ReaderViewModel(app: Application) : AndroidViewModel(app) {
     val session: ReaderSession? get() = (_state.value as? ReaderState.Ready)?.session
     private var started = false
 
+    private val _settings = MutableStateFlow(ReaderSettings())
+    val settings: StateFlow<ReaderSettings> = _settings.asStateFlow()
+
+    private val _controlsVisible = MutableStateFlow(true)
+    val controlsVisible: StateFlow<Boolean> = _controlsVisible.asStateFlow()
+
+    fun toggleScroll() = update { it.toggleScroll() }
+    fun nextTheme() = update { it.nextTheme() }
+    fun biggerFont() = update { it.biggerFont() }
+    fun smallerFont() = update { it.smallerFont() }
+    fun toggleControls() { _controlsVisible.value = !_controlsVisible.value }
+
+    private fun update(transform: (ReaderSettings) -> ReaderSettings) {
+        _settings.value = transform(_settings.value)
+    }
+
     fun open(uri: Uri) {
         if (started) return
         started = true
