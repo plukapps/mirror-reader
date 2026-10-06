@@ -94,4 +94,16 @@ dependencies {
   implementation(libs.hilt.android)
   implementation(libs.androidx.hilt.navigation.compose)
   ksp(libs.hilt.compiler)
+
+  // Persistencia local (ADR 0005)
+  implementation(libs.androidx.room.runtime)
+  implementation(libs.androidx.room.ktx)
+  ksp(libs.androidx.room.compiler)
+  implementation(libs.androidx.datastore.preferences)
+  androidTestImplementation(libs.androidx.room.testing)
+}
+
+// El esquema de Room se versiona para poder revisar migraciones.
+ksp {
+  arg("room.schemaLocation", "$projectDir/schemas")
 }

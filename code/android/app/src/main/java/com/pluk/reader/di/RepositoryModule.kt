@@ -1,0 +1,23 @@
+package com.pluk.reader.di
+
+import com.pluk.reader.data.repository.PositionRepositoryImpl
+import com.pluk.reader.data.repository.SettingsRepositoryImpl
+import com.pluk.reader.domain.repository.PositionRepository
+import com.pluk.reader.domain.repository.SettingsRepository
+import dagger.Binds
+import dagger.Module
+import dagger.hilt.InstallIn
+import dagger.hilt.components.SingletonComponent
+import javax.inject.Singleton
+
+@Module
+@InstallIn(SingletonComponent::class)
+abstract class RepositoryModule {
+    @Binds
+    @Singleton
+    abstract fun bindSettingsRepository(impl: SettingsRepositoryImpl): SettingsRepository
+
+    @Binds
+    @Singleton
+    abstract fun bindPositionRepository(impl: PositionRepositoryImpl): PositionRepository
+}

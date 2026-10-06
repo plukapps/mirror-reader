@@ -13,7 +13,6 @@ Plan de referencia: `specs/plans/2026-10-06-android-epub-viewer.md`
 
 ## Listo
 
-- **K-015** Capa de datos: Room (posición) y DataStore (ajustes) con repositorios. Plan `2026-10-06-android-architecture.md`, Tarea 2.
 - **K-016** Pantalla del lector en Compose, reemplaza a `ReaderActivity`. Plan `2026-10-06-android-architecture.md`, Tarea 3.
 - **K-017** Pruebas con Hilt, limpieza y cierre de docs. Plan `2026-10-06-android-architecture.md`, Tarea 4.
 
@@ -29,6 +28,7 @@ Plan de referencia: `specs/plans/2026-10-06-android-epub-viewer.md`
 - **K-006** Recordar posición y ajustes. Plan, Tarea 6. RDR-006.
 - **K-007** Verificación manual con EPUB de ejemplo y cierre de docs. Plan, Tarea 7. Verificado en emulador con el EPUB de prueba (abre, tema oscuro, A+, ocultar barra). Pendiente: recorrer la lista manual con tu EPUB real.
 - **K-014** Hilt, esqueleto de capas y navegación de una sola actividad. Plan `2026-10-06-android-architecture.md`, Tarea 1.
+- **K-015** Capa de datos: Room (posición) y DataStore (ajustes) con repositorios. Plan `2026-10-06-android-architecture.md`, Tarea 2.
 
 ## Hecho
 
