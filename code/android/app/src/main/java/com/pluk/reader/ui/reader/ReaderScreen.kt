@@ -230,23 +230,26 @@ private fun ReaderContent(
                 Box(
                     Modifier
                         .fillMaxSize()
-                        .background(Color.Yellow)
                         .graphicsLayer { translationX = controller.transform(size.width).incomingTranslationX },
                 ) {
-                    if (LocalInspectionMode.current) {
-                        // En el preview del IDE el navegador de Readium no se dibuja: una página de texto ocupa su lugar.
-                        PreviewBookPage(settings.theme,
-                            Modifier.fillMaxSize()
-                                .padding(READING_PADDING, READING_PADDING * 2, READING_PADDING, 16.dp)
-                        )
-                    } else {
-                        AndroidFragment<EpubNavigatorFragment>(
-                            Modifier.fillMaxSize()
-                                .background(Color.Red)
-                                .padding(READING_PADDING, 0.dp, READING_PADDING, 0.dp)
-                            ,
-                            onUpdate = { fragment -> if (navigator !== fragment) navigator = fragment },
-                        )
+                    // RDR-010: el número va dentro de la página, así se mueve (y se captura) con ella.
+                    Column(Modifier.fillMaxSize()) {
+                        val pageModifier = Modifier
+                            .weight(1f)
+                            .fillMaxWidth()
+                            .padding(READING_PADDING, READING_PADDING * 2, READING_PADDING, READING_PADDING / 2)
+                        if (LocalInspectionMode.current) {
+                            // En el preview del IDE el navegador de Readium no se dibuja: una página de texto ocupa su lugar.
+                            PreviewBookPage(settings.theme, pageModifier)
+                        } else {
+                            AndroidFragment<EpubNavigatorFragment>(
+                                pageModifier,
+                                onUpdate = { fragment -> if (navigator !== fragment) navigator = fragment },
+                            )
+                        }
+                        if (showPageNumber) {
+                            ReaderPageNumber(pageNumber, settings.theme.pageTextColor())
+                        }
                     }
                 }
                 // Página que sale: captura con su fondo, encima, deslizándose con menos opacidad.
@@ -273,9 +276,6 @@ private fun ReaderContent(
                     )
                 }
             }
-            if (showPageNumber) {
-                ReaderPageNumber(pageNumber, settings.theme.pageTextColor())
-            }
         }
         Box(Modifier.align(Alignment.TopCenter)) {
             ReaderControls(
@@ -301,10 +301,8 @@ private fun ReaderPageNumber(pageNumber: Int?, color: Color) {
     Box(
         Modifier
             .fillMaxWidth()
-            .background(Color.Blue)
-            .padding(0.dp, 0.dp, 0.dp , 16.dp)
             .navigationBarsPadding()
-//            .height(PAGE_NUMBER_HEIGHT)
+            .height(PAGE_NUMBER_HEIGHT)
         ,
         contentAlignment = Alignment.Center,
     ) {
