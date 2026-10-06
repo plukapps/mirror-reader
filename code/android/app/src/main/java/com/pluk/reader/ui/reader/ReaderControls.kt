@@ -3,6 +3,7 @@ package com.pluk.reader.ui.reader
 import com.pluk.reader.domain.model.ReaderSettings
 import com.pluk.reader.domain.model.ReadingTheme
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.ExitTransition
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeOut
@@ -32,6 +33,8 @@ import androidx.compose.ui.unit.dp
 @Composable
 fun ReaderControls(
     visible: Boolean,
+    /** Si es true, al ocultarse los controles desaparecen de golpe, sin desvanecerse. */
+    instantHide: Boolean,
     settings: ReaderSettings,
     progressPercent: Int?,
     toc: List<TocEntry>,
@@ -44,7 +47,7 @@ fun ReaderControls(
 ) {
     var showToc by remember { mutableStateOf(false) }
 
-    AnimatedVisibility(visible = visible, enter = fadeIn(), exit = fadeOut(tween(CONTROLS_FADE_OUT_MS))) {
+    AnimatedVisibility(visible = visible, enter = fadeIn(), exit = if (instantHide) ExitTransition.None else fadeOut(tween(80))) {
         Surface(tonalElevation = 3.dp, modifier = Modifier.fillMaxWidth().statusBarsPadding()) {
             Column(modifier = Modifier.padding(horizontal = 8.dp)) {
                 Row(
@@ -66,7 +69,7 @@ fun ReaderControls(
                     TextButton(onClick = onSmallerFont) { Text("A−") }
                     TextButton(onClick = onBiggerFont) { Text("A+") }
                     TextButton(onClick = onTogglePageAnimation) {
-                        Text(if (settings.pageAnimation) "Efecto" else "Sin efecto")
+                        Text(if (settings.pageAnimation) "E" else "S")
                     }
                 }
                 Text(
@@ -108,4 +111,3 @@ fun ReaderControls(
 }
 
 /** Lo que tarda en desaparecer la barra. El paso de página espera este tiempo para no capturarla (RDR-009). */
-const val CONTROLS_FADE_OUT_MS = 80

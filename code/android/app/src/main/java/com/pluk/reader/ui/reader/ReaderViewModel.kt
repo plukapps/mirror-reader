@@ -43,6 +43,7 @@ class ReaderViewModel @Inject constructor(
     private val uri: String = checkNotNull(savedStateHandle[ARG_URI]) { "Falta el argumento $ARG_URI" }
     private val phase = MutableStateFlow<Phase>(Phase.Loading)
     private val progress = MutableStateFlow<Int?>(null)
+    private val pageNumber = MutableStateFlow<Int?>(null)
     private val controlsVisible = MutableStateFlow(true)
     private val pendingPosition = MutableStateFlow<String?>(null)
 
@@ -50,12 +51,12 @@ class ReaderViewModel @Inject constructor(
     val events: SharedFlow<ReaderEvent> = _events.asSharedFlow()
 
     val uiState: StateFlow<ReaderUiState> = combine(
-        phase, settingsRepository.settings, progress, controlsVisible,
-    ) { phase, settings, progress, controls ->
+        phase, settingsRepository.settings, progress, pageNumber, controlsVisible,
+    ) { phase, settings, progress, page, controls ->
         when (phase) {
             Phase.Loading -> ReaderUiState.Loading
             is Phase.Failed -> ReaderUiState.Failed(phase.message)
-            is Phase.Opened -> ReaderUiState.Ready(phase.book, phase.toc, settings, progress, controls)
+            is Phase.Opened -> ReaderUiState.Ready(phase.book, phase.toc, settings, progress, page, controls)
         }
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(STOP_TIMEOUT_MS), ReaderUiState.Loading)
 
@@ -89,9 +90,10 @@ class ReaderViewModel @Inject constructor(
         }
     }
 
-    /** RDR-005 y RDR-006: la pantalla informa cada cambio de posición con el locator serializado. */
-    fun onLocatorChanged(locatorJson: String, totalProgression: Double?) {
+    /** RDR-005, RDR-006 y RDR-010: la pantalla informa cada cambio de posición con el locator serializado. */
+    fun onLocatorChanged(locatorJson: String, totalProgression: Double?, position: Int? = null) {
         progress.value = progressPercent(totalProgression)
+        pageNumber.value = position
         pendingPosition.value = locatorJson
     }
 

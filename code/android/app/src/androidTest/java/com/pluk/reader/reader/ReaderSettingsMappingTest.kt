@@ -34,4 +34,10 @@ class ReaderSettingsMappingTest {
     fun fontScaleMapsToFontSize() {
         assertEquals(1.2, ReaderSettings(fontScale = 1.2).toEpubPreferences().fontSize ?: 0.0, 0.0001)
     }
+
+    // RDR-002: el margen de página de Readium se anula; el único margen es el del contenedor.
+    @Test
+    fun pageMarginsAreZero() {
+        assertEquals(0.0, ReaderSettings().toEpubPreferences().pageMargins ?: -1.0, 0.0)
+    }
 }

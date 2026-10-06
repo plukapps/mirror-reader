@@ -13,6 +13,8 @@ data class PageTurnTransform(
     val outgoingTranslationX: Float,
     val outgoingAlpha: Float,
     val incomingTranslationX: Float,
+    /** Cuánto del aclarado del fondo (0..1) se aplica a la página que sale. Crece rápido para no ver un salto. */
+    val outgoingLightenAmount: Float,
 ) {
     companion object {
         /** Cuánto de su ancho se desplaza la página nueva al empezar. */
@@ -21,6 +23,9 @@ data class PageTurnTransform(
         /** Opacidad de la página que sale al terminar. */
         const val OUTGOING_END_ALPHA = 0.7f
 
+        /** Avance con el que el fondo de la página que sale ya está del todo aclarado. */
+        const val LIGHTEN_RAMP = 0.1f
+
         fun at(progress: Float, direction: PageTurnDirection, pageWidth: Float): PageTurnTransform {
             val p = progress.coerceIn(0f, 1f)
             val outgoingSign = if (direction == PageTurnDirection.Forward) -1f else 1f
@@ -28,6 +33,7 @@ data class PageTurnTransform(
                 outgoingTranslationX = outgoingSign * p * pageWidth,
                 outgoingAlpha = 1f - (1f - OUTGOING_END_ALPHA) * p,
                 incomingTranslationX = -outgoingSign * (1f - p) * PARALLAX_FRACTION * pageWidth,
+                outgoingLightenAmount = (p / LIGHTEN_RAMP).coerceIn(0f, 1f),
             )
         }
     }

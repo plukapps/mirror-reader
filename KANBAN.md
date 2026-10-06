@@ -15,6 +15,8 @@ Plan de referencia: `specs/plans/2026-10-06-android-epub-viewer.md`
 
 ## En curso
 
+- **K-024** Quitar el padding vertical de Readium (40 dp arriba y abajo en modo paginado) y reservar la barra de estado desde la pantalla. RDR-002. Rama `feat/page-turn-animation`.
+
 ## Revisión
 
 - **K-001** Proyecto base con Readium y fixture de prueba. Plan, Tarea 1. Compila con Readium 3.4.0 (AGP 9.1.0, Gradle 9.3.1, compileSdk 37, desugaring).
@@ -29,6 +31,11 @@ Plan de referencia: `specs/plans/2026-10-06-android-epub-viewer.md`
 - **K-016** Pantalla del lector en Compose, reemplaza a `ReaderActivity`. Plan `2026-10-06-android-architecture.md`, Tarea 3.
 - **K-017** Pruebas con Hilt, limpieza y cierre de docs. Plan `2026-10-06-android-architecture.md`, Tarea 4.
 - **K-018** Animación de paso de página (deslizar con paralaje). Rama `feat/page-turn-animation`. RDR-009.
+- **K-019** La animación de página sigue al dedo y se completa o se cancela al soltar (umbral). Rama `feat/page-turn-animation`. RDR-009.
+- **K-020** Bug: al empezar el swipe de página la animación se traba y luego salta al dedo. La captura tardaba en estar lista y no seguía al dedo mientras el navegador cambiaba de página. Ahora se captura al apoyar el dedo, los controles se ocultan sin fade y el cierre desacelera. RDR-009. Rama `feat/page-turn-animation`.
+- **K-021** Número de página en el pie del lector (modo paginado, solo posición actual). RDR-010. Rama `feat/page-turn-animation`.
+- **K-022** El preview de Compose del lector usa el `ReaderContent` real y solo reemplaza el navegador de Readium por una página de texto. Rama `feat/page-turn-animation`.
+- **K-023** Margen de página de Readium en 0 (`pageMargins`), para que el texto use todo el ancho y alto disponibles. RDR-002. Rama `feat/page-turn-animation`.
 
 ## Hecho
 

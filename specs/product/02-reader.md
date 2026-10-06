@@ -16,19 +16,28 @@ Leer cómodo, sin que la interfaz estorbe.
 - **RDR-008** Las preferencias de lectura (letra, tema) se sincronizan con la cuenta.
 - **RDR-009** En modo paginado, el paso de página debe animarse así (animación "deslizar con paralaje"):
   - Al avanzar, la página actual, con su fondo, se desliza hacia la izquierda y baja un poco su opacidad. Debajo, la página nueva entra con un desplazamiento pequeño hacia la izquierda (paralaje).
+  - En el tema oscuro, el fondo de la página que sale se aclara a `#242728` a medida que se desliza, para distinguirla de la que entra.
   - Al retroceder, es la misma animación en sentido inverso: la página actual se desliza hacia la derecha y la anterior entra con paralaje hacia la derecha.
-  - La animación dura poco (unos 300 ms) y se dispara con un toque en los bordes y con un gesto de deslizar horizontal.
+  - Con un toque en los bordes la animación completa dura unos 300 ms.
+  - Con un gesto de deslizar horizontal, la animación sigue al dedo: el avance de la animación es proporcional a lo que se arrastra.
+  - Al soltar, si el avance pasó de un umbral (30% del recorrido) o el gesto fue una pasada rápida, la animación se completa y se pasa de página. Si no, vuelve atrás y la página queda como estaba.
+  - Al soltar, el tramo que falta parte de la velocidad que llevaba el dedo y frena suavemente, sin saltos ni cortes bruscos.
   - El usuario puede desactivarla. Si está desactivada, o en modo scroll, el paso de página es inmediato.
-  - Mientras dura la animación no se aceptan otros pasos de página.
+  - Mientras dura la animación no se aceptan otros pasos de página. Excepción: si la página ya cambió y la animación solo se está asentando, tocar la pantalla la termina al instante y permite pasar de página seguido.
+- **RDR-010** En modo paginado debe mostrar el número de página actual en el pie de la pantalla, fuera del texto y visible aunque los controles estén ocultos. Es la posición del libro, que no cambia con el tamaño de letra. No muestra el total. En modo scroll no se muestra.
 
 ## Escenarios
 
 - Dado que cierro un libro a mitad, cuando lo reabro, entonces vuelvo a la misma posición.
 - Dado que cambio el tema a oscuro, cuando abro la app en otro dispositivo, entonces también está oscuro.
 - Dado que toco el borde derecho en modo paginado, cuando la animación está activa, entonces la página actual se desliza a la izquierda y se ve entrar la siguiente.
+- Dado que arrastro la página a la izquierda más del umbral, cuando suelto el dedo, entonces la animación se completa y veo la página siguiente.
+- Dado que arrastro la página solo un poco, cuando suelto el dedo, entonces la animación vuelve atrás y sigo en la misma página.
 - Dado que estoy en la última página, cuando intento avanzar, entonces no hay animación ni cambio.
 - Dado que desactivo la animación, cuando paso de página, entonces el cambio es inmediato.
+- Dado que leo en modo paginado con los controles ocultos, cuando paso de página, entonces el número del pie cambia.
+- Dado que cambio a modo scroll, entonces el número de página no se muestra.
 
 ## Fuera de alcance
 
-Diccionario, text-to-speech, brillo propio, EPUB de maquetación fija. Otras animaciones de página, botones de volumen para pasar de página y que la página siga al dedo mientras se arrastra (se evalúan después de RDR-009).
+Diccionario, text-to-speech, brillo propio, EPUB de maquetación fija. Otras animaciones de página, y botones de volumen para pasar de página (se evalúan después de RDR-009).

@@ -15,4 +15,6 @@ fun ReaderSettings.toEpubPreferences(): EpubPreferences = EpubPreferences(
         ReadingTheme.SEPIA -> Theme.SEPIA
     },
     fontSize = fontScale,
+    // Sin margen de Readium: el único margen es el padding del contenedor (READING_PADDING) + esto que le agreuge.
+    pageMargins = 0.2,
 )

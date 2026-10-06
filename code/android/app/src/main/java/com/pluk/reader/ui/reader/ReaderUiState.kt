@@ -13,6 +13,8 @@ sealed interface ReaderUiState {
         val toc: List<TocEntry>,
         val settings: ReaderSettings,
         val progressPercent: Int?,
+        /** RDR-010: posición actual en el libro (1 en adelante), o null si todavía no hay dato. */
+        val pageNumber: Int?,
         val controlsVisible: Boolean,
     ) : ReaderUiState
 }

@@ -23,6 +23,7 @@ import com.pluk.reader.domain.repository.SettingsRepository
 import dagger.hilt.android.testing.HiltAndroidRule
 import dagger.hilt.android.testing.HiltAndroidTest
 import kotlinx.coroutines.runBlocking
+import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Before
@@ -187,6 +188,21 @@ class ReaderScreenTest {
         }
     }
 
+    // RDR-010: el pie muestra el número de página en modo paginado y no en scroll
+    @Test
+    fun pageNumberShownOnlyInPagedMode() {
+        launch(copyAsset("minimal.epub")).use { scenario ->
+            waitUntil { navigator(scenario) != null }
+            waitUntil {
+                runCatching { compose.onNodeWithTag("page-number").assertIsDisplayed() }.isSuccess
+            }
+            runBlocking { settingsRepository.update { it.copy(scroll = true) } }
+            waitUntil {
+                runCatching { compose.onNodeWithTag("page-number").assertDoesNotExist() }.isSuccess
+            }
+        }
+    }
+
     // Foco de revisión 4: cerrar y reabrir vuelve a la misma posición (RDR-006)
     @Test
     fun reopeningBookRestoresPosition() {
@@ -238,6 +254,17 @@ class ReaderScreenTest {
         val downTime = SystemClock.uptimeMillis()
         touch(MotionEvent.ACTION_DOWN, downTime, x, y)
         touch(MotionEvent.ACTION_UP, downTime, x, y)
+    }
+
+    /** Recorre las posiciones x dadas con el dedo abajo, esperando [stepMs] entre cada una, y suelta. */
+    private fun dragThrough(xs: List<Float>, y: Float, stepMs: Long) {
+        val downTime = SystemClock.uptimeMillis()
+        touch(MotionEvent.ACTION_DOWN, downTime, xs.first(), y)
+        for (x in xs.drop(1)) {
+            touch(MotionEvent.ACTION_MOVE, downTime, x, y)
+            Thread.sleep(stepMs)
+        }
+        touch(MotionEvent.ACTION_UP, downTime, xs.last(), y)
     }
 
     private fun swipe(fromX: Float, toX: Float, y: Float) {
@@ -314,6 +341,71 @@ class ReaderScreenTest {
             tap(w * 0.5f, h * 0.5f)
             waitUntil { runCatching { compose.onNodeWithText("Índice").assertDoesNotExist() }.isSuccess }
             assertTrue(progression(scenario) <= 0.01)
+        }
+    }
+
+    // RDR-009: un arrastre lento que pasa el umbral se completa al soltar
+    @Test
+    fun slowDragPastTheThresholdCompletes() {
+        launch(copyAsset("minimal.epub")).use { scenario ->
+            waitUntil { navigator(scenario) != null }
+            val before = progression(scenario)
+            val (w, h) = screenSize(scenario)
+            dragThrough(List(10) { w * 0.85f - w * 0.5f * it / 9 }, h * 0.5f, stepMs = 50)
+            waitUntil { progression(scenario) > before }
+            waitUntil { runCatching { compose.onNodeWithTag("page-turn-snapshot").assertDoesNotExist() }.isSuccess }
+        }
+    }
+
+    // RDR-009: un arrastre corto y lento se cancela al soltar y la página queda como estaba
+    @Test
+    fun shortSlowDragCancelsAndStaysOnTheSamePage() {
+        launch(copyAsset("minimal.epub")).use { scenario ->
+            waitUntil { navigator(scenario) != null }
+            val before = progression(scenario)
+            val (w, h) = screenSize(scenario)
+            dragThrough(List(8) { w * 0.8f - w * 0.1f * it / 7 }, h * 0.5f, stepMs = 70)
+            Thread.sleep(1500)
+            waitUntil { runCatching { compose.onNodeWithTag("page-turn-snapshot").assertDoesNotExist() }.isSuccess }
+            assertEquals(before, progression(scenario), 1e-9)
+        }
+    }
+
+    // RDR-009: lo que cuenta es dónde se suelta, no cuánto se arrastró: ir y volver cancela
+    @Test
+    fun draggingOutAndBackBeforeReleaseCancels() {
+        launch(copyAsset("minimal.epub")).use { scenario ->
+            waitUntil { navigator(scenario) != null }
+            val before = progression(scenario)
+            val (w, h) = screenSize(scenario)
+            val out = List(8) { w * 0.85f - w * 0.5f * it / 7 }
+            val back = List(8) { w * 0.35f + w * 0.5f * (it + 1) / 8 }
+            dragThrough(out + back, h * 0.5f, stepMs = 60)
+            Thread.sleep(1500)
+            waitUntil { runCatching { compose.onNodeWithTag("page-turn-snapshot").assertDoesNotExist() }.isSuccess }
+            assertEquals(before, progression(scenario), 1e-9)
+        }
+    }
+
+    // RDR-009: pasar de página seguido, sin esperar a que termine la animación anterior, sigue avanzando
+    @Test
+    fun rapidSwipesKeepAdvancing() {
+        launch(copyAsset("minimal.epub")).use { scenario ->
+            waitUntil { navigator(scenario) != null }
+            val (w, h) = screenSize(scenario)
+            val start = progression(scenario)
+            swipe(w * 0.8f, w * 0.2f, h * 0.5f)
+            Thread.sleep(2000)
+            val afterOne = progression(scenario)
+            val page = afterOne - start
+            assertTrue("una página debe avanzar: $start -> $afterOne", page > 0)
+            repeat(3) {
+                swipe(w * 0.8f, w * 0.2f, h * 0.5f)
+                Thread.sleep(50)
+            }
+            Thread.sleep(2500)
+            val afterRapid = progression(scenario)
+            assertTrue("3 swipes seguidos deben avanzar ~3 páginas: $afterOne -> $afterRapid (página=$page)", afterRapid - afterOne > page * 2.5)
         }
     }
 }

@@ -152,6 +152,17 @@ class ReaderViewModelTest {
         assertEquals(42, vm.awaitReady { it.progressPercent != null }.progressPercent)
     }
 
+    // RDR-010
+    @Test
+    fun pageNumberFollowsLocatorPosition() = runTest(dispatcher) {
+        val vm = viewModel(FakeBooks(Result.success(book())))
+        assertNull(vm.awaitReady().pageNumber)
+        vm.onLocatorChanged("""{"href":"ch1.xhtml"}""", 0.1, position = 7)
+        assertEquals(7, vm.awaitReady { it.pageNumber != null }.pageNumber)
+        vm.onLocatorChanged("""{"href":"ch1.xhtml"}""", 0.2, position = 8)
+        assertEquals(8, vm.awaitReady { it.pageNumber == 8 }.pageNumber)
+    }
+
     // RDR-006: la posición se guarda por libro y sin escribir en cada evento
     @Test
     fun positionIsSavedDebouncedPerBook() = runTest(dispatcher) {

@@ -6,7 +6,12 @@ import android.content.ContextWrapper
 import androidx.compose.foundation.Image
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.rememberUpdatedState
+import android.view.Window
 import androidx.compose.ui.geometry.Rect
+import com.pluk.reader.domain.model.ReadingTheme
+import androidx.compose.ui.graphics.BlendMode
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
@@ -15,19 +20,19 @@ import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.compose.runtime.withFrameNanos
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withTimeoutOrNull
-import org.readium.r2.navigator.preferences.ReadingProgression
 import kotlin.math.roundToInt
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBarsPadding
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -37,15 +42,24 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.foundation.background
+import androidx.compose.ui.platform.LocalInspectionMode
 import androidx.compose.ui.platform.LocalUriHandler
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.fragment.compose.AndroidFragment
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.pluk.reader.domain.model.OpenedBook
+import com.pluk.reader.domain.model.ReaderSettings
+import com.pluk.reader.ui.theme.ReaderTheme
 import org.readium.r2.navigator.epub.EpubNavigatorFragment
 import org.readium.r2.navigator.input.InputListener
 import org.readium.r2.navigator.input.TapEvent
 import org.readium.r2.shared.ExperimentalReadiumApi
+import org.readium.r2.shared.publication.Href
+import org.readium.r2.shared.publication.Link
+import org.readium.r2.shared.publication.Publication
 
 @Composable
 fun ReaderScreen(
@@ -80,51 +94,67 @@ fun ReaderScreen(
             Button(onClick = onBack, modifier = Modifier.padding(top = 16.dp)) { Text("Volver") }
         }
 
-        is ReaderUiState.Ready -> ReaderContent(current, viewModel)
+        is ReaderUiState.Ready -> ReaderContent(
+            settings = current.settings,
+            toc = current.toc,
+            progressPercent = current.progressPercent,
+            pageNumber = current.pageNumber,
+            controlsVisible = current.controlsVisible,
+            actions = ReaderActions.of(viewModel),
+        )
     }
 }
 
 @OptIn(ExperimentalReadiumApi::class)
 @Composable
-private fun ReaderContent(state: ReaderUiState.Ready, viewModel: ReaderViewModel) {
+private fun ReaderContent(
+    settings: ReaderSettings,
+    toc: List<TocEntry>,
+    progressPercent: Int?,
+    pageNumber: Int?,
+    controlsVisible: Boolean,
+    actions: ReaderActions,
+) {
     var navigator by remember { mutableStateOf<EpubNavigatorFragment?>(null) }
     var area by remember { mutableStateOf<Rect?>(null) }
-    val controller = remember { PageTurnController() }
     val scope = rememberCoroutineScope()
+    val controller = remember(scope) { PageTurnController(scope) }
     val window = LocalContext.current.findActivity()?.window
 
     // La animación solo aplica en modo paginado (RDR-009).
-    val animated = state.settings.pageAnimation && !state.settings.scroll
+    val animated = settings.pageAnimation && !settings.scroll
+    val darkTheme = settings.theme == ReadingTheme.DARK
+    val controlsVisible by rememberUpdatedState(controlsVisible)
+    // Al pasar de página los controles se quitan de golpe: esperar a que se desvanezcan retrasa el inicio de la animación.
+    var hideControlsInstantly by remember { mutableStateOf(false) }
+    LaunchedEffect(controlsVisible) { if (controlsVisible) hideControlsInstantly = false }
 
+    fun opsFor(nav: EpubNavigatorFragment, window: Window) = NavigatorPageTurnOps(
+        navigator = nav,
+        window = window,
+        captureArea = { area?.toAndroidRect() },
+        isReady = { !controlsVisible },
+        beforeCapture = {
+            // Los controles taparían la captura: se ocultan y se espera a que terminen de desvanecerse.
+            if (controlsVisible) {
+                hideControlsInstantly = true
+                actions.onHideControls()
+                repeat(3) { withFrameNanos { } }
+            }
+        },
+    )
+
+    // Pasa de página por un toque en el borde: animación completa, o inmediato si el efecto está desactivado.
     val turnPage: (PageTurnDirection) -> Unit = turn@{ direction ->
         val nav = navigator ?: return@turn
-        if (controller.busy) return@turn
-        scope.launch {
-            fun move() = if (direction == PageTurnDirection.Forward) nav.goForward(animated = false) else nav.goBackward(animated = false)
-            val captureArea = area
-            if (!animated || window == null || captureArea == null) {
-                move()
-                return@launch
-            }
-            if (state.controlsVisible) {
-                // Los controles taparían la captura: se ocultan antes de tomarla.
-                viewModel.hideControls()
-                delay(CONTROLS_FADE_OUT_MS + 40L)
-                repeat(2) { withFrameNanos { } }
-            }
-            val before = nav.currentLocator.value
-            controller.run(
-                direction = direction,
-                capture = { captureWindowArea(window, captureArea.toAndroidRect()) },
-                navigate = ::move,
-                awaitNavigated = {
-                    withTimeoutOrNull(NAVIGATION_TIMEOUT_MS) { nav.currentLocator.first { it != before } }
-                    repeat(2) { withFrameNanos { } }
-                },
-            )
+        if (animated && window != null) {
+            if (controller.begin(direction, 0f, opsFor(nav, window))) controller.release(commit = true)
+        } else if (!controller.busy) {
+            NavigatorPageTurnOps(nav, window ?: return@turn, { null }, {}).moveWithoutAnimation(direction)
         }
     }
     val currentTurnPage by rememberUpdatedState(turnPage)
+    val currentOpsFactory by rememberUpdatedState(::opsFor)
 
     // Cada instancia nueva del fragmento (primera vez o tras recrearse) se configura una vez.
     LaunchedEffect(navigator) {
@@ -134,89 +164,171 @@ private fun ReaderContent(state: ReaderUiState.Ready, viewModel: ReaderViewModel
             override fun onTap(event: TapEvent): Boolean {
                 val width = nav.requireView().width.toFloat()
                 if (nav.overflow.value.scroll || width <= 0f) {
-                    viewModel.toggleControls()
+                    actions.onToggleControls()
                     return true
                 }
-                val rtl = nav.overflow.value.readingProgression == ReadingProgression.RTL
                 val edge = width * EDGE_FRACTION
                 when {
-                    event.point.x < edge -> currentTurnPage(if (rtl) PageTurnDirection.Forward else PageTurnDirection.Backward)
-                    event.point.x > width - edge -> currentTurnPage(if (rtl) PageTurnDirection.Backward else PageTurnDirection.Forward)
-                    else -> viewModel.toggleControls()
+                    event.point.x < edge -> currentTurnPage(PageTurnDirection.Backward)
+                    event.point.x > width - edge -> currentTurnPage(PageTurnDirection.Forward)
+                    else -> actions.onToggleControls()
                 }
                 return true
             }
         })
         nav.currentLocator.collect { locator ->
-            viewModel.onLocatorChanged(locator.toJSON().toString(), locator.locations.totalProgression)
+            actions.onLocatorChanged(
+                locator.toJSON().toString(),
+                locator.locations.totalProgression,
+                locator.locations.position,
+            )
         }
     }
 
-    LaunchedEffect(navigator, state.settings) {
-        navigator?.submitPreferences(state.settings.toEpubPreferences())
+    LaunchedEffect(navigator, settings) {
+        navigator?.submitPreferences(settings.toEpubPreferences())
     }
 
-    val swipeModifier = if (animated) {
+    // El arrastre solo se intercepta cuando hay animación: si no, el deslizar es el nativo de Readium.
+    val swipeModifier = if (animated && window != null) {
         Modifier.pointerInput(Unit) {
-            detectPageSwipes { swipe ->
-                val rtl = navigator?.overflow?.value?.readingProgression == ReadingProgression.RTL
-                currentTurnPage(
-                    if (!rtl) swipe else if (swipe == PageTurnDirection.Forward) PageTurnDirection.Backward else PageTurnDirection.Forward,
-                )
-            }
+            detectPageSwipes(
+                onDown = {
+                    val nav = navigator
+                    if (nav != null) controller.prefetch(currentOpsFactory(nav, window))
+                },
+                onStart = { direction, progress ->
+                    val nav = navigator
+                    nav != null && controller.begin(direction, progress, currentOpsFactory(nav, window))
+                },
+                onDrag = controller::update,
+                onEnd = controller::release,
+            )
         }
     } else {
         Modifier
     }
 
+    // RDR-010: el pie reserva su propio espacio, fuera del texto, solo en modo paginado.
+    val showPageNumber = !settings.scroll
+    val readingBackground = settings.theme.pageBackground()
+
     Box(
         Modifier
             .fillMaxSize()
-            .onGloballyPositioned { area = it.boundsInWindow() }
+            .background(readingBackground)
             .then(swipeModifier),
     ) {
-        // Página que entra: está debajo y se mueve un poco (paralaje).
-        Box(
-            Modifier
-                .fillMaxSize()
-                .graphicsLayer { translationX = controller.transform(size.width).incomingTranslationX },
-        ) {
-            AndroidFragment<EpubNavigatorFragment>(
-                modifier = Modifier.fillMaxSize(),
-                onUpdate = { fragment -> if (navigator !== fragment) navigator = fragment },
-            )
-        }
-        // Página que sale: captura con su fondo, encima, deslizándose con menos opacidad.
-        controller.snapshot?.let { snapshot ->
-            Image(
-                bitmap = snapshot,
-                contentDescription = null,
-                contentScale = ContentScale.FillBounds,
-                modifier = Modifier
-                    .fillMaxSize()
-                    .testTag(SNAPSHOT_TAG)
-                    .graphicsLayer {
-                        val transform = controller.transform(size.width)
-                        translationX = transform.outgoingTranslationX
-                        alpha = transform.outgoingAlpha
-                    },
-            )
+        Column(Modifier.fillMaxSize().statusBarsPadding()) {
+            Box(
+                Modifier
+                    .weight(1f)
+                    .fillMaxWidth()
+                    .onGloballyPositioned { area = it.boundsInWindow() },
+            ) {
+                // Página que entra: está debajo y se mueve un poco (paralaje).
+                Box(
+                    Modifier
+                        .fillMaxSize()
+                        .background(Color.Yellow)
+                        .graphicsLayer { translationX = controller.transform(size.width).incomingTranslationX },
+                ) {
+                    if (LocalInspectionMode.current) {
+                        // En el preview del IDE el navegador de Readium no se dibuja: una página de texto ocupa su lugar.
+                        PreviewBookPage(settings.theme,
+                            Modifier.fillMaxSize()
+                                .padding(READING_PADDING, READING_PADDING * 2, READING_PADDING, 16.dp)
+                        )
+                    } else {
+                        AndroidFragment<EpubNavigatorFragment>(
+                            Modifier.fillMaxSize()
+                                .background(Color.Red)
+                                .padding(READING_PADDING, 0.dp, READING_PADDING, 0.dp)
+                            ,
+                            onUpdate = { fragment -> if (navigator !== fragment) navigator = fragment },
+                        )
+                    }
+                }
+                // Página que sale: captura con su fondo, encima, deslizándose con menos opacidad.
+                controller.snapshot?.let { snapshot ->
+                    Image(
+                        bitmap = snapshot,
+                        contentDescription = null,
+                        contentScale = ContentScale.FillBounds,
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .testTag(SNAPSHOT_TAG)
+                            .graphicsLayer {
+                                val transform = controller.transform(size.width)
+                                translationX = transform.outgoingTranslationX
+                                alpha = transform.outgoingAlpha
+                                if (darkTheme) {
+                                    // Aclara el fondo negro de la captura sin tocar el texto: así se distingue de la página de abajo.
+                                    colorFilter = ColorFilter.tint(
+                                        DARK_OUTGOING_BACKGROUND.copy(alpha = transform.outgoingLightenAmount),
+                                        BlendMode.Screen,
+                                    )
+                                }
+                            },
+                    )
+                }
+            }
+            if (showPageNumber) {
+                ReaderPageNumber(pageNumber, settings.theme.pageTextColor())
+            }
         }
         Box(Modifier.align(Alignment.TopCenter)) {
             ReaderControls(
-                visible = state.controlsVisible,
-                settings = state.settings,
-                progressPercent = state.progressPercent,
-                toc = state.toc,
-                onToggleScroll = viewModel::toggleScroll,
-                onNextTheme = viewModel::nextTheme,
-                onSmallerFont = viewModel::smallerFont,
-                onBiggerFont = viewModel::biggerFont,
-                onTogglePageAnimation = viewModel::togglePageAnimation,
+                visible = controlsVisible,
+                instantHide = hideControlsInstantly,
+                settings = settings,
+                progressPercent = progressPercent,
+                toc = toc,
+                onToggleScroll = actions.onToggleScroll,
+                onNextTheme = actions.onNextTheme,
+                onSmallerFont = actions.onSmallerFont,
+                onBiggerFont = actions.onBiggerFont,
+                onTogglePageAnimation = actions.onTogglePageAnimation,
                 onTocSelected = { entry -> navigator?.go(entry.link, animated = false) },
             )
         }
     }
+}
+
+/** RDR-010: pie con la posición actual, debajo del texto y siempre visible en modo paginado. */
+@Composable
+private fun ReaderPageNumber(pageNumber: Int?, color: Color) {
+    Box(
+        Modifier
+            .fillMaxWidth()
+            .background(Color.Blue)
+            .padding(0.dp, 0.dp, 0.dp , 16.dp)
+            .navigationBarsPadding()
+//            .height(PAGE_NUMBER_HEIGHT)
+        ,
+        contentAlignment = Alignment.Center,
+    ) {
+        if (pageNumber != null) {
+            Text(
+                text = pageNumber.toString(),
+                color = color.copy(alpha = 0.6f),
+                style = MaterialTheme.typography.labelMedium,
+                modifier = Modifier.testTag(PAGE_NUMBER_TAG),
+            )
+        }
+    }
+}
+
+// Colores de página de los temas de Readium, para que el pie se vea igual que el libro.
+private fun ReadingTheme.pageBackground() = when (this) {
+    ReadingTheme.LIGHT -> Color(0xFFFFFFFF)
+    ReadingTheme.DARK -> Color(0xFF000000)
+    ReadingTheme.SEPIA -> Color(0xFFFAF4E8)
+}
+
+private fun ReadingTheme.pageTextColor() = when (this) {
+    ReadingTheme.LIGHT, ReadingTheme.SEPIA -> Color(0xFF121212)
+    ReadingTheme.DARK -> Color(0xFFFEFEFE)
 }
 
 private tailrec fun Context.findActivity(): Activity? = when (this) {
@@ -230,5 +342,71 @@ private fun androidx.compose.ui.geometry.Rect.toAndroidRect() =
 
 /** Fracción del ancho, a cada lado, donde un toque pasa de página. */
 private const val EDGE_FRACTION = 0.3f
-private const val NAVIGATION_TIMEOUT_MS = 400L
+/** Fondo con el que sale la página en el tema oscuro (un poco más claro que el del libro). */
+private val DARK_OUTGOING_BACKGROUND = Color(0xFF242728)
+
 private const val SNAPSHOT_TAG = "page-turn-snapshot"
+private const val PAGE_NUMBER_TAG = "page-number"
+private val PAGE_NUMBER_HEIGHT = 32.dp
+/** Margen alrededor del texto de lectura. */
+private val READING_PADDING = 24.dp
+
+/** Acciones que el lector necesita de afuera. Separadas del `ViewModel` para poder previsualizar la pantalla. */
+private class ReaderActions(
+    val onToggleControls: () -> Unit,
+    val onHideControls: () -> Unit,
+    val onLocatorChanged: (json: String, totalProgression: Double?, position: Int?) -> Unit,
+    val onToggleScroll: () -> Unit,
+    val onNextTheme: () -> Unit,
+    val onSmallerFont: () -> Unit,
+    val onBiggerFont: () -> Unit,
+    val onTogglePageAnimation: () -> Unit,
+) {
+    companion object {
+        fun of(viewModel: ReaderViewModel) = ReaderActions(
+            onToggleControls = viewModel::toggleControls,
+            onHideControls = viewModel::hideControls,
+            onLocatorChanged = { json, progression, position -> viewModel.onLocatorChanged(json, progression, position) },
+            onToggleScroll = viewModel::toggleScroll,
+            onNextTheme = viewModel::nextTheme,
+            onSmallerFont = viewModel::smallerFont,
+            onBiggerFont = viewModel::biggerFont,
+            onTogglePageAnimation = viewModel::togglePageAnimation,
+        )
+
+        val None = ReaderActions({}, {}, { _, _, _ -> }, {}, {}, {}, {}, {})
+    }
+}
+
+/** Página de texto que hace de libro en el preview. */
+@Composable
+private fun PreviewBookPage(theme: ReadingTheme, modifier: Modifier = Modifier) {
+    Text(
+        text = PREVIEW_PAGE_TEXT,
+        color = theme.pageTextColor(),
+        style = MaterialTheme.typography.bodyLarge,
+        modifier = modifier,
+    )
+}
+
+@Preview(showBackground = true, name = "Leyendo", widthDp = 360, heightDp = 720)
+@Composable
+private fun ReaderScreenReadingPreview() {
+    ReaderTheme(darkTheme = false, dynamicColor = false) {
+        ReaderContent(
+            settings = ReaderSettings(theme = ReadingTheme.SEPIA),
+            toc = emptyList(),
+            progressPercent = 42,
+            pageNumber = 123,
+            controlsVisible = false,
+            actions = ReaderActions.None,
+        )
+    }
+}
+
+private const val PREVIEW_PAGE_TEXT =
+    "Llamadme Ismael. Hace algunos años —no importa cuántos exactamente—, teniendo poco o ningún dinero " +
+        "en el bolsillo y nada que me interesara en particular en tierra, pensé que me iría a navegar un poco " +
+        "para ver la parte líquida del mundo. Es una manera que tengo de ahuyentar la melancolía y regular la " +
+        "circulación. Siempre que noto que se me forma una mueca amarga en la boca, siempre que en mi alma hay " +
+        "un noviembre húmedo y lluvioso, entonces comprendo que es hora de hacerme a la mar cuanto antes un noviembre húmedo y lluvioso, entonces comprendo que es hora de hacerme a la mar cuanto antes un noviembre húmedo y lluvioso, entonces comprendo que es hora de hacerme a la mar cuanto antes un noviembre húmedo y lluvioso, entonces comprendo que es hora de hacerme a la mar cuanto antes un noviembre húmedo y lluvioso, entonces comprendo que es hora de hacerme a la mar cuanto antes un noviembre húmedo y lluvioso, entonces comprendo que es hora de hacerme a la mar cuanto antes un noviembre húmedo y lluvioso, entonces comprendo que es hora de hacerme a la mar cuanto antes."

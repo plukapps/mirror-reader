@@ -48,6 +48,8 @@ class NavigatorFragmentHost @Inject constructor() : NavigatorHost {
         factory = EpubNavigatorFactory(book.publication).createFragmentFactory(
             initialLocator = initialLocator,
             initialPreferences = settings.toEpubPreferences(),
+            // Los insets de sistema (barra de estado) los reserva ReaderScreen, no Readium.
+            configuration = EpubNavigatorFragment.Configuration(shouldApplyInsetsPadding = false),
             listener = object : EpubNavigatorFragment.Listener {
                 override fun onExternalLinkActivated(url: AbsoluteUrl) = onExternalLink(url.toString())
             },
