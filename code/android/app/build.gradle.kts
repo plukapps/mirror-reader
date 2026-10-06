@@ -14,6 +14,7 @@ android {
         targetSdk = 36
         versionCode = 1
         versionName = "1.0"
+        testInstrumentationRunner = "com.pluk.reader.HiltTestRunner"
     }
 
     buildTypes {
@@ -101,6 +102,10 @@ dependencies {
   ksp(libs.androidx.room.compiler)
   implementation(libs.androidx.datastore.preferences)
   androidTestImplementation(libs.androidx.room.testing)
+
+  // Hilt en pruebas de emulador
+  androidTestImplementation(libs.hilt.android.testing)
+  kspAndroidTest(libs.hilt.compiler)
 }
 
 // El esquema de Room se versiona para poder revisar migraciones.

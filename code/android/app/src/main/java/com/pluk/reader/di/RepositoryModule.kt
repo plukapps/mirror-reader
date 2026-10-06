@@ -1,7 +1,9 @@
 package com.pluk.reader.di
 
+import com.pluk.reader.data.repository.BookRepositoryImpl
 import com.pluk.reader.data.repository.PositionRepositoryImpl
 import com.pluk.reader.data.repository.SettingsRepositoryImpl
+import com.pluk.reader.domain.repository.BookRepository
 import com.pluk.reader.domain.repository.PositionRepository
 import com.pluk.reader.domain.repository.SettingsRepository
 import dagger.Binds
@@ -20,4 +22,8 @@ abstract class RepositoryModule {
     @Binds
     @Singleton
     abstract fun bindPositionRepository(impl: PositionRepositoryImpl): PositionRepository
+
+    @Binds
+    @Singleton
+    abstract fun bindBookRepository(impl: BookRepositoryImpl): BookRepository
 }

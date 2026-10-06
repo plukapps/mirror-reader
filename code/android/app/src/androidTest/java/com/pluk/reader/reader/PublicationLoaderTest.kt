@@ -1,7 +1,7 @@
 package com.pluk.reader.reader
 
 import com.pluk.reader.data.epub.PublicationLoader
-import com.pluk.reader.data.epub.LoadException
+import com.pluk.reader.domain.model.BookOpenException
 import android.net.Uri
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
@@ -39,7 +39,7 @@ class PublicationLoaderTest {
         val file = File(context.cacheDir, "basura.epub").apply { writeText("esto no es un epub") }
         val result = PublicationLoader(context).load(Uri.fromFile(file))
         assertTrue(result.isFailure)
-        assertTrue(result.exceptionOrNull() is LoadException)
+        assertTrue(result.exceptionOrNull() is BookOpenException)
     }
 
     // Foco de revisión 5: archivo inaccesible
@@ -48,6 +48,6 @@ class PublicationLoaderTest {
         val missing = Uri.fromFile(File(context.cacheDir, "no-existe.epub"))
         val result = PublicationLoader(context).load(missing)
         assertTrue(result.isFailure)
-        assertTrue(result.exceptionOrNull() is LoadException)
+        assertTrue(result.exceptionOrNull() is BookOpenException)
     }
 }

@@ -1,9 +1,7 @@
-package com.pluk.reader.reader
+package com.pluk.reader.ui.reader
 
 import com.pluk.reader.domain.model.ReaderSettings
 import com.pluk.reader.domain.model.ReadingTheme
-import com.pluk.reader.domain.progressPercent
-import com.pluk.reader.ui.reader.TocEntry
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut

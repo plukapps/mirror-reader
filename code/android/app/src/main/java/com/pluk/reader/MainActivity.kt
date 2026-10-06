@@ -8,39 +8,53 @@ import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.Modifier
 import androidx.fragment.app.FragmentActivity
-import com.pluk.reader.reader.ReaderActivity
+import androidx.navigation.compose.rememberNavController
+import com.pluk.reader.di.MainEntryPoint
 import com.pluk.reader.ui.navigation.AppNavHost
+import com.pluk.reader.ui.navigation.Routes
 import com.pluk.reader.ui.theme.ReaderTheme
 import dagger.hilt.android.AndroidEntryPoint
+import dagger.hilt.android.EntryPointAccessors
 
 // FragmentActivity: el navegador de Readium es un Fragment (ADR 0005).
 @AndroidEntryPoint
 class MainActivity : FragmentActivity() {
+    // EPUB recibido con "Abrir con" y todavía sin mostrar.
+    private val incomingBook = mutableStateOf<Uri?>(null)
+
     override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
+        // Android debe poder recrear el fragmento del navegador, y eso exige instalar la fábrica
+        // antes de super.onCreate. Si el proceso se perdió no hay libro abierto que restaurar:
+        // se descarta el estado guardado y se vuelve al inicio (la posición ya está en Room).
+        val host = EntryPointAccessors.fromApplication(applicationContext, MainEntryPoint::class.java)
+            .navigatorHost()
+        supportFragmentManager.fragmentFactory = host.fragmentFactory
+        super.onCreate(if (savedInstanceState != null && !host.isInstalled) null else savedInstanceState)
         enableEdgeToEdge()
+
+        if (savedInstanceState == null) incomingBook.value = intent?.data
         setContent {
             ReaderTheme {
                 Surface(modifier = Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
-                    AppNavHost(onOpenBook = ::openBook)
+                    val navController = rememberNavController()
+                    LaunchedEffect(incomingBook.value) {
+                        incomingBook.value?.let { uri ->
+                            incomingBook.value = null
+                            navController.navigate(Routes.reader(uri))
+                        }
+                    }
+                    AppNavHost(navController)
                 }
             }
         }
     }
 
-    // Provisional: la ruta "reader" de Compose reemplaza a ReaderActivity en la Tarea 3 del plan.
-    private fun openBook(uri: Uri) {
-        try {
-            contentResolver.takePersistableUriPermission(uri, Intent.FLAG_GRANT_READ_URI_PERMISSION)
-        } catch (_: SecurityException) {
-            // Algunos proveedores no permiten permiso persistente. Se abre igual esta vez.
-        }
-        startActivity(
-            Intent(this, ReaderActivity::class.java)
-                .setData(uri)
-                .addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION),
-        )
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        intent.data?.let { incomingBook.value = it }
     }
 }

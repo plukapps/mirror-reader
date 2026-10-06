@@ -1,0 +1,23 @@
+package com.pluk.reader.ui.reader
+
+import com.pluk.reader.domain.model.OpenedBook
+import com.pluk.reader.domain.model.ReaderSettings
+
+sealed interface ReaderUiState {
+    data object Loading : ReaderUiState
+
+    data class Failed(val message: String) : ReaderUiState
+
+    data class Ready(
+        val book: OpenedBook,
+        val toc: List<TocEntry>,
+        val settings: ReaderSettings,
+        val progressPercent: Int?,
+        val controlsVisible: Boolean,
+    ) : ReaderUiState
+}
+
+/** Eventos de un solo uso hacia la pantalla. */
+sealed interface ReaderEvent {
+    data class OpenExternalLink(val url: String) : ReaderEvent
+}
