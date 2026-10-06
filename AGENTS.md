@@ -68,6 +68,9 @@ Todo el trabajo se gestiona en `KANBAN.md`. Reglas:
 - Motor de EPUB: Readium Kotlin Toolkit 3.4.0 (ADR 0004, provisional).
 - Tests JVM: `./gradlew :app:testDebugUnitTest`
 - Tests en emulador: `./gradlew :app:connectedDebugAndroidTest` (requiere un emulador encendido; listar con `~/Library/Android/sdk/emulator/emulator -list-avds`).
+- Un solo test o clase en emulador (AGP 9 no acepta `--tests`): `./gradlew :app:connectedDebugAndroidTest -Pandroid.testInstrumentationRunnerArguments.class=com.pluk.reader.reader.NombreTest`.
+- Los tests que tocan clases de Readium (`EpubPreferences`, `Locator`) corren en emulador, no en JVM.
+- Toolchain: AGP 9.1.0, Gradle 9.3.1, `compileSdk 37` (lo exige Readium 3.4.0) y core library desugaring. La API de Readium se verifica con `javap` sobre `~/.gradle/caches/.../readium-*-api.jar` cuando la documentación no alcanza.
 - Fixture de pruebas: `code/android/tools/make_fixture_epub.py`.
 
 ## Decisiones vigentes

@@ -13,9 +13,10 @@ Todo lo definido en `product/`: biblioteca, lector, anotaciones, sincronización
 - **AND-003** Debe recibir EPUB desde "Compartir / Abrir con" (LIB-001).
 - **AND-004** Debe cumplir las políticas de Google Play (incluida la eliminación de cuenta, CMP-001).
 
-## Pendiente
+## Decisiones
 
-Versión mínima de Android e idiomas de la interfaz (open-questions #3 y #4).
+- Versión mínima de Android: 26 (Android 8.0).
+- Idiomas de la interfaz: pendiente (open-questions #4).
 
 ## Criterio de terminado
 

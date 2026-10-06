@@ -4,7 +4,6 @@
 |---|----------|--------|
 | 1 | Modelo de negocio (hipótesis: suscripción) y precios | ACC, roadmap fase 4 |
 | 2 | Tamaño de la cuota de espacio del plan gratuito | ACC-002 |
-| 3 | Versión mínima de Android | platforms/android.md |
 | 4 | Idiomas de la interfaz | platforms/android.md |
 | 5 | Exportar notas y subrayados (ej. Markdown) | ANN |
 | 6 | Nombre del producto y de la cuenta de desarrollador en las tiendas | CMP |

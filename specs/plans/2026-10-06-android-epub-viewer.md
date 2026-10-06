@@ -1674,6 +1674,14 @@ git commit -m "docs: cerrar rebanada del visor de EPUB en Android" -m "Co-Author
 
 ---
 
+## Notas de ejecución (desviaciones respecto al plan)
+
+- Plantilla de `android create`: AGP 9.1.0 y Gradle 9.3.1 (Readium 3.4.0 exige `compileSdk 37`, AGP 9.1+ y core library desugaring). El tema está en `com.pluk.reader.theme`, no en `ui.theme`. Se eliminó la demo de la plantilla (navegación, repositorio, pantalla de ejemplo).
+- API real de Readium 3.4.0: `Uri.toAbsoluteUrl()` (no `toUrl()`), `EpubNavigatorFragment.Listener` exige `onExternalLinkActivated`, los toques se manejan con `InputListener`/`TapEvent` y `DirectionalNavigationAdapter` para pasar de página en los bordes, y `go(...)` no es `suspend`.
+- Los tests de mapeo a `EpubPreferences` se movieron a `androidTest` (`ReaderSettingsMappingTest`): no cargan en la JVM.
+- Bugs encontrados por los tests y corregidos: el índice no era reactivo al estado de carga, y guardar la escala de fuente como `Float` degradaba 1.4 a 1.3999999 (ahora se guarda en décimas enteras).
+- Los tests instrumentados de una sola clase usan `-Pandroid.testInstrumentationRunnerArguments.class=...`.
+
 ## Auto-revisión
 
 - **Cobertura del spec:** RDR-001 (T4), RDR-002 parcial (T4: tamaño; tipo de letra, interlineado y márgenes quedan para después), RDR-003 (T4), RDR-004 (T5), RDR-005 (T5), RDR-006 local (T6), RDR-007 (T3 y T7), RDR-008 (los ajustes se guardan en el dispositivo en T6, la sincronización con la cuenta llega con la rebanada de sync), LIB-001 parcial (T3: selector y "Abrir con"), LIB-002 (T2 y T3), AND-001 y AND-003 parcial (T3).
