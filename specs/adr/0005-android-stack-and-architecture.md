@@ -42,7 +42,7 @@ La app Android nace con una actividad por pantalla, estado en `SharedPreferences
 **Pantalla del lector**
 - `ReaderScreen` (Compose) reemplaza a `ReaderActivity`.
 - El navegador de Readium es un `Fragment`. Se aloja en Compose con `AndroidFragment`, dentro de `MainActivity`, que por eso es una `FragmentActivity`.
-- La fábrica de fragmentos del navegador se entrega a `MainActivity` mediante un proveedor inyectado (`@Singleton`), porque Android debe poder instanciar el fragmento al restaurar la actividad.
+- La fábrica de fragmentos del navegador vive en `NavigatorFragmentHost` (`@Singleton`, detrás de la interfaz `NavigatorHost`). `MainActivity` la instala en su `FragmentManager` antes de `super.onCreate`, porque Android debe poder instanciar el fragmento al restaurar la actividad. `ReaderViewModel` solo conoce `NavigatorHost`, así que se prueba en JVM.
 - Si Android restaura la actividad tras perder el proceso, no hay libro abierto y el proveedor está vacío: se descarta el estado guardado y se vuelve a la pantalla de inicio. La posición ya está en Room.
 
 ## Alternativas consideradas

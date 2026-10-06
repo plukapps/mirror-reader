@@ -90,6 +90,18 @@ com.pluk.reader/
 
 **Verificación:** `./gradlew :app:testDebugUnitTest :app:connectedDebugAndroidTest` completo, y captura de pantalla en el emulador.
 
+## Notas de ejecución (desviaciones respecto al plan)
+
+- **Casos de uso:** no se creó `OpenBookUseCase`. Habría reenviado una llamada. `domain` tiene `BookRepository` (abrir libro + recuperar su posición), con la implementación en `data`. Ver ADR 0005, "casos de uso solo con lógica".
+- **Excepción de apertura:** `LoadException` pasó a `domain/model/BookOpenException`, para que `ui` y `domain` no dependan de `data`.
+- **Navegador de Readium:** `ReaderViewModel` conoce solo la interfaz `NavigatorHost`. `NavigatorFragmentHost` (singleton) guarda la fábrica del fragmento y `MainActivity` la instala antes de `super.onCreate`. Eso hace al ViewModel probable en JVM con un doble.
+- **`ReaderStores.kt` y `SharedPreferences` eliminados:** la posición va en Room y los ajustes en DataStore. No hay migración de los datos viejos: la app no se había publicado.
+- **`AndroidFragment` y el `FragmentManager`:** el fragmento queda en un contenedor propio, no en `supportFragmentManager.fragments`. Los tests lo buscan en la jerarquía de vistas.
+- **Pruebas con Compose:** el reloj de Compose en pruebas solo avanza al sincronizar, así que los bucles de espera llaman `waitForIdle()`.
+- **Hilt en pruebas:** `HiltTestRunner` y `TestStorageModule` (Room en memoria, DataStore temporal) reemplazan a `StorageModule`.
+- **Plantilla:** se eliminaron Navigation 3 y el plugin de kotlinx.serialization, sin uso.
+- **ReaderSettingsDataStore:** no hay clase aparte. Las claves viven dentro de `SettingsRepositoryImpl`.
+
 ## Checkpoints
 
 - Después de la tarea 1: la app compila, abre un libro como antes.

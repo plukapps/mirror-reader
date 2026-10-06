@@ -77,7 +77,8 @@ Arquitectura MVVM en capas, un solo módulo Gradle, paquetes `com.pluk.reader.{u
 - Tests JVM: `./gradlew :app:testDebugUnitTest`
 - Tests en emulador: `./gradlew :app:connectedDebugAndroidTest` (requiere un emulador encendido; listar con `~/Library/Android/sdk/emulator/emulator -list-avds`).
 - Un solo test o clase en emulador (AGP 9 no acepta `--tests`): `./gradlew :app:connectedDebugAndroidTest -Pandroid.testInstrumentationRunnerArguments.class=com.pluk.reader.reader.NombreTest`.
-- Los tests que tocan clases de Readium (`EpubPreferences`, `Locator`) corren en emulador, no en JVM.
+- Los tests que tocan clases de Readium (`EpubPreferences`, `Locator`), Room, DataStore o la pantalla del lector corren en emulador, no en JVM. Los de `ReaderViewModel` y la lógica pura corren en JVM con repositorios falsos.
+- Los tests de emulador usan Hilt: `HiltTestRunner` y `TestStorageModule` (Room en memoria y DataStore temporal reemplazan a `StorageModule`). En tests con Compose, los bucles de espera deben llamar `compose.waitForIdle()`.
 - Toolchain: AGP 9.1.0, Gradle 9.3.1, `compileSdk 37` (lo exige Readium 3.4.0) y core library desugaring. La API de Readium se verifica con `javap` sobre `~/.gradle/caches/.../readium-*-api.jar` cuando la documentación no alcanza.
 - Fixture de pruebas: `code/android/tools/make_fixture_epub.py`.
 
