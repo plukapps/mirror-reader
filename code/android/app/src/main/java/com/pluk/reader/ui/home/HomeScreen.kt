@@ -1,5 +1,19 @@
 package com.pluk.reader.ui.home
 
+import android.app.Activity
+import androidx.annotation.StringRes
+import androidx.compose.foundation.layout.ColumnScope
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.lazy.LazyListScope
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material3.Icon
+import androidx.compose.ui.text.style.TextDecoration
+import com.pluk.reader.domain.model.LibraryFilter
+import com.pluk.reader.ui.library.LibraryIcons
+import java.time.Instant
+import java.time.ZoneId
+import java.time.format.TextStyle
+import java.util.Locale
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
@@ -63,7 +77,7 @@ import java.time.LocalTime
 @Composable
 fun HomeScreen(
     onBookClick: (bookId: String) -> Unit,
-    onOpenLibrary: () -> Unit,
+    onSeeAll: (LibraryFilter?) -> Unit,
     viewModel: HomeViewModel = hiltViewModel(),
 ) {
     val state = viewModel.uiState.collectAsStateWithLifecycle().value
@@ -79,7 +93,7 @@ fun HomeScreen(
         snackbar = snackbar,
         onImport = viewModel::onImport,
         onBookClick = onBookClick,
-        onOpenLibrary = onOpenLibrary,
+        onSeeAll = onSeeAll,
     )
 }
 
@@ -92,7 +106,7 @@ fun HomeContentView(
     snackbar: SnackbarHostState,
     onImport: (List<String>) -> Unit,
     onBookClick: (String) -> Unit,
-    onOpenLibrary: () -> Unit,
+    onSeeAll: (LibraryFilter?) -> Unit,
 ) {
     val picker = rememberLauncherForActivityResult(ActivityResultContracts.OpenMultipleDocuments()) { uris ->
         onImport(uris.map { it.toString() })
@@ -124,11 +138,11 @@ fun HomeContentView(
                         onAction = if (content.libraryEmpty) {
                             { picker.launch(arrayOf(EPUB_MIME_TYPE)) }
                         } else {
-                            onOpenLibrary
+                            { onSeeAll(null) }
                         },
                     )
                 }
-                if (content.forYou.isNotEmpty()) ForYou(content.forYou, onBookClick, onOpenLibrary)
+                Sections(content, onBookClick, onSeeAll)
             }
         }
         SnackbarHost(snackbar, Modifier.align(Alignment.BottomCenter))
@@ -231,68 +245,190 @@ private fun NothingReading(libraryEmpty: Boolean, onAction: () -> Unit) {
 }
 
 @Composable
-private fun ForYou(books: List<LibraryBook>, onBookClick: (String) -> Unit, onSeeAll: () -> Unit) {
+private fun Sections(content: HomeContent, onBookClick: (String) -> Unit, onSeeAll: (LibraryFilter?) -> Unit) {
+    if (content.reading.isNotEmpty()) {
+        BookRow(R.string.home_reading, content.readingCount, "reading-row", { onSeeAll(LibraryFilter.Reading) }) {
+            items(content.reading, key = { it.id }) { ReadingItem(it, onBookClick) }
+        }
+    }
+    if (content.recentlyAdded.isNotEmpty()) {
+        BookRow(R.string.home_recently_added, content.recentlyAddedCount, "recent-row", { onSeeAll(LibraryFilter.All) }) {
+            items(content.recentlyAdded, key = { it.id }) { RecentItem(it, onBookClick) }
+        }
+    }
+    if (content.finished.isNotEmpty()) {
+        BookRow(R.string.home_finished, content.finishedCount, "finished-row", { onSeeAll(LibraryFilter.Finished) }) {
+            items(content.finished, key = { it.id }) { FinishedItem(it, onBookClick) }
+        }
+    }
+}
+
+/** Fila con título, total y "Ver todo" (HOM-008 a HOM-011). */
+@Composable
+private fun BookRow(
+    @StringRes title: Int,
+    count: Int,
+    tag: String,
+    onSeeAll: () -> Unit,
+    content: LazyListScope.() -> Unit,
+) {
     Row(
-        Modifier.fillMaxWidth().padding(start = 20.dp, end = 20.dp, top = 28.dp, bottom = 12.dp),
+        Modifier.fillMaxWidth().padding(start = 20.dp, end = 20.dp, top = 26.dp, bottom = 12.dp),
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        Text(stringResource(R.string.home_for_you), color = MarginColors.Ink, fontSize = 22.sp, fontWeight = FontWeight.Bold)
+        Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.Bottom) {
+            Text(stringResource(title), color = MarginColors.Ink, fontSize = 18.sp, fontWeight = FontWeight.Bold, letterSpacing = (-0.02).em)
+            Text("$count", color = MarginColors.Muted, fontSize = 13.sp, fontWeight = FontWeight.Medium)
+        }
         Text(
             stringResource(R.string.home_see_all),
             color = MarginColors.Ink,
             fontSize = 13.sp,
             fontWeight = FontWeight.SemiBold,
+            textDecoration = TextDecoration.Underline,
             modifier = Modifier
                 .clickable(role = Role.Button, onClick = onSeeAll)
                 .padding(vertical = 8.dp)
-                .testTag("see-all"),
+                .testTag("$tag-see-all"),
         )
     }
     LazyRow(
         contentPadding = PaddingValues(horizontal = 20.dp),
         horizontalArrangement = Arrangement.spacedBy(12.dp),
-        modifier = Modifier.testTag("for-you"),
+        modifier = Modifier.testTag(tag),
+        content = content,
+    )
+}
+
+@Composable
+private fun RowItem(
+    book: LibraryBook,
+    description: String,
+    onClick: () -> Unit,
+    cover: @Composable () -> Unit = { BookCover(book) },
+    details: @Composable ColumnScope.() -> Unit,
+) {
+    Column(
+        Modifier
+            .width(104.dp)
+            .clickable(role = Role.Button, onClick = onClick)
+            .clearAndSetSemantics { contentDescription = description; role = Role.Button }
+            .testTag("home-book-${book.id}"),
+        verticalArrangement = Arrangement.spacedBy(8.dp),
     ) {
-        items(books, key = { it.id }) { book ->
-            val description = listOfNotNull(book.title, book.author).joinToString(". ")
-            Column(
-                Modifier
-                    .width(110.dp)
-                    .clickable(role = Role.Button) { onBookClick(book.id) }
-                    .clearAndSetSemantics { contentDescription = description; role = Role.Button }
-                    .testTag("for-you-${book.id}"),
-                verticalArrangement = Arrangement.spacedBy(6.dp),
-            ) {
-                BookCover(book)
-                Text(book.title, color = MarginColors.Ink, fontSize = 13.sp, fontWeight = FontWeight.SemiBold, maxLines = 2, overflow = TextOverflow.Ellipsis)
-                book.author?.let { Text(it, color = MarginColors.Muted, fontSize = 11.sp, maxLines = 1, overflow = TextOverflow.Ellipsis) }
-            }
+        cover()
+        Column(verticalArrangement = Arrangement.spacedBy(2.dp), content = details)
+    }
+}
+
+@Composable
+private fun TitleAndAuthor(book: LibraryBook, subtitle: String? = book.author) {
+    Text(book.title, color = MarginColors.Ink, fontSize = 13.sp, fontWeight = FontWeight.SemiBold, maxLines = 1, overflow = TextOverflow.Ellipsis)
+    subtitle?.let { Text(it, color = MarginColors.Muted, fontSize = 12.sp, maxLines = 1, overflow = TextOverflow.Ellipsis) }
+}
+
+@Composable
+private fun ReadingItem(book: LibraryBook, onBookClick: (String) -> Unit) {
+    val percent = book.progressPercent ?: 0
+    val description = listOfNotNull(book.title, book.author, "$percent %").joinToString(". ")
+    RowItem(book, description, onClick = { onBookClick(book.id) }) {
+        TitleAndAuthor(book)
+        Row(Modifier.padding(top = 4.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            LinearProgressIndicator(
+                progress = { percent / 100f },
+                modifier = Modifier.weight(1f).height(4.dp).clip(RoundedCornerShape(2.dp)),
+                color = MarginColors.Ink,
+                trackColor = MarginColors.Line,
+                strokeCap = StrokeCap.Round,
+                gapSize = 0.dp,
+                drawStopIndicator = {},
+            )
+            Text("$percent%", color = MarginColors.Muted, fontSize = 11.sp, fontWeight = FontWeight.Medium)
         }
     }
 }
 
+@Composable
+private fun RecentItem(book: LibraryBook, onBookClick: (String) -> Unit) {
+    val description = listOfNotNull(book.title, book.author).joinToString(". ")
+    RowItem(book, description, onClick = { onBookClick(book.id) }) { TitleAndAuthor(book) }
+}
+
+@Composable
+private fun FinishedItem(book: LibraryBook, onBookClick: (String) -> Unit) {
+    val month = remember(book.lastReadAt) { book.lastReadAt?.let(::monthLabel) }
+    val subtitle = listOfNotNull(book.author?.let(::shortAuthor), month).joinToString(" · ").ifEmpty { null }
+    val description = listOfNotNull(book.title, book.author, stringResource(R.string.library_status_finished), month).joinToString(". ")
+    RowItem(
+        book,
+        description,
+        onClick = { onBookClick(book.id) },
+        cover = {
+            Box {
+                BookCover(book)
+                Box(
+                    Modifier
+                        .align(Alignment.TopEnd)
+                        .padding(6.dp)
+                        .size(22.dp)
+                        .clip(CircleShape)
+                        .background(MarginColors.Yellow),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    Icon(LibraryIcons.Check, contentDescription = null, tint = MarginColors.Ink, modifier = Modifier.size(15.dp))
+                }
+            }
+        },
+    ) { TitleAndAuthor(book, subtitle) }
+}
+
+/** "Mes" abreviado en el idioma del dispositivo, con mayúscula inicial (HOM-010). */
+private fun monthLabel(epochMillis: Long): String {
+    val locale = Locale.getDefault()
+    return Instant.ofEpochMilli(epochMillis).atZone(ZoneId.systemDefault()).month
+        .getDisplayName(TextStyle.SHORT, locale).trimEnd('.').replaceFirstChar { it.titlecase(locale) }
+}
+
+/** Apellido del primer autor ("Peter Thiel, Blake Masters" → "Thiel"), como en el diseño: "Fitzgerald · Sep". */
+private fun shortAuthor(author: String): String = author.substringBefore(",").trim().substringAfterLast(" ")
+
 private const val EPUB_MIME_TYPE = "application/epub+zip"
 private val MAX_CONTENT_WIDTH = 640.dp
 
-@Preview(widthDp = 360, heightDp = 780)
+@Preview(widthDp = 360, heightDp = 1100)
 @Composable
 private fun HomePreview() {
+    val reading = listOf(
+        LibraryBook("r1", "Crime and Punishment", "F. Dostoevsky", null, 64, 5),
+        LibraryBook("r2", "Frankenstein", "Mary Shelley", null, 18, 4),
+        LibraryBook("r3", "The Odyssey", "Homer", null, 33, 3),
+    )
+    val recent = listOf(
+        LibraryBook("n1", "Pride and Prejudice", "Jane Austen", null, null),
+        LibraryBook("n2", "Moby-Dick", "H. Melville", null, null),
+        LibraryBook("n3", "Walden", "H. D. Thoreau", null, null),
+    )
+    val finished = listOf(
+        LibraryBook("f1", "The Great Gatsby", "F. S. Fitzgerald", null, 100, 1_725_000_000_000),
+        LibraryBook("f2", "Hamlet", "Shakespeare", null, 100, 1_722_000_000_000),
+    )
     HomeContentView(
         loading = false,
         content = HomeContent(
-            continueReading = LibraryBook("a", "Meditations", "Marcus Aurelius", null, 42, 1),
-            forYou = listOf(
-                LibraryBook("b", "Pride & Prejudice", "Jane Austen", null, null),
-                LibraryBook("c", "MOBY\n—DICK", "Herman Melville", null, null),
-                LibraryBook("d", "Walden", "H. D. Thoreau", null, null),
-            ),
+            continueReading = LibraryBook("a", "Meditations", "Marcus Aurelius", null, 42, 9),
+            reading = reading,
+            readingCount = 5,
+            recentlyAdded = recent,
+            recentlyAddedCount = 24,
+            finished = finished,
+            finishedCount = 12,
             libraryEmpty = false,
         ),
         greeting = Greeting.Night,
         snackbar = remember { SnackbarHostState() },
         onImport = {},
         onBookClick = {},
-        onOpenLibrary = {},
+        onSeeAll = {},
     )
 }

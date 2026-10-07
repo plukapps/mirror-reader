@@ -1,5 +1,6 @@
 package com.pluk.reader.ui.library
 
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.pluk.reader.domain.model.LibraryFilter
@@ -23,8 +24,12 @@ import kotlinx.coroutines.launch
 class LibraryViewModel @Inject constructor(
     library: LibraryRepository,
     private val importBooks: ImportBooksUseCase,
+    savedState: SavedStateHandle,
 ) : ViewModel() {
-    private val filter = MutableStateFlow(LibraryFilter.All)
+    /** HOM-011: Inicio abre la biblioteca con el filtro de la sección elegida. */
+    private val filter = MutableStateFlow(
+        LibraryFilter.entries.firstOrNull { it.name == savedState.get<String>(ARG_FILTER) } ?: LibraryFilter.All,
+    )
     private val importing = MutableStateFlow(false)
 
     private val _messages = MutableSharedFlow<LibraryMessage>(extraBufferCapacity = MESSAGE_BUFFER)
@@ -60,8 +65,9 @@ class LibraryViewModel @Inject constructor(
         }
     }
 
-    private companion object {
-        const val STOP_TIMEOUT_MS = 5_000L
-        const val MESSAGE_BUFFER = 32
+    companion object {
+        const val ARG_FILTER = "filter"
+        private const val STOP_TIMEOUT_MS = 5_000L
+        private const val MESSAGE_BUFFER = 32
     }
 }

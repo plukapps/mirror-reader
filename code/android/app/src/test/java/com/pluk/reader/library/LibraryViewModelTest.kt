@@ -1,5 +1,6 @@
 package com.pluk.reader.library
 
+import androidx.lifecycle.SavedStateHandle
 import com.pluk.reader.domain.model.ImportOutcome
 import com.pluk.reader.domain.model.LibraryBook
 import com.pluk.reader.domain.model.LibraryFilter
@@ -45,7 +46,11 @@ class LibraryViewModelTest {
     @After
     fun tearDown() = Dispatchers.resetMain()
 
-    private fun viewModel(library: FakeLibrary) = LibraryViewModel(library, ImportBooksUseCase(library))
+    private fun viewModel(library: FakeLibrary, filter: String? = null) = LibraryViewModel(
+        library,
+        ImportBooksUseCase(library),
+        SavedStateHandle(listOfNotNull(filter?.let { LibraryViewModel.ARG_FILTER to it }).toMap()),
+    )
 
     private suspend fun LibraryViewModel.ready(): LibraryUiState = uiState.first { !it.loading }
 
@@ -122,5 +127,16 @@ class LibraryViewModelTest {
         vm.onImport(emptyList())
         advanceUntilIdle()
         assertTrue(received.isEmpty())
+    }
+
+    // HOM-011: "Ver todo" de Inicio abre la biblioteca con el filtro de la sección
+    @Test
+    fun initialFilterComesFromTheRouteArgument() = runTest(dispatcher) {
+        val library = FakeLibrary(listOf(book("a", null), book("b", 42), book("c", 100)))
+        val finished = viewModel(library, filter = "Finished").ready()
+        assertEquals(LibraryFilter.Finished, finished.filter)
+        assertEquals(listOf("c"), finished.books.map { it.id })
+        assertEquals(LibraryFilter.All, viewModel(library, filter = "basura").ready().filter)
+        assertEquals(LibraryFilter.All, viewModel(library).ready().filter)
     }
 }

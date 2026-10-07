@@ -31,6 +31,8 @@
     <string name="home_nothing_reading_title">Nada en lectura todavía</string>
     <string name="home_nothing_reading_body">Abrí un libro de tu biblioteca y lo retomás desde acá.</string>
     <string name="home_go_library">Ir a la biblioteca</string>
-    <string name="home_for_you">Para ti</string>
+    <string name="home_reading">Leyendo</string>
+    <string name="home_recently_added">Agregados recientemente</string>
+    <string name="home_finished">Terminados</string>
     <string name="home_see_all">Ver todo</string>
 </resources>

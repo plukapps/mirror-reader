@@ -12,4 +12,5 @@ fun BookEntity.toLibraryBook(progression: Double?, coverPath: String?, lastReadA
     coverPath = coverPath.takeIf { hasCover },
     progressPercent = libraryProgress(progression),
     lastReadAt = lastReadAt,
+    addedAt = addedAt,
 )

@@ -13,6 +13,7 @@ enum class LibraryFilter { All, Reading, Finished }
  * @param id hash del contenido (LIB-003).
  * @param coverPath ruta del archivo de portada, o null si el EPUB no trae una.
  * @param progressPercent 0..100, o null si el libro nunca se abrió.
+ * @param addedAt instante de importación (HOM-009).
  * @param lastReadAt instante de la última posición guardada, o null si nunca se abrió (HOM-002).
  */
 data class LibraryBook(
@@ -22,6 +23,7 @@ data class LibraryBook(
     val coverPath: String?,
     val progressPercent: Int?,
     val lastReadAt: Long? = null,
+    val addedAt: Long = 0L,
 ) {
     val status: ReadingStatus = readingStatus(progressPercent)
 }

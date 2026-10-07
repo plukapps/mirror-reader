@@ -51,7 +51,7 @@ class HomeViewModelTest {
         val vm = viewModel(FakeLibrary(listOf(book("n", null), book("l", 42, 5))))
         val state = vm.uiState.first { !it.loading }
         assertEquals("l", state.content.continueReading?.id)
-        assertEquals(listOf("n"), state.content.forYou.map { it.id })
+        assertEquals(listOf("n", "l"), state.content.recentlyAdded.map { it.id })
     }
 
     // HOM-002: al volver del lector el progreso cambia y Inicio lo refleja
@@ -69,7 +69,7 @@ class HomeViewModelTest {
     fun emptyLibraryIsReported() = runTest(dispatcher) {
         val state = viewModel(FakeLibrary()).uiState.first { !it.loading }
         assertTrue(state.content.libraryEmpty)
-        assertFalse(state.content.forYou.isNotEmpty())
+        assertFalse(state.content.recentlyAdded.isNotEmpty())
     }
 
     // HOM-003 con LIB-001: importar desde Inicio avisa el resultado

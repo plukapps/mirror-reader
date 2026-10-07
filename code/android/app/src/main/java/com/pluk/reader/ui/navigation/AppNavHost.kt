@@ -15,17 +15,23 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.navArgument
 import com.pluk.reader.R
 import com.pluk.reader.ui.home.HomeScreen
+import com.pluk.reader.domain.model.LibraryFilter
 import com.pluk.reader.ui.library.LibraryScreen
+import com.pluk.reader.ui.library.LibraryViewModel
 import com.pluk.reader.ui.reader.ReaderScreen
 import com.pluk.reader.ui.reader.ReaderViewModel
 
 object Routes {
     /** Inicio es la pantalla de arranque (HOM-005). */
     const val HOME = "home"
-    const val LIBRARY = "library"
+    const val LIBRARY = "library?${LibraryViewModel.ARG_FILTER}={${LibraryViewModel.ARG_FILTER}}"
     const val READER = "reader/{${ReaderViewModel.ARG_BOOK_ID}}"
 
     fun reader(bookId: String): String = "reader/$bookId"
+
+    /** Biblioteca con el filtro dado (HOM-011), o en "Todos" sin filtro. */
+    fun library(filter: LibraryFilter? = null): String =
+        if (filter == null) "library" else "library?${LibraryViewModel.ARG_FILTER}=${filter.name}"
 }
 
 @Composable
@@ -42,10 +48,15 @@ fun AppNavHost(navController: NavHostController) {
             composable(Routes.HOME) {
                 HomeScreen(
                     onBookClick = { navController.navigate(Routes.reader(it)) },
-                    onOpenLibrary = { navController.navigateTo(Routes.LIBRARY) },
+                    onSeeAll = { filter -> navController.navigateTo(Routes.library(filter)) },
                 )
             }
-            composable(Routes.LIBRARY) {
+            composable(
+                route = Routes.LIBRARY,
+                arguments = listOf(
+                    navArgument(LibraryViewModel.ARG_FILTER) { type = NavType.StringType; nullable = true; defaultValue = null },
+                ),
+            ) {
                 LibraryScreen(onBookClick = { bookId -> navController.navigate(Routes.reader(bookId)) })
             }
             composable(
@@ -59,7 +70,7 @@ fun AppNavHost(navController: NavHostController) {
             MarginBottomBar(selected) { destination ->
                 when (destination) {
                     MainDestination.Home -> navController.navigateTo(Routes.HOME)
-                    MainDestination.Shelves -> navController.navigateTo(Routes.LIBRARY)
+                    MainDestination.Shelves -> navController.navigateTo(Routes.library())
                     // TODO: Buscar (LIB-006) y Perfil (ACC) aún no existen (HOM-006).
                     MainDestination.Search, MainDestination.Profile ->
                         Toast.makeText(context, R.string.nav_coming_soon, Toast.LENGTH_SHORT).show()

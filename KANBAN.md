@@ -21,6 +21,9 @@ Plan de referencia: `specs/plans/2026-10-06-android-epub-viewer.md`
 
 ## Revisión
 
+- **K-041** Inicio secciones, Tarea 3: UI de Leyendo, Agregados recientemente y Terminados. HOM-008 a 011. Rama `feature/home`. Compila y pasan los tests JVM. Instalada en el emulador; falta verla a mano. `HomeScreenTest` escrito y compilado, sin correr (pedido del usuario).
+- **K-040** Inicio secciones, Tarea 2: ruta de la biblioteca con filtro. HOM-011. Rama `feature/home`. Compila y pasan los tests JVM. 
+- **K-039** Inicio secciones, Tarea 1: reglas puras (`addedAt`, `reading`, `recentlyAdded`, `finished`). HOM-008 a 010. Plan `2026-10-07-android-home-sections.md`. Rama `feature/home`. Compila y pasan los tests JVM. 
 - **K-037** Inicio, Tarea 3: pantalla de Inicio (continuar, para ti, vacíos). HOM-001 a 004, 007. Rama `feature/home`. Compila y pasan los tests JVM (`HomeViewModelTest`). Falta verla a mano y test Compose de emulador (no escrito).
 - **K-036** Inicio, Tarea 2: barra inferior de 4 destinos y navegación. HOM-005, 006, 007. Rama `feature/home`. Compila y pasan los tests JVM. Instalada en el dispositivo conectado. Falta `HOM-005/006` en test Compose de emulador (no escrito) y verla a mano.
 - **K-035** Inicio, Tarea 1: modelo y reglas puras (`lastReadAt`, `homeContent`, saludo). HOM-001 a 004. Plan `2026-10-07-android-home.md`. Rama `feature/home`. Pasan los tests JVM (`HomeContentTest`). Sin commit.
