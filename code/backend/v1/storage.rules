@@ -1,0 +1,10 @@
+rules_version = '2';
+
+// Denegar todo hasta que K-046 defina las reglas por usuario.
+service firebase.storage {
+  match /b/{bucket}/o {
+    match /{allPaths=**} {
+      allow read, write: if false;
+    }
+  }
+}

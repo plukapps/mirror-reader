@@ -8,6 +8,11 @@ Plan de referencia: `specs/plans/2026-10-06-android-epub-viewer.md`
 - **K-008** Biblioteca, segunda rebanada: colecciones, búsqueda, nube, eliminar/quitar, cuota, edición de metadatos, "Compartir / Abrir con". LIB-005 a LIB-009. Requiere plan propio.
 - **K-009** Anotaciones: marcadores, subrayados, notas. Requiere plan propio. ANN-001 a ANN-007.
 - **K-010** Cuenta y sincronización. Requiere plan propio. Backend Firebase (ADR 0007), código en `code/backend/v1`. Actualizar ADR 0005 (SDK de Firebase en lugar de Retrofit). ACC, SYN.
+- **K-045** Backend, Tarea 2: modelo de datos y reglas de Firestore. ACC-004, ACC-005, SYN-007.
+- **K-046** Backend, Tarea 3: reglas de Storage. ACC-004.
+- **K-047** Backend, Tarea 4: cuota de espacio (spike de reglas de Storage, plan B con Cloud Function). ACC-002, ACC-003, LIB-009.
+- **K-048** Backend, Tarea 5: cuentas con email y Google, documento de usuario con plan gratuito. ACC-001, ACC-002, ACC-005.
+- **K-049** Backend, Tarea 6: despliegue al proyecto `dev` y cierre de docs.
 - **K-011** Cumplimiento con Google Play y beta cerrada. CMP.
 - **K-012** Ajustes de lectura restantes: tipo de letra, interlineado, márgenes. RDR-002.
 
@@ -57,5 +62,6 @@ Plan de referencia: `specs/plans/2026-10-06-android-epub-viewer.md`
 
 ## Hecho
 
+- **K-044** Backend, Tarea 1: estructura de `code/backend/v1`, emuladores y proyecto de tests de reglas. Plan `2026-10-07-backend-firebase.md`. Rama `feature/backend`. Pasan 3 tests de humo en el emulador (reglas que deniegan todo). Requiere JDK 21+ (ver README). Aprobada.
 - **K-034** Inicio: spec `specs/product/07-home.md` (HOM-001 a HOM-007), aprobado.
 - Specs v0 escritos y aprobados (`specs/`).
