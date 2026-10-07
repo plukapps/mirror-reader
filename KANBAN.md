@@ -7,7 +7,7 @@ Plan de referencia: `specs/plans/2026-10-06-android-epub-viewer.md`
 
 - **K-008** Biblioteca, segunda rebanada: colecciones, búsqueda, nube, eliminar/quitar, cuota, edición de metadatos, "Compartir / Abrir con". LIB-005 a LIB-009. Requiere plan propio.
 - **K-009** Anotaciones: marcadores, subrayados, notas. Requiere plan propio. ANN-001 a ANN-007.
-- **K-010** Cuenta y sincronización. Requiere plan propio, y revisar ADR 0003 antes. ACC, SYN.
+- **K-010** Cuenta y sincronización. Requiere plan propio. Backend Firebase (ADR 0007), código en `code/backend/v1`. Actualizar ADR 0005 (SDK de Firebase en lugar de Retrofit). ACC, SYN.
 - **K-011** Cumplimiento con Google Play y beta cerrada. CMP.
 - **K-012** Ajustes de lectura restantes: tipo de letra, interlineado, márgenes. RDR-002.
 
@@ -18,10 +18,11 @@ Plan de referencia: `specs/plans/2026-10-06-android-epub-viewer.md`
 
 ## En curso
 
-- **K-042** Fuente de la app: Host Grotesk (variable, normal e itálica) como tipografía por defecto del tema. Rama `feature/home`. Compila; falta verla a mano.
 
 ## Revisión
 
+- **K-043** Aviso de fin de lectura: detectar el fin del cuerpo por la tabla de contenidos y mostrar un toast. RDR-012. Plan `2026-10-07-android-reading-end.md`. Rama `feature/home`. Compila y pasan los tests JVM (`BackMatterTest`). Detección por palabras clave del título (ajustada con 4 libros reales: la primera versión solo acertaba 1 de 4). Instalada en el teléfono; falta probarla a mano.
+- **K-042** Fuente de la app: Host Grotesk (variable, normal e itálica) como tipografía por defecto del tema. Rama `feature/home`. Compila; falta verla a mano.
 - **K-041** Inicio secciones, Tarea 3: UI de Leyendo, Agregados recientemente y Terminados. HOM-008 a 011. Rama `feature/home`. Compila y pasan los tests JVM. Instalada en el emulador; falta verla a mano. `HomeScreenTest` escrito y compilado, sin correr (pedido del usuario).
 - **K-040** Inicio secciones, Tarea 2: ruta de la biblioteca con filtro. HOM-011. Rama `feature/home`. Compila y pasan los tests JVM. 
 - **K-039** Inicio secciones, Tarea 1: reglas puras (`addedAt`, `reading`, `recentlyAdded`, `finished`). HOM-008 a 010. Plan `2026-10-07-android-home-sections.md`. Rama `feature/home`. Compila y pasan los tests JVM. 

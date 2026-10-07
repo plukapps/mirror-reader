@@ -87,5 +87,5 @@ Arquitectura MVVM en capas, un solo módulo Gradle, paquetes `com.pluk.reader.{u
 
 - Clientes nativos por plataforma, Android primero (ADR 0001).
 - Offline-first (ADR 0002).
-- Backend Supabase, provisional (ADR 0003). Aún no se construye.
+- Backend Firebase, provisional (ADR 0007, reemplaza al 0003). Código en `code/backend/v1`. Aún no se construye.
 - Modelo de negocio abierto, hipótesis: suscripción. Ver `specs/open-questions.md`.
