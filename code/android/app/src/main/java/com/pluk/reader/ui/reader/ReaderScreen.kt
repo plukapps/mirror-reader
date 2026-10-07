@@ -124,7 +124,7 @@ private fun ReaderContent(
 
     // La animación solo aplica en modo paginado (RDR-009).
     val animated = settings.pageAnimation && !settings.scroll
-    val darkTheme = settings.theme == ReadingTheme.DARK
+    val outgoingTint = settings.theme.outgoingTint()
     val controlsVisible by rememberUpdatedState(controlsVisible)
     // Al pasar de página los controles se quitan de golpe: esperar a que se desvanezcan retrasa el inicio de la animación.
     var hideControlsInstantly by remember { mutableStateOf(false) }
@@ -273,13 +273,11 @@ private fun ReaderContent(
                             .graphicsLayer {
                                 val transform = controller.transform(size.width)
                                 translationX = transform.outgoingTranslationX
-                                if (darkTheme) {
-                                    // Aclara el fondo negro de la captura sin tocar el texto: así se distingue de la página de abajo.
-                                    colorFilter = ColorFilter.tint(
-                                        DARK_OUTGOING_BACKGROUND.copy(alpha = transform.outgoingLightenAmount),
-                                        BlendMode.Screen,
-                                    )
-                                }
+                                // Cambia el fondo de la captura sin tocar el texto: así se distingue de la página de abajo.
+                                colorFilter = ColorFilter.tint(
+                                    outgoingTint.color.copy(alpha = transform.outgoingLightenAmount),
+                                    outgoingTint.blendMode,
+                                )
                             },
                     )
                 }
@@ -349,7 +347,19 @@ private fun androidx.compose.ui.geometry.Rect.toAndroidRect() =
 /** Fracción del ancho, a cada lado, donde un toque pasa de página. */
 private const val EDGE_FRACTION = 0.3f
 /** Fondo con el que sale la página en el tema oscuro (un poco más claro que el del libro). */
-private val DARK_OUTGOING_BACKGROUND = Color(0xFF242728)
+/**
+ * Tinte que se le pone a la captura de la página que sale (RDR-009). En el tema oscuro aclara el fondo negro
+ * hasta `#242728`; en claro y sepia lo oscurece un poco (multiplicando), porque no se puede aclarar un fondo claro.
+ */
+private class OutgoingTint(val color: Color, val blendMode: BlendMode)
+
+private fun ReadingTheme.outgoingTint() = when (this) {
+    ReadingTheme.DARK -> OutgoingTint(Color(0xFF242728), BlendMode.Screen)
+    // Blanco → #E6E6E6
+    ReadingTheme.LIGHT -> OutgoingTint(Color(0xFFE6E6E6), BlendMode.Multiply)
+    // #FAF4E8 → #E6DCC5
+    ReadingTheme.SEPIA -> OutgoingTint(Color(0xFFEBE6D9), BlendMode.Multiply)
+}
 
 private const val SNAPSHOT_TAG = "page-turn-snapshot"
 private const val PAGE_NUMBER_TAG = "page-number"
