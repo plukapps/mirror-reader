@@ -14,8 +14,12 @@ service cloud.firestore {
       return value is timestamp && value == request.time;
     }
 
+    // SYN-006, SYN-007: deletedAt es null, la hora del servidor o el valor que ya tenía
+    // (al editar un documento ya borrado). Nunca una fecha elegida por el cliente.
     function isSoftDeleteMark(value) {
-      return value == null || value is timestamp;
+      return value == null
+        || value == request.time
+        || (resource != null && value == resource.data.deletedAt);
     }
 
     // ACC-004, ACC-005, ACC-002: el dueño solo lee. La creación del documento y

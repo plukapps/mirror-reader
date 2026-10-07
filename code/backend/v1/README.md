@@ -42,3 +42,9 @@ Desde `code/backend/v1`:
 ## Credenciales
 
 `google-services.json`, `GoogleService-Info.plist` y claves de cuentas de servicio no se guardan en el repo (ver `.gitignore`).
+
+## Dependencias
+
+`npm audit` en `functions/` y `npm audit --omit=dev` en la raíz: 0 vulnerabilidades.
+
+Excepción documentada: `npm audit` completo en la raíz marca 5 de severidad alta en `@grpc/grpc-js`, que llega con `@firebase/rules-unit-testing` y `firebase` (solo desarrollo; los tests hablan con el emulador local, no con servicios reales). La corrección propuesta es `npm audit fix --force`, un cambio mayor, y no se aplica a ciegas. Revisar el 2027-01-07 o cuando salga una versión de `@firebase/rules-unit-testing` que lo resuelva.

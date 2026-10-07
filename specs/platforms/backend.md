@@ -73,6 +73,18 @@ Ruta `users/{uid}/books/{sha256}.epub`. Solo el dueño lee, sube y borra (ACC-00
 - Límite conocido: subidas simultáneas pueden pasar la regla con el mismo `usedBytes` antes de que la función lo actualice. El exceso queda acotado (ADR 0008).
 - La cuenta es eventual: `usedBytes` se actualiza segundos después de la subida o el borrado.
 
+## Riesgos conocidos
+
+Revisión de seguridad del checkpoint de reglas (2026-10-07). Lo que no está resuelto y se decide aparte (tarjeta K-050):
+
+- **Cuentas descartables y costo.** Cualquiera puede registrarse y usar su cuota completa. Las reglas no exigen correo verificado ni App Check, así que muchas cuentas falsas multiplican el uso de almacenamiento y las lecturas de Firestore que cada subida provoca. Mitigaciones posibles: App Check, exigir `email_verified` para subir, alerta de presupuesto.
+- **Documentos sin tope de cantidad.** La cuota cuenta solo bytes de Storage. Un usuario puede crear muchos documentos de libro o colección sin archivo, y eso no consume cuota. Cada documento está acotado (1 MiB, campos validados), pero la cantidad no. Mitigación posible: contador por usuario o tope en las funciones.
+- **Elementos de listas sin validar.** Las reglas no pueden recorrer listas, así que `authors` y `bookIds` solo limitan el tamaño de la lista, no el tipo ni el largo de cada elemento. Queda acotado por el tamaño máximo del documento.
+- **Cuota inflada por eventos fuera de orden.** Si el evento de borrado llega antes que el de creación, `usedBytes` queda sumando un archivo que ya no existe. Se puede reconciliar con `storedFiles` (ADR 0008). No es un problema de seguridad, pero perjudica al usuario.
+- **Subidas simultáneas** pueden exceder la cuota (ver ADR 0008).
+
+Revisado y sin hallazgos: acceso por usuario en Firestore y Storage, denegado por defecto, el cliente no escribe plan, cuota ni `usedBytes`, no hay borrado físico, un archivo no se sobrescribe, sin secretos versionados, `npm audit` de producción y de `functions` sin vulnerabilidades.
+
 ## Fuera de este modelo por ahora
 
 Posición de lectura, preferencias y anotaciones (SYN-002, ANN): su modelo y sus reglas llegan con esas rebanadas. Mientras tanto están denegadas.

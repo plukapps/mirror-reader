@@ -162,6 +162,29 @@ describe("Firestore", () => {
       );
     });
 
+    it("deletedAt solo puede ser la hora del servidor, no una fecha del cliente", async () => {
+      await seedBook("alice");
+      const ref = doc(db("alice"), `users/alice/books/${HASH}`);
+      await assertFails(updateDoc(ref, { deletedAt: new Date(2000, 1, 1), updatedAt: serverTimestamp() }));
+      await assertFails(updateDoc(ref, { deletedAt: new Date(2999, 1, 1), updatedAt: serverTimestamp() }));
+    });
+
+    it("un libro ya borrado conserva su deletedAt al editarlo y puede restaurarse", async () => {
+      const ref = doc(db("alice"), `users/alice/books/${HASH}`);
+      await assertSucceeds(setDoc(ref, bookData("alice")));
+      await assertSucceeds(updateDoc(ref, { deletedAt: serverTimestamp(), updatedAt: serverTimestamp() }));
+      await assertSucceeds(updateDoc(ref, { title: "Editado", updatedAt: serverTimestamp() }));
+      await assertSucceeds(updateDoc(ref, { deletedAt: null, updatedAt: serverTimestamp() }));
+    });
+
+    it("lo mismo vale para las colecciones", async () => {
+      const ref = doc(db("alice"), "users/alice/collections/c1");
+      await assertSucceeds(setDoc(ref, collectionData()));
+      await assertFails(updateDoc(ref, { deletedAt: new Date(2000, 1, 1), updatedAt: serverTimestamp() }));
+      await assertSucceeds(updateDoc(ref, { deletedAt: serverTimestamp(), updatedAt: serverTimestamp() }));
+      await assertSucceeds(updateDoc(ref, { name: "Otro nombre", updatedAt: serverTimestamp() }));
+    });
+
     it("el cliente no puede borrar físicamente un libro", async () => {
       await seedBook("alice");
       await assertFails(deleteDoc(doc(db("alice"), `users/alice/books/${HASH}`)));
