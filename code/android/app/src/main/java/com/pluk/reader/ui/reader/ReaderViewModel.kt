@@ -3,6 +3,9 @@ package com.pluk.reader.ui.reader
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.pluk.reader.domain.BodyEndDetector
+import com.pluk.reader.domain.BodyEntry
+import com.pluk.reader.domain.backMatterStart
 import com.pluk.reader.domain.model.OpenedBook
 import com.pluk.reader.domain.model.ReaderSettings
 import com.pluk.reader.domain.progressPercent
@@ -49,6 +52,9 @@ class ReaderViewModel @Inject constructor(
     private val controlsVisible = MutableStateFlow(true)
     private val pendingPosition = MutableStateFlow<PendingPosition?>(null)
 
+    // RDR-012: se arma al abrir el libro.
+    private var bodyEnd: BodyEndDetector? = null
+
     private val _events = MutableSharedFlow<ReaderEvent>(extraBufferCapacity = 4)
     val events: SharedFlow<ReaderEvent> = _events.asSharedFlow()
 
@@ -75,6 +81,14 @@ class ReaderViewModel @Inject constructor(
                     navigatorHost.install(book, settings) { url ->
                         _events.tryEmit(ReaderEvent.OpenExternalLink(url))
                     }
+                    val readingOrder = book.publication.readingOrder.map { it.href.toString() }
+                    bodyEnd = BodyEndDetector(
+                        readingOrder,
+                        backMatterStart(
+                            book.publication.tableOfContents.map { BodyEntry(it.title.orEmpty(), it.href.toString()) },
+                            readingOrder,
+                        ),
+                    )
                     phase.value = Phase.Opened(book, flattenToc(book.publication.tableOfContents))
                 },
                 onFailure = { phase.value = Phase.Failed(it.message ?: "No se pudo abrir el libro.") },
@@ -95,10 +109,11 @@ class ReaderViewModel @Inject constructor(
     }
 
     /** RDR-005, RDR-006 y RDR-010: la pantalla informa cada cambio de posición con el locator serializado. */
-    fun onLocatorChanged(locatorJson: String, totalProgression: Double?, position: Int? = null) {
+    fun onLocatorChanged(locatorJson: String, totalProgression: Double?, position: Int? = null, href: String? = null) {
         progress.value = progressPercent(totalProgression)
         pageNumber.value = position
         pendingPosition.value = PendingPosition(locatorJson, totalProgression)
+        if (href != null && bodyEnd?.onResource(href) == true) _events.tryEmit(ReaderEvent.BodyEnded)
     }
 
     fun toggleScroll() = updateSettings { it.toggleScroll() }

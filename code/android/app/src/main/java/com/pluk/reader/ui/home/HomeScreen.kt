@@ -348,8 +348,8 @@ private fun TitleAndAuthor(book: LibraryBook, subtitle: String? = book.author) {
     Text(
         text = book.title,
         color = MarginColors.Ink,
-        fontSize = 13.sp,
-        lineHeight = 13.sp,
+        fontSize = 14.sp,
+        lineHeight = 14.sp,
         fontWeight = FontWeight.SemiBold,
 //        style = androidx.compose.ui.text.TextStyle(
 //            fontSize = 13.sp,

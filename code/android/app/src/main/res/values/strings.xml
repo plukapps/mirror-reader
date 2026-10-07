@@ -35,4 +35,5 @@
     <string name="home_recently_added">Agregados recientemente</string>
     <string name="home_finished">Terminados</string>
     <string name="home_see_all">Ver todo</string>
+    <string name="reader_body_ended">Parece que terminaste el libro</string>
 </resources>
