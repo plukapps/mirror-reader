@@ -30,6 +30,12 @@ Desde `code/backend/v1`:
 - `firestore.indexes.json`: índices.
 - `tests/`: tests de reglas con `@firebase/rules-unit-testing`. Cada requisito se referencia por su ID en el nombre del test.
 
+## Notas de los tests
+
+- Los archivos de test corren **uno a uno** (`--test-concurrency=1`): comparten un único emulador y `clearFirestore()` de un archivo borraría los datos de otro.
+- `clearStorage()` no borra los archivos en este emulador. Los tests de Storage usan un hash nuevo por test.
+- En Storage, `create` cubre cualquier escritura de contenido, también sobre un archivo existente. Para no sobrescribir, la regla exige `resource == null`.
+
 ## Credenciales
 
 `google-services.json`, `GoogleService-Info.plist` y claves de cuentas de servicio no se guardan en el repo (ver `.gitignore`).

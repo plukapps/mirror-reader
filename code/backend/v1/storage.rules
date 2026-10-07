@@ -1,10 +1,31 @@
 rules_version = '2';
 
-// Denegar todo hasta que K-046 defina las reglas por usuario.
+// Archivos de libros: users/{uid}/books/{sha256}.epub (specs/platforms/backend.md).
+// Todo lo que no se permite aquí está denegado.
 service firebase.storage {
   match /b/{bucket}/o {
-    match /{allPaths=**} {
-      allow read, write: if false;
+
+    match /users/{uid}/books/{fileName} {
+      function isOwner() {
+        return request.auth != null && request.auth.uid == uid;
+      }
+
+      // ACC-004
+      allow read: if isOwner();
+
+      // LIB-002. El nombre es el hash del contenido: se sube una vez y no se
+      // sobrescribe. `create` cubre toda escritura de contenido, también sobre un
+      // archivo existente, por eso se exige resource == null.
+      // Máximo 100 MB por archivo.
+      allow create: if isOwner()
+        && resource == null
+        && fileName.matches('^[a-f0-9]{64}\\.epub$')
+        && request.resource.contentType == 'application/epub+zip'
+        && request.resource.size > 0
+        && request.resource.size <= 100 * 1024 * 1024;
+
+      // LIB-008: quitar el archivo del servidor.
+      allow delete: if isOwner();
     }
   }
 }

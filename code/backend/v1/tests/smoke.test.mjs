@@ -5,7 +5,6 @@ import { ref, getBytes } from "firebase/storage";
 import { createTestEnv } from "./helpers.mjs";
 
 // Humo: lo que no está en el modelo sigue denegado, incluso con sesión.
-// Storage deniega todo hasta K-046.
 describe("denegado por defecto", () => {
   let env;
   before(async () => {
@@ -30,8 +29,8 @@ describe("denegado por defecto", () => {
     await assertFails(getDoc(doc(db, "otra/cosa")));
   });
 
-  it("Storage rechaza lectura con sesión", async () => {
+  it("Storage rechaza rutas fuera del modelo con sesión", async () => {
     const storage = env.authenticatedContext("alice").storage();
-    await assertFails(getBytes(ref(storage, "users/alice/books/x.epub")));
+    await assertFails(getBytes(ref(storage, "otra/cosa.epub")));
   });
 });
