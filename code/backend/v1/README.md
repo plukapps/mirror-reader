@@ -28,12 +28,15 @@ Desde `code/backend/v1`:
 
 - `firestore.rules`, `storage.rules`: reglas de seguridad. Hoy deniegan todo; las reales llegan en K-045 y K-046.
 - `firestore.indexes.json`: índices.
-- `tests/`: tests de reglas con `@firebase/rules-unit-testing`. Cada requisito se referencia por su ID en el nombre del test.
+- `functions/`: Cloud Functions en TypeScript (Node 22). Contabilidad de la cuota de espacio (ADR 0008): `onBookFileFinalized` y `onBookFileDeleted` mantienen `users/{uid}.usedBytes`. La lógica está en `src/quota.ts`, separada de los disparadores. Se compila con `npm --prefix functions run build` (`npm test` ya lo hace).
+- `tests/`: tests de reglas y de punta a punta con el emulador de Functions. `functions/tests/`: tests de la lógica de contabilidad contra el emulador de Firestore. Tests de reglas con `@firebase/rules-unit-testing`. Cada requisito se referencia por su ID en el nombre del test.
 
 ## Notas de los tests
 
 - Los archivos de test corren **uno a uno** (`--test-concurrency=1`): comparten un único emulador y `clearFirestore()` de un archivo borraría los datos de otro.
 - `clearStorage()` no borra los archivos en este emulador. Los tests de Storage usan un hash nuevo por test.
+- El tamaño del objeto llega como **texto** en los eventos de Storage aunque los tipos de `firebase-functions` digan `number`. `parseObjectSize` lo valida.
+- El cliente de pruebas sube por defecto al bucket `demo-pluk-reader`, pero las funciones escuchan el bucket por defecto (`demo-pluk-reader.appspot.com`). El test de punta a punta indica el bucket explícito.
 - En Storage, `create` cubre cualquier escritura de contenido, también sobre un archivo existente. Para no sobrescribir, la regla exige `resource == null`.
 
 ## Credenciales

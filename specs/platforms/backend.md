@@ -18,10 +18,21 @@ Alcance del backend v1 y modelo de datos. Decisión técnica: `specs/adr/0007-ba
 |---|---|---|
 | `plan` | string | `"free"` en v1. Nuevos planes sin cambiar el modelo (ACC-005). |
 | `quotaBytes` | int | Cuota del plan, en bytes. |
-| `usedBytes` | int | Bytes usados por los archivos del usuario (ACC-003). |
+| `usedBytes` | int | Bytes usados por los archivos del usuario (ACC-003). Lo mantiene una Cloud Function con el tamaño real (ADR 0008). |
 | `createdAt` | timestamp | Alta de la cuenta. |
 
-Reglas: el dueño puede leer. **Nadie puede escribir desde el cliente por ahora.** La creación del documento y el manejo de `usedBytes` se definen en K-047 y K-048 (ver plan).
+Reglas: el dueño puede leer (así la app muestra el espacio usado y libre, ACC-003). **Nadie puede escribir desde el cliente.** `usedBytes` lo escribe el servidor (ADR 0008). La creación del documento con el plan gratuito se resuelve en K-048.
+
+### `users/{uid}/storedFiles/{sha256}`
+
+Registro interno de archivos ya contabilizados en `usedBytes`. Existe para que sumar o restar ocurra una sola vez aunque el evento de Storage llegue repetido.
+
+| Campo | Tipo | Notas |
+|---|---|---|
+| `sizeBytes` | int | Tamaño real del archivo, tomado de Storage. |
+| `createdAt` | timestamp | Del servidor. |
+
+Reglas: **ni el dueño puede leer ni escribir.** Solo el servidor.
 
 ### `users/{uid}/books/{bookId}`
 
@@ -50,6 +61,17 @@ Reglas: el dueño lee, crea y actualiza. No hay borrado físico desde el cliente
 | `deletedAt` | timestamp o null | Marca de borrado. |
 
 Reglas: como los libros.
+
+## Archivos (Storage)
+
+Ruta `users/{uid}/books/{sha256}.epub`. Solo el dueño lee, sube y borra (ACC-004). Solo `application/epub+zip`, de 1 byte a 100 MB, y un archivo no se sobrescribe: el nombre es su hash (LIB-002).
+
+### Cuota
+
+- Se rechaza una subida si `usedBytes` + tamaño del archivo supera `quotaBytes` (ACC-002, LIB-009). Leer y borrar nunca dependen de la cuota.
+- `usedBytes` lo actualizan las funciones `onBookFileFinalized` y `onBookFileDeleted` (código en `code/backend/v1/functions`), con el tamaño real del objeto.
+- Límite conocido: subidas simultáneas pueden pasar la regla con el mismo `usedBytes` antes de que la función lo actualice. El exceso queda acotado (ADR 0008).
+- La cuenta es eventual: `usedBytes` se actualiza segundos después de la subida o el borrado.
 
 ## Fuera de este modelo por ahora
 

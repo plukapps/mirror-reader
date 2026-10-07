@@ -53,6 +53,7 @@
 
 ### Tarea 4: cuota de espacio (M) — K-047
 Riesgo más alto del plan: va primero entre las tareas que pueden cambiar el diseño.
+**Resultado del spike:** las reglas de Storage sí pueden leer Firestore, pero el cliente no puede mantener `usedBytes` (las reglas de Firestore no ven el tamaño real del archivo). Se tomó el plan B: Cloud Function, ADR 0008.
 - [ ] Spike corto: ¿las reglas de Storage pueden leer `users/{uid}.usedBytes` y la cuota con `firestore.get()`? Verificar contra la documentación oficial y probar en el emulador.
 - [ ] Si sí: regla de Storage que rechaza subidas que pasen la cuota (LIB-009), y actualización de `usedBytes` por el cliente en una transacción junto al documento del libro, con regla de Firestore que verifica que coincida con el tamaño del archivo.
 - [ ] Si no: Cloud Function (TypeScript) que actualiza `usedBytes` al crear o borrar un archivo, y la subida se valida en reglas con el valor actual. Registrar la decisión como ADR 0008.

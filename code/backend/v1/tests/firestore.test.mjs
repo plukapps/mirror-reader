@@ -1,3 +1,4 @@
+import assert from "node:assert/strict";
 import { after, afterEach, before, describe, it } from "node:test";
 import { assertFails, assertSucceeds } from "@firebase/rules-unit-testing";
 import { deleteDoc, doc, getDoc, serverTimestamp, setDoc, updateDoc } from "firebase/firestore";
@@ -69,6 +70,13 @@ describe("Firestore", () => {
       await assertSucceeds(getDoc(doc(db("alice"), "users/alice")));
     });
 
+    it("ACC-003: el dueño ve cuánto espacio usó y cuánto tiene", async () => {
+      await seedUser("alice", { usedBytes: 250, quotaBytes: 1000 });
+      const snap = await assertSucceeds(getDoc(doc(db("alice"), "users/alice")));
+      assert.equal(snap.get("usedBytes"), 250);
+      assert.equal(snap.get("quotaBytes"), 1000);
+    });
+
     it("otro usuario no lee el documento de usuario", async () => {
       await seedUser("alice");
       await assertFails(getDoc(doc(db("bob"), "users/alice")));
@@ -80,6 +88,14 @@ describe("Firestore", () => {
       const anon = env.unauthenticatedContext().firestore();
       await assertFails(getDoc(doc(anon, "users/alice")));
       await assertFails(getDoc(doc(anon, `users/alice/books/${HASH}`)));
+    });
+
+    it("el dueño no puede leer el registro interno de archivos", async () => {
+      await env.withSecurityRulesDisabled((ctx) =>
+        setDoc(doc(ctx.firestore(), `users/alice/storedFiles/${HASH}`), { sizeBytes: 1 }),
+      );
+      await assertFails(getDoc(doc(db("alice"), `users/alice/storedFiles/${HASH}`)));
+      await assertFails(setDoc(doc(db("alice"), `users/alice/storedFiles/${OTHER_HASH}`), { sizeBytes: 1 }));
     });
 
     it("el dueño crea y lee sus libros", async () => {

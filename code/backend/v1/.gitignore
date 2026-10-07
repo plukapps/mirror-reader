@@ -10,3 +10,4 @@ serviceAccount*.json
 *-adminsdk-*.json
 .env
 .env.*
+functions/lib/

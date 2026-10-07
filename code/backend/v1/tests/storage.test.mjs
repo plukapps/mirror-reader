@@ -1,6 +1,7 @@
 import { randomBytes } from "node:crypto";
 import { after, before, beforeEach, describe, it } from "node:test";
 import { assertFails, assertSucceeds } from "@firebase/rules-unit-testing";
+import { doc, setDoc } from "firebase/firestore";
 import { deleteObject, getBytes, ref, uploadBytes } from "firebase/storage";
 import { createTestEnv } from "./helpers.mjs";
 
@@ -18,9 +19,13 @@ describe("Storage", () => {
   before(async () => {
     env = await createTestEnv();
   });
-  beforeEach(() => {
+  beforeEach(async () => {
     HASH = randomHash();
     OTHER_HASH = randomHash();
+    // Subir exige que exista el documento del usuario (cuota). Por defecto, con espacio de sobra.
+    await env.withSecurityRulesDisabled((ctx) =>
+      setDoc(doc(ctx.firestore(), "users/alice"), { plan: "free", quotaBytes: 1024 * MB, usedBytes: 0, createdAt: new Date() }),
+    );
   });
   after(async () => {
     await env.cleanup();
@@ -98,6 +103,49 @@ describe("Storage", () => {
     it("el dueño borra su archivo", async () => {
       await seed("alice");
       await assertSucceeds(deleteObject(ref(storage("alice"), path("alice"))));
+    });
+  });
+
+  describe("ACC-002 y LIB-009: cuota de espacio", () => {
+    // El documento del usuario lo mantiene el servidor (ADR 0008): aquí se siembra con las reglas apagadas.
+    const seedUser = (uid, { usedBytes = 0, quotaBytes = 1000 } = {}) =>
+      env.withSecurityRulesDisabled((ctx) =>
+        setDoc(doc(ctx.firestore(), `users/${uid}`), { plan: "free", quotaBytes, usedBytes, createdAt: new Date() }),
+      );
+    const upload = (uid, size, hash = HASH) =>
+      uploadBytes(ref(storage(uid), path(uid, hash)), bytes(size), { contentType: EPUB });
+
+    it("acepta una subida que cabe en el espacio libre", async () => {
+      await seedUser("alice", { usedBytes: 400 });
+      await assertSucceeds(upload("alice", 600));
+    });
+
+    it("rechaza una subida que pasa la cuota", async () => {
+      await seedUser("alice", { usedBytes: 400 });
+      await assertFails(upload("alice", 601));
+    });
+
+    it("rechaza cualquier subida con la cuota llena", async () => {
+      await seedUser("alice", { usedBytes: 1000 });
+      await assertFails(upload("alice", 1));
+    });
+
+    it("rechaza subir si no existe el documento del usuario", async () => {
+      await assertFails(upload("carol", 10));
+    });
+
+    it("con la cuota llena se sigue leyendo y borrando", async () => {
+      await seed("alice");
+      await seedUser("alice", { usedBytes: 1000 });
+      await assertSucceeds(getBytes(ref(storage("alice"), path("alice"))));
+      await assertSucceeds(deleteObject(ref(storage("alice"), path("alice"))));
+    });
+
+    it("la cuota de un usuario no depende del uso de otro", async () => {
+      await seedUser("alice", { usedBytes: 1000 });
+      await seedUser("bob", { usedBytes: 0 });
+      await assertFails(upload("alice", 1));
+      await assertSucceeds(upload("bob", 500));
     });
   });
 });

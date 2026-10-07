@@ -10,19 +10,27 @@ service firebase.storage {
         return request.auth != null && request.auth.uid == uid;
       }
 
+      // ACC-002, LIB-009: espacio libre según el documento del usuario, que mantiene
+      // el servidor (ADR 0008). Si el documento no existe, firestore.get() falla y se deniega.
+      function fitsInQuota(size) {
+        let user = firestore.get(/databases/(default)/documents/users/$(uid)).data;
+        return user.usedBytes + size <= user.quotaBytes;
+      }
+
       // ACC-004
       allow read: if isOwner();
 
       // LIB-002. El nombre es el hash del contenido: se sube una vez y no se
       // sobrescribe. `create` cubre toda escritura de contenido, también sobre un
       // archivo existente, por eso se exige resource == null.
-      // Máximo 100 MB por archivo.
+      // Máximo 100 MB por archivo y dentro de la cuota.
       allow create: if isOwner()
         && resource == null
         && fileName.matches('^[a-f0-9]{64}\\.epub$')
         && request.resource.contentType == 'application/epub+zip'
         && request.resource.size > 0
-        && request.resource.size <= 100 * 1024 * 1024;
+        && request.resource.size <= 100 * 1024 * 1024
+        && fitsInQuota(request.resource.size);
 
       // LIB-008: quitar el archivo del servidor.
       allow delete: if isOwner();
