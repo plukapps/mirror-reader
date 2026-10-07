@@ -4,8 +4,9 @@ import { doc, getDoc, setDoc } from "firebase/firestore";
 import { ref, getBytes } from "firebase/storage";
 import { createTestEnv } from "./helpers.mjs";
 
-// Humo de K-044: las reglas iniciales deniegan todo, incluso a un usuario con sesión.
-describe("reglas iniciales (denegar todo)", () => {
+// Humo: lo que no está en el modelo sigue denegado, incluso con sesión.
+// Storage deniega todo hasta K-046.
+describe("denegado por defecto", () => {
   let env;
   before(async () => {
     env = await createTestEnv();
@@ -18,15 +19,15 @@ describe("reglas iniciales (denegar todo)", () => {
     await env.cleanup();
   });
 
-  it("Firestore rechaza lectura y escritura con sesión", async () => {
+  it("Firestore rechaza rutas fuera del modelo con sesión", async () => {
     const db = env.authenticatedContext("alice").firestore();
-    await assertFails(getDoc(doc(db, "users/alice")));
-    await assertFails(setDoc(doc(db, "users/alice"), { plan: "free" }));
+    await assertFails(getDoc(doc(db, "otra/cosa")));
+    await assertFails(setDoc(doc(db, "otra/cosa"), { x: 1 }));
   });
 
   it("Firestore rechaza acceso sin sesión", async () => {
     const db = env.unauthenticatedContext().firestore();
-    await assertFails(getDoc(doc(db, "users/alice")));
+    await assertFails(getDoc(doc(db, "otra/cosa")));
   });
 
   it("Storage rechaza lectura con sesión", async () => {
