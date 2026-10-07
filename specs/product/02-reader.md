@@ -25,6 +25,7 @@ Leer cómodo, sin que la interfaz estorbe.
   - Al soltar, si el avance pasó de un umbral (30% del recorrido) o el gesto fue una pasada rápida, la animación se completa y se pasa de página. Si no, vuelve atrás y la página queda como estaba.
   - Al soltar, el tramo que falta parte de la velocidad que llevaba el dedo y frena suavemente, sin saltos ni cortes bruscos.
   - El usuario puede desactivarla. Si está desactivada, o en modo scroll, el paso de página es inmediato.
+  - En la primera página del libro no se puede retroceder, y en la última no se puede avanzar: ni el deslizar ni el toque en el borde mueven ni animan nada.
   - Mientras dura la animación no se aceptan otros pasos de página. Excepción: si la página ya cambió y la animación solo se está asentando, tocar la pantalla la termina al instante y permite pasar de página seguido.
 - **RDR-010** En modo paginado debe mostrar el número de página actual en el pie de la pantalla, fuera del texto y visible aunque los controles estén ocultos. Es la posición del libro, que no cambia con el tamaño de letra. No muestra el total. En modo scroll no se muestra.
 
@@ -36,6 +37,7 @@ Leer cómodo, sin que la interfaz estorbe.
 - Dado que arrastro la página a la izquierda más del umbral, cuando suelto el dedo, entonces la animación se completa y veo la página siguiente.
 - Dado que arrastro la página solo un poco, cuando suelto el dedo, entonces la animación vuelve atrás y sigo en la misma página.
 - Dado que estoy en la última página, cuando intento avanzar, entonces no hay animación ni cambio.
+- Dado que estoy en la primera página, cuando intento retroceder (deslizando o tocando el borde), entonces no hay animación ni cambio.
 - Dado que desactivo la animación, cuando paso de página, entonces el cambio es inmediato.
 - Dado que leo en modo paginado con los controles ocultos, cuando paso de página, entonces el número del pie cambia.
 - Dado que cambio a modo scroll, entonces el número de página no se muestra.

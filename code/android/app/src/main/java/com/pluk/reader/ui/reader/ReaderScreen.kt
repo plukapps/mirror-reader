@@ -120,6 +120,7 @@ private fun ReaderContent(
     var area by remember { mutableStateOf<Rect?>(null) }
     val scope = rememberCoroutineScope()
     val controller = remember(scope) { PageTurnController(scope) }
+    val edges = remember { BookEdges() }
     val window = LocalContext.current.findActivity()?.window
 
     // La animación solo aplica en modo paginado (RDR-009).
@@ -135,6 +136,7 @@ private fun ReaderContent(
         window = window,
         captureArea = { area?.toAndroidRect() },
         isReady = { !controlsVisible },
+        edges = edges,
         beforeCapture = {
             // Los controles taparían la captura: se ocultan y se espera a que terminen de desvanecerse.
             if (controlsVisible) {

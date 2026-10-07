@@ -26,8 +26,11 @@ class NavigatorPageTurnOps(
     private val beforeCapture: suspend () -> Unit,
     /** True si se puede capturar sin preparar nada antes (por ejemplo, sin controles encima). */
     private val isReady: () -> Boolean = { false },
+    /** Bordes del libro ya descubiertos. Vive más que esta instancia, que se crea en cada gesto. */
+    private val edges: BookEdges = BookEdges(),
 ) : PageTurnOps {
     private var before: Locator? = null
+    private var movedForward = true
 
     override suspend fun capture(): Bitmap? {
         val area = captureArea() ?: run { android.util.Log.d("PTLOG", "capture: area null"); return null }
@@ -43,15 +46,28 @@ class NavigatorPageTurnOps(
         return captureWindowArea(window, area)
     }
 
-    override fun move(direction: PageTurnDirection): Boolean {
-        before = navigator.currentLocator.value
-        return if (isForward(direction)) navigator.goForward(animated = false) else navigator.goBackward(animated = false)
+    override fun canMove(direction: PageTurnDirection): Boolean {
+        val forward = isForward(direction)
+        val current = navigator.currentLocator.value
+        if (edges.isBlocked(forward, current)) return false
+        // La primera página se reconoce por el progreso; el final solo se descubre al intentar avanzar.
+        return forward || (current.locations.totalProgression ?: 1.0) > 0.0
     }
 
-    override suspend fun awaitMoved() {
+    override fun move(direction: PageTurnDirection): Boolean {
+        before = navigator.currentLocator.value
+        movedForward = isForward(direction)
+        val moved = if (movedForward) navigator.goForward(animated = false) else navigator.goBackward(animated = false)
+        if (!moved) before?.let { edges.block(movedForward, it) }
+        return moved
+    }
+
+    override suspend fun awaitMoved(): Boolean {
         val previous = before
-        withTimeoutOrNull(NAVIGATION_TIMEOUT_MS) { navigator.currentLocator.first { it != previous } }
+        val changed = withTimeoutOrNull(NAVIGATION_TIMEOUT_MS) { navigator.currentLocator.first { it != previous } } != null
+        if (!changed && previous != null) edges.block(movedForward, previous)
         repeat(2) { withFrameNanos { } }
+        return changed
     }
 
     /** Pasa de página sin animación, para cuando el efecto está desactivado. */
@@ -66,5 +82,20 @@ class NavigatorPageTurnOps(
 
     private companion object {
         const val NAVIGATION_TIMEOUT_MS = 400L
+    }
+}
+
+/**
+ * Recuerda desde qué página el navegador no pudo avanzar o retroceder, para no volver a animar un paso
+ * que no cambia nada (RDR-009). Deja de valer en cuanto la página es otra.
+ */
+class BookEdges {
+    private var forwardAt: Locator? = null
+    private var backwardAt: Locator? = null
+
+    fun isBlocked(forward: Boolean, at: Locator) = (if (forward) forwardAt else backwardAt) == at
+
+    fun block(forward: Boolean, at: Locator) {
+        if (forward) forwardAt = at else backwardAt = at
     }
 }

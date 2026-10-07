@@ -28,11 +28,14 @@ interface PageTurnOps {
     /** Como [capture], pero solo si se puede hacer ya, sin preparar la pantalla antes. Null si no. */
     suspend fun captureIfReady(): Bitmap?
 
+    /** False si se sabe que en esa dirección no hay más páginas (primera o última del libro). */
+    fun canMove(direction: PageTurnDirection): Boolean
+
     /** Pasa de página en el navegador sin animar, en la dirección visual dada. False si no se movió. */
     fun move(direction: PageTurnDirection): Boolean
 
-    /** Espera a que el navegador muestre la página a la que se acaba de mover. */
-    suspend fun awaitMoved()
+    /** Espera a que el navegador muestre la página a la que se acaba de mover. False si la página no cambió. */
+    suspend fun awaitMoved(): Boolean
 }
 
 /**
@@ -136,6 +139,10 @@ class PageTurnController(private val scope: CoroutineScope) {
     /** Empieza una sesión. Devuelve false si ya hay una en curso, y entonces no hay que llamar a [update] ni [release]. */
     fun begin(direction: PageTurnDirection, initialProgress: Float, ops: PageTurnOps): Boolean {
         if (busy) { android.util.Log.d("PTLOG", "begin REFUSED settling=$settlingCommitted"); return false }
+        if (!ops.canMove(direction)) {
+            discardPrefetch()
+            return false
+        }
         busy = true
         dragProgress = initialProgress.coerceIn(0f, 1f)
         decision = null
@@ -193,7 +200,8 @@ class PageTurnController(private val scope: CoroutineScope) {
                 val moved = ops.move(direction)
                 android.util.Log.d("PTLOG", "move($direction)=$moved id=$id")
                 if (!moved) return
-                ops.awaitMoved()
+                // Si el navegador no cambió de página no hay nada que animar: se suelta la captura sin deslizarla.
+                if (!ops.awaitMoved()) return
                 android.util.Log.d("PTLOG", "awaitMoved done id=$id")
                 tracker.join()
             } finally {
