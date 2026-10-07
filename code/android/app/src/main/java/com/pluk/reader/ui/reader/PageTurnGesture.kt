@@ -24,6 +24,22 @@ object PageTurnGesture {
     /** Por debajo de este avance la sesión se trata como un toque y no como un arrastre. */
     const val MIN_PROGRESS_TO_FOLLOW = 0.02f
 
+    /** Fracción del ancho, a cada lado, donde un toque pasa de página (RDR-011). El resto muestra los controles. */
+    const val EDGE_FRACTION = 0.2f
+
+    /** Qué hace un toque en [x] (px) sobre una página de ancho [width]. */
+    fun tapAction(x: Float, width: Float): TapAction = when {
+        x < width * EDGE_FRACTION -> TapAction.PreviousPage
+        x > width * (1f - EDGE_FRACTION) -> TapAction.NextPage
+        else -> TapAction.ToggleControls
+    }
+
+    /**
+     * Un dedo que ya llevaba apoyado el tiempo de pulsación larga está seleccionando texto: su arrastre
+     * es del navegador y no pasa de página (RDR-011).
+     */
+    fun isLongPress(heldMs: Long, longPressTimeoutMs: Long): Boolean = heldMs >= longPressTimeoutMs
+
     /** Rigidez del resorte de cierre. Con amortiguación crítica no rebota; `sqrt(rigidez)` es su frecuencia (1/s). */
     const val SETTLE_STIFFNESS = 400f
 
@@ -76,3 +92,6 @@ object PageTurnGesture {
     fun settleDurationMs(remaining: Float): Int =
         (MIN_SETTLE_MS + (PageTurnController.DURATION_MS - MIN_SETTLE_MS) * remaining.coerceIn(0f, 1f)).roundToInt()
 }
+
+/** Resultado de un toque sobre la página (RDR-011). */
+enum class TapAction { PreviousPage, NextPage, ToggleControls }

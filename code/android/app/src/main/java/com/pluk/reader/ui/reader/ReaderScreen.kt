@@ -170,11 +170,10 @@ private fun ReaderContent(
                     actions.onToggleControls()
                     return true
                 }
-                val edge = width * EDGE_FRACTION
-                when {
-                    event.point.x < edge -> currentTurnPage(PageTurnDirection.Backward)
-                    event.point.x > width - edge -> currentTurnPage(PageTurnDirection.Forward)
-                    else -> actions.onToggleControls()
+                when (PageTurnGesture.tapAction(event.point.x, width)) {
+                    TapAction.PreviousPage -> currentTurnPage(PageTurnDirection.Backward)
+                    TapAction.NextPage -> currentTurnPage(PageTurnDirection.Forward)
+                    TapAction.ToggleControls -> actions.onToggleControls()
                 }
                 return true
             }
@@ -346,8 +345,6 @@ private tailrec fun Context.findActivity(): Activity? = when (this) {
 private fun androidx.compose.ui.geometry.Rect.toAndroidRect() =
     android.graphics.Rect(left.roundToInt(), top.roundToInt(), right.roundToInt(), bottom.roundToInt())
 
-/** Fracción del ancho, a cada lado, donde un toque pasa de página. */
-private const val EDGE_FRACTION = 0.3f
 /** Fondo con el que sale la página en el tema oscuro (un poco más claro que el del libro). */
 /**
  * Tinte que se le pone a la captura de la página que sale (RDR-009). En el tema oscuro aclara el fondo negro

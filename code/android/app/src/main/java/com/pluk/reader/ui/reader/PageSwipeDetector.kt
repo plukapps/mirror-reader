@@ -37,6 +37,7 @@ suspend fun PointerInputScope.detectPageSwipes(
         velocity.addPointerInputChange(down)
         var total = Offset.Zero
         var swiping = false
+        var longPress = false
         var accepted = false
         var direction = PageTurnDirection.Forward
         var progress = 0f
@@ -49,7 +50,6 @@ suspend fun PointerInputScope.detectPageSwipes(
             }
             velocity.addPointerInputChange(change)
             if (!change.pressed) {
-                if (!swiping) android.util.Log.d("PTLOG", "gesto no tomado total=$total slop=$slop")
                 if (accepted) {
                     val vx = velocity.calculateVelocity().x
                     val towardTurn = if (direction == PageTurnDirection.Forward) -vx else vx
@@ -61,7 +61,13 @@ suspend fun PointerInputScope.detectPageSwipes(
                 return@awaitEachGesture
             }
             total += change.positionChange()
-            if (!swiping && abs(total.x) > slop && abs(total.x) > HORIZONTAL_BIAS * abs(total.y)) {
+            // Pulsación larga: el arrastre selecciona texto y es del navegador (RDR-011).
+            if (!swiping && !longPress &&
+                PageTurnGesture.isLongPress(change.uptimeMillis - down.uptimeMillis, viewConfiguration.longPressTimeoutMillis)
+            ) {
+                longPress = true
+            }
+            if (!swiping && !longPress && abs(total.x) > slop && abs(total.x) > HORIZONTAL_BIAS * abs(total.y)) {
                 swiping = true
                 direction = if (total.x < 0) PageTurnDirection.Forward else PageTurnDirection.Backward
                 progress = PageTurnGesture.progress(total.x, direction, width)

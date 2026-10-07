@@ -91,4 +91,20 @@ class PageTurnGestureTest {
         assertEquals(-omega * 0.1f, PageTurnGesture.settleVelocity(-100f, 0.1f, commit = false), 1e-3f)
         assertEquals(0f, PageTurnGesture.settleVelocity(2f, 0.1f, commit = false), 1e-4f)
     }
+
+    // RDR-011: bordes pasan de página, el centro muestra los controles
+    @Test
+    fun `RDR-011 tap zones`() {
+        assertEquals(TapAction.PreviousPage, PageTurnGesture.tapAction(100f, width))
+        assertEquals(TapAction.NextPage, PageTurnGesture.tapAction(900f, width))
+        assertEquals(TapAction.ToggleControls, PageTurnGesture.tapAction(250f, width))
+        assertEquals(TapAction.ToggleControls, PageTurnGesture.tapAction(750f, width))
+    }
+
+    // RDR-011: un dedo apoyado el tiempo de pulsación larga no pasa de página
+    @Test
+    fun `RDR-011 long press is not a swipe`() {
+        assertFalse(PageTurnGesture.isLongPress(200, 400))
+        assertTrue(PageTurnGesture.isLongPress(400, 400))
+    }
 }
