@@ -238,7 +238,6 @@ private fun ReaderContent(
                         .graphicsLayer {
                             val transform = controller.transform(size.width)
                             translationX = transform.incomingTranslationX
-                            alpha = transform.incomingAlpha
                             if (darkTheme && transform.incomingLightenAmount > 0f) {
                                 compositingStrategy = CompositingStrategy.Offscreen
                             }
@@ -272,7 +271,7 @@ private fun ReaderContent(
                         }
                     }
                 }
-                // Página que sale: captura con su fondo. Al avanzar va encima, deslizándose con menos opacidad;
+                // Página que sale: captura con su fondo. Al avanzar va encima, deslizándose;
                 // al retroceder queda debajo y se desplaza un poco (paralaje).
                 controller.snapshot?.let { snapshot ->
                     Image(
@@ -285,7 +284,6 @@ private fun ReaderContent(
                             .graphicsLayer {
                                 val transform = controller.transform(size.width)
                                 translationX = transform.outgoingTranslationX
-                                alpha = transform.outgoingAlpha
                                 if (darkTheme) {
                                     // Aclara el fondo negro de la captura sin tocar el texto: así se distingue de la página de abajo.
                                     colorFilter = ColorFilter.tint(

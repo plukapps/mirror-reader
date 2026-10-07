@@ -15,9 +15,9 @@ Leer cómodo, sin que la interfaz estorbe.
 - **RDR-007** Debe funcionar sin conexión para libros descargados.
 - **RDR-008** Las preferencias de lectura (letra, tema) se sincronizan con la cuenta.
 - **RDR-009** En modo paginado, el paso de página debe animarse así (animación "deslizar con paralaje"):
-  - Al avanzar, la página actual, con su fondo, se desliza hacia la izquierda y baja un poco su opacidad. Debajo, la página nueva entra con un desplazamiento pequeño hacia la izquierda (paralaje).
+  - Al avanzar, la página actual, con su fondo, se desliza hacia la izquierda, sin cambiar su opacidad. Debajo, la página nueva entra con un desplazamiento pequeño hacia la izquierda (paralaje).
   - En el tema oscuro, el fondo de la página que sale se aclara a `#242728` de forma gradual a medida que se desliza, y el cambio se nota más al final que al comienzo, para distinguirla de la que entra.
-  - Al retroceder, es la animación de avanzar reproducida al revés (como un rollback): la página anterior, con su fondo, entra deslizándose desde la izquierda por encima sin cambiar su opacidad. Debajo, la página actual se desplaza un poco hacia la derecha (paralaje).
+  - Al retroceder, es la animación de avanzar reproducida al revés (como un rollback): la página anterior, con su fondo, entra deslizándose desde la izquierda por encima. Debajo, la página actual se desplaza un poco hacia la derecha (paralaje).
   - En el tema oscuro, al retroceder el aclarado del fondo se aplica a la página que entra: parte aclarada a `#242728` y vuelve a su fondo de forma gradual a medida que se desliza (la misma curva del avance, al revés).
   - Con un toque en los bordes la animación completa dura unos 300 ms.
   - Con un gesto de deslizar horizontal, la animación sigue al dedo: el avance de la animación es proporcional a lo que se arrastra.
