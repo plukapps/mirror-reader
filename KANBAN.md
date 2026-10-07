@@ -13,9 +13,11 @@ Plan de referencia: `specs/plans/2026-10-06-android-epub-viewer.md`
 
 ## Listo
 
+- **K-024** Quitar el padding vertical de Readium (40 dp arriba y abajo en modo paginado) y reservar la barra de estado desde la pantalla. RDR-002. Rama `feat/page-turn-animation`.
+
 ## En curso
 
-- **K-024** Quitar el padding vertical de Readium (40 dp arriba y abajo en modo paginado) y reservar la barra de estado desde la pantalla. RDR-002. Rama `feat/page-turn-animation`.
+- **K-025** Retroceder de página es el rollback del avance: la página anterior entra desde la izquierda encima, y la actual queda debajo con paralaje hacia la derecha. El aclarado del fondo oscuro se aplica a la que entra. RDR-009. Rama `feat/page-turn-animation`.
 
 ## Revisión
 

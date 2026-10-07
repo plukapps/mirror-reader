@@ -12,7 +12,10 @@ import com.pluk.reader.domain.model.ReadingTheme
 import androidx.compose.ui.graphics.BlendMode
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
+import androidx.compose.ui.graphics.CompositingStrategy
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.draw.drawWithContent
+import androidx.compose.ui.zIndex
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.layout.boundsInWindow
@@ -226,11 +229,28 @@ private fun ReaderContent(
                     .fillMaxWidth()
                     .onGloballyPositioned { area = it.boundsInWindow() },
             ) {
-                // Página que entra: está debajo y se mueve un poco (paralaje).
+                // Página que entra (el navegador en vivo). Al avanzar está debajo y se mueve un poco (paralaje).
+                // Al retroceder va encima y entra deslizándose desde la izquierda (la animación al revés).
                 Box(
                     Modifier
                         .fillMaxSize()
-                        .graphicsLayer { translationX = controller.transform(size.width).incomingTranslationX },
+                        .zIndex(if (controller.direction == PageTurnDirection.Backward) 1f else 0f)
+                        .graphicsLayer {
+                            val transform = controller.transform(size.width)
+                            translationX = transform.incomingTranslationX
+                            alpha = transform.incomingAlpha
+                            if (darkTheme && transform.incomingLightenAmount > 0f) {
+                                compositingStrategy = CompositingStrategy.Offscreen
+                            }
+                        }
+                        .drawWithContent {
+                            drawContent()
+                            val lighten = controller.transform(size.width).incomingLightenAmount
+                            if (darkTheme && lighten > 0f) {
+                                // Aclara el fondo negro sin tocar el texto, igual que con la captura.
+                                drawRect(DARK_OUTGOING_BACKGROUND.copy(alpha = lighten), blendMode = BlendMode.Screen)
+                            }
+                        },
                 ) {
                     // RDR-010: el número va dentro de la página, así se mueve (y se captura) con ella.
                     Column(Modifier.fillMaxSize()) {
@@ -252,7 +272,8 @@ private fun ReaderContent(
                         }
                     }
                 }
-                // Página que sale: captura con su fondo, encima, deslizándose con menos opacidad.
+                // Página que sale: captura con su fondo. Al avanzar va encima, deslizándose con menos opacidad;
+                // al retroceder queda debajo y se desplaza un poco (paralaje).
                 controller.snapshot?.let { snapshot ->
                     Image(
                         bitmap = snapshot,
