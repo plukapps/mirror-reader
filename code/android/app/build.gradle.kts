@@ -35,6 +35,11 @@ android {
       shaders = false
     }
 
+    // Los esquemas de Room alimentan las pruebas de migración.
+    sourceSets {
+        getByName("androidTest").assets.directories.add("$projectDir/schemas")
+    }
+
     packaging {
       resources {
         excludes += "/META-INF/{AL2.0,LGPL2.1}"

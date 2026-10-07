@@ -10,7 +10,7 @@ class PositionRepositoryImpl @Inject constructor(
 ) : PositionRepository {
     override suspend fun get(bookId: String): String? = dao.get(bookId)?.locatorJson
 
-    override suspend fun save(bookId: String, locatorJson: String) {
-        dao.upsert(ReadingPositionEntity(bookId, locatorJson, System.currentTimeMillis()))
+    override suspend fun save(bookId: String, locatorJson: String, totalProgression: Double?) {
+        dao.upsert(ReadingPositionEntity(bookId, locatorJson, System.currentTimeMillis(), totalProgression))
     }
 }

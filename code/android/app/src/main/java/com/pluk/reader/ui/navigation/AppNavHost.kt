@@ -1,32 +1,32 @@
 package com.pluk.reader.ui.navigation
 
-import android.net.Uri
 import androidx.compose.runtime.Composable
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
-import com.pluk.reader.ui.home.HomeScreen
+import com.pluk.reader.ui.library.LibraryScreen
 import com.pluk.reader.ui.reader.ReaderScreen
 import com.pluk.reader.ui.reader.ReaderViewModel
 
 object Routes {
-    const val HOME = "home"
-    const val READER = "reader/{${ReaderViewModel.ARG_URI}}"
+    /** La biblioteca es la pantalla de inicio. */
+    const val LIBRARY = "library"
+    const val READER = "reader/{${ReaderViewModel.ARG_BOOK_ID}}"
 
-    fun reader(bookUri: Uri): String = "reader/${Uri.encode(bookUri.toString())}"
+    fun reader(bookId: String): String = "reader/$bookId"
 }
 
 @Composable
 fun AppNavHost(navController: NavHostController) {
-    NavHost(navController = navController, startDestination = Routes.HOME) {
-        composable(Routes.HOME) {
-            HomeScreen(onBookPicked = { uri -> navController.navigate(Routes.reader(uri)) })
+    NavHost(navController = navController, startDestination = Routes.LIBRARY) {
+        composable(Routes.LIBRARY) {
+            LibraryScreen(onBookClick = { bookId -> navController.navigate(Routes.reader(bookId)) })
         }
         composable(
             route = Routes.READER,
-            arguments = listOf(navArgument(ReaderViewModel.ARG_URI) { type = NavType.StringType }),
+            arguments = listOf(navArgument(ReaderViewModel.ARG_BOOK_ID) { type = NavType.StringType }),
         ) {
             ReaderScreen(onBack = { navController.popBackStack() })
         }

@@ -32,7 +32,7 @@ class ReadingPositionTest {
     // RDR-006
     @Test
     fun positionRoundTrips() = runBlocking {
-        repository.save("libro-1", """{"href":"ch2.xhtml"}""")
+        repository.save("libro-1", """{"href":"ch2.xhtml"}""", null)
         assertEquals("""{"href":"ch2.xhtml"}""", repository.get("libro-1"))
     }
 
@@ -45,8 +45,8 @@ class ReadingPositionTest {
     // RDR-006: cada libro guarda la suya
     @Test
     fun positionsAreIndependentPerBook() = runBlocking {
-        repository.save("A", "a")
-        repository.save("B", "b")
+        repository.save("A", "a", null)
+        repository.save("B", "b", null)
         assertEquals("a", repository.get("A"))
         assertEquals("b", repository.get("B"))
     }
@@ -54,8 +54,8 @@ class ReadingPositionTest {
     // RDR-006: guardar de nuevo reemplaza, no duplica
     @Test
     fun savingAgainReplacesThePosition() = runBlocking {
-        repository.save("A", "primera")
-        repository.save("A", "segunda")
+        repository.save("A", "primera", null)
+        repository.save("A", "segunda", null)
         assertEquals("segunda", repository.get("A"))
     }
 }

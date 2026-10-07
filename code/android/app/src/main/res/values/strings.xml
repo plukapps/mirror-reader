@@ -1,3 +1,20 @@
 <resources>
     <string name="app_name">Reader</string>
+
+    <string name="library_title">Biblioteca</string>
+    <string name="library_import">Importar</string>
+    <string name="library_importing">Importando…</string>
+    <string name="library_tab_all">Todos</string>
+    <string name="library_tab_reading">Leyendo</string>
+    <string name="library_tab_finished">Terminados</string>
+    <string name="library_status_new">Nuevo</string>
+    <string name="library_status_finished">Terminado</string>
+    <string name="library_empty_title">Tu biblioteca está vacía</string>
+    <string name="library_empty_body">Importá tus EPUB para empezar a leer.</string>
+    <string name="library_import_first">Importar un EPUB</string>
+    <string name="library_already_in">«%1$s» ya está en tu biblioteca.</string>
+    <plurals name="library_imported">
+        <item quantity="one">Se importó %d libro.</item>
+        <item quantity="other">Se importaron %d libros.</item>
+    </plurals>
 </resources>

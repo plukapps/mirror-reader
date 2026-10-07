@@ -5,7 +5,7 @@ Plan de referencia: `specs/plans/2026-10-06-android-epub-viewer.md`
 
 ## Backlog
 
-- **K-008** Biblioteca local de EPUB (importar, metadatos, colecciones, búsqueda). Requiere plan propio. LIB-001 a LIB-008.
+- **K-008** Biblioteca, segunda rebanada: colecciones, búsqueda, nube, eliminar/quitar, cuota, edición de metadatos, "Compartir / Abrir con". LIB-005 a LIB-009. Requiere plan propio.
 - **K-009** Anotaciones: marcadores, subrayados, notas. Requiere plan propio. ANN-001 a ANN-007.
 - **K-010** Cuenta y sincronización. Requiere plan propio, y revisar ADR 0003 antes. ACC, SYN.
 - **K-011** Cumplimiento con Google Play y beta cerrada. CMP.
@@ -20,6 +20,11 @@ Plan de referencia: `specs/plans/2026-10-06-android-epub-viewer.md`
 
 ## Revisión
 
+- **K-033** Biblioteca, Tarea 5: biblioteca como inicio y lector por `bookId`. Rama `feature/library`. Compila y pasan los tests JVM. Instalado en el teléfono; falta verificar a mano. `ReaderScreenTest` adaptado (bookId = hash) y sin correr.
+- **K-032** Biblioteca, Tarea 4: pantalla de biblioteca según diseño 05. LIB-001, 010, 011, AND-001, AND-002. Rama `feature/library`. Compila y pasan los tests JVM. Faltan correr `LibraryScreenTest` en emulador y verla en el teléfono contra el diseño. Fuente: sin Schibsted Grotesk por ahora (usa la del sistema).
+- **K-031** Biblioteca, Tarea 3: repositorio y progreso. LIB-010, 011. Rama `feature/library`. Pasan los tests JVM. La progresión se guarda junto a la posición (migración 1→2 ampliada).
+- **K-030** Biblioteca, Tarea 2: modelo, Room e importación (copia, hash, metadatos, portada). LIB-002, 003, 004. Rama `feature/library`. Compila y pasan los tests JVM. Faltan correr en emulador `EpubImporterTest` y `MigrationTest`.
+- **K-029** Biblioteca, Tarea 1: spec (LIB-010, LIB-011) y ADR 0006. Plan `2026-10-06-android-library.md`. Rama `feature/library`. Falta que lo apruebes.
 - **K-028** Bug: el paso de página se dispara sin querer al querer ver los controles (zonas de borde del 30% por lado) o al seleccionar texto (pulsación larga + arrastre cuenta como deslizar). RDR-011. Rama `feat/page-turn-animation`. Falta verificar a mano en el teléfono.
 - **K-026** Bug: en la primera página no se puede retroceder, ni avanzar en la última. Hoy el arrastre y el toque en el borde animan igual aunque la página no cambie. RDR-009. Rama `feat/page-turn-animation`. Falta verificar a mano en el teléfono.
 - **K-025** Retroceder de página es el rollback del avance: la página anterior entra desde la izquierda encima, y la actual queda debajo con paralaje hacia la derecha. El aclarado del fondo oscuro se aplica a la que entra. RDR-009. Rama `feat/page-turn-animation`.

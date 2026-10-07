@@ -33,8 +33,8 @@ class ReaderViewModelTest {
 
     private class FakeBooks(var result: Result<OpenedBook>) : BookRepository {
         var opened: String? = null
-        override suspend fun open(uri: String): Result<OpenedBook> {
-            opened = uri
+        override suspend fun open(bookId: String): Result<OpenedBook> {
+            opened = bookId
             return result
         }
     }
@@ -49,9 +49,11 @@ class ReaderViewModelTest {
 
     private class FakePositions : PositionRepository {
         val saved = mutableMapOf<String, String>()
+        val savedProgression = mutableMapOf<String, Double?>()
         override suspend fun get(bookId: String): String? = saved[bookId]
-        override suspend fun save(bookId: String, locatorJson: String) {
+        override suspend fun save(bookId: String, locatorJson: String, totalProgression: Double?) {
             saved[bookId] = locatorJson
+            savedProgression[bookId] = totalProgression
         }
     }
 
@@ -92,7 +94,7 @@ class ReaderViewModelTest {
     )
 
     private fun viewModel(books: FakeBooks) = ReaderViewModel(
-        SavedStateHandle(mapOf("uri" to "file:///libro.epub")), books, settings, positions, host,
+        SavedStateHandle(mapOf(ReaderViewModel.ARG_BOOK_ID to "hash-del-libro")), books, settings, positions, host,
     )
 
     private suspend fun ReaderViewModel.awaitReady(predicate: (ReaderUiState.Ready) -> Boolean = { true }) =
@@ -113,7 +115,7 @@ class ReaderViewModelTest {
         val books = FakeBooks(Result.failure(BookOpenException("x")))
         val vm = viewModel(books)
         vm.uiState.first { it !is ReaderUiState.Loading }
-        assertEquals("file:///libro.epub", books.opened)
+        assertEquals("hash-del-libro", books.opened)
     }
 
     // RDR-007: al abrir, el navegador se instala con los ajustes actuales
@@ -175,6 +177,8 @@ class ReaderViewModelTest {
         assertTrue(positions.saved.isEmpty())
         advanceTimeBy(500)
         assertEquals(mapOf("libro-7" to """{"p":3}"""), positions.saved)
+        // LIB-011: la progresión viaja con la posición para mostrarla en la biblioteca
+        assertEquals(mapOf<String, Double?>("libro-7" to 0.3), positions.savedProgression)
     }
 
     @Test

@@ -18,6 +18,7 @@ import androidx.test.core.app.ActivityScenario
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
 import com.pluk.reader.MainActivity
+import com.pluk.reader.data.library.copyWithSha256
 import com.pluk.reader.domain.repository.PositionRepository
 import com.pluk.reader.domain.repository.SettingsRepository
 import dagger.hilt.android.testing.HiltAndroidRule
@@ -35,6 +36,7 @@ import org.readium.r2.shared.ExperimentalReadiumApi
 import org.readium.r2.shared.publication.Locator
 import org.readium.r2.shared.util.Url
 import org.readium.r2.shared.util.mediatype.MediaType
+import java.io.ByteArrayOutputStream
 import java.io.File
 import javax.inject.Inject
 
@@ -53,7 +55,10 @@ class ReaderScreenTest {
 
     private val instrumentation = InstrumentationRegistry.getInstrumentation()
     private val context: Context = instrumentation.targetContext
-    private val bookId = "urn:uuid:11111111-2222-3333-4444-555555555555"
+    // El libro se identifica por el hash de su contenido (LIB-003).
+    private val bookId: String by lazy {
+        instrumentation.context.assets.open("minimal.epub").use { copyWithSha256(it, ByteArrayOutputStream()) }
+    }
 
     @Before
     fun setUp() = hilt.inject()
@@ -113,11 +118,11 @@ class ReaderScreenTest {
         }
     }
 
-    // Sin libro, se ve la pantalla de inicio
+    // La biblioteca es la pantalla de inicio (LIB-001)
     @Test
-    fun withoutBookShowsHome() {
+    fun withoutBookShowsLibrary() {
         launch().use {
-            compose.onNodeWithText("Abrir EPUB").assertIsDisplayed()
+            compose.onNodeWithText("Biblioteca").assertIsDisplayed()
         }
     }
 
@@ -227,7 +232,7 @@ class ReaderScreenTest {
     // RDR-006: una posición guardada dañada no impide abrir el libro
     @Test
     fun corruptSavedPositionIsIgnored() {
-        runBlocking { positionRepository.save(bookId, "{no es json") }
+        runBlocking { positionRepository.save(bookId, "{no es json", null) }
         launch(copyAsset("minimal.epub")).use { scenario ->
             waitUntil { navigator(scenario) != null }
         }

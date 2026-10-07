@@ -15,12 +15,16 @@ Una biblioteca única y ordenada de los EPUB del usuario.
 - **LIB-007** Cada libro está "solo en la nube" o "descargado en este dispositivo". Se descarga al abrirlo. El usuario puede quitar la descarga.
 - **LIB-008** "Quitar del dispositivo" es distinto de "Eliminar de mi biblioteca". Eliminar afecta a todos los dispositivos y pide confirmación.
 - **LIB-009** Si se supera la cuota, se bloquean nuevas importaciones. Nunca se bloquea la lectura ni se borra nada.
+- **LIB-010** Debe poder filtrarse por estado de lectura: Todos, Leyendo y Terminados. Un libro sin abrir no está en "Leyendo" ni en "Terminados".
+- **LIB-011** Cada libro de la grilla debe mostrar portada, título y su progreso de lectura. Un libro al 100 % se marca como terminado y uno sin abrir como nuevo.
 
 ## Escenarios
 
 - Dado un EPUB ya en mi biblioteca, cuando lo importo de nuevo, entonces la app avisa que ya existe y no lo duplica.
 - Dado un EPUB con DRM, cuando lo importo, entonces se rechaza con explicación.
 - Dado un libro "solo en la nube" sin conexión, cuando intento abrirlo, entonces la app indica que necesita conexión para descargarlo.
+
+- Dado un libro al 42 %, cuando abro "Leyendo", entonces aparece; cuando abro "Terminados", no.
 
 ## Fuera de alcance
 

@@ -34,18 +34,20 @@ class ReaderViewModel @Inject constructor(
     private val navigatorHost: NavigatorHost,
 ) : ViewModel() {
 
+    private data class PendingPosition(val locatorJson: String, val totalProgression: Double?)
+
     private sealed interface Phase {
         data object Loading : Phase
         data class Failed(val message: String) : Phase
         data class Opened(val book: OpenedBook, val toc: List<TocEntry>) : Phase
     }
 
-    private val uri: String = checkNotNull(savedStateHandle[ARG_URI]) { "Falta el argumento $ARG_URI" }
+    private val bookId: String = checkNotNull(savedStateHandle[ARG_BOOK_ID]) { "Falta el argumento $ARG_BOOK_ID" }
     private val phase = MutableStateFlow<Phase>(Phase.Loading)
     private val progress = MutableStateFlow<Int?>(null)
     private val pageNumber = MutableStateFlow<Int?>(null)
     private val controlsVisible = MutableStateFlow(true)
-    private val pendingPosition = MutableStateFlow<String?>(null)
+    private val pendingPosition = MutableStateFlow<PendingPosition?>(null)
 
     private val _events = MutableSharedFlow<ReaderEvent>(extraBufferCapacity = 4)
     val events: SharedFlow<ReaderEvent> = _events.asSharedFlow()
@@ -67,7 +69,7 @@ class ReaderViewModel @Inject constructor(
 
     private fun open() {
         viewModelScope.launch {
-            books.open(uri).fold(
+            books.open(bookId).fold(
                 onSuccess = { book ->
                     val settings: ReaderSettings = settingsRepository.settings.first()
                     navigatorHost.install(book, settings) { url ->
@@ -84,8 +86,10 @@ class ReaderViewModel @Inject constructor(
     @OptIn(FlowPreview::class)
     private fun savePositionWhileReading() {
         viewModelScope.launch {
-            pendingPosition.filterNotNull().debounce(SAVE_DEBOUNCE_MS).collect { json ->
-                (phase.value as? Phase.Opened)?.let { positions.save(it.book.bookId, json) }
+            pendingPosition.filterNotNull().debounce(SAVE_DEBOUNCE_MS).collect { pending ->
+                (phase.value as? Phase.Opened)?.let {
+                    positions.save(it.book.bookId, pending.locatorJson, pending.totalProgression)
+                }
             }
         }
     }
@@ -94,7 +98,7 @@ class ReaderViewModel @Inject constructor(
     fun onLocatorChanged(locatorJson: String, totalProgression: Double?, position: Int? = null) {
         progress.value = progressPercent(totalProgression)
         pageNumber.value = position
-        pendingPosition.value = locatorJson
+        pendingPosition.value = PendingPosition(locatorJson, totalProgression)
     }
 
     fun toggleScroll() = updateSettings { it.toggleScroll() }
@@ -120,7 +124,7 @@ class ReaderViewModel @Inject constructor(
     override fun onCleared() = release()
 
     companion object {
-        const val ARG_URI = "uri"
+        const val ARG_BOOK_ID = "bookId"
         private const val STOP_TIMEOUT_MS = 5_000L
         private const val SAVE_DEBOUNCE_MS = 250L
     }

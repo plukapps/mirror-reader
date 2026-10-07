@@ -16,7 +16,7 @@ Fuente de verdad del producto (SDD: primero spec, después código). Si el códi
   - [06-store-compliance.md](product/06-store-compliance.md)
 - [data-model.md](data-model.md)
 - platforms/[android.md](platforms/android.md)
-- adr/ — decisiones técnicas ([0001](adr/0001-native-clients.md), [0002](adr/0002-offline-first.md), [0003](adr/0003-backend-supabase.md), [0004](adr/0004-epub-engine-readium.md), [0005](adr/0005-android-stack-and-architecture.md))
+- adr/ — decisiones técnicas ([0001](adr/0001-native-clients.md), [0002](adr/0002-offline-first.md), [0003](adr/0003-backend-supabase.md), [0004](adr/0004-epub-engine-readium.md), [0005](adr/0005-android-stack-and-architecture.md), [0006](adr/0006-library-local-storage.md))
 
 ## Convenciones
 
