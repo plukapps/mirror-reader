@@ -242,6 +242,8 @@ private fun ReaderContent(
                                 compositingStrategy = CompositingStrategy.Offscreen
                             }
                         }
+                        // Fondo propio: el navegador es transparente y, al ir encima, dejaría ver la captura de abajo.
+                        .background(readingBackground)
                         .drawWithContent {
                             drawContent()
                             val lighten = controller.transform(size.width).incomingLightenAmount
