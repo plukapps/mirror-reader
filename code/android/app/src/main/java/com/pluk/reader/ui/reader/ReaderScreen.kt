@@ -12,9 +12,7 @@ import com.pluk.reader.domain.model.ReadingTheme
 import androidx.compose.ui.graphics.BlendMode
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
-import androidx.compose.ui.graphics.CompositingStrategy
 import androidx.compose.ui.graphics.graphicsLayer
-import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.zIndex
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
@@ -238,20 +236,9 @@ private fun ReaderContent(
                         .graphicsLayer {
                             val transform = controller.transform(size.width)
                             translationX = transform.incomingTranslationX
-                            if (darkTheme && transform.incomingLightenAmount > 0f) {
-                                compositingStrategy = CompositingStrategy.Offscreen
-                            }
                         }
                         // Fondo propio: el navegador es transparente y, al ir encima, dejaría ver la captura de abajo.
                         .background(readingBackground)
-                        .drawWithContent {
-                            drawContent()
-                            val lighten = controller.transform(size.width).incomingLightenAmount
-                            if (darkTheme && lighten > 0f) {
-                                // Aclara el fondo negro sin tocar el texto, igual que con la captura.
-                                drawRect(DARK_OUTGOING_BACKGROUND.copy(alpha = lighten), blendMode = BlendMode.Screen)
-                            }
-                        },
                 ) {
                     // RDR-010: el número va dentro de la página, así se mueve (y se captura) con ella.
                     Column(Modifier.fillMaxSize()) {

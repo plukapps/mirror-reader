@@ -31,19 +31,18 @@ class PageTurnTransformTest {
     }
 
     // RDR-009: retroceder es el avance reproducido al revés. La que entra va encima y repite, en sentido
-    // contrario, lo que hacía la que salía (posición y aclarado); la de abajo hace el paralaje.
+    // contrario, lo que hacía la que salía (posición); la de abajo hace el paralaje.
     @Test
     fun backwardIsTheForwardRolledBack() {
         for (p in listOf(0f, 0.25f, 0.5f, 0.95f, 1f)) {
             val f = PageTurnTransform.at(1f - p, PageTurnDirection.Forward, width)
             val b = PageTurnTransform.at(p, PageTurnDirection.Backward, width)
             assertEquals(f.outgoingTranslationX, b.incomingTranslationX, 0.001f)
-            assertEquals(f.outgoingLightenAmount, b.incomingLightenAmount, 0.001f)
             assertEquals(f.incomingTranslationX, b.outgoingTranslationX, 0.001f)
         }
     }
 
-    // RDR-009: al retroceder, la página anterior empieza fuera por la izquierda y termina en su sitio, ya sin aclarar
+    // RDR-009: al retroceder, la página anterior empieza fuera por la izquierda y termina en su sitio
     @Test
     fun backwardStartsWithPreviousPageOffLeftAndEndsInPlace() {
         val start = PageTurnTransform.at(0f, PageTurnDirection.Backward, width)
@@ -51,19 +50,18 @@ class PageTurnTransformTest {
         assertEquals(0f, start.outgoingTranslationX, 0.001f)
         val end = PageTurnTransform.at(1f, PageTurnDirection.Backward, width)
         assertEquals(0f, end.incomingTranslationX, 0.001f)
-        assertEquals(0f, end.incomingLightenAmount, 0.001f)
         assertTrue(end.outgoingTranslationX in 1f..(width * 0.3f))
     }
 
-    // RDR-009: el aclarado va a la página que entra al retroceder, y a la que sale al avanzar
+    // RDR-009: el aclarado va siempre a la página que sale del foco, avanzando o retrocediendo, con la misma fórmula
     @Test
-    fun lightenAppliesToTheTopLayer() {
-        val f = PageTurnTransform.at(1f, PageTurnDirection.Forward, width)
-        assertEquals(1f, f.outgoingLightenAmount, 0.001f)
-        assertEquals(0f, f.incomingLightenAmount, 0.001f)
-        val b = PageTurnTransform.at(0f, PageTurnDirection.Backward, width)
-        assertEquals(1f, b.incomingLightenAmount, 0.001f)
-        assertEquals(0f, b.outgoingLightenAmount, 0.001f)
+    fun lightenAlwaysAppliesToThePageLeavingFocus() {
+        for (p in listOf(0f, 0.2f, 0.4f, 0.8f, 1f)) {
+            val f = PageTurnTransform.at(p, PageTurnDirection.Forward, width)
+            val b = PageTurnTransform.at(p, PageTurnDirection.Backward, width)
+            assertEquals(f.outgoingLightenAmount, b.outgoingLightenAmount, 0.001f)
+        }
+        assertEquals(0.5f, PageTurnTransform.at(0.4f, PageTurnDirection.Backward, width).outgoingLightenAmount, 0.001f)
     }
 
     // RDR-009: el aclarado crece sin saltos desde 0 y llega al máximo al 80% del recorrido

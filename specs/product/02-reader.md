@@ -18,7 +18,7 @@ Leer cómodo, sin que la interfaz estorbe.
   - Al avanzar, la página actual, con su fondo, se desliza hacia la izquierda, sin cambiar su opacidad. Debajo, la página nueva entra con un desplazamiento pequeño hacia la izquierda (paralaje).
   - En el tema oscuro, el fondo de la página que sale se aclara a `#242728` de forma gradual: crece desde el comienzo y llega al máximo al 80% del recorrido, para distinguirla de la que entra.
   - Al retroceder, es la animación de avanzar reproducida al revés (como un rollback): la página anterior, con su fondo, entra deslizándose desde la izquierda por encima. Debajo, la página actual se desplaza un poco hacia la derecha (paralaje).
-  - En el tema oscuro, al retroceder el aclarado del fondo se aplica a la página que entra: parte aclarada a `#242728` y vuelve a su fondo de forma gradual durante el primer 80% del recorrido (la misma curva del avance, al revés).
+  - En el tema oscuro, al retroceder el aclarado es el mismo y se aplica igual a la página que sale del foco (la que se estaba viendo, que queda debajo): crece desde el comienzo y llega al máximo al 80% del recorrido.
   - Con un toque en los bordes la animación completa dura unos 300 ms.
   - Con un gesto de deslizar horizontal, la animación sigue al dedo: el avance de la animación es proporcional a lo que se arrastra.
   - Al soltar, si el avance pasó de un umbral (30% del recorrido) o el gesto fue una pasada rápida, la animación se completa y se pasa de página. Si no, vuelve atrás y la página queda como estaba.
