@@ -15,7 +15,7 @@ enum class PageTurnDirection { Forward, Backward }
  */
 data class PageTurnTransform(
     val outgoingTranslationX: Float,
-    /** Cuánto del aclarado del fondo (0..1) se aplica a la página que sale. Crece despacio y se nota más al final. */
+    /** Cuánto del aclarado del fondo (0..1) se aplica a la página que sale. Crece desde el comienzo y llega al máximo al 80% del recorrido. */
     val outgoingLightenAmount: Float,
     val incomingTranslationX: Float,
     /** Cuánto del aclarado del fondo (0..1) se aplica a la página que entra. Solo al retroceder. */
@@ -45,7 +45,10 @@ data class PageTurnTransform(
         }
 
 
-        /** Cuadrática: el aclarado es gradual y se nota más hacia el final del recorrido que al comienzo. */
-        private fun topLighten(p: Float) = p * p
+        /** Avance con el que el aclarado del fondo ya llegó al máximo. */
+        const val LIGHTEN_END = 0.8f
+
+        /** Crece sin saltos desde 0 al comienzo hasta 1 al 80% del recorrido, y ahí se queda. */
+        private fun topLighten(p: Float) = (p / LIGHTEN_END).coerceIn(0f, 1f)
     }
 }

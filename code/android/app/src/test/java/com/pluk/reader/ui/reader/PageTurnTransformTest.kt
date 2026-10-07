@@ -66,19 +66,19 @@ class PageTurnTransformTest {
         assertEquals(0f, b.outgoingLightenAmount, 0.001f)
     }
 
-    // RDR-009: el aclarado es gradual (empieza en 0, sin salto) y el cambio se nota más al final que al comienzo
+    // RDR-009: el aclarado crece sin saltos desde 0 y llega al máximo al 80% del recorrido
     @Test
-    fun lightenIsGradualAndGrowsFasterTowardTheEnd() {
+    fun lightenGrowsGraduallyFromZeroToFullAtEightyPercent() {
         assertEquals(0f, PageTurnTransform.at(0f, PageTurnDirection.Forward, width).outgoingLightenAmount, 0.001f)
+        assertEquals(0.5f, PageTurnTransform.at(0.4f, PageTurnDirection.Forward, width).outgoingLightenAmount, 0.001f)
+        assertEquals(1f, PageTurnTransform.at(0.8f, PageTurnDirection.Forward, width).outgoingLightenAmount, 0.001f)
+        assertEquals(1f, PageTurnTransform.at(1f, PageTurnDirection.Forward, width).outgoingLightenAmount, 0.001f)
         var last = 0f
-        var lastStep = 0f
-        for (i in 1..10) {
-            val l = PageTurnTransform.at(i / 10f, PageTurnDirection.Forward, width).outgoingLightenAmount
-            assertTrue(l - last >= lastStep - 0.0001f)
-            lastStep = l - last
+        for (i in 1..20) {
+            val l = PageTurnTransform.at(i / 20f, PageTurnDirection.Forward, width).outgoingLightenAmount
+            assertTrue(l >= last && l - last < 0.3f)
             last = l
         }
-        assertTrue(PageTurnTransform.at(0.5f, PageTurnDirection.Forward, width).outgoingLightenAmount < 0.5f)
     }
 
     // El paralaje solo se reduce a medida que avanza la animación

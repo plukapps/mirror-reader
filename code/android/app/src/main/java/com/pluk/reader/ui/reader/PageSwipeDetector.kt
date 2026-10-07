@@ -49,6 +49,7 @@ suspend fun PointerInputScope.detectPageSwipes(
             }
             velocity.addPointerInputChange(change)
             if (!change.pressed) {
+                if (!swiping) android.util.Log.d("PTLOG", "gesto no tomado total=$total slop=$slop")
                 if (accepted) {
                     val vx = velocity.calculateVelocity().x
                     val towardTurn = if (direction == PageTurnDirection.Forward) -vx else vx
@@ -77,4 +78,5 @@ suspend fun PointerInputScope.detectPageSwipes(
     }
 }
 
-private const val HORIZONTAL_BIAS = 2f
+/** El gesto es un arrastre de página si va más de lado que en vertical. Con un sesgo mayor, las diagonales las tomaba Readium. */
+private const val HORIZONTAL_BIAS = 1f
