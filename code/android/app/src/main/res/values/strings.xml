@@ -24,9 +24,9 @@
     <string name="nav_profile">Perfil</string>
     <string name="nav_coming_soon">Llega más adelante.</string>
 
-    <string name="home_greeting_morning">Buenos días.</string>
+    <string name="home_greeting_morning">Buenos días. como te va todo bien?</string>
     <string name="home_greeting_afternoon">Buenas tardes.</string>
-    <string name="home_greeting_night">Buenas noches.</string>
+    <string name="home_greeting_night">Buenas noches. como te va todo bien?</string>
     <string name="home_continue">Continuar leyendo</string>
     <string name="home_nothing_reading_title">Nada en lectura todavía</string>
     <string name="home_nothing_reading_body">Abrí un libro de tu biblioteca y lo retomás desde acá.</string>

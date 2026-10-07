@@ -202,9 +202,10 @@ private fun ContinueCard(book: LibraryBook, onClick: () -> Unit) {
                         it,
                         color = MarginColors.Line,
                         fontSize = 13.sp,
+                        lineHeight = 13.sp,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis,
-                        modifier = Modifier.background(Color.Green),
+//                        modifier = Modifier.background(Color.Green),
                     )
                 }
             }
@@ -347,28 +348,36 @@ private fun TitleAndAuthor(book: LibraryBook, subtitle: String? = book.author) {
     Text(
         text = book.title,
         color = MarginColors.Ink,
-        style = androidx.compose.ui.text.TextStyle(
-            fontSize = 13.sp,
-            fontWeight = FontWeight.SemiBold,
-            lineHeight = 13.sp,
-            platformStyle = androidx.compose.ui.text.PlatformTextStyle(includeFontPadding = false),
-        ),
+        fontSize = 13.sp,
+        lineHeight = 13.sp,
+        fontWeight = FontWeight.SemiBold,
+//        style = androidx.compose.ui.text.TextStyle(
+//            fontSize = 13.sp,
+//            fontWeight = FontWeight.SemiBold,
+//            lineHeight = 13.sp,
+//            platformStyle = androidx.compose.ui.text.PlatformTextStyle(includeFontPadding = false),
+//        ),
         maxLines = 1,
         overflow = TextOverflow.Ellipsis,
-        modifier = Modifier.background(Color.Red),
+//        modifier = Modifier.background(Color.Red),
         )
+
+
+
     subtitle?.let {
         Text(
             text = it,
             color = MarginColors.Muted,
-            style = androidx.compose.ui.text.TextStyle(
-                fontSize = 12.sp,
-                lineHeight = 12.sp,
-                platformStyle = androidx.compose.ui.text.PlatformTextStyle(includeFontPadding = false),
-            ),
+            fontSize = 12.sp,
+            lineHeight = 12.sp,
+//            style = androidx.compose.ui.text.TextStyle(
+//                fontSize = 12.sp,
+//                lineHeight = 12.sp,
+//                platformStyle = androidx.compose.ui.text.PlatformTextStyle(includeFontPadding = false),
+//            ),
             maxLines = 1,
             overflow = TextOverflow.Ellipsis,
-            modifier = Modifier.background(Color.Blue),
+//            modifier = Modifier.background(Color.Blue),
             )
     }
 }
