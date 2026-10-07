@@ -18,6 +18,7 @@ Plan de referencia: `specs/plans/2026-10-06-android-epub-viewer.md`
 
 ## En curso
 
+- **K-042** Fuente de la app: Host Grotesk (variable, normal e itálica) como tipografía por defecto del tema. Rama `feature/home`. Compila; falta verla a mano.
 
 ## Revisión
 
@@ -28,7 +29,7 @@ Plan de referencia: `specs/plans/2026-10-06-android-epub-viewer.md`
 - **K-036** Inicio, Tarea 2: barra inferior de 4 destinos y navegación. HOM-005, 006, 007. Rama `feature/home`. Compila y pasan los tests JVM. Instalada en el dispositivo conectado. Falta `HOM-005/006` en test Compose de emulador (no escrito) y verla a mano.
 - **K-035** Inicio, Tarea 1: modelo y reglas puras (`lastReadAt`, `homeContent`, saludo). HOM-001 a 004. Plan `2026-10-07-android-home.md`. Rama `feature/home`. Pasan los tests JVM (`HomeContentTest`). Sin commit.
 - **K-033** Biblioteca, Tarea 5: biblioteca como inicio y lector por `bookId`. Rama `feature/library`. Compila y pasan los tests JVM. Instalado en el teléfono; falta verificar a mano. `ReaderScreenTest` adaptado (bookId = hash) y sin correr.
-- **K-032** Biblioteca, Tarea 4: pantalla de biblioteca según diseño 05. LIB-001, 010, 011, AND-001, AND-002. Rama `feature/library`. Compila y pasan los tests JVM. Faltan correr `LibraryScreenTest` en emulador y verla en el teléfono contra el diseño. Fuente: sin Schibsted Grotesk por ahora (usa la del sistema).
+- **K-032** Biblioteca, Tarea 4: pantalla de biblioteca según diseño 05. LIB-001, 010, 011, AND-001, AND-002. Rama `feature/library`. Compila y pasan los tests JVM. Faltan correr `LibraryScreenTest` en emulador y verla en el teléfono contra el diseño.
 - **K-031** Biblioteca, Tarea 3: repositorio y progreso. LIB-010, 011. Rama `feature/library`. Pasan los tests JVM. La progresión se guarda junto a la posición (migración 1→2 ampliada).
 - **K-030** Biblioteca, Tarea 2: modelo, Room e importación (copia, hash, metadatos, portada). LIB-002, 003, 004. Rama `feature/library`. Compila y pasan los tests JVM. Faltan correr en emulador `EpubImporterTest` y `MigrationTest`.
 - **K-029** Biblioteca, Tarea 1: spec (LIB-010, LIB-011) y ADR 0006. Plan `2026-10-06-android-library.md`. Rama `feature/library`. Falta que lo apruebes.
