@@ -111,7 +111,9 @@ fun HomeContentView(
     val picker = rememberLauncherForActivityResult(ActivityResultContracts.OpenMultipleDocuments()) { uris ->
         onImport(uris.map { it.toString() })
     }
-    Box(Modifier.fillMaxSize().background(MarginColors.Paper), contentAlignment = Alignment.TopCenter) {
+    Box(Modifier
+        .fillMaxSize()
+        .background(MarginColors.Paper), contentAlignment = Alignment.TopCenter) {
         Column(
             Modifier
                 .widthIn(max = MAX_CONTENT_WIDTH)
@@ -126,7 +128,9 @@ fun HomeContentView(
                 fontSize = 44.sp,
                 lineHeight = 44.sp,
                 letterSpacing = (-0.045).em,
-                modifier = Modifier.padding(start = 20.dp, end = 20.dp, top = 12.dp).testTag("home-greeting"),
+                modifier = Modifier
+                    .padding(start = 20.dp, end = 20.dp, top = 12.dp)
+                    .testTag("home-greeting"),
             )
             if (!loading) {
                 val reading = content.continueReading
@@ -173,7 +177,9 @@ private fun ContinueCard(book: LibraryBook, onClick: () -> Unit) {
         horizontalArrangement = Arrangement.spacedBy(16.dp),
     ) {
         BookCover(book, Modifier.width(96.dp))
-        Column(Modifier.weight(1f).heightIn(min = 144.dp), verticalArrangement = Arrangement.SpaceBetween) {
+        Column(Modifier
+            .weight(1f)
+            .heightIn(min = 144.dp), verticalArrangement = Arrangement.SpaceBetween) {
             Column {
                 Text(
                     stringResource(R.string.home_continue),
@@ -191,12 +197,24 @@ private fun ContinueCard(book: LibraryBook, onClick: () -> Unit) {
                     overflow = TextOverflow.Ellipsis,
                     modifier = Modifier.padding(top = 4.dp),
                 )
-                book.author?.let { Text(it, color = MarginColors.Line, fontSize = 13.sp, maxLines = 1, overflow = TextOverflow.Ellipsis) }
+                book.author?.let {
+                    Text(
+                        it,
+                        color = MarginColors.Line,
+                        fontSize = 13.sp,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                        modifier = Modifier.background(Color.Green),
+                    )
+                }
             }
             Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
                 LinearProgressIndicator(
                     progress = { percent / 100f },
-                    modifier = Modifier.fillMaxWidth().height(4.dp).clip(RoundedCornerShape(2.dp)),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(4.dp)
+                        .clip(RoundedCornerShape(2.dp)),
                     color = MarginColors.Yellow,
                     trackColor = Color.White.copy(alpha = 0.2f),
                     strokeCap = StrokeCap.Round,
@@ -273,7 +291,9 @@ private fun BookRow(
     content: LazyListScope.() -> Unit,
 ) {
     Row(
-        Modifier.fillMaxWidth().padding(start = 20.dp, end = 20.dp, top = 26.dp, bottom = 12.dp),
+        Modifier
+            .fillMaxWidth()
+            .padding(start = 20.dp, end = 20.dp, top = 26.dp, bottom = 12.dp),
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically,
     ) {
@@ -315,17 +335,42 @@ private fun RowItem(
             .clickable(role = Role.Button, onClick = onClick)
             .clearAndSetSemantics { contentDescription = description; role = Role.Button }
             .testTag("home-book-${book.id}"),
-        verticalArrangement = Arrangement.spacedBy(8.dp),
+        verticalArrangement = Arrangement.spacedBy(4.dp),
     ) {
         cover()
-        Column(verticalArrangement = Arrangement.spacedBy(2.dp), content = details)
+        Column(verticalArrangement = Arrangement.spacedBy(1.dp), content = details)
     }
 }
 
 @Composable
 private fun TitleAndAuthor(book: LibraryBook, subtitle: String? = book.author) {
-    Text(book.title, color = MarginColors.Ink, fontSize = 13.sp, fontWeight = FontWeight.SemiBold, maxLines = 1, overflow = TextOverflow.Ellipsis)
-    subtitle?.let { Text(it, color = MarginColors.Muted, fontSize = 12.sp, maxLines = 1, overflow = TextOverflow.Ellipsis) }
+    Text(
+        text = book.title,
+        color = MarginColors.Ink,
+        style = androidx.compose.ui.text.TextStyle(
+            fontSize = 13.sp,
+            fontWeight = FontWeight.SemiBold,
+            lineHeight = 13.sp,
+            platformStyle = androidx.compose.ui.text.PlatformTextStyle(includeFontPadding = false),
+        ),
+        maxLines = 1,
+        overflow = TextOverflow.Ellipsis,
+        modifier = Modifier.background(Color.Red),
+        )
+    subtitle?.let {
+        Text(
+            text = it,
+            color = MarginColors.Muted,
+            style = androidx.compose.ui.text.TextStyle(
+                fontSize = 12.sp,
+                lineHeight = 12.sp,
+                platformStyle = androidx.compose.ui.text.PlatformTextStyle(includeFontPadding = false),
+            ),
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
+            modifier = Modifier.background(Color.Blue),
+            )
+    }
 }
 
 @Composable
@@ -334,10 +379,13 @@ private fun ReadingItem(book: LibraryBook, onBookClick: (String) -> Unit) {
     val description = listOfNotNull(book.title, book.author, "$percent %").joinToString(". ")
     RowItem(book, description, onClick = { onBookClick(book.id) }) {
         TitleAndAuthor(book)
-        Row(Modifier.padding(top = 4.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+        Row(Modifier.padding(top = 2.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             LinearProgressIndicator(
                 progress = { percent / 100f },
-                modifier = Modifier.weight(1f).height(4.dp).clip(RoundedCornerShape(2.dp)),
+                modifier = Modifier
+                    .weight(1f)
+                    .height(4.dp)
+                    .clip(RoundedCornerShape(2.dp)),
                 color = MarginColors.Ink,
                 trackColor = MarginColors.Line,
                 strokeCap = StrokeCap.Round,
