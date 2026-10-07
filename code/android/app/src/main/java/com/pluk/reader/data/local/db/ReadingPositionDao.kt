@@ -10,7 +10,7 @@ interface ReadingPositionDao {
     @Query("SELECT * FROM reading_positions WHERE bookId = :bookId")
     suspend fun get(bookId: String): ReadingPositionEntity?
 
-    @Query("SELECT bookId, progress FROM reading_positions")
+    @Query("SELECT bookId, progress, updatedAt FROM reading_positions")
     fun observeProgress(): Flow<List<BookProgress>>
 
     @Upsert
@@ -18,4 +18,4 @@ interface ReadingPositionDao {
 }
 
 /** Progresión guardada de un libro. */
-data class BookProgress(val bookId: String, val progress: Double?)
+data class BookProgress(val bookId: String, val progress: Double?, val updatedAt: Long)

@@ -13,6 +13,7 @@ Plan de referencia: `specs/plans/2026-10-06-android-epub-viewer.md`
 
 ## Listo
 
+- **K-038** Inicio, Tarea 4: cierre de docs y verificación a mano. Rama `feature/home`.
 - **K-024** Quitar el padding vertical de Readium (40 dp arriba y abajo en modo paginado) y reservar la barra de estado desde la pantalla. RDR-002. Rama `feat/page-turn-animation`.
 
 ## En curso
@@ -20,6 +21,9 @@ Plan de referencia: `specs/plans/2026-10-06-android-epub-viewer.md`
 
 ## Revisión
 
+- **K-037** Inicio, Tarea 3: pantalla de Inicio (continuar, para ti, vacíos). HOM-001 a 004, 007. Rama `feature/home`. Compila y pasan los tests JVM (`HomeViewModelTest`). Falta verla a mano y test Compose de emulador (no escrito).
+- **K-036** Inicio, Tarea 2: barra inferior de 4 destinos y navegación. HOM-005, 006, 007. Rama `feature/home`. Compila y pasan los tests JVM. Instalada en el dispositivo conectado. Falta `HOM-005/006` en test Compose de emulador (no escrito) y verla a mano.
+- **K-035** Inicio, Tarea 1: modelo y reglas puras (`lastReadAt`, `homeContent`, saludo). HOM-001 a 004. Plan `2026-10-07-android-home.md`. Rama `feature/home`. Pasan los tests JVM (`HomeContentTest`). Sin commit.
 - **K-033** Biblioteca, Tarea 5: biblioteca como inicio y lector por `bookId`. Rama `feature/library`. Compila y pasan los tests JVM. Instalado en el teléfono; falta verificar a mano. `ReaderScreenTest` adaptado (bookId = hash) y sin correr.
 - **K-032** Biblioteca, Tarea 4: pantalla de biblioteca según diseño 05. LIB-001, 010, 011, AND-001, AND-002. Rama `feature/library`. Compila y pasan los tests JVM. Faltan correr `LibraryScreenTest` en emulador y verla en el teléfono contra el diseño. Fuente: sin Schibsted Grotesk por ahora (usa la del sistema).
 - **K-031** Biblioteca, Tarea 3: repositorio y progreso. LIB-010, 011. Rama `feature/library`. Pasan los tests JVM. La progresión se guarda junto a la posición (migración 1→2 ampliada).
@@ -48,4 +52,5 @@ Plan de referencia: `specs/plans/2026-10-06-android-epub-viewer.md`
 
 ## Hecho
 
+- **K-034** Inicio: spec `specs/product/07-home.md` (HOM-001 a HOM-007), aprobado.
 - Specs v0 escritos y aprobados (`specs/`).

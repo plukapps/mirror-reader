@@ -22,10 +22,11 @@ class LibraryRepositoryImpl @Inject constructor(
     override val books: Flow<List<LibraryBook>> =
         combine(bookDao.observeAll(), positionDao.observeProgress()) { books, positions ->
             val progressById = positions.associate { it.bookId to it.progress }
+            val readAtById = positions.associate { it.bookId to it.updatedAt }
             books.map { book ->
                 // Una posición sin progresión (libro leído antes de LIB-011) cuenta como 0 %: ya se abrió.
                 val progression = if (book.id in progressById) progressById[book.id] ?: 0.0 else null
-                book.toLibraryBook(progression, files.coverFile(book.id).absolutePath)
+                book.toLibraryBook(progression, files.coverFile(book.id).absolutePath, readAtById[book.id])
             }
         }
 

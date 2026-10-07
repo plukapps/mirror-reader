@@ -61,15 +61,7 @@ fun LibraryScreen(onBookClick: (bookId: String) -> Unit, viewModel: LibraryViewM
     val snackbar = remember { SnackbarHostState() }
     val context = LocalContext.current
     LaunchedEffect(viewModel) {
-        viewModel.messages.collect { message ->
-            val text = when (message) {
-                is LibraryMessage.Imported ->
-                    context.resources.getQuantityString(R.plurals.library_imported, message.count, message.count)
-                is LibraryMessage.AlreadyInLibrary -> context.getString(R.string.library_already_in, message.title)
-                is LibraryMessage.Rejected -> message.reason
-            }
-            snackbar.showSnackbar(text)
-        }
+        viewModel.messages.collect { snackbar.showSnackbar(it.toText(context)) }
     }
     LibraryContent(
         state = state,

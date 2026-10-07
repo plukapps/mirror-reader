@@ -17,4 +17,20 @@
         <item quantity="one">Se importó %d libro.</item>
         <item quantity="other">Se importaron %d libros.</item>
     </plurals>
+
+    <string name="nav_home">Inicio</string>
+    <string name="nav_search">Buscar</string>
+    <string name="nav_shelves">Estantes</string>
+    <string name="nav_profile">Perfil</string>
+    <string name="nav_coming_soon">Llega más adelante.</string>
+
+    <string name="home_greeting_morning">Buenos días.</string>
+    <string name="home_greeting_afternoon">Buenas tardes.</string>
+    <string name="home_greeting_night">Buenas noches.</string>
+    <string name="home_continue">Continuar leyendo</string>
+    <string name="home_nothing_reading_title">Nada en lectura todavía</string>
+    <string name="home_nothing_reading_body">Abrí un libro de tu biblioteca y lo retomás desde acá.</string>
+    <string name="home_go_library">Ir a la biblioteca</string>
+    <string name="home_for_you">Para ti</string>
+    <string name="home_see_all">Ver todo</string>
 </resources>

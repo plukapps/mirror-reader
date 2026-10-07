@@ -2,7 +2,6 @@ package com.pluk.reader.ui.library
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.pluk.reader.domain.model.ImportOutcome
 import com.pluk.reader.domain.model.LibraryFilter
 import com.pluk.reader.domain.model.countBy
 import com.pluk.reader.domain.model.filterBy
@@ -57,15 +56,7 @@ class LibraryViewModel @Inject constructor(
             } finally {
                 importing.value = false
             }
-            val imported = outcomes.count { it is ImportOutcome.Imported }
-            if (imported > 0) _messages.tryEmit(LibraryMessage.Imported(imported))
-            outcomes.forEach {
-                when (it) {
-                    is ImportOutcome.AlreadyInLibrary -> _messages.tryEmit(LibraryMessage.AlreadyInLibrary(it.title))
-                    is ImportOutcome.Rejected -> _messages.tryEmit(LibraryMessage.Rejected(it.message))
-                    is ImportOutcome.Imported -> Unit
-                }
-            }
+            outcomes.toMessages().forEach { _messages.tryEmit(it) }
         }
     }
 
