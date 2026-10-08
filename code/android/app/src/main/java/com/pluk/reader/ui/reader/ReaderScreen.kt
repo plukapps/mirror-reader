@@ -62,6 +62,7 @@ import org.readium.r2.navigator.input.TapEvent
 import org.readium.r2.shared.ExperimentalReadiumApi
 import org.readium.r2.shared.publication.Href
 import org.readium.r2.shared.publication.Link
+import org.readium.r2.shared.publication.Locator
 import org.readium.r2.shared.publication.Publication
 
 @Composable
@@ -127,7 +128,7 @@ private fun ReaderContent(
     var area by remember { mutableStateOf<Rect?>(null) }
     val scope = rememberCoroutineScope()
     val controller = remember(scope) { PageTurnController(scope) }
-    val edges = remember { BookEdges() }
+    val edges = remember { BookEdges<Locator>() }
     val window = LocalContext.current.findActivity()?.window
 
     // La animación solo aplica en modo paginado (RDR-009).
@@ -156,9 +157,7 @@ private fun ReaderContent(
 
     // Pasa de página por un toque en el borde: animación completa, o inmediato si el efecto está desactivado.
     val turnPage: (PageTurnDirection) -> Unit = turn@{ direction ->
-        val nav = navigator
-        android.util.Log.d("PTLOG", "turnPage nav=${nav != null} animated=$animated busy=${controller.busy}")
-        if (nav == null) return@turn
+        val nav = navigator ?: return@turn
         if (animated && window != null) {
             if (controller.begin(direction, 0f, opsFor(nav, window))) controller.release(commit = true)
         } else if (!controller.busy) {
@@ -174,7 +173,6 @@ private fun ReaderContent(
         nav.addInputListener(object : InputListener {
             // Bordes: pasan de página. Centro (o cualquier punto en modo scroll): muestra u oculta los controles.
             override fun onTap(event: TapEvent): Boolean {
-                android.util.Log.d("PTLOG", "onTap x=${event.point.x}")
                 val width = nav.requireView().width.toFloat()
                 if (nav.overflow.value.scroll || width <= 0f) {
                     actions.onToggleControls()

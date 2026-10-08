@@ -30,7 +30,7 @@ El proyecto incluye los skills de [addyosmani/agent-skills](https://github.com/a
 | Escribir o cambiar un spec | `spec-driven-development` |
 | Dividir un spec en tareas, escribir un plan | `planning-and-task-breakdown` |
 | Implementar una tarea | `incremental-implementation` con `test-driven-development` |
-| Usar una API o librería (Readium, Android, Supabase) | `source-driven-development`: verificar contra la documentación oficial, no de memoria |
+| Usar una API o librería (Readium, Android, Firebase) | `source-driven-development`: verificar contra la documentación oficial, no de memoria |
 | Contrato entre módulos o de sincronización | `api-and-interface-design` |
 | Registrar una decisión técnica | `documentation-and-adrs` |
 | Algo falla o se rompe | `debugging-and-error-recovery` |
@@ -68,7 +68,7 @@ Arquitectura MVVM en capas, un solo módulo Gradle, paquetes `com.pluk.reader.{u
 
 - `ui`: pantallas Compose, `ViewModel` (un `StateFlow<UiState>` por pantalla), navegación (Navigation Compose, una sola actividad), tema.
 - `domain`: modelos propios, interfaces de repositorio y casos de uso con lógica. Sin Android ni Compose.
-- `data`: repositorios, Room, DataStore Preferences, motor de EPUB (Readium) y, desde la rebanada de sync, Retrofit, OkHttp y Gson.
+- `data`: repositorios, Room, DataStore Preferences, motor de EPUB (Readium) y, desde la rebanada de sync, el SDK de Firebase (Auth, Firestore, Storage) detrás de interfaces de `domain`. Sin Retrofit.
 - `di`: módulos de Hilt (con KSP, no kapt).
 - Coroutines y Flow para lo asíncrono. Sin `SharedPreferences`. Sin dependencias sin uso.
 
