@@ -75,7 +75,7 @@ Ruta `users/{uid}/books/{sha256}.epub`. Solo el dueño lee, sube y borra (ACC-00
 
 ## Riesgos conocidos
 
-Revisión de seguridad del checkpoint de reglas (2026-10-07). Lo que no está resuelto y se decide aparte (tarjeta K-050):
+Revisión de seguridad del checkpoint de reglas (2026-10-07). Lo que no está resuelto y se decide aparte (tarjeta K-050, deuda técnica postergada el 2026-10-08; hay que resolverla antes de abrir la app a usuarios reales):
 
 - **Cuentas descartables y costo.** Cualquiera puede registrarse y usar su cuota completa. Las reglas no exigen correo verificado ni App Check, así que muchas cuentas falsas multiplican el uso de almacenamiento y las lecturas de Firestore que cada subida provoca. Mitigaciones posibles: App Check, exigir `email_verified` para subir, alerta de presupuesto.
 - **Documentos sin tope de cantidad.** La cuota cuenta solo bytes de Storage. Un usuario puede crear muchos documentos de libro o colección sin archivo, y eso no consume cuota. Cada documento está acotado (1 MiB, campos validados), pero la cantidad no. Mitigación posible: contador por usuario o tope en las funciones.

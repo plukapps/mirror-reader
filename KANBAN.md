@@ -9,7 +9,7 @@ Plan de referencia: `specs/plans/2026-10-06-android-epub-viewer.md`
 - **K-008** Biblioteca, segunda rebanada: colecciones, búsqueda, nube, eliminar/quitar, cuota, edición de metadatos, "Compartir / Abrir con". LIB-005 a LIB-009. Requiere plan propio.
 - **K-009** Anotaciones: marcadores, subrayados, notas. Requiere plan propio. ANN-001 a ANN-007.
 - **K-010** Cuenta y sincronización. Requiere plan propio. Backend Firebase (ADR 0007), código en `code/backend/v1`. Actualizar ADR 0005 (SDK de Firebase en lugar de Retrofit). ACC, SYN.
-- **K-050** Backend, riesgos de la revisión de seguridad: cuentas descartables (App Check, correo verificado), tope de cantidad de documentos por usuario, reconciliación de `usedBytes`. Ver "Riesgos conocidos" en `specs/platforms/backend.md`. Requiere decidir antes de producción.
+- **K-050** DEUDA TÉCNICA. Backend, riesgos de la revisión de seguridad, postergados por decisión del usuario (2026-10-08): (1) cuentas descartables: propuesta A exigir correo verificado para subir (`email_verified` en la regla de Storage) y B App Check antes de publicar (con K-011); (2) tope de cantidad de documentos por usuario; (3) reconciliación de `usedBytes` con `storedFiles`. Detalle en "Riesgos conocidos" de `specs/platforms/backend.md`. Resolver antes de abrir la app a usuarios reales.
 - **K-011** Cumplimiento con Google Play y beta cerrada. CMP.
 - **K-012** Ajustes de lectura restantes: tipo de letra, interlineado, márgenes. RDR-002.
 
