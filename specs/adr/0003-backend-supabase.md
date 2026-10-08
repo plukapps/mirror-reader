@@ -1,6 +1,6 @@
 # ADR 0003 — Backend: Supabase
 
-**Estado:** provisional, revisable antes de construir la rebanada de sincronización.
+**Estado:** reemplazado por el ADR 0007 (Firebase). Se conserva como historia.
 
 ## Contexto
 

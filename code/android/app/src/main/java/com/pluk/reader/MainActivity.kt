@@ -39,6 +39,7 @@ class MainActivity : FragmentActivity() {
         supportFragmentManager.fragmentFactory = host.fragmentFactory
         super.onCreate(if (savedInstanceState != null && !host.isInstalled) null else savedInstanceState)
         enableEdgeToEdge()
+        viewModel.syncCloudBooks()
 
         if (savedInstanceState == null) incomingBook.value = intent?.data
         setContent {

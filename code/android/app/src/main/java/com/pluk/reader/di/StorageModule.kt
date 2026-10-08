@@ -8,6 +8,7 @@ import androidx.datastore.preferences.preferencesDataStoreFile
 import androidx.room.Room
 import com.pluk.reader.data.local.db.BookDao
 import com.pluk.reader.data.local.db.MIGRATION_1_2
+import com.pluk.reader.data.local.db.MIGRATION_2_3
 import com.pluk.reader.data.local.db.ReaderDatabase
 import com.pluk.reader.data.local.db.ReadingPositionDao
 import dagger.Module
@@ -24,7 +25,7 @@ object StorageModule {
     @Singleton
     fun provideDatabase(@ApplicationContext context: Context): ReaderDatabase =
         Room.databaseBuilder(context, ReaderDatabase::class.java, "reader.db")
-            .addMigrations(MIGRATION_1_2)
+            .addMigrations(MIGRATION_1_2, MIGRATION_2_3)
             .build()
 
     @Provides

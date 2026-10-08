@@ -5,7 +5,14 @@ import com.pluk.reader.domain.model.BookOpenException
 import com.pluk.reader.domain.model.OpenedBook
 import com.pluk.reader.domain.model.ReaderSettings
 import com.pluk.reader.domain.model.ReadingTheme
+import com.pluk.reader.domain.remote.BookFileStore
+import com.pluk.reader.domain.remote.RemoteBook
+import com.pluk.reader.domain.remote.RemoteUnavailableException
 import com.pluk.reader.domain.repository.BookRepository
+import com.pluk.reader.domain.repository.CloudBooksRepository
+import com.pluk.reader.domain.repository.CoverFile
+import com.pluk.reader.domain.usecase.DownloadBookUseCase
+import java.io.File
 import com.pluk.reader.domain.repository.PositionRepository
 import com.pluk.reader.domain.repository.SettingsRepository
 import kotlinx.coroutines.Dispatchers
@@ -93,8 +100,40 @@ class ReaderViewModelTest {
         resumeLocatorJson = resume,
     )
 
+    private class FakeCloud(var downloaded: Boolean = true, val installResult: Result<Unit> = Result.success(Unit)) :
+        CloudBooksRepository {
+        var installs = 0
+        override suspend fun addCloudOnly(books: List<RemoteBook>) = Unit
+        override suspend fun uploadedBooksWithCover(): List<CoverFile> = emptyList()
+        override suspend fun cloudBooksWithoutCover(): List<String> = emptyList()
+        override suspend fun installCover(bookId: String, downloaded: File) = Unit
+        override suspend fun isDownloaded(bookId: String) = downloaded
+        override fun newTempFile(): File = File.createTempFile("test-", ".tmp")
+        override suspend fun install(bookId: String, downloaded: File): Result<Unit> {
+            installs++
+            downloaded.delete()
+            if (installResult.isSuccess) this.downloaded = true
+            return installResult
+        }
+    }
+
+    private class FakeFiles(val result: Result<Unit> = Result.success(Unit)) : BookFileStore {
+        var downloads = 0
+        override suspend fun upload(bookId: String, file: File) = Result.success(Unit)
+        override suspend fun uploadCover(bookId: String, file: File) = Result.success(Unit)
+        override suspend fun downloadCover(bookId: String, destination: File) = Result.success(false)
+        override suspend fun download(bookId: String, destination: File): Result<Unit> {
+            downloads++
+            return result
+        }
+    }
+
+    private val cloud = FakeCloud()
+    private val files = FakeFiles()
+
     private fun viewModel(books: FakeBooks) = ReaderViewModel(
         SavedStateHandle(mapOf(ReaderViewModel.ARG_BOOK_ID to "hash-del-libro")), books, settings, positions, host,
+        DownloadBookUseCase(cloud, files),
     )
 
     private suspend fun ReaderViewModel.awaitReady(predicate: (ReaderUiState.Ready) -> Boolean = { true }) =
@@ -106,6 +145,42 @@ class ReaderViewModelTest {
         val vm = viewModel(FakeBooks(Result.failure(BookOpenException("No se pudo abrir el libro."))))
         val state = vm.uiState.first { it !is ReaderUiState.Loading }
         assertEquals(ReaderUiState.Failed("No se pudo abrir el libro."), state)
+        assertNull(host.installedFor)
+    }
+
+    // LIB-007: abrir un libro solo en la nube lo descarga una vez y después lo abre
+    @Test
+    fun opensACloudOnlyBookAfterDownloadingIt() = runTest(dispatcher) {
+        cloud.downloaded = false
+        val books = FakeBooks(Result.success(book()))
+        val vm = viewModel(books)
+        vm.awaitReady()
+        assertEquals(1, files.downloads)
+        assertEquals(1, cloud.installs)
+        assertEquals("hash-del-libro", books.opened)
+    }
+
+    // LIB-007: un libro que ya está en el dispositivo se abre sin tocar la red
+    @Test
+    fun doesNotDownloadABookThatIsAlreadyOnTheDevice() = runTest(dispatcher) {
+        val vm = viewModel(FakeBooks(Result.success(book())))
+        vm.awaitReady()
+        assertEquals(0, files.downloads)
+    }
+
+    // SYN-001: sin conexión el libro de la nube no se abre y el mensaje lo dice; no se intenta abrir un archivo que no está
+    @Test
+    fun failedDownloadShowsMessageAndDoesNotOpen() = runTest(dispatcher) {
+        cloud.downloaded = false
+        val failing = FakeFiles(Result.failure(RemoteUnavailableException()))
+        val books = FakeBooks(Result.success(book()))
+        val vm = ReaderViewModel(
+            SavedStateHandle(mapOf(ReaderViewModel.ARG_BOOK_ID to "hash-del-libro")), books, settings, positions, host,
+            DownloadBookUseCase(cloud, failing),
+        )
+        val state = vm.uiState.first { it !is ReaderUiState.Loading }
+        assertEquals(ReaderUiState.Failed("Sin conexión. No se pudo descargar el libro."), state)
+        assertNull(books.opened)
         assertNull(host.installedFor)
     }
 

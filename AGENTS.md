@@ -30,7 +30,7 @@ El proyecto incluye los skills de [addyosmani/agent-skills](https://github.com/a
 | Escribir o cambiar un spec | `spec-driven-development` |
 | Dividir un spec en tareas, escribir un plan | `planning-and-task-breakdown` |
 | Implementar una tarea | `incremental-implementation` con `test-driven-development` |
-| Usar una API o librería (Readium, Android, Supabase) | `source-driven-development`: verificar contra la documentación oficial, no de memoria |
+| Usar una API o librería (Readium, Android, Firebase) | `source-driven-development`: verificar contra la documentación oficial, no de memoria |
 | Contrato entre módulos o de sincronización | `api-and-interface-design` |
 | Registrar una decisión técnica | `documentation-and-adrs` |
 | Algo falla o se rompe | `debugging-and-error-recovery` |
@@ -68,7 +68,7 @@ Arquitectura MVVM en capas, un solo módulo Gradle, paquetes `com.pluk.reader.{u
 
 - `ui`: pantallas Compose, `ViewModel` (un `StateFlow<UiState>` por pantalla), navegación (Navigation Compose, una sola actividad), tema.
 - `domain`: modelos propios, interfaces de repositorio y casos de uso con lógica. Sin Android ni Compose.
-- `data`: repositorios, Room, DataStore Preferences, motor de EPUB (Readium) y, desde la rebanada de sync, Retrofit, OkHttp y Gson.
+- `data`: repositorios, Room, DataStore Preferences, motor de EPUB (Readium) y, desde la rebanada de sync, el SDK de Firebase (Auth, Firestore, Storage) detrás de interfaces de `domain`. Sin Retrofit.
 - `di`: módulos de Hilt (con KSP, no kapt).
 - Coroutines y Flow para lo asíncrono. Sin `SharedPreferences`. Sin dependencias sin uso.
 
@@ -82,10 +82,19 @@ Arquitectura MVVM en capas, un solo módulo Gradle, paquetes `com.pluk.reader.{u
 - Toolchain: AGP 9.1.0, Gradle 9.3.1, `compileSdk 37` (lo exige Readium 3.4.0) y core library desugaring. La API de Readium se verifica con `javap` sobre `~/.gradle/caches/.../readium-*-api.jar` cuando la documentación no alcanza.
 - Si hay más de un dispositivo conectado, `connectedDebugAndroidTest` corre en todos (también en un teléfono físico). Para limitarlo al emulador: `ANDROID_SERIAL=emulator-5554 ./gradlew ...`.
 - Fixture de pruebas: `code/android/tools/make_fixture_epub.py`.
+- Firebase (ADR 0005, ADR 0007): `code/android/app/google-services.json` se descarga de la consola (Configuración del proyecto → app `com.pluk.reader`) y NO va al repo (está en `.gitignore`). Sin él, el build falla. Revisar `git status` antes de commitear: nunca `git add -A` a ciegas.
+
+## Backend (Firebase)
+
+Raíz: `code/backend/v1` (reglas de Firestore y Storage, Cloud Functions en `functions/`, tests en `tests/`). Detalle y pasos manuales: `code/backend/v1/README.md`. Modelo de datos: `specs/platforms/backend.md`.
+
+- Tests (emuladores de Auth, Firestore, Storage y Functions): desde `code/backend/v1`, `npm test`. Exige JDK 21 o superior: en esta máquina, `export JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home"` y su `bin` en el `PATH`.
+- Los tests usan el proyecto `demo-pluk-reader`; nunca tocan el proyecto real (`mirror-reading-staging`: Firestore en `us-central1`, bucket de Storage en `us-east1`).
+- Desplegar al proyecto real es una acción aparte que se pide al usuario.
 
 ## Decisiones vigentes
 
 - Clientes nativos por plataforma, Android primero (ADR 0001).
 - Offline-first (ADR 0002).
-- Backend Supabase, provisional (ADR 0003). Aún no se construye.
+- Backend Firebase, provisional (ADR 0007, reemplaza al 0003). Código en `code/backend/v1`.
 - Modelo de negocio abierto, hipótesis: suscripción. Ver `specs/open-questions.md`.

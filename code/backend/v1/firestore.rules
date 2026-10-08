@@ -1,0 +1,84 @@
+rules_version = '2';
+
+// Modelo de datos y principios: specs/platforms/backend.md
+// Todo lo que no se permite aquí está denegado.
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function isOwner(uid) {
+      return request.auth != null && request.auth.uid == uid;
+    }
+
+    // Marca de tiempo del servidor: el cliente envía serverTimestamp(), que vale request.time.
+    function isServerTime(value) {
+      return value is timestamp && value == request.time;
+    }
+
+    // SYN-006, SYN-007: deletedAt es null, la hora del servidor o el valor que ya tenía
+    // (al editar un documento ya borrado). Nunca una fecha elegida por el cliente.
+    function isSoftDeleteMark(value) {
+      return value == null
+        || value == request.time
+        || (resource != null && value == resource.data.deletedAt);
+    }
+
+    // ACC-004, ACC-005, ACC-002: el dueño solo lee. La creación del documento y
+    // usedBytes se resuelven en K-047 y K-048.
+    match /users/{uid} {
+      allow read: if isOwner(uid);
+    }
+
+    // bookId = SHA-256 en hexadecimal minúscula.
+    match /users/{uid}/books/{bookId} {
+      function validBook() {
+        let data = request.resource.data;
+        return data.keys().hasAll(['title', 'authors', 'filePath', 'sizeBytes', 'createdAt', 'updatedAt', 'deletedAt'])
+          && data.keys().hasOnly(['title', 'authors', 'filePath', 'sizeBytes', 'createdAt', 'updatedAt', 'deletedAt'])
+          && data.title is string && data.title.size() >= 1 && data.title.size() <= 500
+          && data.authors is list && data.authors.size() <= 50
+          && data.filePath == 'users/' + uid + '/books/' + bookId + '.epub'
+          && data.sizeBytes is int && data.sizeBytes >= 0
+          && isServerTime(data.updatedAt)
+          && isSoftDeleteMark(data.deletedAt);
+      }
+
+      allow read: if isOwner(uid);
+
+      allow create: if isOwner(uid)
+        && bookId.matches('^[a-f0-9]{64}$')
+        && validBook()
+        && isServerTime(request.resource.data.createdAt)
+        && request.resource.data.deletedAt == null;
+
+      // SYN-007: no hay delete. Borrar es poner deletedAt.
+      allow update: if isOwner(uid)
+        && validBook()
+        && !request.resource.data.diff(resource.data).affectedKeys()
+             .hasAny(['filePath', 'sizeBytes', 'createdAt']);
+    }
+
+    // LIB-005
+    match /users/{uid}/collections/{collectionId} {
+      function validCollection() {
+        let data = request.resource.data;
+        return data.keys().hasAll(['name', 'bookIds', 'createdAt', 'updatedAt', 'deletedAt'])
+          && data.keys().hasOnly(['name', 'bookIds', 'createdAt', 'updatedAt', 'deletedAt'])
+          && data.name is string && data.name.size() >= 1 && data.name.size() <= 100
+          && data.bookIds is list && data.bookIds.size() <= 5000
+          && isServerTime(data.updatedAt)
+          && isSoftDeleteMark(data.deletedAt);
+      }
+
+      allow read: if isOwner(uid);
+
+      allow create: if isOwner(uid)
+        && validCollection()
+        && isServerTime(request.resource.data.createdAt)
+        && request.resource.data.deletedAt == null;
+
+      allow update: if isOwner(uid)
+        && validCollection()
+        && !request.resource.data.diff(resource.data).affectedKeys().hasAny(['createdAt']);
+    }
+  }
+}

@@ -36,8 +36,10 @@ La app Android nace con una actividad por pantalla, estado en `SharedPreferences
 - No se usa `SharedPreferences`.
 
 **Backend remoto**
-- Retrofit con OkHttp y Gson. Las dependencias se agregan en la rebanada de sincronización, no antes.
-- El backend se consume como API REST detrás de interfaces de repositorio de `domain`, así que la elección de backend (ADR 0003) no se filtra a `ui`.
+- SDK de Firebase (con el BoM): Auth, Firestore y Storage. Se agrega en la rebanada de sincronización, no antes. Reemplaza a Retrofit, OkHttp y Gson (decisión del 2026-10-08, ADR 0007).
+- El backend se consume detrás de interfaces de repositorio de `domain` (y `BookFileStore` para los archivos), así que Firebase no se filtra a `ui`.
+- Room sigue siendo la fuente de verdad (ADR 0002): el caché local de Firestore se desactiva para no tener dos cachés.
+- Si más adelante hace falta pasar a REST (por ejemplo, otro cliente que no quiera el SDK), solo cambia la capa `data` detrás de esas interfaces.
 
 **Pantalla del lector**
 - `ReaderScreen` (Compose) reemplaza a `ReaderActivity`.
@@ -49,11 +51,11 @@ La app Android nace con una actividad por pantalla, estado en `SharedPreferences
 
 - **Mantener actividades por pantalla y `SharedPreferences`.** Descartado: no escala y contradice el stack definido.
 - **Un solo módulo Gradle con capas por paquete (elegido) frente a un módulo por capa.** Un módulo por capa agrega configuración que hoy no se justifica. Se puede separar más adelante sin cambiar las dependencias entre capas.
-- **Gson frente a kotlinx.serialization.** Se usa Gson porque es parte del stack fijado. La plantilla trajo el plugin de kotlinx.serialization y se elimina si nada lo usa.
+- **Gson frente a kotlinx.serialization.** Se fijó Gson cuando el backend iba a ser REST. Con el SDK de Firebase (ADR 0007) ya no hace falta para la red. La plantilla trajo el plugin de kotlinx.serialization y se elimina si nada lo usa.
 
 ## Consecuencias
 
 - Hay que mantener el código en las cuatro capas y respetar quién depende de quién.
 - Las pruebas de la lógica de presentación corren en JVM con repositorios falsos. Las pruebas que tocan Room, DataStore o Readium corren en emulador con Hilt de pruebas.
-- Retrofit, OkHttp y Gson no están en el proyecto hasta K-010 (sincronización). Eso evita dependencias sin uso.
+- El SDK de Firebase no está en el proyecto hasta K-010 (sincronización). Eso evita dependencias sin uso. Retrofit, OkHttp y Gson no se agregan.
 - El tema "plantilla" `ReaderTheme` pasa a `ui/theme`.

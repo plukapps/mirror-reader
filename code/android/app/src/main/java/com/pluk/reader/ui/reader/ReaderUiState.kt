@@ -22,4 +22,7 @@ sealed interface ReaderUiState {
 /** Eventos de un solo uso hacia la pantalla. */
 sealed interface ReaderEvent {
     data class OpenExternalLink(val url: String) : ReaderEvent
+
+    /** RDR-012: el usuario pasó del cuerpo del libro a sus páginas finales. */
+    data object BodyEnded : ReaderEvent
 }

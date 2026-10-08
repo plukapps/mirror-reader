@@ -2,6 +2,7 @@ package com.pluk.reader.ui.reader
 
 import android.graphics.Bitmap
 import android.graphics.Rect
+import android.os.SystemClock
 import android.view.Window
 import androidx.compose.runtime.withFrameNanos
 import kotlinx.coroutines.flow.first
@@ -27,7 +28,7 @@ class NavigatorPageTurnOps(
     /** True si se puede capturar sin preparar nada antes (por ejemplo, sin controles encima). */
     private val isReady: () -> Boolean = { false },
     /** Bordes del libro ya descubiertos. Vive más que esta instancia, que se crea en cada gesto. */
-    private val edges: BookEdges = BookEdges(),
+    private val edges: BookEdges<Locator> = BookEdges(),
 ) : PageTurnOps {
     private var before: Locator? = null
     private var movedForward = true
@@ -81,21 +82,29 @@ class NavigatorPageTurnOps(
     }
 
     private companion object {
-        const val NAVIGATION_TIMEOUT_MS = 400L
+        const val NAVIGATION_TIMEOUT_MS = 800L
     }
 }
 
 /**
  * Recuerda desde qué página el navegador no pudo avanzar o retroceder, para no volver a animar un paso
- * que no cambia nada (RDR-009). Deja de valer en cuanto la página es otra.
+ * que no cambia nada (RDR-009). Deja de valer en cuanto la página es otra o pasa [BLOCK_TTL_MS]: si el
+ * navegador solo estaba ocupado y no era el borde del libro, el usuario no se queda sin poder pasar de página.
  */
-class BookEdges {
-    private var forwardAt: Locator? = null
-    private var backwardAt: Locator? = null
+class BookEdges<T>(private val now: () -> Long = SystemClock::elapsedRealtime) {
+    private var forwardAt: Pair<T, Long>? = null
+    private var backwardAt: Pair<T, Long>? = null
 
-    fun isBlocked(forward: Boolean, at: Locator) = (if (forward) forwardAt else backwardAt) == at
+    fun isBlocked(forward: Boolean, at: T): Boolean {
+        val (page, since) = (if (forward) forwardAt else backwardAt) ?: return false
+        return page == at && now() - since < BLOCK_TTL_MS
+    }
 
-    fun block(forward: Boolean, at: Locator) {
-        if (forward) forwardAt = at else backwardAt = at
+    fun block(forward: Boolean, at: T) {
+        if (forward) forwardAt = at to now() else backwardAt = at to now()
+    }
+
+    companion object {
+        const val BLOCK_TTL_MS = 3_000L
     }
 }

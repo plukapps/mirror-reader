@@ -3,6 +3,7 @@ package com.pluk.reader.ui.reader
 import android.app.Activity
 import android.content.Context
 import android.content.ContextWrapper
+import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.rememberUpdatedState
@@ -52,6 +53,7 @@ import androidx.fragment.compose.AndroidFragment
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.pluk.reader.domain.model.OpenedBook
+import com.pluk.reader.R
 import com.pluk.reader.domain.model.ReaderSettings
 import com.pluk.reader.ui.theme.ReaderTheme
 import org.readium.r2.navigator.epub.EpubNavigatorFragment
@@ -60,6 +62,7 @@ import org.readium.r2.navigator.input.TapEvent
 import org.readium.r2.shared.ExperimentalReadiumApi
 import org.readium.r2.shared.publication.Href
 import org.readium.r2.shared.publication.Link
+import org.readium.r2.shared.publication.Locator
 import org.readium.r2.shared.publication.Publication
 
 @Composable
@@ -69,14 +72,19 @@ fun ReaderScreen(
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     val uriHandler = LocalUriHandler.current
+    val context = LocalContext.current
 
     // Enlaces externos del libro: solo web, en el navegador del sistema.
     LaunchedEffect(viewModel) {
         viewModel.events.collect { event ->
-            if (event is ReaderEvent.OpenExternalLink &&
-                (event.url.startsWith("http://") || event.url.startsWith("https://"))
-            ) {
-                runCatching { uriHandler.openUri(event.url) }
+            when (event) {
+                is ReaderEvent.OpenExternalLink ->
+                    if (event.url.startsWith("http://") || event.url.startsWith("https://")) {
+                        runCatching { uriHandler.openUri(event.url) }
+                    }
+                // RDR-012
+                ReaderEvent.BodyEnded ->
+                    Toast.makeText(context, R.string.reader_body_ended, Toast.LENGTH_LONG).show()
             }
         }
     }
@@ -120,7 +128,7 @@ private fun ReaderContent(
     var area by remember { mutableStateOf<Rect?>(null) }
     val scope = rememberCoroutineScope()
     val controller = remember(scope) { PageTurnController(scope) }
-    val edges = remember { BookEdges() }
+    val edges = remember { BookEdges<Locator>() }
     val window = LocalContext.current.findActivity()?.window
 
     // La animación solo aplica en modo paginado (RDR-009).
@@ -183,6 +191,7 @@ private fun ReaderContent(
                 locator.toJSON().toString(),
                 locator.locations.totalProgression,
                 locator.locations.position,
+                locator.href.toString(),
             )
         }
     }
@@ -370,7 +379,7 @@ private val READING_PADDING = 24.dp
 private class ReaderActions(
     val onToggleControls: () -> Unit,
     val onHideControls: () -> Unit,
-    val onLocatorChanged: (json: String, totalProgression: Double?, position: Int?) -> Unit,
+    val onLocatorChanged: (json: String, totalProgression: Double?, position: Int?, href: String) -> Unit,
     val onToggleScroll: () -> Unit,
     val onNextTheme: () -> Unit,
     val onSmallerFont: () -> Unit,
@@ -381,7 +390,9 @@ private class ReaderActions(
         fun of(viewModel: ReaderViewModel) = ReaderActions(
             onToggleControls = viewModel::toggleControls,
             onHideControls = viewModel::hideControls,
-            onLocatorChanged = { json, progression, position -> viewModel.onLocatorChanged(json, progression, position) },
+            onLocatorChanged = { json, progression, position, href ->
+                viewModel.onLocatorChanged(json, progression, position, href)
+            },
             onToggleScroll = viewModel::toggleScroll,
             onNextTheme = viewModel::nextTheme,
             onSmallerFont = viewModel::smallerFont,
@@ -389,7 +400,7 @@ private class ReaderActions(
             onTogglePageAnimation = viewModel::togglePageAnimation,
         )
 
-        val None = ReaderActions({}, {}, { _, _, _ -> }, {}, {}, {}, {}, {})
+        val None = ReaderActions({}, {}, { _, _, _, _ -> }, {}, {}, {}, {}, {})
     }
 }
 

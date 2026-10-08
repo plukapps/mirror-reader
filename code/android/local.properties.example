@@ -1,0 +1,8 @@
+## Copiar a local.properties (git lo ignora) y completar.
+# Ruta del SDK de Android (Android Studio la agrega sola).
+# sdk.dir=/Users/<usuario>/Library/Android/sdk
+
+# Cuenta de desarrollo (K-052): la app inicia sesión sola con ella, solo en builds debug.
+# Hay que crear el usuario antes en Firebase Authentication. Nunca subir estos valores al repo.
+dev.account.email=
+dev.account.password=

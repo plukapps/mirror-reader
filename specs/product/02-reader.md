@@ -29,6 +29,7 @@ Leer cómodo, sin que la interfaz estorbe.
   - Mientras dura la animación no se aceptan otros pasos de página. Excepción: si la página ya cambió y la animación solo se está asentando, tocar la pantalla la termina al instante y permite pasar de página seguido.
 - **RDR-010** En modo paginado debe mostrar el número de página actual en el pie de la pantalla, fuera del texto y visible aunque los controles estén ocultos. Es la posición del libro, que no cambia con el tamaño de letra. No muestra el total. En modo scroll no se muestra.
 - **RDR-011** En modo paginado, un toque en el 20% izquierdo o derecho de la pantalla pasa de página, y en el 60% central muestra u oculta los controles. Una pulsación larga (selección de texto) nunca pasa de página, ni sus arrastres.
+- **RDR-012** Al leer, cuando el usuario pasa del cuerpo del libro a sus páginas finales (índice, notas, bibliografía, glosario, agradecimientos, sobre el autor, créditos), debe avisarle con un mensaje breve ("Parece que terminaste el libro"). El fin del cuerpo se deduce de la tabla de contenidos: es el comienzo del último bloque de entradas de primer nivel cuyo título contiene alguna de esas palabras (en español o inglés, en singular o plural), incluso si el libro cierra con una promoción de otros libros. El aviso sale una vez por apertura del libro y no sale si el libro se reabre ya dentro de esas páginas. Si el libro no tiene ese bloque, no hay aviso. Por ahora el aviso no cambia el progreso ni el estado del libro.
 
 ## Escenarios
 
@@ -44,6 +45,8 @@ Leer cómodo, sin que la interfaz estorbe.
 - Dado que cambio a modo scroll, entonces el número de página no se muestra.
 - Dado que toco el centro de la pantalla en modo paginado, entonces se muestran u ocultan los controles y no cambia la página.
 - Dado que mantengo el dedo sobre una palabra y arrastro para seleccionar texto, entonces la página no cambia.
+- Dado que un libro termina su cuerpo y sigue con "Notas" e "Índice", cuando paso a la primera página de "Notas", entonces veo el aviso una sola vez.
+- Dado que reabro el libro y mi posición ya está en "Índice", entonces no veo el aviso.
 
 ## Fuera de alcance
 

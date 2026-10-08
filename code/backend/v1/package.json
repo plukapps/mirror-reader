@@ -1,0 +1,14 @@
+{
+  "name": "pluk-reader-backend-v1",
+  "private": true,
+  "type": "module",
+  "description": "Backend de Pluk Reader en Firebase: reglas de seguridad, \u00edndices y tests en emulador.",
+  "scripts": {
+    "emulators": "firebase emulators:start --project demo-pluk-reader",
+    "test": "npm --prefix functions run build && firebase emulators:exec --project demo-pluk-reader \"node --test --test-concurrency=1 tests/*.test.mjs functions/tests/*.test.mjs\""
+  },
+  "devDependencies": {
+    "@firebase/rules-unit-testing": "^5.0.2",
+    "firebase": "^12.19.0"
+  }
+}

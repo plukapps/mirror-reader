@@ -1,9 +1,19 @@
+import java.util.Properties
+
 plugins {
   alias(libs.plugins.android.application)
   alias(libs.plugins.compose.compiler)
   alias(libs.plugins.ksp)
   alias(libs.plugins.hilt.android)
+  alias(libs.plugins.google.services)
 }
+
+// Cuenta de desarrollo (K-052): se lee de local.properties, que git ignora. Solo llega al build debug.
+val localProperties = Properties().apply {
+    val text = providers.fileContents(rootProject.layout.projectDirectory.file("local.properties")).asText.orNull
+    if (text != null) load(text.reader())
+}
+fun String.asBuildConfigString() = "\"" + replace("\\", "\\\\").replace("\"", "\\\"") + "\""
 
 android {
     namespace = "com.pluk.reader"
@@ -18,7 +28,14 @@ android {
     }
 
     buildTypes {
+        debug {
+            buildConfigField("String", "DEV_ACCOUNT_EMAIL", localProperties.getProperty("dev.account.email", "").asBuildConfigString())
+            buildConfigField("String", "DEV_ACCOUNT_PASSWORD", localProperties.getProperty("dev.account.password", "").asBuildConfigString())
+        }
         release {
+            // Sin cuenta de desarrollo en release.
+            buildConfigField("String", "DEV_ACCOUNT_EMAIL", "\"\"")
+            buildConfigField("String", "DEV_ACCOUNT_PASSWORD", "\"\"")
             isMinifyEnabled = false
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
         }
@@ -31,7 +48,7 @@ android {
     buildFeatures {
       compose = true
       aidl = false
-      buildConfig = false
+      buildConfig = true
       shaders = false
     }
 
@@ -107,6 +124,13 @@ dependencies {
   ksp(libs.androidx.room.compiler)
   implementation(libs.androidx.datastore.preferences)
   androidTestImplementation(libs.androidx.room.testing)
+
+  // Backend (ADR 0005, ADR 0007): Auth, Firestore y Storage. Sin artefactos -ktx: el BoM 35 los incluye.
+  implementation(platform(libs.firebase.bom))
+  implementation(libs.firebase.auth)
+  implementation(libs.firebase.firestore)
+  implementation(libs.firebase.storage)
+  implementation(libs.kotlinx.coroutines.play.services)
 
   // Hilt en pruebas de emulador
   androidTestImplementation(libs.hilt.android.testing)
