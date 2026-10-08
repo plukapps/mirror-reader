@@ -83,9 +83,17 @@ Arquitectura MVVM en capas, un solo módulo Gradle, paquetes `com.pluk.reader.{u
 - Si hay más de un dispositivo conectado, `connectedDebugAndroidTest` corre en todos (también en un teléfono físico). Para limitarlo al emulador: `ANDROID_SERIAL=emulator-5554 ./gradlew ...`.
 - Fixture de pruebas: `code/android/tools/make_fixture_epub.py`.
 
+## Backend (Firebase)
+
+Raíz: `code/backend/v1` (reglas de Firestore y Storage, Cloud Functions en `functions/`, tests en `tests/`). Detalle y pasos manuales: `code/backend/v1/README.md`. Modelo de datos: `specs/platforms/backend.md`.
+
+- Tests (emuladores de Auth, Firestore, Storage y Functions): desde `code/backend/v1`, `npm test`. Exige JDK 21 o superior: en esta máquina, `export JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home"` y su `bin` en el `PATH`.
+- Los tests usan el proyecto `demo-pluk-reader`; nunca tocan el proyecto real (`mirror-reading-staging`, región `us-central1`).
+- Desplegar al proyecto real es una acción aparte que se pide al usuario.
+
 ## Decisiones vigentes
 
 - Clientes nativos por plataforma, Android primero (ADR 0001).
 - Offline-first (ADR 0002).
-- Backend Firebase, provisional (ADR 0007, reemplaza al 0003). Código en `code/backend/v1`. Aún no se construye.
+- Backend Firebase, provisional (ADR 0007, reemplaza al 0003). Código en `code/backend/v1`.
 - Modelo de negocio abierto, hipótesis: suscripción. Ver `specs/open-questions.md`.
