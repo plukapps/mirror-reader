@@ -2,7 +2,9 @@ package com.pluk.reader.ui.reader
 
 import androidx.lifecycle.SavedStateHandle
 import com.pluk.reader.domain.model.BookOpenException
+import com.pluk.reader.domain.model.LineSpacing
 import com.pluk.reader.domain.model.OpenedBook
+import com.pluk.reader.domain.model.ReaderFont
 import com.pluk.reader.domain.model.ReaderSettings
 import com.pluk.reader.domain.model.ReadingTheme
 import com.pluk.reader.domain.remote.BookFileStore
@@ -206,15 +208,14 @@ class ReaderViewModelTest {
         assertTrue(ready.toc.isEmpty())
     }
 
-    // RDR-001, RDR-002, RDR-003: los ajustes se persisten por el repositorio y llegan al estado
+    // RDR-002, RDR-003: los ajustes se persisten por el repositorio y llegan al estado
     @Test
     fun settingChangesArePersistedAndReflectedInState() = runTest(dispatcher) {
         val vm = viewModel(FakeBooks(Result.success(book())))
         vm.awaitReady()
-        vm.toggleScroll()
-        vm.nextTheme()
+        vm.setTheme(ReadingTheme.DARK)
         vm.biggerFont()
-        val expected = ReaderSettings(scroll = true, theme = ReadingTheme.DARK, fontScale = 1.1)
+        val expected = ReaderSettings(theme = ReadingTheme.DARK, fontScale = 1.1)
         val ready = vm.awaitReady { it.settings == expected }
         assertEquals(expected, settings.state.value)
         assertEquals(expected, ready.settings)
@@ -227,6 +228,67 @@ class ReaderViewModelTest {
         vm.awaitReady()
         vm.onLocatorChanged("""{"href":"ch1.xhtml"}""", 0.424)
         assertEquals(42, vm.awaitReady { it.progressPercent != null }.progressPercent)
+    }
+
+    // RDR-014: "Aa" abre y cierra el panel de ajustes, y cerrarlo no toca los controles
+    @Test
+    fun settingsPanelOpensAndCloses() = runTest(dispatcher) {
+        val vm = viewModel(FakeBooks(Result.success(book())))
+        assertEquals(false, vm.awaitReady().settingsOpen)
+        vm.toggleSettings()
+        assertEquals(true, vm.awaitReady { it.settingsOpen }.settingsOpen)
+        vm.toggleSettings()
+        assertEquals(false, vm.awaitReady { !it.settingsOpen }.settingsOpen)
+        vm.toggleSettings()
+        vm.awaitReady { it.settingsOpen }
+        vm.closeSettings()
+        val ready = vm.awaitReady { !it.settingsOpen }
+        assertEquals(false, ready.settingsOpen)
+        assertTrue(ready.controlsVisible)
+    }
+
+    // RDR-014: abrir el panel muestra los controles aunque estuvieran ocultos
+    @Test
+    fun openingSettingsShowsTheControls() = runTest(dispatcher) {
+        val vm = viewModel(FakeBooks(Result.success(book())))
+        vm.awaitReady()
+        vm.hideControls()
+        vm.awaitReady { !it.controlsVisible }
+        vm.toggleSettings()
+        val ready = vm.awaitReady { it.settingsOpen }
+        assertTrue(ready.controlsVisible)
+    }
+
+    // RDR-003, RDR-014: el tema se elige directamente
+    @Test
+    fun themeIsPickedDirectlyAndPersisted() = runTest(dispatcher) {
+        val vm = viewModel(FakeBooks(Result.success(book())))
+        vm.awaitReady()
+        vm.setTheme(ReadingTheme.SEPIA)
+        assertEquals(ReadingTheme.SEPIA, vm.awaitReady { it.settings.theme == ReadingTheme.SEPIA }.settings.theme)
+        assertEquals(ReadingTheme.SEPIA, settings.state.value.theme)
+    }
+
+    // RDR-002, RDR-014: tipo de letra e interlineado se eligen y se guardan sin tocar lo demás
+    @Test
+    fun fontAndLineSpacingArePickedAndPersisted() = runTest(dispatcher) {
+        val vm = viewModel(FakeBooks(Result.success(book())))
+        vm.awaitReady()
+        vm.setFont(ReaderFont.MONO)
+        vm.setLineSpacing(LineSpacing.WIDE)
+        val expected = ReaderSettings(font = ReaderFont.MONO, lineSpacing = LineSpacing.WIDE)
+        assertEquals(expected, vm.awaitReady { it.settings == expected }.settings)
+        assertEquals(expected, settings.state.value)
+    }
+
+    // El título que sigue al capítulo se prueba en `ChapterTitleTest`: aquí no se pueden armar enlaces de Readium (usan android.net.Uri).
+    // RDR-013: un libro sin tabla de contenidos no muestra título
+    @Test
+    fun chapterTitleIsEmptyWithoutTableOfContents() = runTest(dispatcher) {
+        val vm = viewModel(FakeBooks(Result.success(book())))
+        vm.awaitReady()
+        vm.onLocatorChanged("""{"href":"c1.xhtml"}""", 0.1, href = "c1.xhtml")
+        assertEquals("", vm.awaitReady { it.progressPercent != null }.chapterTitle)
     }
 
     // RDR-010

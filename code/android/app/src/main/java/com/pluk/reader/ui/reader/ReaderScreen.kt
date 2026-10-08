@@ -19,7 +19,12 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.layout.boundsInWindow
 import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalView
+import androidx.core.view.WindowCompat
+import androidx.core.view.WindowInsetsCompat
+import androidx.core.view.WindowInsetsControllerCompat
 import androidx.compose.ui.platform.testTag
 import androidx.compose.runtime.withFrameNanos
 import kotlin.math.roundToInt
@@ -29,8 +34,11 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.navigationBarsPadding
-import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.navigationBarsIgnoringVisibility
+import androidx.compose.foundation.layout.statusBarsIgnoringVisibility
+import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
@@ -54,6 +62,8 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.pluk.reader.domain.model.OpenedBook
 import com.pluk.reader.R
+import com.pluk.reader.domain.model.LineSpacing
+import com.pluk.reader.domain.model.ReaderFont
 import com.pluk.reader.domain.model.ReaderSettings
 import com.pluk.reader.ui.theme.ReaderTheme
 import org.readium.r2.navigator.epub.EpubNavigatorFragment
@@ -79,7 +89,9 @@ fun ReaderScreen(
         viewModel.events.collect { event ->
             when (event) {
                 is ReaderEvent.OpenExternalLink ->
-                    if (event.url.startsWith("http://") || event.url.startsWith("https://")) {
+                    if ((event.url.startsWith("http://") || event.url.startsWith("https://")) &&
+                        !externalLinksBlockedForTests(context)
+                    ) {
                         runCatching { uriHandler.openUri(event.url) }
                     }
                 // RDR-012
@@ -109,12 +121,15 @@ fun ReaderScreen(
             progressPercent = current.progressPercent,
             pageNumber = current.pageNumber,
             controlsVisible = current.controlsVisible,
+            chapterTitle = current.chapterTitle,
+            settingsOpen = current.settingsOpen,
+            onBack = onBack,
             actions = ReaderActions.of(viewModel),
         )
     }
 }
 
-@OptIn(ExperimentalReadiumApi::class)
+@OptIn(ExperimentalReadiumApi::class, ExperimentalLayoutApi::class)
 @Composable
 private fun ReaderContent(
     settings: ReaderSettings,
@@ -122,8 +137,12 @@ private fun ReaderContent(
     progressPercent: Int?,
     pageNumber: Int?,
     controlsVisible: Boolean,
+    chapterTitle: String,
+    settingsOpen: Boolean,
+    onBack: () -> Unit,
     actions: ReaderActions,
 ) {
+    var showToc by remember { mutableStateOf(false) }
     var navigator by remember { mutableStateOf<EpubNavigatorFragment?>(null) }
     var area by remember { mutableStateOf<Rect?>(null) }
     val scope = rememberCoroutineScope()
@@ -131,10 +150,11 @@ private fun ReaderContent(
     val edges = remember { BookEdges<Locator>() }
     val window = LocalContext.current.findActivity()?.window
 
-    // La animación solo aplica en modo paginado (RDR-009).
-    val animated = settings.pageAnimation && !settings.scroll
+    // RDR-009: la animación se puede desactivar.
+    val animated = settings.pageAnimation
     val outgoingTint = settings.theme.outgoingTint()
     val controlsVisible by rememberUpdatedState(controlsVisible)
+    ImmersiveSystemBars(window, hidden = !controlsVisible)
     // Al pasar de página los controles se quitan de golpe: esperar a que se desvanezcan retrasa el inicio de la animación.
     var hideControlsInstantly by remember { mutableStateOf(false) }
     LaunchedEffect(controlsVisible) { if (controlsVisible) hideControlsInstantly = false }
@@ -220,8 +240,6 @@ private fun ReaderContent(
         Modifier
     }
 
-    // RDR-010: el pie reserva su propio espacio, fuera del texto, solo en modo paginado.
-    val showPageNumber = !settings.scroll
     val readingBackground = settings.theme.pageBackground()
 
     Box(
@@ -230,7 +248,7 @@ private fun ReaderContent(
             .background(readingBackground)
             .then(swipeModifier),
     ) {
-        Column(Modifier.fillMaxSize().statusBarsPadding()) {
+        Column(Modifier.fillMaxSize().windowInsetsPadding(WindowInsets.statusBarsIgnoringVisibility)) {
             Box(
                 Modifier
                     .weight(1f)
@@ -265,9 +283,7 @@ private fun ReaderContent(
                                 onUpdate = { fragment -> if (navigator !== fragment) navigator = fragment },
                             )
                         }
-                        if (showPageNumber) {
-                            ReaderPageNumber(pageNumber, settings.theme.pageTextColor())
-                        }
+                        ReaderPageNumber(pageNumber, settings.theme.pageTextColor())
                     }
                 }
                 // Página que sale: captura con su fondo. Al avanzar va encima, deslizándose;
@@ -297,27 +313,55 @@ private fun ReaderContent(
             ReaderControls(
                 visible = controlsVisible,
                 instantHide = hideControlsInstantly,
-                settings = settings,
+                theme = settings.theme,
                 progressPercent = progressPercent,
+                chapterTitle = chapterTitle,
+                settingsOpen = settingsOpen,
+                onBack = onBack,
+                onToggleSettings = actions.onToggleSettings,
+            )
+        }
+        // RDR-014: panel de ajustes sobre el libro. Cada acción se aplica al instante.
+        if (settingsOpen) {
+            ReaderSettingsSheet(
+                settings = settings,
+                actions = ReaderSettingsActions(
+                    onDismiss = actions.onCloseSettings,
+                    onFont = actions.onSetFont,
+                    onSmallerFont = actions.onSmallerFont,
+                    onBiggerFont = actions.onBiggerFont,
+                    onTheme = actions.onSetTheme,
+                    onLineSpacing = actions.onSetLineSpacing,
+                    // RDR-004: abrir el índice cierra el panel.
+                    onOpenToc = {
+                        actions.onCloseSettings()
+                        showToc = true
+                    },
+                    onTogglePageAnimation = actions.onTogglePageAnimation,
+                ),
+            )
+        }
+        if (showToc) {
+            ReaderTocDialog(
                 toc = toc,
-                onToggleScroll = actions.onToggleScroll,
-                onNextTheme = actions.onNextTheme,
-                onSmallerFont = actions.onSmallerFont,
-                onBiggerFont = actions.onBiggerFont,
-                onTogglePageAnimation = actions.onTogglePageAnimation,
-                onTocSelected = { entry -> navigator?.go(entry.link, animated = false) },
+                onDismiss = { showToc = false },
+                onSelected = { entry ->
+                    showToc = false
+                    navigator?.go(entry.link, animated = false)
+                },
             )
         }
     }
 }
 
 /** RDR-010: pie con la posición actual, debajo del texto y siempre visible en modo paginado. */
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun ReaderPageNumber(pageNumber: Int?, color: Color) {
     Box(
         Modifier
             .fillMaxWidth()
-            .navigationBarsPadding()
+            .windowInsetsPadding(WindowInsets.navigationBarsIgnoringVisibility)
             .height(PAGE_NUMBER_HEIGHT)
         ,
         contentAlignment = Alignment.Center,
@@ -334,7 +378,7 @@ private fun ReaderPageNumber(pageNumber: Int?, color: Color) {
 }
 
 // Colores de página de los temas de Readium, para que el pie se vea igual que el libro.
-private fun ReadingTheme.pageBackground() = when (this) {
+internal fun ReadingTheme.pageBackground() = when (this) {
     ReadingTheme.LIGHT -> Color(0xFFFFFFFF)
     ReadingTheme.DARK -> Color(0xFF000000)
     ReadingTheme.SEPIA -> Color(0xFFFAF4E8)
@@ -343,6 +387,25 @@ private fun ReadingTheme.pageBackground() = when (this) {
 private fun ReadingTheme.pageTextColor() = when (this) {
     ReadingTheme.LIGHT, ReadingTheme.SEPIA -> Color(0xFF121212)
     ReadingTheme.DARK -> Color(0xFFFEFEFE)
+}
+
+/**
+ * RDR-015: oculta las barras del sistema mientras los controles están ocultos. Los paddings del lector ignoran la
+ * visibilidad de las barras, así el texto no se mueve. Al salir de la pantalla se vuelven a mostrar.
+ */
+@Composable
+private fun ImmersiveSystemBars(window: Window?, hidden: Boolean) {
+    if (window == null) return
+    val view = LocalView.current
+    LaunchedEffect(window, hidden) {
+        val controller = WindowCompat.getInsetsController(window, view)
+        controller.systemBarsBehavior = WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
+        if (hidden) controller.hide(WindowInsetsCompat.Type.systemBars())
+        else controller.show(WindowInsetsCompat.Type.systemBars())
+    }
+    DisposableEffect(window) {
+        onDispose { WindowCompat.getInsetsController(window, view).show(WindowInsetsCompat.Type.systemBars()) }
+    }
 }
 
 private tailrec fun Context.findActivity(): Activity? = when (this) {
@@ -380,11 +443,14 @@ private class ReaderActions(
     val onToggleControls: () -> Unit,
     val onHideControls: () -> Unit,
     val onLocatorChanged: (json: String, totalProgression: Double?, position: Int?, href: String) -> Unit,
-    val onToggleScroll: () -> Unit,
-    val onNextTheme: () -> Unit,
     val onSmallerFont: () -> Unit,
     val onBiggerFont: () -> Unit,
     val onTogglePageAnimation: () -> Unit,
+    val onToggleSettings: () -> Unit,
+    val onCloseSettings: () -> Unit,
+    val onSetTheme: (ReadingTheme) -> Unit,
+    val onSetFont: (ReaderFont) -> Unit,
+    val onSetLineSpacing: (LineSpacing) -> Unit,
 ) {
     companion object {
         fun of(viewModel: ReaderViewModel) = ReaderActions(
@@ -393,14 +459,17 @@ private class ReaderActions(
             onLocatorChanged = { json, progression, position, href ->
                 viewModel.onLocatorChanged(json, progression, position, href)
             },
-            onToggleScroll = viewModel::toggleScroll,
-            onNextTheme = viewModel::nextTheme,
             onSmallerFont = viewModel::smallerFont,
             onBiggerFont = viewModel::biggerFont,
             onTogglePageAnimation = viewModel::togglePageAnimation,
+            onToggleSettings = viewModel::toggleSettings,
+            onCloseSettings = viewModel::closeSettings,
+            onSetTheme = viewModel::setTheme,
+            onSetFont = viewModel::setFont,
+            onSetLineSpacing = viewModel::setLineSpacing,
         )
 
-        val None = ReaderActions({}, {}, { _, _, _, _ -> }, {}, {}, {}, {}, {})
+        val None = ReaderActions({}, {}, { _, _, _, _ -> }, {}, {}, {}, {}, {}, {}, {}, {})
     }
 }
 
@@ -425,6 +494,9 @@ private fun ReaderScreenReadingPreview() {
             progressPercent = 42,
             pageNumber = 123,
             controlsVisible = false,
+            chapterTitle = "Libro II",
+            settingsOpen = false,
+            onBack = {},
             actions = ReaderActions.None,
         )
     }
@@ -436,3 +508,13 @@ private const val PREVIEW_PAGE_TEXT =
         "para ver la parte líquida del mundo. Es una manera que tengo de ahuyentar la melancolía y regular la " +
         "circulación. Siempre que noto que se me forma una mueca amarga en la boca, siempre que en mi alma hay " +
         "un noviembre húmedo y lluvioso, entonces comprendo que es hora de hacerme a la mar cuanto antes un noviembre húmedo y lluvioso, entonces comprendo que es hora de hacerme a la mar cuanto antes un noviembre húmedo y lluvioso, entonces comprendo que es hora de hacerme a la mar cuanto antes un noviembre húmedo y lluvioso, entonces comprendo que es hora de hacerme a la mar cuanto antes un noviembre húmedo y lluvioso, entonces comprendo que es hora de hacerme a la mar cuanto antes un noviembre húmedo y lluvioso, entonces comprendo que es hora de hacerme a la mar cuanto antes un noviembre húmedo y lluvioso, entonces comprendo que es hora de hacerme a la mar cuanto antes."
+
+/**
+ * Solo en builds de depuración: si existe el archivo `block_external_links` en la carpeta de la app, los
+ * enlaces externos no se abren. Sirve para probar a mano o con adb sin que un toque abra el navegador.
+ * Se activa con `adb shell run-as com.pluk.reader touch files/block_external_links` y se quita con `rm`.
+ */
+private fun externalLinksBlockedForTests(context: Context): Boolean {
+    val debuggable = context.applicationInfo.flags and android.content.pm.ApplicationInfo.FLAG_DEBUGGABLE != 0
+    return debuggable && java.io.File(context.filesDir, "block_external_links").exists()
+}
