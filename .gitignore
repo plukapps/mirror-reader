@@ -5,3 +5,6 @@ code/android/app/build/
 code/android/.gradle/
 code/android/local.properties
 code/android/samples/
+
+# Configuración del cliente Firebase: se descarga de la consola, no va al repo
+code/android/app/google-services.json
