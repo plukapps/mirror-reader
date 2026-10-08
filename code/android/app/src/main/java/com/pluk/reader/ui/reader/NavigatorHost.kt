@@ -12,5 +12,8 @@ interface NavigatorHost {
     /** Debe llamarse antes de que la pantalla muestre el navegador. */
     fun install(book: OpenedBook, settings: ReaderSettings, onExternalLink: (String) -> Unit)
 
+    /** RDR-016: la última posición conocida. Si Android recrea el navegador (girar), vuelve ahí. */
+    fun onLocatorChanged(locatorJson: String)
+
     fun clear()
 }

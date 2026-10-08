@@ -70,11 +70,16 @@ class ReaderViewModelTest {
         var installedFor: OpenedBook? = null
         var installedSettings: ReaderSettings? = null
         var cleared = false
+        var lastLocator: String? = null
         var externalLink: ((String) -> Unit)? = null
         override fun install(book: OpenedBook, settings: ReaderSettings, onExternalLink: (String) -> Unit) {
             installedFor = book
             installedSettings = settings
             externalLink = onExternalLink
+        }
+
+        override fun onLocatorChanged(locatorJson: String) {
+            lastLocator = locatorJson
         }
 
         override fun clear() {
@@ -292,6 +297,15 @@ class ReaderViewModelTest {
     }
 
     // RDR-010
+    // RDR-016: al girar se recrea el navegador; debe volver a la última posición, no a la del momento de abrir
+    @Test
+    fun latestLocatorIsHandedToTheNavigatorHost() = runTest(dispatcher) {
+        val vm = viewModel(FakeBooks(Result.success(book())))
+        vm.awaitReady()
+        vm.onLocatorChanged("""{"href":"ch2.xhtml"}""", 0.5)
+        assertEquals("""{"href":"ch2.xhtml"}""", host.lastLocator)
+    }
+
     @Test
     fun pageNumberFollowsLocatorPosition() = runTest(dispatcher) {
         val vm = viewModel(FakeBooks(Result.success(book())))

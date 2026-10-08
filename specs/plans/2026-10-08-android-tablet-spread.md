@@ -40,7 +40,11 @@
 - [ ] Compila, tests JVM pasan, el teléfono sigue con una página. Revisar contigo.
 
 ### Tarea 4: cierre (S) — K-071
-- [ ] Giro sin perder el lugar, ajustes (fuente, tamaño, tema) en ambas páginas, libros reales; docs al día; verificación a mano.
+- [x] Giro sin perder el lugar. Al probarlo se vio un fallo: Android recrea la actividad y el navegador volvía a la posición del momento de abrir. Arreglo: `NavigatorFragmentHost` arma la fábrica en cada instanciación con la última posición (`NavigatorHost.onLocatorChanged`); test JVM verificado por mutación.
+- [x] Ajustes (fuente, tamaño, tema) en ambas páginas, y panel de ajustes sobre el par.
+- [x] Dos libros reales (*Dejar ir*, *Zero to One*) en el emulador con tablet simulada.
+- [x] Docs al día (`specs/platforms/android.md`).
+- [ ] Verificación a mano en tablet real.
 **Depende de:** Tarea 3.
 
 ## Riesgos
