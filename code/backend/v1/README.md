@@ -53,7 +53,7 @@ Al registrarse (email o Google), la función `onUserCreated` crea `users/{uid}` 
 
 ## Despliegue
 
-Se despliega con el MCP de Firebase o con `firebase deploy` desde esta carpeta, siempre a pedido del usuario. Las funciones de Storage van en `us-east1` y la de cuentas en `us-central1`.
+Se despliega con el MCP de Firebase o con `firebase deploy` desde esta carpeta, siempre a pedido del usuario. Las portadas (`users/{uid}/covers/`, LIB-012) solo funcionan después de desplegar `storage.rules` (`firebase deploy --only storage --project mirror-reading-staging`). Las funciones de Storage van en `us-east1` y la de cuentas en `us-central1`.
 
 La política de limpieza de imágenes de build (borra las de más de 1 día) ya está puesta en ambas regiones (2026-10-08). Si se agrega una región nueva, correr `firebase functions:artifacts:setpolicy --location <región> --project mirror-reading-staging`; sin eso el despliegue termina con un aviso de error aunque las funciones sí se suban.
 

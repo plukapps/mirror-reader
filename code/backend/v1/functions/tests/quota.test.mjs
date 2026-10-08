@@ -27,6 +27,10 @@ describe("contabilidad de cuota", () => {
       const h = hash();
       assert.deepEqual(parseBookFilePath(`users/alice/books/${h}.epub`), { uid: "alice", hash: h });
     });
+    // LIB-012: las portadas no cuentan para la cuota (ADR 0008)
+    it("ignora las portadas", () => {
+      assert.equal(parseBookFilePath(`users/alice/covers/${hash()}.jpg`), null);
+    });
     it("ignora cualquier otra ruta", () => {
       for (const p of ["otra/cosa.epub", "users/alice/books/x.epub", "users/alice/otra/" + hash() + ".epub", `users/a/b/books/${hash()}.epub`]) {
         assert.equal(parseBookFilePath(p), null, p);

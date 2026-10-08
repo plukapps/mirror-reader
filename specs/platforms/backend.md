@@ -66,6 +66,10 @@ Reglas: como los libros.
 
 Ruta `users/{uid}/books/{sha256}.epub`. Solo el dueño lee, sube y borra (ACC-004). Solo `application/epub+zip`, de 1 byte a 100 MB, y un archivo no se sobrescribe: el nombre es su hash (LIB-002).
 
+### Portadas
+
+Ruta `users/{uid}/covers/{sha256}.jpg`, con el hash del libro (LIB-012). Solo el dueño lee, sube y borra. Solo `image/jpeg`, de 1 byte a 1 MiB, sin sobrescribir, y solo si existe el documento del libro (`users/{uid}/books/{sha256}`). **No cuentan para la cuota** (ADR 0008): la regla no consulta `usedBytes` y las funciones de cuota solo miran `books/*.epub`. Cada portada pesa unas decenas de KB y la cantidad queda acotada por la de libros.
+
 ### Cuota
 
 - Se rechaza una subida si `usedBytes` + tamaño del archivo supera `quotaBytes` (ACC-002, LIB-009). Leer y borrar nunca dependen de la cuota.

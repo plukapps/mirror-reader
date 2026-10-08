@@ -1,6 +1,7 @@
 rules_version = '2';
 
-// Archivos de libros: users/{uid}/books/{sha256}.epub (specs/platforms/backend.md).
+// Archivos de libros: users/{uid}/books/{sha256}.epub y portadas: users/{uid}/covers/{sha256}.jpg
+// (specs/platforms/backend.md).
 // Todo lo que no se permite aquí está denegado.
 service firebase.storage {
   match /b/{bucket}/o {
@@ -33,6 +34,28 @@ service firebase.storage {
         && fitsInQuota(request.resource.size);
 
       // LIB-008: quitar el archivo del servidor.
+      allow delete: if isOwner();
+    }
+
+    // LIB-012: portada del libro. No cuenta para la cuota (ADR 0008): es chica, tiene tope de tamaño y
+    // solo se puede subir si existe el documento del libro, así que su cantidad la acota la de libros.
+    match /users/{uid}/covers/{fileName} {
+      function isOwner() {
+        return request.auth != null && request.auth.uid == uid;
+      }
+
+      allow read: if isOwner();
+
+      // El nombre es el hash del libro: se sube una vez y no se sobrescribe (resource == null).
+      // Máximo 1 MiB.
+      allow create: if isOwner()
+        && resource == null
+        && fileName.matches('^[a-f0-9]{64}\\.jpg$')
+        && request.resource.contentType == 'image/jpeg'
+        && request.resource.size > 0
+        && request.resource.size <= 1024 * 1024
+        && firestore.exists(/databases/(default)/documents/users/$(uid)/books/$(fileName.split('\\.')[0]));
+
       allow delete: if isOwner();
     }
   }

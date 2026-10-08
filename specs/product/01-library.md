@@ -17,12 +17,14 @@ Una biblioteca única y ordenada de los EPUB del usuario.
 - **LIB-009** Si se supera la cuota, se bloquean nuevas importaciones. Nunca se bloquea la lectura ni se borra nada.
 - **LIB-010** Debe poder filtrarse por estado de lectura: Todos, Leyendo y Terminados. Un libro sin abrir no está en "Leyendo" ni en "Terminados".
 - **LIB-011** Cada libro de la grilla debe mostrar portada, título y su progreso de lectura. Un libro al 100 % se marca como terminado y uno sin abrir como nuevo.
+- **LIB-012** La portada de un libro se ve en todos mis dispositivos, también antes de descargar el libro. Las portadas no cuentan para la cuota de espacio.
 
 ## Escenarios
 
 - Dado un EPUB ya en mi biblioteca, cuando lo importo de nuevo, entonces la app avisa que ya existe y no lo duplica.
 - Dado un EPUB con DRM, cuando lo importo, entonces se rechaza con explicación.
 - Dado un libro "solo en la nube" sin conexión, cuando intento abrirlo, entonces la app indica que necesita conexión para descargarlo.
+- Dado un libro que subí desde otro dispositivo, cuando abro la biblioteca en este, entonces veo su portada sin haberlo descargado.
 
 - Dado un libro al 42 %, cuando abro "Leyendo", entonces aparece; cuando abro "Terminados", no.
 

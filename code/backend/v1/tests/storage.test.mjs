@@ -106,6 +106,84 @@ describe("Storage", () => {
     });
   });
 
+  describe("LIB-012: portadas, fuera de la cuota", () => {
+    const JPEG = "image/jpeg";
+    const coverPath = (uid, hash = HASH) => `users/${uid}/covers/${hash}.jpg`;
+    // Subir una portada exige que exista el documento del libro.
+    const seedBookDoc = (uid, hash = HASH) =>
+      env.withSecurityRulesDisabled((ctx) =>
+        setDoc(doc(ctx.firestore(), `users/${uid}/books/${hash}`), {
+          title: "T", authors: [], filePath: path(uid, hash), sizeBytes: 10,
+          createdAt: new Date(), updatedAt: new Date(), deletedAt: null,
+        }),
+      );
+    const seedCover = (uid, hash = HASH) =>
+      env.withSecurityRulesDisabled((ctx) =>
+        uploadBytes(ref(ctx.storage(), coverPath(uid, hash)), bytes(10), { contentType: JPEG }),
+      );
+    const uploadCover = (uid, size = 100, { hash = HASH, contentType = JPEG, name } = {}) =>
+      uploadBytes(ref(storage(uid), name ?? coverPath(uid, hash)), bytes(size), { contentType });
+
+    it("el dueño sube y lee la portada de su libro", async () => {
+      await seedBookDoc("alice");
+      await assertSucceeds(uploadCover("alice"));
+      await assertSucceeds(getBytes(ref(storage("alice"), coverPath("alice"))));
+    });
+
+    it("sin documento del libro no se sube la portada", async () => {
+      await assertFails(uploadCover("alice"));
+    });
+
+    it("otro usuario no lee, sube ni borra portadas ajenas", async () => {
+      await seedBookDoc("alice");
+      await seedCover("alice");
+      await assertFails(getBytes(ref(storage("bob"), coverPath("alice"))));
+      await assertFails(uploadBytes(ref(storage("bob"), coverPath("alice", OTHER_HASH)), bytes(100), { contentType: JPEG }));
+      await assertFails(deleteObject(ref(storage("bob"), coverPath("alice"))));
+    });
+
+    it("sin sesión no accede", async () => {
+      await seedBookDoc("alice");
+      await seedCover("alice");
+      const s = env.unauthenticatedContext().storage();
+      await assertFails(getBytes(ref(s, coverPath("alice"))));
+    });
+
+    it("rechaza lo que no es JPEG, un nombre que no es hash.jpg y un archivo vacío", async () => {
+      await seedBookDoc("alice");
+      await assertFails(uploadCover("alice", 100, { contentType: "image/png" }));
+      await assertFails(uploadCover("alice", 100, { name: "users/alice/covers/portada.jpg" }));
+      await assertFails(uploadCover("alice", 0));
+    });
+
+    it("acepta 1 MiB y rechaza más", async () => {
+      await seedBookDoc("alice");
+      await seedBookDoc("alice", OTHER_HASH);
+      await assertSucceeds(uploadCover("alice", MB));
+      await assertFails(uploadCover("alice", MB + 1, { hash: OTHER_HASH }));
+    });
+
+    it("no sobrescribe una portada existente", async () => {
+      await seedBookDoc("alice");
+      await seedCover("alice");
+      await assertFails(uploadCover("alice", 200));
+    });
+
+    it("el dueño borra su portada", async () => {
+      await seedBookDoc("alice");
+      await seedCover("alice");
+      await assertSucceeds(deleteObject(ref(storage("alice"), coverPath("alice"))));
+    });
+
+    it("no depende de la cuota: con la cuota llena se sigue subiendo", async () => {
+      await seedBookDoc("alice");
+      await env.withSecurityRulesDisabled((ctx) =>
+        setDoc(doc(ctx.firestore(), "users/alice"), { plan: "free", quotaBytes: 1000, usedBytes: 1000, createdAt: new Date() }),
+      );
+      await assertSucceeds(uploadCover("alice"));
+    });
+  });
+
   describe("ACC-002 y LIB-009: cuota de espacio", () => {
     // El documento del usuario lo mantiene el servidor (ADR 0008): aquí se siembra con las reglas apagadas.
     const seedUser = (uid, { usedBytes = 0, quotaBytes = 1000 } = {}) =>

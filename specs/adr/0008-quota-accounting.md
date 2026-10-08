@@ -35,3 +35,7 @@ Opción 2.
 - Cada subida cuesta una lectura de Firestore por la regla, más las de la función.
 - `storedFiles` permite reconciliar `usedBytes` si alguna vez se desvía.
 - El tamaño del documento del libro (`sizeBytes`) es informativo para la interfaz. La cuota usa solo el valor del servidor.
+
+## Nota (2026-10-08): las portadas no cuentan
+
+Las portadas (`users/{uid}/covers/{hash}.jpg`, LIB-012) quedan fuera de `usedBytes`. Pesan unas decenas de KB, tope de 1 MiB por regla, y solo se pueden subir si existe el documento del libro, así que su cantidad queda acotada por la de libros. Contarlas obligaría a cambiar las funciones y sus tests sin un beneficio real. Si el costo de almacenamiento lo pidiera, se reevalúa junto con la deuda K-050.
