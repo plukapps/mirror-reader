@@ -19,7 +19,12 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.layout.boundsInWindow
 import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalView
+import androidx.core.view.WindowCompat
+import androidx.core.view.WindowInsetsCompat
+import androidx.core.view.WindowInsetsControllerCompat
 import androidx.compose.ui.platform.testTag
 import androidx.compose.runtime.withFrameNanos
 import kotlin.math.roundToInt
@@ -29,8 +34,11 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.navigationBarsPadding
-import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.navigationBarsIgnoringVisibility
+import androidx.compose.foundation.layout.statusBarsIgnoringVisibility
+import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
@@ -119,7 +127,7 @@ fun ReaderScreen(
     }
 }
 
-@OptIn(ExperimentalReadiumApi::class)
+@OptIn(ExperimentalReadiumApi::class, ExperimentalLayoutApi::class)
 @Composable
 private fun ReaderContent(
     settings: ReaderSettings,
@@ -146,6 +154,7 @@ private fun ReaderContent(
     val controlsVisible by rememberUpdatedState(controlsVisible)
     // Al pasar de página los controles se quitan de golpe: esperar a que se desvanezcan retrasa el inicio de la animación.
     var hideControlsInstantly by remember { mutableStateOf(false) }
+    ImmersiveSystemBars(window, hidden = !controlsVisible)
     LaunchedEffect(controlsVisible) { if (controlsVisible) hideControlsInstantly = false }
 
     fun opsFor(nav: EpubNavigatorFragment, window: Window) = NavigatorPageTurnOps(
@@ -237,7 +246,7 @@ private fun ReaderContent(
             .background(readingBackground)
             .then(swipeModifier),
     ) {
-        Column(Modifier.fillMaxSize().statusBarsPadding()) {
+        Column(Modifier.fillMaxSize().windowInsetsPadding(WindowInsets.statusBarsIgnoringVisibility)) {
             Box(
                 Modifier
                     .weight(1f)
@@ -346,10 +355,11 @@ private fun ReaderContent(
 /** RDR-010: pie con la posición actual, debajo del texto y siempre visible en modo paginado. */
 @Composable
 private fun ReaderPageNumber(pageNumber: Int?, color: Color) {
+@OptIn(ExperimentalLayoutApi::class)
     Box(
         Modifier
             .fillMaxWidth()
-            .navigationBarsPadding()
+            .windowInsetsPadding(WindowInsets.navigationBarsIgnoringVisibility)
             .height(PAGE_NUMBER_HEIGHT)
         ,
         contentAlignment = Alignment.Center,
@@ -379,6 +389,25 @@ private fun ReadingTheme.pageTextColor() = when (this) {
 
 private tailrec fun Context.findActivity(): Activity? = when (this) {
     is Activity -> this
+/**
+ * RDR-015: oculta las barras del sistema mientras los controles están ocultos. Los paddings del lector ignoran la
+ * visibilidad de las barras, así el texto no se mueve. Al salir de la pantalla se vuelven a mostrar.
+ */
+@Composable
+private fun ImmersiveSystemBars(window: Window?, hidden: Boolean) {
+    if (window == null) return
+    val view = LocalView.current
+    LaunchedEffect(window, hidden) {
+        val controller = WindowCompat.getInsetsController(window, view)
+        controller.systemBarsBehavior = WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
+        if (hidden) controller.hide(WindowInsetsCompat.Type.systemBars())
+        else controller.show(WindowInsetsCompat.Type.systemBars())
+    }
+    DisposableEffect(window) {
+        onDispose { WindowCompat.getInsetsController(window, view).show(WindowInsetsCompat.Type.systemBars()) }
+    }
+}
+
     is ContextWrapper -> baseContext.findActivity()
     else -> null
 }
