@@ -7,7 +7,14 @@ Plan de referencia: `specs/plans/2026-10-06-android-epub-viewer.md`
 
 - **K-008** Biblioteca, segunda rebanada: colecciones, búsqueda, nube, eliminar/quitar, cuota, edición de metadatos, "Compartir / Abrir con". LIB-005 a LIB-009. Requiere plan propio.
 - **K-009** Anotaciones: marcadores, subrayados, notas. Requiere plan propio. ANN-001 a ANN-007.
-- **K-010** Cuenta y sincronización. Requiere plan propio. Backend Firebase (ADR 0007), código en `code/backend/v1`. SDK de Firebase en la app (decidido, ADR 0005 y 0007 ya actualizados), con caché local de Firestore desactivado. ACC, SYN.
+- **K-010** Cuenta y sincronización. Requiere plan propio. Backend Firebase (ADR 0007), código en `code/backend/v1`. SDK de Firebase en la app (decidido, ADR 0005 y 0007 ya actualizados), con caché local de Firestore desactivado. ACC, SYN. Primera parte en el plan `2026-10-08-android-remote-books.md` (K-051 a K-057); el resto (login, Google, eliminar, colecciones, posición, anotaciones) sigue aquí.
+- **K-052** Libros remotos, Tarea 2: cuenta de desarrollo hardcodeada (credenciales en `local.properties`, solo debug). ACC-001, ACC-004.
+- **K-053** Libros remotos, Tarea 3: modelo local de libros remotos (Room v3, `RemoteLibrary`, `BookFileStore`). LIB-007.
+- **K-054** Libros remotos, Tarea 4: subir libros con control de cuota. LIB-009, SYN-001.
+- **K-055** Libros remotos, Tarea 5: listar y descargar libros remotos. LIB-007.
+- **K-056** Libros remotos, Tarea 6: espacio usado y disponible. ACC-003, LIB-009.
+- **K-057** Libros remotos, Tarea 7: cierre de docs y verificación a mano en el teléfono.
+- **K-058** Subida automática de libros (al importar y al abrir la app), siguiente al botón manual de K-054. SYN-001, SYN-008.
 - **K-050** DEUDA TÉCNICA. Backend, riesgos de la revisión de seguridad, postergados por decisión del usuario (2026-10-08): (1) cuentas descartables: propuesta A exigir correo verificado para subir (`email_verified` en la regla de Storage) y B App Check antes de publicar (con K-011); (2) tope de cantidad de documentos por usuario; (3) reconciliación de `usedBytes` con `storedFiles`. Detalle en "Riesgos conocidos" de `specs/platforms/backend.md`. Resolver antes de abrir la app a usuarios reales.
 - **K-011** Cumplimiento con Google Play y beta cerrada. CMP.
 - **K-012** Ajustes de lectura restantes: tipo de letra, interlineado, márgenes. RDR-002.
@@ -19,6 +26,7 @@ Plan de referencia: `specs/plans/2026-10-06-android-epub-viewer.md`
 
 ## En curso
 
+- **K-051** Libros remotos, Tarea 1: Firebase en la app (plugin, BoM, Auth, Firestore, Storage; caché de Firestore desactivado). Plan `2026-10-08-android-remote-books.md`. Rama `feature/remote-books`.
 
 ## Revisión
 

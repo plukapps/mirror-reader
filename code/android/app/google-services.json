@@ -12,7 +12,20 @@
           "package_name": "com.pluk.reader"
         }
       },
-      "oauth_client": [],
+      "oauth_client": [
+        {
+          "client_id": "327635508467-juluivh7311h5rbv1ke1tcp11rkrgqjl.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.pluk.reader",
+            "certificate_hash": "3bbfffca2ac66b6b94ad1ceed3d43b3188fcf83d"
+          }
+        },
+        {
+          "client_id": "327635508467-e0oumf2cu2kjhf13fo2404348iosj5d9.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
       "api_key": [
         {
           "current_key": "AIzaSyAFomPM5ZTQlyDKIqQx796n02uFy5oXA_M"
@@ -20,7 +33,12 @@
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": []
+          "other_platform_oauth_client": [
+            {
+              "client_id": "327635508467-e0oumf2cu2kjhf13fo2404348iosj5d9.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
         }
       }
     }
