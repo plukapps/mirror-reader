@@ -17,11 +17,11 @@ Alcance del backend v1 y modelo de datos. Decisión técnica: `specs/adr/0007-ba
 | Campo | Tipo | Notas |
 |---|---|---|
 | `plan` | string | `"free"` en v1. Nuevos planes sin cambiar el modelo (ACC-005). |
-| `quotaBytes` | int | Cuota del plan, en bytes. |
+| `quotaBytes` | int | Cuota del plan, en bytes. Plan gratuito: 15 MiB (15 728 640). |
 | `usedBytes` | int | Bytes usados por los archivos del usuario (ACC-003). Lo mantiene una Cloud Function con el tamaño real (ADR 0008). |
 | `createdAt` | timestamp | Alta de la cuenta. |
 
-Reglas: el dueño puede leer (así la app muestra el espacio usado y libre, ACC-003). **Nadie puede escribir desde el cliente.** `usedBytes` lo escribe el servidor (ADR 0008). La creación del documento con el plan gratuito se resuelve en K-048.
+Reglas: el dueño puede leer (así la app muestra el espacio usado y libre, ACC-003). **Nadie puede escribir desde el cliente.** `usedBytes` lo escribe el servidor (ADR 0008). El documento lo crea la función `onUserCreated` al registrarse (email o Google, ACC-001) con `plan: "free"`, `quotaBytes` de 15 MiB (provisional, open-questions #2) y `usedBytes: 0`. Es idempotente: un evento repetido no pisa un documento existente. Subir un libro antes de que exista el documento se rechaza (la regla de Storage lo exige), así que la app debe esperar a que aparezca tras el registro.
 
 ### `users/{uid}/storedFiles/{sha256}`
 

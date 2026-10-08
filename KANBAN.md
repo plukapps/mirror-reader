@@ -8,7 +8,6 @@ Plan de referencia: `specs/plans/2026-10-06-android-epub-viewer.md`
 - **K-008** Biblioteca, segunda rebanada: colecciones, búsqueda, nube, eliminar/quitar, cuota, edición de metadatos, "Compartir / Abrir con". LIB-005 a LIB-009. Requiere plan propio.
 - **K-009** Anotaciones: marcadores, subrayados, notas. Requiere plan propio. ANN-001 a ANN-007.
 - **K-010** Cuenta y sincronización. Requiere plan propio. Backend Firebase (ADR 0007), código en `code/backend/v1`. Actualizar ADR 0005 (SDK de Firebase en lugar de Retrofit). ACC, SYN.
-- **K-048** Backend, Tarea 5: cuentas con email y Google, documento de usuario con plan gratuito. ACC-001, ACC-002, ACC-005.
 - **K-049** Backend, Tarea 6: despliegue al proyecto `dev` y cierre de docs.
 - **K-050** Backend, riesgos de la revisión de seguridad: cuentas descartables (App Check, correo verificado), tope de cantidad de documentos por usuario, reconciliación de `usedBytes`. Ver "Riesgos conocidos" en `specs/platforms/backend.md`. Requiere decidir antes de producción.
 - **K-011** Cumplimiento con Google Play y beta cerrada. CMP.
@@ -24,9 +23,7 @@ Plan de referencia: `specs/plans/2026-10-06-android-epub-viewer.md`
 
 ## Revisión
 
-- **K-047** Backend, Tarea 4: cuota de espacio. ACC-002, ACC-003, LIB-009. Plan `2026-10-07-backend-firebase.md`. ADR 0008 (Cloud Function para `usedBytes`). Rama `feature/backend`. Pasan 60 tests en el emulador, incluido uno de punta a punta por el emulador de Functions; verificado quitando validaciones a propósito. Ese test encontró que el tamaño del evento llega como texto. Revisión de seguridad hecha: se cerró un hueco en `deletedAt` (fecha del cliente) y los riesgos abiertos pasaron a K-050. 63 tests. Checkpoint de reglas: falta que lo revises.
-- **K-046** Backend, Tarea 3: reglas de Storage. ACC-004, LIB-002, LIB-008. Plan `2026-10-07-backend-firebase.md`. Rama `feature/backend`. Pasan 38 tests en el emulador; verificado quitando validaciones a propósito. De paso se corrigió la concurrencia de los tests (compartían emulador). Falta que lo revises.
-- **K-045** Backend, Tarea 2: modelo de datos y reglas de Firestore. ACC-004, ACC-005, ACC-002, SYN-006, SYN-007, LIB-005. Plan `2026-10-07-backend-firebase.md`. Rama `feature/backend`. Modelo en `specs/platforms/backend.md`. Pasan 27 tests en el emulador; verificado quitando validaciones a propósito. Falta que lo revises.
+- **K-048** Backend, Tarea 5: cuentas con email y Google, documento de usuario con plan gratuito. ACC-001, ACC-002, ACC-005. Cuota gratuita: 15 MiB (decisión del usuario). Alta del documento con Cloud Function de Auth (v1). Pasan 69 tests en el emulador, con pruebas de punta a punta de registro con email y con Google (simulado). Pendiente a mano: habilitar Google y registrar el SHA-1 en la consola. Falta que lo revises.
 - **K-043** Aviso de fin de lectura: detectar el fin del cuerpo por la tabla de contenidos y mostrar un toast. RDR-012. Plan `2026-10-07-android-reading-end.md`. Rama `feature/home`. Compila y pasan los tests JVM (`BackMatterTest`). Detección por palabras clave del título (ajustada con 4 libros reales: la primera versión solo acertaba 1 de 4). Instalada en el teléfono; falta probarla a mano.
 - **K-042** Fuente de la app: Host Grotesk (variable, normal e itálica) como tipografía por defecto del tema. Rama `feature/home`. Compila; falta verla a mano.
 - **K-041** Inicio secciones, Tarea 3: UI de Leyendo, Agregados recientemente y Terminados. HOM-008 a 011. Rama `feature/home`. Compila y pasan los tests JVM. Instalada en el emulador; falta verla a mano. `HomeScreenTest` escrito y compilado, sin correr (pedido del usuario).
@@ -64,5 +61,8 @@ Plan de referencia: `specs/plans/2026-10-06-android-epub-viewer.md`
 ## Hecho
 
 - **K-044** Backend, Tarea 1: estructura de `code/backend/v1`, emuladores y proyecto de tests de reglas. Plan `2026-10-07-backend-firebase.md`. Rama `feature/backend`. Pasan 3 tests de humo en el emulador (reglas que deniegan todo). Requiere JDK 21+ (ver README). Aprobada.
+- **K-045** Backend, Tarea 2: modelo de datos y reglas de Firestore. ACC-004, ACC-005, ACC-002, SYN-006, SYN-007, LIB-005. Plan `2026-10-07-backend-firebase.md`. Rama `feature/backend`. Modelo en `specs/platforms/backend.md`. Pasan 27 tests en el emulador; verificado quitando validaciones a propósito. Aprobada.
+- **K-046** Backend, Tarea 3: reglas de Storage. ACC-004, LIB-002, LIB-008. Plan `2026-10-07-backend-firebase.md`. Rama `feature/backend`. Pasan 38 tests en el emulador; verificado quitando validaciones a propósito. De paso se corrigió la concurrencia de los tests (compartían emulador). Aprobada.
+- **K-047** Backend, Tarea 4: cuota de espacio. ACC-002, ACC-003, LIB-009. Plan `2026-10-07-backend-firebase.md`. ADR 0008 (Cloud Function para `usedBytes`). Rama `feature/backend`. Pasan 60 tests en el emulador, incluido uno de punta a punta por el emulador de Functions; verificado quitando validaciones a propósito. Ese test encontró que el tamaño del evento llega como texto. Revisión de seguridad hecha: se cerró un hueco en `deletedAt` (fecha del cliente) y los riesgos abiertos pasaron a K-050. 63 tests. Aprobada.
 - **K-034** Inicio: spec `specs/product/07-home.md` (HOM-001 a HOM-007), aprobado.
 - Specs v0 escritos y aprobados (`specs/`).

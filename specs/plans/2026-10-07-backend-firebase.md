@@ -22,7 +22,7 @@
 ## Preguntas abiertas (necesitan tu respuesta)
 
 1. **Región de Firestore y de Storage.** No se puede cambiar después. Propuesta: `southamerica-east1` (São Paulo), la más cercana a Uruguay. Confirmar al crear el proyecto.
-2. **Tamaño de la cuota gratuita** (open-questions #2). Para las pruebas se usa un valor configurable (propuesta inicial: 100 MB por usuario). El valor final se decide aparte.
+2. **Tamaño de la cuota gratuita** (open-questions #2). **Decidido: 15 MiB, provisional (2026-10-07).** Antes: Para las pruebas se usa un valor configurable (propuesta inicial: 100 MB por usuario). El valor final se decide aparte.
 3. **Plan Blaze y alertas de presupuesto.** Cloud Storage exige Blaze. Propuesta: activar una alerta de presupuesto bajo (por ejemplo USD 5) al crear el proyecto.
 4. **¿Cloud Functions?** Solo si la Tarea 4 las necesita. Funciones también requieren Blaze (ya requerido).
 

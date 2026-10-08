@@ -39,6 +39,18 @@ Desde `code/backend/v1`:
 - El cliente de pruebas sube por defecto al bucket `demo-pluk-reader`, pero las funciones escuchan el bucket por defecto (`demo-pluk-reader.appspot.com`). El test de punta a punta indica el bucket explícito.
 - En Storage, `create` cubre cualquier escritura de contenido, también sobre un archivo existente. Para no sobrescribir, la regla exige `resource == null`.
 
+## Cuentas (pasos manuales en la consola)
+
+Estos pasos se hacen una vez por proyecto de Firebase, en la consola web:
+
+1. Authentication → Método de acceso: activar **Correo/contraseña** y **Google** (Google pide un correo de soporte del proyecto).
+2. Configuración del proyecto → Tus apps → agregar app Android con el paquete `com.pluk.reader` y la huella **SHA-1** (y SHA-256) del certificado de firma. Sin ella, Google Sign-In falla en el teléfono.
+   - Clave de debug: `keytool -J-Duser.language=en -list -v -alias androiddebugkey -keystore ~/.android/debug.keystore -storepass android` (el `-J-Duser.language=en` evita un error de `keytool` con la configuración regional en español).
+   - Antes de publicar hay que agregar también la huella de la clave de release o de Play App Signing.
+3. `google-services.json` se descarga en la rebanada de sincronización y no va al repo.
+
+Al registrarse (email o Google), la función `onUserCreated` crea `users/{uid}` con el plan gratuito. La cuota gratuita (15 MiB) está en `functions/src/accounts.ts`.
+
 ## Credenciales
 
 `google-services.json`, `GoogleService-Info.plist` y claves de cuentas de servicio no se guardan en el repo (ver `.gitignore`).

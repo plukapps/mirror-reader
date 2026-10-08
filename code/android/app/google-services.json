@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "327635508467",
+    "project_id": "mirror-reading-staging",
+    "storage_bucket": "mirror-reading-staging.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:327635508467:android:23c5ddd7d9a606507feb86",
+        "android_client_info": {
+          "package_name": "com.pluk.reader"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAFomPM5ZTQlyDKIqQx796n02uFy5oXA_M"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
