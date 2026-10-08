@@ -89,7 +89,9 @@ fun ReaderScreen(
         viewModel.events.collect { event ->
             when (event) {
                 is ReaderEvent.OpenExternalLink ->
-                    if (event.url.startsWith("http://") || event.url.startsWith("https://")) {
+                    if ((event.url.startsWith("http://") || event.url.startsWith("https://")) &&
+                        !externalLinksBlockedForTests(context)
+                    ) {
                         runCatching { uriHandler.openUri(event.url) }
                     }
                 // RDR-012
@@ -152,9 +154,9 @@ private fun ReaderContent(
     val animated = settings.pageAnimation
     val outgoingTint = settings.theme.outgoingTint()
     val controlsVisible by rememberUpdatedState(controlsVisible)
+    ImmersiveSystemBars(window, hidden = !controlsVisible)
     // Al pasar de página los controles se quitan de golpe: esperar a que se desvanezcan retrasa el inicio de la animación.
     var hideControlsInstantly by remember { mutableStateOf(false) }
-    ImmersiveSystemBars(window, hidden = !controlsVisible)
     LaunchedEffect(controlsVisible) { if (controlsVisible) hideControlsInstantly = false }
 
     fun opsFor(nav: EpubNavigatorFragment, window: Window) = NavigatorPageTurnOps(
@@ -353,9 +355,9 @@ private fun ReaderContent(
 }
 
 /** RDR-010: pie con la posición actual, debajo del texto y siempre visible en modo paginado. */
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun ReaderPageNumber(pageNumber: Int?, color: Color) {
-@OptIn(ExperimentalLayoutApi::class)
     Box(
         Modifier
             .fillMaxWidth()
@@ -387,8 +389,6 @@ private fun ReadingTheme.pageTextColor() = when (this) {
     ReadingTheme.DARK -> Color(0xFFFEFEFE)
 }
 
-private tailrec fun Context.findActivity(): Activity? = when (this) {
-    is Activity -> this
 /**
  * RDR-015: oculta las barras del sistema mientras los controles están ocultos. Los paddings del lector ignoran la
  * visibilidad de las barras, así el texto no se mueve. Al salir de la pantalla se vuelven a mostrar.
@@ -408,6 +408,8 @@ private fun ImmersiveSystemBars(window: Window?, hidden: Boolean) {
     }
 }
 
+private tailrec fun Context.findActivity(): Activity? = when (this) {
+    is Activity -> this
     is ContextWrapper -> baseContext.findActivity()
     else -> null
 }
@@ -506,3 +508,13 @@ private const val PREVIEW_PAGE_TEXT =
         "para ver la parte líquida del mundo. Es una manera que tengo de ahuyentar la melancolía y regular la " +
         "circulación. Siempre que noto que se me forma una mueca amarga en la boca, siempre que en mi alma hay " +
         "un noviembre húmedo y lluvioso, entonces comprendo que es hora de hacerme a la mar cuanto antes un noviembre húmedo y lluvioso, entonces comprendo que es hora de hacerme a la mar cuanto antes un noviembre húmedo y lluvioso, entonces comprendo que es hora de hacerme a la mar cuanto antes un noviembre húmedo y lluvioso, entonces comprendo que es hora de hacerme a la mar cuanto antes un noviembre húmedo y lluvioso, entonces comprendo que es hora de hacerme a la mar cuanto antes un noviembre húmedo y lluvioso, entonces comprendo que es hora de hacerme a la mar cuanto antes un noviembre húmedo y lluvioso, entonces comprendo que es hora de hacerme a la mar cuanto antes."
+
+/**
+ * Solo en builds de depuración: si existe el archivo `block_external_links` en la carpeta de la app, los
+ * enlaces externos no se abren. Sirve para probar a mano o con adb sin que un toque abra el navegador.
+ * Se activa con `adb shell run-as com.pluk.reader touch files/block_external_links` y se quita con `rm`.
+ */
+private fun externalLinksBlockedForTests(context: Context): Boolean {
+    val debuggable = context.applicationInfo.flags and android.content.pm.ApplicationInfo.FLAG_DEBUGGABLE != 0
+    return debuggable && java.io.File(context.filesDir, "block_external_links").exists()
+}
