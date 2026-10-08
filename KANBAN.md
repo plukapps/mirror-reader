@@ -5,6 +5,8 @@ Plan de referencia: `specs/plans/2026-10-06-android-epub-viewer.md`
 
 ## Backlog
 
+- **K-072** Posible bug no reproducido: en el emulador con tablet simulada, tras abrir *Dejar ir* y dar 6 toques seguidos en el borde derecho, el libro (con el pie) quedó desplazado ~390 px a la derecha y los toques no pasaban de página (posiciones 4–5). Al reiniciar la app no volvió a pasar, ni con ráfagas ni en esa misma página. Sospecha: controlador de animación (RDR-009) con los controles visibles al primer toque. Anotar si pasa de nuevo; sin repro no se arregla.
+- **K-071** Lector a dos páginas, Tarea 4: cierre (giro sin perder el lugar, ajustes en ambas páginas, libros reales, docs). RDR-016, AND-006. Rama `feature/tablets`.
 - **K-008** Biblioteca, segunda rebanada: colecciones, búsqueda, nube, eliminar/quitar, cuota, edición de metadatos, "Compartir / Abrir con". LIB-005 a LIB-009. Requiere plan propio.
 - **K-009** Anotaciones: marcadores, subrayados, notas. Requiere plan propio. ANN-001 a ANN-007.
 - **K-010** Cuenta y sincronización. Requiere plan propio. Backend Firebase (ADR 0007), código en `code/backend/v1`. SDK de Firebase en la app (decidido, ADR 0005 y 0007 ya actualizados), con caché local de Firestore desactivado. ACC, SYN. Primera parte en el plan `2026-10-08-android-remote-books.md` (K-051 a K-057); el resto (login, Google, eliminar, colecciones, posición, anotaciones) sigue aquí.
@@ -72,6 +74,9 @@ Plan de referencia: `specs/plans/2026-10-06-android-epub-viewer.md`
 
 ## Hecho
 
+- **K-069** Lector a dos páginas, Tarea 2: regla `useTwoPages` y mapeo a Readium. RDR-016, AND-006. Rama `feature/tablets`. `useTwoPages` (10 tests JVM pasan) y `toEpubPreferences(twoPages)` con `columnCount` y `spread` (API verificada con `javap`: `Spread` AUTO/NEVER/ALWAYS); test de emulador del mapeo escrito y compilado, sin correr.
+- **K-070** Lector a dos páginas, Tarea 3: lector a dos páginas, pie con dos posiciones, toques y animación sobre el par. RDR-016, RDR-009, 010, 011. Rama `feature/tablets`. `useTwoPages` en `ReaderScreen` (`LocalConfiguration`), `columnCount`/`spread` por `submitPreferences`, `pageLabel` para el pie (`lastPosition` desde `publication.positions()`); 6 tests JVM nuevos. Verificado en el emulador simulando tablet (`wm size` 2560x1600 a 320 dpi, ya restaurado) con *Dejar ir*: se ven dos páginas, el toque en el borde pasa el par (pie 1–2, 4–5, 7–8, 13–14), una ráfaga de toques cada 1 s funciona, en vertical (1600x2560) vuelve a una página en el mismo lugar. Falta: probar en tablet real y con otros temas; ver K-072.
+- **K-068** Lector a dos páginas, Tarea 1: spec (RDR-016, AND-006) y plan `2026-10-08-android-tablet-spread.md`. Rama `feature/tablets`. Plan aprobado por el usuario (2026-10-08). Diseño revisado (T01 a T04): solo entra el lector a dos páginas (T03); riel lateral, biblioteca con detalle y panel de notas quedan fuera.
 - **K-060** Controles del lector, Tarea 1: spec (RDR-013, RDR-014), ADR 0009 de tipografías y plan `2026-10-08-android-reader-settings.md`. Rama `feature/improve-reader`. Plan aprobado por el usuario.
 
 - **K-044** Backend, Tarea 1: estructura de `code/backend/v1`, emuladores y proyecto de tests de reglas. Plan `2026-10-07-backend-firebase.md`. Rama `feature/backend`. Pasan 3 tests de humo en el emulador (reglas que deniegan todo). Requiere JDK 21+ (ver README). Aprobada.
