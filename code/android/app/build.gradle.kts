@@ -3,6 +3,7 @@ plugins {
   alias(libs.plugins.compose.compiler)
   alias(libs.plugins.ksp)
   alias(libs.plugins.hilt.android)
+  alias(libs.plugins.google.services)
 }
 
 android {
@@ -107,6 +108,12 @@ dependencies {
   ksp(libs.androidx.room.compiler)
   implementation(libs.androidx.datastore.preferences)
   androidTestImplementation(libs.androidx.room.testing)
+
+  // Backend (ADR 0005, ADR 0007): Auth, Firestore y Storage. Sin artefactos -ktx: el BoM 35 los incluye.
+  implementation(platform(libs.firebase.bom))
+  implementation(libs.firebase.auth)
+  implementation(libs.firebase.firestore)
+  implementation(libs.firebase.storage)
 
   // Hilt en pruebas de emulador
   androidTestImplementation(libs.hilt.android.testing)

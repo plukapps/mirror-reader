@@ -26,10 +26,10 @@ Plan de referencia: `specs/plans/2026-10-06-android-epub-viewer.md`
 
 ## En curso
 
-- **K-051** Libros remotos, Tarea 1: Firebase en la app (plugin, BoM, Auth, Firestore, Storage; caché de Firestore desactivado). Plan `2026-10-08-android-remote-books.md`. Rama `feature/remote-books`.
 
 ## Revisión
 
+- **K-051** Libros remotos, Tarea 1: Firebase en la app (plugin, BoM, Auth, Firestore, Storage; caché de Firestore desactivado). Plan `2026-10-08-android-remote-books.md`. Rama `feature/remote-books`. Firebase BoM 35.0.0 y plugin google-services 4.5.0 (verificados contra la documentación), sin artefactos -ktx; permiso INTERNET; `FirebaseModule` con caché de Firestore en memoria. Compila y pasan los tests JVM. Instalada en el teléfono; falta que abras la app y confirmes que no se cierra. `google-services.json` se había colado en el repo (commit de K-048): ya está fuera y en `.gitignore`, falta decidir qué hacer con el historial subido.
 - **K-044** Bug: tras abrir y cerrar varios libros pasando páginas, a veces la página no avanza. Causa probable: `awaitMoved` marcaba la página como borde del libro tras 400 ms sin cambio y `BookEdges` la bloqueaba para siempre. Ahora el bloqueo vence a los 3 s y el plazo es de 800 ms (`BookEdgesTest`). RDR-009. Rama `feature/home`. Compila y pasan los tests JVM. Instalada en el teléfono; el bloqueo real no se pudo reproducir a propósito, falta que lo uses unos días y confirmes.
 - **K-043** Aviso de fin de lectura: detectar el fin del cuerpo por la tabla de contenidos y mostrar un toast. RDR-012. Plan `2026-10-07-android-reading-end.md`. Rama `feature/home`. Compila y pasan los tests JVM (`BackMatterTest`). Detección por palabras clave del título (ajustada con 4 libros reales: la primera versión solo acertaba 1 de 4). Instalada en el teléfono; falta probarla a mano.
 - **K-042** Fuente de la app: Host Grotesk (variable, normal e itálica) como tipografía por defecto del tema. Rama `feature/home`. Compila; falta verla a mano.
