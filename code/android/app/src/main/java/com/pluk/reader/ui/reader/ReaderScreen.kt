@@ -20,6 +20,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.layout.boundsInWindow
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.runtime.DisposableEffect
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalView
 import androidx.core.view.WindowCompat
@@ -29,6 +30,7 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.runtime.withFrameNanos
 import kotlin.math.roundToInt
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -65,6 +67,8 @@ import com.pluk.reader.R
 import com.pluk.reader.domain.model.LineSpacing
 import com.pluk.reader.domain.model.ReaderFont
 import com.pluk.reader.domain.model.ReaderSettings
+import com.pluk.reader.domain.pageLabel
+import com.pluk.reader.domain.useTwoPages
 import com.pluk.reader.ui.theme.ReaderTheme
 import org.readium.r2.navigator.epub.EpubNavigatorFragment
 import org.readium.r2.navigator.input.InputListener
@@ -74,6 +78,7 @@ import org.readium.r2.shared.publication.Href
 import org.readium.r2.shared.publication.Link
 import org.readium.r2.shared.publication.Locator
 import org.readium.r2.shared.publication.Publication
+import org.readium.r2.shared.publication.services.positions
 
 @Composable
 fun ReaderScreen(
@@ -120,6 +125,7 @@ fun ReaderScreen(
             toc = current.toc,
             progressPercent = current.progressPercent,
             pageNumber = current.pageNumber,
+            publication = current.book.publication,
             controlsVisible = current.controlsVisible,
             chapterTitle = current.chapterTitle,
             settingsOpen = current.settingsOpen,
@@ -136,6 +142,7 @@ private fun ReaderContent(
     toc: List<TocEntry>,
     progressPercent: Int?,
     pageNumber: Int?,
+    publication: Publication?,
     controlsVisible: Boolean,
     chapterTitle: String,
     settingsOpen: Boolean,
@@ -149,6 +156,12 @@ private fun ReaderContent(
     val controller = remember(scope) { PageTurnController(scope) }
     val edges = remember { BookEdges<Locator>() }
     val window = LocalContext.current.findActivity()?.window
+
+    // RDR-016, AND-006: dos páginas según el tamaño de la ventana (cambia al girar o redimensionar).
+    val configuration = LocalConfiguration.current
+    val twoPages = useTwoPages(configuration.screenWidthDp, configuration.screenHeightDp)
+    var lastPosition by remember(publication) { mutableStateOf<Int?>(null) }
+    LaunchedEffect(publication) { lastPosition = publication?.positions()?.size }
 
     // RDR-009: la animación se puede desactivar.
     val animated = settings.pageAnimation
@@ -216,8 +229,8 @@ private fun ReaderContent(
         }
     }
 
-    LaunchedEffect(navigator, settings) {
-        navigator?.submitPreferences(settings.toEpubPreferences())
+    LaunchedEffect(navigator, settings, twoPages) {
+        navigator?.submitPreferences(settings.toEpubPreferences(twoPages))
     }
 
     // El arrastre solo se intercepta cuando hay animación: si no, el deslizar es el nativo de Readium.
@@ -276,14 +289,14 @@ private fun ReaderContent(
                             .padding(READING_PADDING, READING_PADDING * 2, READING_PADDING, READING_PADDING / 2)
                         if (LocalInspectionMode.current) {
                             // En el preview del IDE el navegador de Readium no se dibuja: una página de texto ocupa su lugar.
-                            PreviewBookPage(settings.theme, pageModifier)
+                            PreviewBookPage(settings.theme, twoPages, pageModifier)
                         } else {
                             AndroidFragment<EpubNavigatorFragment>(
                                 pageModifier,
                                 onUpdate = { fragment -> if (navigator !== fragment) navigator = fragment },
                             )
                         }
-                        ReaderPageNumber(pageNumber, settings.theme.pageTextColor())
+                        ReaderPageNumber(pageLabel(pageNumber, twoPages, lastPosition), settings.theme.pageTextColor())
                     }
                 }
                 // Página que sale: captura con su fondo. Al avanzar va encima, deslizándose;
@@ -357,7 +370,7 @@ private fun ReaderContent(
 /** RDR-010: pie con la posición actual, debajo del texto y siempre visible en modo paginado. */
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
-private fun ReaderPageNumber(pageNumber: Int?, color: Color) {
+private fun ReaderPageNumber(label: String?, color: Color) {
     Box(
         Modifier
             .fillMaxWidth()
@@ -366,9 +379,9 @@ private fun ReaderPageNumber(pageNumber: Int?, color: Color) {
         ,
         contentAlignment = Alignment.Center,
     ) {
-        if (pageNumber != null) {
+        if (label != null) {
             Text(
-                text = pageNumber.toString(),
+                text = label,
                 color = color.copy(alpha = 0.6f),
                 style = MaterialTheme.typography.labelMedium,
                 modifier = Modifier.testTag(PAGE_NUMBER_TAG),
@@ -438,6 +451,9 @@ private val PAGE_NUMBER_HEIGHT = 32.dp
 /** Margen alrededor del texto de lectura. */
 private val READING_PADDING = 24.dp
 
+/** Espacio entre las dos páginas que deja Readium con SPREAD_PAGE_MARGINS; solo lo usa el preview. */
+private val SPREAD_GAP = 100.dp
+
 /** Acciones que el lector necesita de afuera. Separadas del `ViewModel` para poder previsualizar la pantalla. */
 private class ReaderActions(
     val onToggleControls: () -> Unit,
@@ -475,13 +491,19 @@ private class ReaderActions(
 
 /** Página de texto que hace de libro en el preview. */
 @Composable
-private fun PreviewBookPage(theme: ReadingTheme, modifier: Modifier = Modifier) {
-    Text(
-        text = PREVIEW_PAGE_TEXT,
-        color = theme.pageTextColor(),
-        style = MaterialTheme.typography.bodyLarge,
-        modifier = modifier,
-    )
+private fun PreviewBookPage(theme: ReadingTheme, twoPages: Boolean, modifier: Modifier = Modifier) {
+    // RDR-016: con dos páginas, el texto se parte en dos columnas, como el navegador de Readium.
+    val pages = if (twoPages) listOf(PREVIEW_PAGE_TEXT.take(PREVIEW_PAGE_TEXT.length / 2), PREVIEW_PAGE_TEXT.drop(PREVIEW_PAGE_TEXT.length / 2)) else listOf(PREVIEW_PAGE_TEXT)
+    Row(modifier, horizontalArrangement = Arrangement.spacedBy(SPREAD_GAP)) {
+        pages.forEach { page ->
+            Text(
+                text = page,
+                color = theme.pageTextColor(),
+                style = MaterialTheme.typography.bodyLarge,
+                modifier = Modifier.weight(1f),
+            )
+        }
+    }
 }
 
 @Preview(showBackground = true, name = "Leyendo", widthDp = 360, heightDp = 720)
@@ -493,6 +515,31 @@ private fun ReaderScreenReadingPreview() {
             toc = emptyList(),
             progressPercent = 42,
             pageNumber = 123,
+            publication = null,
+            controlsVisible = false,
+            chapterTitle = "Libro II",
+            settingsOpen = false,
+            onBack = {},
+            actions = ReaderActions.None,
+        )
+    }
+}
+
+// `device` (y no solo widthDp/heightDp) para que LocalConfiguration vea una ventana de tablet y se active RDR-016.
+@Preview(
+    showBackground = true,
+    name = "Tablet 10\" horizontal (2 páginas)",
+    device = "spec:width=1280dp,height=800dp,dpi=240",
+)
+@Composable
+private fun ReaderScreenTabletLandscapePreview() {
+    ReaderTheme(darkTheme = false, dynamicColor = false) {
+        ReaderContent(
+            settings = ReaderSettings(theme = ReadingTheme.SEPIA),
+            toc = emptyList(),
+            progressPercent = 42,
+            pageNumber = 107,
+            publication = null,
             controlsVisible = false,
             chapterTitle = "Libro II",
             settingsOpen = false,

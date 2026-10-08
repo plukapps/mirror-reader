@@ -8,6 +8,7 @@ import com.pluk.reader.ui.reader.toEpubPreferences
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import org.junit.Assert.assertEquals
 import org.junit.Test
+import org.readium.r2.navigator.preferences.ColumnCount
 import org.junit.runner.RunWith
 import org.readium.r2.navigator.preferences.Theme
 import org.readium.r2.shared.ExperimentalReadiumApi
@@ -40,6 +41,13 @@ class ReaderSettingsMappingTest {
     @Test
     fun pageMarginsAreZero() {
         assertEquals(0.0, ReaderSettings().toEpubPreferences().pageMargins ?: -1.0, 0.0)
+    }
+
+    // RDR-016: dos páginas fija dos columnas; una página, una
+    @Test
+    fun twoPagesMapsToTwoColumns() {
+        assertEquals(ColumnCount.TWO, ReaderSettings().toEpubPreferences(twoPages = true).columnCount)
+        assertEquals(ColumnCount.ONE, ReaderSettings().toEpubPreferences(twoPages = false).columnCount)
     }
 
     // RDR-014, ADR 0009: el tipo de letra elegido llega a Readium con su familia

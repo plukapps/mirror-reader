@@ -40,6 +40,11 @@ Leer cómodo, sin que la interfaz estorbe.
   - **Lectura:** acceso al índice (RDR-004) y la animación de paso de página (RDR-009).
   Cada cambio se aplica en el momento sobre el libro que se ve detrás y se guarda como preferencia de lectura. El panel se cierra tocando el libro fuera de él, arrastrándolo hacia abajo, con el gesto o botón atrás del sistema o volviendo a tocar "Aa". Mientras está abierto, tocar el libro no pasa de página. Abrir el índice desde el panel lo cierra.
   Nota de alcance: el brillo propio y los márgenes no forman parte de este panel todavía.
+- **RDR-016** En pantallas anchas y en horizontal (tablet), el lector muestra dos páginas lado a lado, como un libro abierto. En cualquier otro caso (teléfono, tablet en vertical, ventana angosta) muestra una sola página.
+  - Pasar de página avanza o retrocede el par completo. La animación (RDR-009) mueve el par como una sola pieza, y los toques en los bordes y el deslizar (RDR-011) funcionan igual sobre el par.
+  - El pie (RDR-010) muestra las dos posiciones del par, por ejemplo "107–108". En la última posición del libro muestra solo una. Son posiciones del libro (RDR-010), no cuenta de páginas a la vista. Sigue sin mostrar el total.
+  - Al girar el dispositivo o cambiar el tamaño de la ventana, el lector pasa de una a dos páginas (o al revés) sin perder el lugar: queda en la misma posición del libro.
+  - Los ajustes de lectura (RDR-002, RDR-003, RDR-014) valen para ambas páginas.
 
 ## Escenarios
 
@@ -63,6 +68,11 @@ Leer cómodo, sin que la interfaz estorbe.
 - Dado que mantengo el dedo sobre una palabra y arrastro para seleccionar texto, entonces la página no cambia.
 - Dado que un libro termina su cuerpo y sigue con "Notas" e "Índice", cuando paso a la primera página de "Notas", entonces veo el aviso una sola vez.
 - Dado que reabro el libro y mi posición ya está en "Índice", entonces no veo el aviso.
+- Dado que leo en una tablet en horizontal, cuando abro un libro, entonces veo dos páginas lado a lado y el pie muestra dos posiciones.
+- Dado que leo a dos páginas, cuando toco el borde derecho, entonces el par completo pasa al siguiente y el pie avanza dos posiciones.
+- Dado que leo a dos páginas, cuando giro la tablet a vertical, entonces veo una sola página en el mismo lugar del libro.
+- Dado que leo en un teléfono, aunque lo gire a horizontal, entonces veo una sola página.
+- Dado que estoy en la última posición del libro a dos páginas, entonces el pie muestra una sola posición.
 
 ## Fuera de alcance
 

@@ -13,6 +13,7 @@ Todo lo definido en `product/`: biblioteca, lector, anotaciones, sincronización
 - **AND-003** Debe recibir EPUB desde "Compartir / Abrir con" (LIB-001).
 - **AND-004** Debe cumplir las políticas de Google Play (incluida la eliminación de cuenta, CMP-001).
 - **AND-005** La pantalla del lector es una pantalla de Compose dentro de una sola actividad. Ver ADR 0005.
+- **AND-006** Dos páginas en el lector (RDR-016) cuando la ventana tiene al menos 840 dp de ancho y 480 dp de alto, y es más ancha que alta. Se decide por el tamaño de la ventana, no por el aparato, así sirve para plegables y multiventana.
 
 ## Arquitectura
 
