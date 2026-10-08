@@ -18,6 +18,7 @@
         <item quantity="other">Se importaron %d libros.</item>
     </plurals>
 
+    <string name="library_status_cloud">En la nube</string>
     <string name="library_upload">Subir a la nube</string>
     <string name="library_uploading">Subiendo…</string>
     <plurals name="library_pending_upload">

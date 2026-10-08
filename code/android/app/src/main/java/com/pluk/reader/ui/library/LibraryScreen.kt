@@ -242,7 +242,8 @@ private fun BookCell(book: LibraryBook, onClick: () -> Unit) {
         ReadingStatus.Finished -> stringResource(R.string.library_status_finished)
         ReadingStatus.Reading -> "${book.progressPercent} %"
     }
-    val description = listOfNotNull(book.title, book.author, statusText).joinToString(". ")
+    val cloudText = stringResource(R.string.library_status_cloud)
+    val description = listOfNotNull(book.title, book.author, statusText, cloudText.takeIf { !book.isDownloaded }).joinToString(". ")
     Column(
         Modifier
             .clickable(role = Role.Button, onClick = onClick)
@@ -251,6 +252,10 @@ private fun BookCell(book: LibraryBook, onClick: () -> Unit) {
         verticalArrangement = Arrangement.spacedBy(6.dp),
     ) {
         BookCover(book)
+        // LIB-007: un libro solo en la nube se distingue de los descargados.
+        if (!book.isDownloaded) {
+            Text(cloudText, color = MarginColors.Muted, fontSize = 11.sp, fontWeight = FontWeight.SemiBold, modifier = Modifier.testTag("cloud-${book.id}"))
+        }
         when (book.status) {
             ReadingStatus.Reading -> {
                 LinearProgressIndicator(

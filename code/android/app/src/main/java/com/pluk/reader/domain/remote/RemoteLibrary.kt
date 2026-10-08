@@ -38,4 +38,10 @@ interface BookFileStore {
 
     /** Baja el libro a [destination] (un archivo temporal que el llamador mueve al final). */
     suspend fun download(bookId: String, destination: File): Result<Unit>
+
+    /** Sube la portada del libro [bookId] (LIB-012). Si ya está en la nube, termina bien sin volver a subirla. */
+    suspend fun uploadCover(bookId: String, file: File): Result<Unit>
+
+    /** Baja la portada a [destination]. `true` si la había; `false` si el libro no tiene portada en la nube. */
+    suspend fun downloadCover(bookId: String, destination: File): Result<Boolean>
 }

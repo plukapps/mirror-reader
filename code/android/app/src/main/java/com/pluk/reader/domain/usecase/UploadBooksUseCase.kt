@@ -67,6 +67,11 @@ class UploadBooksUseCase @Inject constructor(
     private suspend fun upload(item: PendingUpload): Step {
         files.upload(item.book.id, item.file).exceptionOrNull()?.let { return it.toStep() }
         library.saveBook(item.book).exceptionOrNull()?.let { return it.toStep() }
+        // La portada es secundaria (LIB-012): solo la falta de conexión deja el libro pendiente. Cualquier otro
+        // fallo se ignora y SyncCoversUseCase la completa en la próxima pasada.
+        item.cover?.let { cover ->
+            if (files.uploadCover(item.book.id, cover).exceptionOrNull() is RemoteUnavailableException) return Step.Unreachable
+        }
         uploads.markUploaded(item.book.id, item.book.sizeBytes)
         return Step.Uploaded
     }

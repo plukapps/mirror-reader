@@ -9,7 +9,7 @@
 
 - **Entra:** subir EPUB a la nube, listar los libros remotos, descargarlos al abrirlos, mostrar espacio usado y libre.
 - **Cuenta hardcodeada.** No hay pantallas de registro ni de login. La app inicia sesión sola con una cuenta de desarrollo (solo en builds debug).
-- **No entra:** pantallas de cuenta (K-010 siguiente), Google Sign-In, eliminar de la biblioteca ni quitar la descarga (LIB-008), colecciones, posición, anotaciones y preferencias, transferir solo con Wi-Fi (SYN-009), reintentos en segundo plano (SYN-008 completo), portadas remotas.
+- **No entra:** pantallas de cuenta (K-010 siguiente), Google Sign-In, eliminar de la biblioteca ni quitar la descarga (LIB-008), colecciones, posición, anotaciones y preferencias, transferir solo con Wi-Fi (SYN-009), reintentos en segundo plano (SYN-008 completo).
 
 ## Decisiones
 
@@ -18,7 +18,7 @@
 - **Cuenta de desarrollo sin credenciales en el repo** (regla de AGENTS.md). Email y clave viven en `local.properties` (ignorado por git) y llegan a la app por `BuildConfig`, solo en el tipo de build `debug`. `google-services.json` también va ignorado.
 - **Proyecto real, no emulador:** el build debug apunta a `mirror-reading-staging`. Usar el emulador local desde el teléfono queda para más adelante.
 - **Orden de subida:** primero el archivo (la regla de Storage valida tipo, tamaño y cuota), después el documento de metadatos. Reintentar es seguro: el archivo ya existe y el documento se actualiza.
-- **Portadas:** no se sincronizan. Un libro solo en la nube muestra una portada genérica hasta descargarse; al descargar se extrae la portada con la misma lógica de la importación.
+- **Portadas (LIB-012, cambiado el 2026-10-08):** la portada viaja como archivo aparte en Storage, `users/{uid}/covers/{hash}.jpg`, fuera de la cuota (ADR 0008). Se sube con el libro y, al abrir la app, se completan las que falten (libros subidos antes); los libros solo en la nube la bajan sin descargar el EPUB. Antes se había decidido no sincronizarlas; se cambió al ver que la grilla quedaba con portadas genéricas.
 - **Cuándo se sube:** con un botón en la biblioteca ("Subir a la nube"), que sube todos los libros importados en la app que aún no estén subidos. La subida automática (al importar y al abrir la app) viene después, en su propia tarjeta. Sin segundo plano ni reintentos todavía.
 
 ## Preguntas resueltas (2026-10-08)
@@ -87,6 +87,13 @@
 - [ ] Verificación a mano completa en el teléfono, con el recorrido de los 4 escenarios de arriba.
 **Depende de:** Tareas 4, 5 y 6.
 
+### Tarea 5b: portadas en la nube (M) — K-059
+- [x] Backend: regla de Storage para `users/{uid}/covers/{hash}.jpg` (JPEG de hasta 1 MiB, no se sobrescribe, exige que exista el documento del libro) con tests; fuera de la cuota.
+- [x] `BookFileStore`: subir y bajar portada. `UploadBooksUseCase` sube la portada antes de marcar el libro.
+- [x] `SyncCoversUseCase`: sube las portadas locales que falten en la nube y baja las de los libros solo en la nube. Se encadena tras la sincronización de metadatos al abrir la app.
+- [x] Tests JVM con fakes; verificación en el emulador.
+**Depende de:** Tarea 5 y de desplegar `storage.rules` (acción del usuario).
+
 ## Riesgos
 
 | Riesgo | Impacto | Mitigación |
@@ -102,4 +109,4 @@
 
 ## Fuera de este plan
 
-Subida automática (al importar y al abrir la app), pantallas de registro e inicio de sesión, Google Sign-In, cierre de sesión y dispositivos (ACC-006), eliminar y quitar descarga (LIB-008), colecciones remotas, posición y anotaciones, Wi-Fi solo, reintentos en segundo plano, portadas remotas, proyecto de producción. El backend pendiente (K-050) se decide antes de abrir la app a usuarios reales.
+Subida automática (al importar y al abrir la app), pantallas de registro e inicio de sesión, Google Sign-In, cierre de sesión y dispositivos (ACC-006), eliminar y quitar descarga (LIB-008), colecciones remotas, posición y anotaciones, Wi-Fi solo, reintentos en segundo plano, proyecto de producción. El backend pendiente (K-050) se decide antes de abrir la app a usuarios reales.

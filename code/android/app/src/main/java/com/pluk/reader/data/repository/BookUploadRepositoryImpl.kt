@@ -14,7 +14,12 @@ class BookUploadRepositoryImpl @Inject constructor(
     override suspend fun pending(): List<PendingUpload> = dao.getPendingUpload().mapNotNull { entity ->
         val file = files.bookFile(entity.id)
         // Sin archivo local no hay qué subir. El tamaño sale del archivo, no de la fila (libros anteriores a la v3 tienen 0).
-        if (file.isFile) PendingUpload(entity.toRemoteBook(sizeBytes = file.length()), file) else null
+        if (file.isFile) {
+            val cover = files.coverFile(entity.id).takeIf { entity.hasCover && it.isFile }
+            PendingUpload(entity.toRemoteBook(sizeBytes = file.length()), file, cover)
+        } else {
+            null
+        }
     }
 
     override suspend fun markUploaded(bookId: String, sizeBytes: Long) =

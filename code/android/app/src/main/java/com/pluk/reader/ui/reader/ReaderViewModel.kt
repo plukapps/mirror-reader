@@ -12,6 +12,7 @@ import com.pluk.reader.domain.progressPercent
 import com.pluk.reader.domain.repository.BookRepository
 import com.pluk.reader.domain.repository.PositionRepository
 import com.pluk.reader.domain.repository.SettingsRepository
+import com.pluk.reader.domain.usecase.DownloadBookUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -35,6 +36,7 @@ class ReaderViewModel @Inject constructor(
     private val settingsRepository: SettingsRepository,
     private val positions: PositionRepository,
     private val navigatorHost: NavigatorHost,
+    private val downloadBook: DownloadBookUseCase,
 ) : ViewModel() {
 
     private data class PendingPosition(val locatorJson: String, val totalProgression: Double?)
@@ -75,6 +77,11 @@ class ReaderViewModel @Inject constructor(
 
     private fun open() {
         viewModelScope.launch {
+            // LIB-007: un libro solo en la nube se descarga al abrirlo; si ya está en el dispositivo no hace nada.
+            downloadBook(bookId).onFailure {
+                phase.value = Phase.Failed(it.message ?: "No se pudo descargar el libro.")
+                return@launch
+            }
             books.open(bookId).fold(
                 onSuccess = { book ->
                     val settings: ReaderSettings = settingsRepository.settings.first()

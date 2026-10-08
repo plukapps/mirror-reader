@@ -23,8 +23,12 @@ private const val MIB = 1024L * 1024L
 class UploadBooksUseCaseTest {
     private val calls = mutableListOf<String>()
 
-    private fun pending(id: String, sizeBytes: Long) =
-        PendingUpload(RemoteBook(id, "T$id", listOf("A"), sizeBytes), File("/libros/$id.epub"))
+    private fun pending(id: String, sizeBytes: Long, withCover: Boolean = false) =
+        PendingUpload(
+            RemoteBook(id, "T$id", listOf("A"), sizeBytes),
+            File("/libros/$id.epub"),
+            cover = File("/portadas/$id.jpg").takeIf { withCover },
+        )
 
     private inner class FakeUploads(val items: List<PendingUpload>) : BookUploadRepository {
         val marked = mutableListOf<Pair<String, Long>>()
@@ -41,6 +45,12 @@ class UploadBooksUseCaseTest {
             return results[bookId] ?: Result.success(Unit)
         }
         override suspend fun download(bookId: String, destination: File) = Result.success(Unit)
+        var coverResult: Result<Unit> = Result.success(Unit)
+        override suspend fun uploadCover(bookId: String, file: File): Result<Unit> {
+            calls += "portada:$bookId"
+            return coverResult
+        }
+        override suspend fun downloadCover(bookId: String, destination: File) = Result.success(false)
     }
 
     private inner class FakeRemote(val failFor: Map<String, Throwable> = emptyMap()) : RemoteLibrary {
@@ -72,6 +82,41 @@ class UploadBooksUseCaseTest {
         assertEquals(UploadReport(uploaded = 1), report)
         assertEquals(listOf("archivo:a", "metadatos:a", "marcar:a"), calls)
         assertEquals(listOf("a" to 1 * MIB), uploads.marked)
+    }
+
+    // LIB-012: la portada sube después de los metadatos y antes de marcar el libro como subido
+    @Test
+    fun uploadsTheCoverBeforeMarkingTheBook() = runTest {
+        val uploads = FakeUploads(listOf(pending("a", MIB, withCover = true)))
+        val report = useCase(uploads).invoke()
+        assertEquals(UploadReport(uploaded = 1), report)
+        assertEquals(listOf("archivo:a", "metadatos:a", "portada:a", "marcar:a"), calls)
+    }
+
+    @Test
+    fun aBookWithoutCoverSkipsTheCoverStep() = runTest {
+        useCase(FakeUploads(listOf(pending("a", MIB)))).invoke()
+        assertTrue("portada:a" !in calls)
+    }
+
+    // LIB-012: la portada es secundaria; un rechazo no impide que el libro quede subido
+    @Test
+    fun aCoverRejectionDoesNotStopTheBook() = runTest {
+        val uploads = FakeUploads(listOf(pending("a", MIB, withCover = true)))
+        val files = FakeFiles().apply { coverResult = Result.failure(IllegalStateException("denegado")) }
+        val report = useCase(uploads, files).invoke()
+        assertEquals(UploadReport(uploaded = 1), report)
+        assertEquals(listOf("a" to MIB), uploads.marked)
+    }
+
+    // SYN-001: sin conexión al subir la portada el libro queda pendiente y se reintenta entero (es seguro)
+    @Test
+    fun noConnectionWhileUploadingTheCoverKeepsTheBookPending() = runTest {
+        val uploads = FakeUploads(listOf(pending("a", MIB, withCover = true)))
+        val files = FakeFiles().apply { coverResult = Result.failure(RemoteUnavailableException()) }
+        val report = useCase(uploads, files).invoke()
+        assertTrue(report.unreachable)
+        assertEquals(emptyList<Pair<String, Long>>(), uploads.marked)
     }
 
     @Test

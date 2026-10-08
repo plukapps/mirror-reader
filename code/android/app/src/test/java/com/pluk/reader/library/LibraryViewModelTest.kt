@@ -74,6 +74,8 @@ class LibraryViewModelTest {
         override suspend fun markUploaded(bookId: String, sizeBytes: Long) = Unit
         override suspend fun upload(bookId: String, file: File) = Result.success(Unit)
         override suspend fun download(bookId: String, destination: File) = Result.success(Unit)
+        override suspend fun uploadCover(bookId: String, file: File) = Result.success(Unit)
+        override suspend fun downloadCover(bookId: String, destination: File) = Result.success(false)
         override suspend fun listBooks() = Result.success(emptyList<RemoteBook>())
         override suspend fun saveBook(book: RemoteBook) = Result.success(Unit)
         override suspend fun current() = Result.success(StorageQuota(0, 15L * 1024 * 1024))

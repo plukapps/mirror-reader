@@ -1,5 +1,6 @@
 package com.pluk.reader.data.remote
 
+import android.util.Log
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.DocumentReference
 import com.google.firebase.firestore.FieldValue
@@ -26,7 +27,8 @@ class FirestoreRemoteLibrary @Inject constructor(
             val authors = (doc.get(AUTHORS) as? List<String>).orEmpty()
             RemoteBook(doc.id, title, authors, doc.getLong(SIZE_BYTES) ?: 0L)
         }
-    }
+    }.onSuccess { Log.i(TAG, "Libros en la nube: ${it.size}") }
+        .onFailure { Log.w(TAG, "No se pudo listar la nube: $it") }
 
     override suspend fun saveBook(book: RemoteBook): Result<Unit> = remoteCall {
         val uid = uid()
@@ -57,6 +59,7 @@ class FirestoreRemoteLibrary @Inject constructor(
     private fun uid(): String = auth.currentUser?.uid ?: throw RemoteUnavailableException("No hay sesión iniciada.")
 
     private companion object {
+        const val TAG = "RemoteLibrary"
         const val TITLE = "title"
         const val AUTHORS = "authors"
         const val FILE_PATH = "filePath"
