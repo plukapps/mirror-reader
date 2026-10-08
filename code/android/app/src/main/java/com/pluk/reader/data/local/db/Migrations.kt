@@ -14,3 +14,15 @@ val MIGRATION_1_2 = object : Migration(1, 2) {
         db.execSQL("ALTER TABLE `reading_positions` ADD COLUMN `progress` REAL")
     }
 }
+
+/**
+ * Prepara la biblioteca para la nube (LIB-007). Los libros existentes quedan como descargados y no
+ * subidos, que es lo que son: ninguno estuvo nunca en la nube.
+ */
+val MIGRATION_2_3 = object : Migration(2, 3) {
+    override fun migrate(db: SupportSQLiteDatabase) {
+        db.execSQL("ALTER TABLE `books` ADD COLUMN `sizeBytes` INTEGER NOT NULL DEFAULT 0")
+        db.execSQL("ALTER TABLE `books` ADD COLUMN `isDownloaded` INTEGER NOT NULL DEFAULT 1")
+        db.execSQL("ALTER TABLE `books` ADD COLUMN `uploadedAt` INTEGER")
+    }
+}

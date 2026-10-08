@@ -91,4 +91,22 @@ class EpubImporterTest {
         val outcome = importer.import(asset("minimal.epub")) as ImportOutcome.Imported
         assertFalse(db.bookDao().get(outcome.bookId)!!.hasCover)
     }
+
+    // LIB-007: un libro solo en la nube se completa al importar su archivo, sin perder los metadatos de la nube
+    @Test
+    fun importingTheFileOfACloudOnlyBookCompletesIt() = runBlocking {
+        val first = importer.import(asset("minimal.epub")) as ImportOutcome.Imported
+        // Se simula que el libro estaba solo en la nube: sin archivo local.
+        db.bookDao().markUploaded(first.bookId, 77, 1)
+        db.openHelper.writableDatabase.execSQL("UPDATE books SET isDownloaded = 0, title = 'Titulo de la nube' WHERE id = '${first.bookId}'")
+        files.bookFile(first.bookId).delete()
+
+        val again = importer.import(asset("minimal.epub", "minimal-2.epub"))
+        assertTrue(again is ImportOutcome.Imported)
+        val book = db.bookDao().get(first.bookId)!!
+        assertTrue(book.isDownloaded)
+        assertEquals("Titulo de la nube", book.title)
+        assertEquals(77L, book.uploadedAt)
+        assertTrue(files.bookFile(first.bookId).exists())
+    }
 }

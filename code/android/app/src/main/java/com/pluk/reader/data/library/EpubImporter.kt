@@ -52,9 +52,11 @@ class EpubImporter @Inject constructor(
             return ImportOutcome.Rejected("No se pudo leer el archivo.")
         }
 
-        dao.get(hash)?.let {
+        // Un libro solo en la nube (LIB-007) no cuenta como ya importado: falta su archivo.
+        val existing = dao.get(hash)
+        if (existing?.isDownloaded == true) {
             temp.delete()
-            return ImportOutcome.AlreadyInLibrary(hash, it.title)
+            return ImportOutcome.AlreadyInLibrary(hash, existing.title)
         }
 
         val bookFile = files.bookFile(hash)
@@ -73,7 +75,12 @@ class EpubImporter @Inject constructor(
                 .joinToString(", ")
                 .ifBlank { null }
             val hasCover = publication.cover()?.let { saveCover(it, files.coverFile(hash)) } ?: false
-            dao.insert(BookEntity(hash, title, author, hasCover, System.currentTimeMillis()))
+            if (existing != null) {
+                // Conserva los metadatos de la nube y suma el archivo y la portada.
+                dao.markDownloaded(hash, hasCover)
+                return ImportOutcome.Imported(hash, existing.title)
+            }
+            dao.insert(BookEntity(hash, title, author, hasCover, System.currentTimeMillis(), sizeBytes = bookFile.length()))
             return ImportOutcome.Imported(hash, title)
         } finally {
             publication.close()

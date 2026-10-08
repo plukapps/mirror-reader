@@ -5,8 +5,10 @@ import androidx.sqlite.db.framework.FrameworkSQLiteOpenHelperFactory
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
 import com.pluk.reader.data.local.db.MIGRATION_1_2
+import com.pluk.reader.data.local.db.MIGRATION_2_3
 import com.pluk.reader.data.local.db.ReaderDatabase
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -37,5 +39,32 @@ class MigrationTest {
             it.moveToFirst()
             assertEquals(0, it.getInt(0))
         }
+    }
+
+    // LIB-007: migrar a la versión 3 conserva los libros y los deja como descargados y aún no subidos
+    @Test
+    fun migrates2To3KeepingBooksAsDownloadedAndNotUploaded() {
+        helper.createDatabase("migration-test-3", 2).apply {
+            execSQL("INSERT INTO books (id, title, author, hasCover, addedAt) VALUES ('h', 'Moby Dick', 'Melville', 1, 5)")
+            close()
+        }
+        val db = helper.runMigrationsAndValidate("migration-test-3", 3, true, MIGRATION_2_3)
+        db.query("SELECT title, author, hasCover, addedAt, sizeBytes, isDownloaded, uploadedAt FROM books WHERE id = 'h'").use {
+            assertTrue(it.moveToFirst())
+            assertEquals("Moby Dick", it.getString(0))
+            assertEquals("Melville", it.getString(1))
+            assertEquals(1, it.getInt(2))
+            assertEquals(5L, it.getLong(3))
+            assertEquals(0L, it.getLong(4))
+            assertEquals(1, it.getInt(5))
+            assertTrue(it.isNull(6))
+        }
+    }
+
+    // La cadena completa desde la primera versión sigue funcionando
+    @Test
+    fun migratesFrom1To3() {
+        helper.createDatabase("migration-test-all", 1).close()
+        helper.runMigrationsAndValidate("migration-test-all", 3, true, MIGRATION_1_2, MIGRATION_2_3)
     }
 }
