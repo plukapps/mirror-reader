@@ -5,6 +5,7 @@ Plan de referencia: `specs/plans/2026-10-06-android-epub-viewer.md`
 
 ## Backlog
 
+- **K-044** Bug: tras abrir y cerrar varios libros pasando páginas, en algún momento la página queda bloqueada y no avanza. RDR-009, RDR-011. Rama `feature/home`.
 - **K-008** Biblioteca, segunda rebanada: colecciones, búsqueda, nube, eliminar/quitar, cuota, edición de metadatos, "Compartir / Abrir con". LIB-005 a LIB-009. Requiere plan propio.
 - **K-009** Anotaciones: marcadores, subrayados, notas. Requiere plan propio. ANN-001 a ANN-007.
 - **K-010** Cuenta y sincronización. Requiere plan propio. Backend Firebase (ADR 0007), código en `code/backend/v1`. Actualizar ADR 0005 (SDK de Firebase en lugar de Retrofit). ACC, SYN.
@@ -22,7 +23,7 @@ Plan de referencia: `specs/plans/2026-10-06-android-epub-viewer.md`
 
 ## Revisión
 
-- **K-049** Backend, Tarea 6: despliegue al proyecto `dev` y cierre de docs. Desplegado a `mirror-reading-staging`: Firestore creado en `us-central1`, reglas de Firestore y Storage idénticas a las locales, 3 funciones activas. El bucket por defecto está en `us-east1`, así que las funciones de Storage van en `us-east1`. Lecturas sin sesión rechazadas (403) en Firestore y Storage. Pendiente: activar Google en Authentication (consola), alerta de presupuesto, política de limpieza de imágenes de funciones (`firebase functions:artifacts:setpolicy`). Falta que lo revises.
+- **K-049** Backend, Tarea 6: despliegue al proyecto `dev` y cierre de docs. Desplegado a `mirror-reading-staging`: Firestore creado en `us-central1`, reglas de Firestore y Storage idénticas a las locales, 3 funciones activas. El bucket por defecto está en `us-east1`, así que las funciones de Storage van en `us-east1`. Lecturas sin sesión rechazadas (403) en Firestore y Storage. Google activado en Authentication, alerta de presupuesto creada y política de limpieza de imágenes puesta en us-central1 y us-east1 (2026-10-08). Falta que lo revises.
 - **K-048** Backend, Tarea 5: cuentas con email y Google, documento de usuario con plan gratuito. ACC-001, ACC-002, ACC-005. Cuota gratuita: 15 MiB (decisión del usuario). Alta del documento con Cloud Function de Auth (v1). Pasan 69 tests en el emulador, con pruebas de punta a punta de registro con email y con Google (simulado). Pendiente a mano: habilitar Google y registrar el SHA-1 en la consola. Falta que lo revises.
 - **K-043** Aviso de fin de lectura: detectar el fin del cuerpo por la tabla de contenidos y mostrar un toast. RDR-012. Plan `2026-10-07-android-reading-end.md`. Rama `feature/home`. Compila y pasan los tests JVM (`BackMatterTest`). Detección por palabras clave del título (ajustada con 4 libros reales: la primera versión solo acertaba 1 de 4). Instalada en el teléfono; falta probarla a mano.
 - **K-042** Fuente de la app: Host Grotesk (variable, normal e itálica) como tipografía por defecto del tema. Rama `feature/home`. Compila; falta verla a mano.

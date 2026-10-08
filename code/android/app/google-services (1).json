@@ -1,0 +1,47 @@
+{
+  "project_info": {
+    "project_number": "327635508467",
+    "project_id": "mirror-reading-staging",
+    "storage_bucket": "mirror-reading-staging.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:327635508467:android:23c5ddd7d9a606507feb86",
+        "android_client_info": {
+          "package_name": "com.pluk.reader"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "327635508467-juluivh7311h5rbv1ke1tcp11rkrgqjl.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.pluk.reader",
+            "certificate_hash": "3bbfffca2ac66b6b94ad1ceed3d43b3188fcf83d"
+          }
+        },
+        {
+          "client_id": "327635508467-e0oumf2cu2kjhf13fo2404348iosj5d9.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAFomPM5ZTQlyDKIqQx796n02uFy5oXA_M"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "327635508467-e0oumf2cu2kjhf13fo2404348iosj5d9.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

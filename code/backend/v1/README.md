@@ -51,6 +51,12 @@ Estos pasos se hacen una vez por proyecto de Firebase, en la consola web:
 
 Al registrarse (email o Google), la función `onUserCreated` crea `users/{uid}` con el plan gratuito. La cuota gratuita (15 MiB) está en `functions/src/accounts.ts`.
 
+## Despliegue
+
+Se despliega con el MCP de Firebase o con `firebase deploy` desde esta carpeta, siempre a pedido del usuario. Las funciones de Storage van en `us-east1` y la de cuentas en `us-central1`.
+
+La política de limpieza de imágenes de build (borra las de más de 1 día) ya está puesta en ambas regiones (2026-10-08). Si se agrega una región nueva, correr `firebase functions:artifacts:setpolicy --location <región> --project mirror-reading-staging`; sin eso el despliegue termina con un aviso de error aunque las funciones sí se suban.
+
 ## Credenciales
 
 `google-services.json`, `GoogleService-Info.plist` y claves de cuentas de servicio no se guardan en el repo (ver `.gitignore`).
