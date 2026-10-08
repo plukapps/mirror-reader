@@ -22,6 +22,8 @@ Stack y capas definidos en `specs/adr/0005-android-stack-and-architecture.md`: C
 
 - Versión mínima de Android: 26 (Android 8.0).
 - Idiomas de la interfaz: pendiente (open-questions #4).
+- Tipografías del lector (RDR-014): Newsreader, Host Grotesk y JetBrains Mono viajan en `assets/fonts` y se sirven al libro con Readium. ADR 0009 (provisional). Con una fuente elegida se apagan los estilos del editor.
+- Controles del lector (RDR-013, RDR-014): barra superior (`ReaderTopBar`) y panel inferior (`ReaderSettingsSheet`, un `ModalBottomSheet`). Plan `specs/plans/2026-10-08-android-reader-settings.md`.
 
 ## Criterio de terminado
 

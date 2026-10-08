@@ -97,4 +97,5 @@ Raíz: `code/backend/v1` (reglas de Firestore y Storage, Cloud Functions en `fun
 - Clientes nativos por plataforma, Android primero (ADR 0001).
 - Offline-first (ADR 0002).
 - Backend Firebase, provisional (ADR 0007, reemplaza al 0003). Código en `code/backend/v1`.
+- Tipografías del lector: Newsreader, Host Grotesk y JetBrains Mono en `assets/fonts`, provisional (ADR 0009). Los controles del lector (barra superior y panel de ajustes) siguen `design/Margin Ebook App.dc.html`, pantallas 06 a 08.
 - Modelo de negocio abierto, hipótesis: suscripción. Ver `specs/open-questions.md`.
