@@ -19,6 +19,8 @@ Plan de referencia: `specs/plans/2026-10-06-android-epub-viewer.md`
 
 ## Listo
 
+- **K-076** Apple, prueba de Inicio, Tarea 3: `HomeView` y `HomeViewModel` con datos falsos.
+- **K-077** Apple, prueba de Inicio, Tarea 4: cierre de docs (`specs/platforms/apple.md`, ADR 0010, AGENTS.md).
 - **K-038** Inicio, Tarea 4: cierre de docs y verificación a mano. Rama `feature/home`.
 - **K-024** Quitar el padding vertical de Readium (40 dp arriba y abajo en modo paginado) y reservar la barra de estado desde la pantalla. RDR-002. Rama `feat/page-turn-animation`.
 
@@ -74,6 +76,8 @@ Plan de referencia: `specs/plans/2026-10-06-android-epub-viewer.md`
 
 ## Hecho
 
+- **K-075** Apple, prueba de Inicio, Tarea 2: paquete `ReaderDomain` (`code/apple/Packages/ReaderDomain`) con `LibraryBook`, `readingStatus`, `homeContent` y `greeting(forHour:)`, iguales a Android. HOM-001 a 003, HOM-008 a 010, LIB-010. Rama `feature/apple-home-spike`. Tests con Swift Testing (mismos casos que `HomeContentTest` de Android, más el estado por progreso). `swift test` con Xcode 16.2: 11 tests pasan. Verificado por mutación (4 mutaciones detectadas).
+- **K-074** Apple, prueba de Inicio, Tarea 1: esqueleto en `code/apple/` con XcodeGen (`project.yml`, target macOS 14, `com.pluk.reader`, sandbox, firma local) que enlaza `ReaderDomain`; README con los comandos. Plan `2026-10-08-apple-home-spike.md`. Rama `feature/apple-home-spike`. `xcodebuild build` exitoso con Xcode 16.2 y la app arranca (proceso corriendo). Verificado a ojo por el usuario.
 - **K-071** Lector a dos páginas, Tarea 4: cierre (giro sin perder el lugar, ajustes en ambas páginas, libros reales, docs). RDR-016, AND-006. Rama `feature/tablets-cierre`. Se encontró y arregló un bug: al girar o redimensionar, el navegador volvía a la posición del momento de abrir el libro (en el emulador, de 16–17 a 9). Ahora `NavigatorFragmentHost` arma la fábrica en cada instanciación con la última posición, que el `ReaderViewModel` le informa (`NavigatorHost.onLocatorChanged`); test JVM nuevo verificado por mutación. Verificado en el emulador (tablet simulada): horizontal 16–17, vertical 15 (mismo pasaje), de vuelta 16–17. Ajustes (Noche, Grotesk, A+) se aplican a ambas páginas y el panel abre sobre el par; *Zero to One* también va bien. Límite: el pie no se actualiza hasta el siguiente paso de página tras cambiar fuente o tamaño (igual que con una página). Falta probar en una tablet real.
 - **K-069** Lector a dos páginas, Tarea 2: regla `useTwoPages` y mapeo a Readium. RDR-016, AND-006. Rama `feature/tablets`. `useTwoPages` (10 tests JVM pasan) y `toEpubPreferences(twoPages)` con `columnCount` y `spread` (API verificada con `javap`: `Spread` AUTO/NEVER/ALWAYS); test de emulador del mapeo escrito y compilado, sin correr.
 - **K-070** Lector a dos páginas, Tarea 3: lector a dos páginas, pie con dos posiciones, toques y animación sobre el par. RDR-016, RDR-009, 010, 011. Rama `feature/tablets`. `useTwoPages` en `ReaderScreen` (`LocalConfiguration`), `columnCount`/`spread` por `submitPreferences`, `pageLabel` para el pie (`lastPosition` desde `publication.positions()`); 6 tests JVM nuevos. Verificado en el emulador simulando tablet (`wm size` 2560x1600 a 320 dpi, ya restaurado) con *Dejar ir*: se ven dos páginas, el toque en el borde pasa el par (pie 1–2, 4–5, 7–8, 13–14), una ráfaga de toques cada 1 s funciona, en vertical (1600x2560) vuelve a una página en el mismo lugar. Falta: probar en tablet real y con otros temas; ver K-072.

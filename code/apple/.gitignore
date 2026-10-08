@@ -1,0 +1,7 @@
+# Generado por XcodeGen desde project.yml
+*.xcodeproj
+# Builds de Swift Package Manager y Xcode
+.build/
+DerivedData/
+xcuserdata/
+.swiftpm/
