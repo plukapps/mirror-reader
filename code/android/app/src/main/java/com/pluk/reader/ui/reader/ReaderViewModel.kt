@@ -140,6 +140,7 @@ class ReaderViewModel @Inject constructor(
         progress.value = progressPercent(totalProgression)
         pageNumber.value = position
         pendingPosition.value = PendingPosition(locatorJson, totalProgression)
+        navigatorHost.onLocatorChanged(locatorJson)
         if (href != null) chapterTitle.value = currentChapterTitle(chapters, readingOrder, href)
         if (href != null && bodyEnd?.onResource(href) == true) _events.tryEmit(ReaderEvent.BodyEnded)
     }

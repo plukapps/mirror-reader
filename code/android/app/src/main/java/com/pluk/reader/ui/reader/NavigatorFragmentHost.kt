@@ -23,16 +23,26 @@ import javax.inject.Singleton
 @OptIn(ExperimentalReadiumApi::class)
 @Singleton
 class NavigatorFragmentHost @Inject constructor() : NavigatorHost {
+    private class Installed(
+        val book: OpenedBook,
+        val settings: ReaderSettings,
+        val onExternalLink: (String) -> Unit,
+    )
+
     @Volatile
-    private var factory: FragmentFactory? = null
+    private var installed: Installed? = null
+
+    /** Última posición conocida (RDR-016): al recrearse el navegador (girar) se vuelve ahí, no a la de apertura. */
+    @Volatile
+    private var latestLocatorJson: String? = null
 
     /** Hay un libro abierto cuyo fragmento Android puede restaurar. */
-    val isInstalled: Boolean get() = factory != null
+    val isInstalled: Boolean get() = installed != null
 
     /** Fábrica estable para el `FragmentManager`: delega en la del libro actual. */
     val fragmentFactory: FragmentFactory = object : FragmentFactory() {
         override fun instantiate(classLoader: ClassLoader, className: String): Fragment {
-            val delegate = factory
+            val delegate = createFactory()
             return if (delegate != null && className == EpubNavigatorFragment::class.java.name) {
                 delegate.instantiate(classLoader, className)
             } else {
@@ -42,20 +52,32 @@ class NavigatorFragmentHost @Inject constructor() : NavigatorHost {
     }
 
     override fun install(book: OpenedBook, settings: ReaderSettings, onExternalLink: (String) -> Unit) {
-        // Una posición guardada dañada no debe impedir abrir el libro (RDR-006).
-        val initialLocator = book.resumeLocatorJson
-            ?.let { runCatching { Locator.fromJSON(JSONObject(it)) }.getOrNull() }
-        factory = EpubNavigatorFactory(book.publication).createFragmentFactory(
-            initialLocator = initialLocator,
-            initialPreferences = settings.toEpubPreferences(),
-            configuration = readerNavigatorConfiguration(),
-            listener = object : EpubNavigatorFragment.Listener {
-                override fun onExternalLinkActivated(url: AbsoluteUrl) = onExternalLink(url.toString())
-            },
-        )
+        latestLocatorJson = book.resumeLocatorJson
+        installed = Installed(book, settings, onExternalLink)
+    }
+
+    override fun onLocatorChanged(locatorJson: String) {
+        latestLocatorJson = locatorJson
     }
 
     override fun clear() {
-        factory = null
+        installed = null
+        latestLocatorJson = null
+    }
+
+    /** Se arma en cada instanciación del fragmento, para que use la posición de ese momento. */
+    private fun createFactory(): FragmentFactory? {
+        val current = installed ?: return null
+        // Una posición guardada dañada no debe impedir abrir el libro (RDR-006).
+        val initialLocator = latestLocatorJson
+            ?.let { runCatching { Locator.fromJSON(JSONObject(it)) }.getOrNull() }
+        return EpubNavigatorFactory(current.book.publication).createFragmentFactory(
+            initialLocator = initialLocator,
+            initialPreferences = current.settings.toEpubPreferences(),
+            configuration = readerNavigatorConfiguration(),
+            listener = object : EpubNavigatorFragment.Listener {
+                override fun onExternalLinkActivated(url: AbsoluteUrl) = current.onExternalLink(url.toString())
+            },
+        )
     }
 }
