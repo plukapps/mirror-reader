@@ -16,6 +16,10 @@ sealed interface ReaderUiState {
         /** RDR-010: posición actual en el libro (1 en adelante), o null si todavía no hay dato. */
         val pageNumber: Int?,
         val controlsVisible: Boolean,
+        /** RDR-013: título del capítulo actual, vacío si no se conoce. */
+        val chapterTitle: String = "",
+        /** RDR-014: el panel de ajustes está abierto. */
+        val settingsOpen: Boolean = false,
     ) : ReaderUiState
 }
 

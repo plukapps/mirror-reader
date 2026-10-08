@@ -6,6 +6,8 @@ import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.intPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
+import com.pluk.reader.domain.model.LineSpacing
+import com.pluk.reader.domain.model.ReaderFont
 import com.pluk.reader.domain.model.ReaderSettings
 import com.pluk.reader.domain.model.ReadingTheme
 import com.pluk.reader.domain.repository.SettingsRepository
@@ -24,9 +26,10 @@ class SettingsRepositoryImpl @Inject constructor(
     override suspend fun update(transform: (ReaderSettings) -> ReaderSettings) {
         dataStore.edit { prefs ->
             val updated = transform(prefs.toSettings())
-            prefs[SCROLL] = updated.scroll
             prefs[THEME] = updated.theme.name
             prefs[PAGE_ANIMATION] = updated.pageAnimation
+            prefs[FONT] = updated.font.name
+            prefs[LINE_SPACING] = updated.lineSpacing.name
             // En décimas enteras: un Float degradaría 1.4 a 1.3999999.
             prefs[FONT_TENTHS] = (updated.fontScale * 10).roundToInt()
         }
@@ -35,17 +38,20 @@ class SettingsRepositoryImpl @Inject constructor(
     private fun Preferences.toSettings(): ReaderSettings {
         val defaults = ReaderSettings()
         return ReaderSettings(
-            scroll = this[SCROLL] ?: defaults.scroll,
             theme = runCatching { ReadingTheme.valueOf(this[THEME] ?: "") }.getOrDefault(defaults.theme),
             fontScale = (this[FONT_TENTHS] ?: (defaults.fontScale * 10).roundToInt()) / 10.0,
             pageAnimation = this[PAGE_ANIMATION] ?: defaults.pageAnimation,
+            // Un valor desconocido (de una versión futura) vuelve al predeterminado, no rompe la lectura.
+            font = runCatching { ReaderFont.valueOf(this[FONT] ?: "") }.getOrDefault(defaults.font),
+            lineSpacing = runCatching { LineSpacing.valueOf(this[LINE_SPACING] ?: "") }.getOrDefault(defaults.lineSpacing),
         )
     }
 
     private companion object {
-        val SCROLL = booleanPreferencesKey("scroll")
         val THEME = stringPreferencesKey("theme")
         val FONT_TENTHS = intPreferencesKey("fontTenths")
         val PAGE_ANIMATION = booleanPreferencesKey("pageAnimation")
+        val FONT = stringPreferencesKey("font")
+        val LINE_SPACING = stringPreferencesKey("lineSpacing")
     }
 }

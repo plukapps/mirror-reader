@@ -54,6 +54,8 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.pluk.reader.domain.model.OpenedBook
 import com.pluk.reader.R
+import com.pluk.reader.domain.model.LineSpacing
+import com.pluk.reader.domain.model.ReaderFont
 import com.pluk.reader.domain.model.ReaderSettings
 import com.pluk.reader.ui.theme.ReaderTheme
 import org.readium.r2.navigator.epub.EpubNavigatorFragment
@@ -109,6 +111,9 @@ fun ReaderScreen(
             progressPercent = current.progressPercent,
             pageNumber = current.pageNumber,
             controlsVisible = current.controlsVisible,
+            chapterTitle = current.chapterTitle,
+            settingsOpen = current.settingsOpen,
+            onBack = onBack,
             actions = ReaderActions.of(viewModel),
         )
     }
@@ -122,8 +127,12 @@ private fun ReaderContent(
     progressPercent: Int?,
     pageNumber: Int?,
     controlsVisible: Boolean,
+    chapterTitle: String,
+    settingsOpen: Boolean,
+    onBack: () -> Unit,
     actions: ReaderActions,
 ) {
+    var showToc by remember { mutableStateOf(false) }
     var navigator by remember { mutableStateOf<EpubNavigatorFragment?>(null) }
     var area by remember { mutableStateOf<Rect?>(null) }
     val scope = rememberCoroutineScope()
@@ -131,8 +140,8 @@ private fun ReaderContent(
     val edges = remember { BookEdges<Locator>() }
     val window = LocalContext.current.findActivity()?.window
 
-    // La animación solo aplica en modo paginado (RDR-009).
-    val animated = settings.pageAnimation && !settings.scroll
+    // RDR-009: la animación se puede desactivar.
+    val animated = settings.pageAnimation
     val outgoingTint = settings.theme.outgoingTint()
     val controlsVisible by rememberUpdatedState(controlsVisible)
     // Al pasar de página los controles se quitan de golpe: esperar a que se desvanezcan retrasa el inicio de la animación.
@@ -220,8 +229,6 @@ private fun ReaderContent(
         Modifier
     }
 
-    // RDR-010: el pie reserva su propio espacio, fuera del texto, solo en modo paginado.
-    val showPageNumber = !settings.scroll
     val readingBackground = settings.theme.pageBackground()
 
     Box(
@@ -265,9 +272,7 @@ private fun ReaderContent(
                                 onUpdate = { fragment -> if (navigator !== fragment) navigator = fragment },
                             )
                         }
-                        if (showPageNumber) {
-                            ReaderPageNumber(pageNumber, settings.theme.pageTextColor())
-                        }
+                        ReaderPageNumber(pageNumber, settings.theme.pageTextColor())
                     }
                 }
                 // Página que sale: captura con su fondo. Al avanzar va encima, deslizándose;
@@ -297,15 +302,42 @@ private fun ReaderContent(
             ReaderControls(
                 visible = controlsVisible,
                 instantHide = hideControlsInstantly,
-                settings = settings,
+                theme = settings.theme,
                 progressPercent = progressPercent,
+                chapterTitle = chapterTitle,
+                settingsOpen = settingsOpen,
+                onBack = onBack,
+                onToggleSettings = actions.onToggleSettings,
+            )
+        }
+        // RDR-014: panel de ajustes sobre el libro. Cada acción se aplica al instante.
+        if (settingsOpen) {
+            ReaderSettingsSheet(
+                settings = settings,
+                actions = ReaderSettingsActions(
+                    onDismiss = actions.onCloseSettings,
+                    onFont = actions.onSetFont,
+                    onSmallerFont = actions.onSmallerFont,
+                    onBiggerFont = actions.onBiggerFont,
+                    onTheme = actions.onSetTheme,
+                    onLineSpacing = actions.onSetLineSpacing,
+                    // RDR-004: abrir el índice cierra el panel.
+                    onOpenToc = {
+                        actions.onCloseSettings()
+                        showToc = true
+                    },
+                    onTogglePageAnimation = actions.onTogglePageAnimation,
+                ),
+            )
+        }
+        if (showToc) {
+            ReaderTocDialog(
                 toc = toc,
-                onToggleScroll = actions.onToggleScroll,
-                onNextTheme = actions.onNextTheme,
-                onSmallerFont = actions.onSmallerFont,
-                onBiggerFont = actions.onBiggerFont,
-                onTogglePageAnimation = actions.onTogglePageAnimation,
-                onTocSelected = { entry -> navigator?.go(entry.link, animated = false) },
+                onDismiss = { showToc = false },
+                onSelected = { entry ->
+                    showToc = false
+                    navigator?.go(entry.link, animated = false)
+                },
             )
         }
     }
@@ -334,7 +366,7 @@ private fun ReaderPageNumber(pageNumber: Int?, color: Color) {
 }
 
 // Colores de página de los temas de Readium, para que el pie se vea igual que el libro.
-private fun ReadingTheme.pageBackground() = when (this) {
+internal fun ReadingTheme.pageBackground() = when (this) {
     ReadingTheme.LIGHT -> Color(0xFFFFFFFF)
     ReadingTheme.DARK -> Color(0xFF000000)
     ReadingTheme.SEPIA -> Color(0xFFFAF4E8)
@@ -380,11 +412,14 @@ private class ReaderActions(
     val onToggleControls: () -> Unit,
     val onHideControls: () -> Unit,
     val onLocatorChanged: (json: String, totalProgression: Double?, position: Int?, href: String) -> Unit,
-    val onToggleScroll: () -> Unit,
-    val onNextTheme: () -> Unit,
     val onSmallerFont: () -> Unit,
     val onBiggerFont: () -> Unit,
     val onTogglePageAnimation: () -> Unit,
+    val onToggleSettings: () -> Unit,
+    val onCloseSettings: () -> Unit,
+    val onSetTheme: (ReadingTheme) -> Unit,
+    val onSetFont: (ReaderFont) -> Unit,
+    val onSetLineSpacing: (LineSpacing) -> Unit,
 ) {
     companion object {
         fun of(viewModel: ReaderViewModel) = ReaderActions(
@@ -393,14 +428,17 @@ private class ReaderActions(
             onLocatorChanged = { json, progression, position, href ->
                 viewModel.onLocatorChanged(json, progression, position, href)
             },
-            onToggleScroll = viewModel::toggleScroll,
-            onNextTheme = viewModel::nextTheme,
             onSmallerFont = viewModel::smallerFont,
             onBiggerFont = viewModel::biggerFont,
             onTogglePageAnimation = viewModel::togglePageAnimation,
+            onToggleSettings = viewModel::toggleSettings,
+            onCloseSettings = viewModel::closeSettings,
+            onSetTheme = viewModel::setTheme,
+            onSetFont = viewModel::setFont,
+            onSetLineSpacing = viewModel::setLineSpacing,
         )
 
-        val None = ReaderActions({}, {}, { _, _, _, _ -> }, {}, {}, {}, {}, {})
+        val None = ReaderActions({}, {}, { _, _, _, _ -> }, {}, {}, {}, {}, {}, {}, {}, {})
     }
 }
 
@@ -425,6 +463,9 @@ private fun ReaderScreenReadingPreview() {
             progressPercent = 42,
             pageNumber = 123,
             controlsVisible = false,
+            chapterTitle = "Libro II",
+            settingsOpen = false,
+            onBack = {},
             actions = ReaderActions.None,
         )
     }

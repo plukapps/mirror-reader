@@ -5,9 +5,14 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.pluk.reader.domain.BodyEndDetector
 import com.pluk.reader.domain.BodyEntry
+import com.pluk.reader.domain.ChapterEntry
+import com.pluk.reader.domain.currentChapterTitle
 import com.pluk.reader.domain.backMatterStart
+import com.pluk.reader.domain.model.LineSpacing
 import com.pluk.reader.domain.model.OpenedBook
+import com.pluk.reader.domain.model.ReaderFont
 import com.pluk.reader.domain.model.ReaderSettings
+import com.pluk.reader.domain.model.ReadingTheme
 import com.pluk.reader.domain.progressPercent
 import com.pluk.reader.domain.repository.BookRepository
 import com.pluk.reader.domain.repository.PositionRepository
@@ -51,22 +56,34 @@ class ReaderViewModel @Inject constructor(
     private val phase = MutableStateFlow<Phase>(Phase.Loading)
     private val progress = MutableStateFlow<Int?>(null)
     private val pageNumber = MutableStateFlow<Int?>(null)
+    private val chapterTitle = MutableStateFlow("")
     private val controlsVisible = MutableStateFlow(true)
+    private val settingsOpen = MutableStateFlow(false)
     private val pendingPosition = MutableStateFlow<PendingPosition?>(null)
 
     // RDR-012: se arma al abrir el libro.
     private var bodyEnd: BodyEndDetector? = null
 
+    // RDR-013: se arman al abrir el libro.
+    private var chapters: List<ChapterEntry> = emptyList()
+    private var readingOrder: List<String> = emptyList()
+
     private val _events = MutableSharedFlow<ReaderEvent>(extraBufferCapacity = 4)
     val events: SharedFlow<ReaderEvent> = _events.asSharedFlow()
 
+    private val position = combine(progress, pageNumber, chapterTitle) { progress, page, chapter ->
+        Triple(progress, page, chapter)
+    }
+
     val uiState: StateFlow<ReaderUiState> = combine(
-        phase, settingsRepository.settings, progress, pageNumber, controlsVisible,
-    ) { phase, settings, progress, page, controls ->
+        phase, settingsRepository.settings, position, controlsVisible, settingsOpen,
+    ) { phase, settings, position, controls, settingsOpen ->
         when (phase) {
             Phase.Loading -> ReaderUiState.Loading
             is Phase.Failed -> ReaderUiState.Failed(phase.message)
-            is Phase.Opened -> ReaderUiState.Ready(phase.book, phase.toc, settings, progress, page, controls)
+            is Phase.Opened -> ReaderUiState.Ready(
+                phase.book, phase.toc, settings, position.first, position.second, controls, position.third, settingsOpen,
+            )
         }
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(STOP_TIMEOUT_MS), ReaderUiState.Loading)
 
@@ -89,6 +106,7 @@ class ReaderViewModel @Inject constructor(
                         _events.tryEmit(ReaderEvent.OpenExternalLink(url))
                     }
                     val readingOrder = book.publication.readingOrder.map { it.href.toString() }
+                    this@ReaderViewModel.readingOrder = readingOrder
                     bodyEnd = BodyEndDetector(
                         readingOrder,
                         backMatterStart(
@@ -96,7 +114,9 @@ class ReaderViewModel @Inject constructor(
                             readingOrder,
                         ),
                     )
-                    phase.value = Phase.Opened(book, flattenToc(book.publication.tableOfContents))
+                    val toc = flattenToc(book.publication.tableOfContents)
+                    chapters = toc.map { ChapterEntry(it.title, it.link.href.toString()) }
+                    phase.value = Phase.Opened(book, toc)
                 },
                 onFailure = { phase.value = Phase.Failed(it.message ?: "No se pudo abrir el libro.") },
             )
@@ -120,16 +140,29 @@ class ReaderViewModel @Inject constructor(
         progress.value = progressPercent(totalProgression)
         pageNumber.value = position
         pendingPosition.value = PendingPosition(locatorJson, totalProgression)
+        if (href != null) chapterTitle.value = currentChapterTitle(chapters, readingOrder, href)
         if (href != null && bodyEnd?.onResource(href) == true) _events.tryEmit(ReaderEvent.BodyEnded)
     }
 
-    fun toggleScroll() = updateSettings { it.toggleScroll() }
-    fun nextTheme() = updateSettings { it.nextTheme() }
+    fun setTheme(theme: ReadingTheme) = updateSettings { it.withTheme(theme) }
+    fun setFont(font: ReaderFont) = updateSettings { it.withFont(font) }
+    fun setLineSpacing(spacing: LineSpacing) = updateSettings { it.withLineSpacing(spacing) }
     fun biggerFont() = updateSettings { it.biggerFont() }
     fun smallerFont() = updateSettings { it.smallerFont() }
     fun togglePageAnimation() = updateSettings { it.togglePageAnimation() }
     fun toggleControls() {
         controlsVisible.value = !controlsVisible.value
+    }
+
+    /** RDR-014: "Aa". Abrir el panel también muestra los controles, para que la barra y el panel vayan juntos. */
+    fun toggleSettings() {
+        val open = !settingsOpen.value
+        if (open) controlsVisible.value = true
+        settingsOpen.value = open
+    }
+
+    fun closeSettings() {
+        settingsOpen.value = false
     }
 
     fun hideControls() {

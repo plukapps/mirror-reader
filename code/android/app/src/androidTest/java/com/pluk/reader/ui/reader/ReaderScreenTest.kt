@@ -10,6 +10,7 @@ import android.view.ViewGroup
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.createEmptyComposeRule
 import androidx.compose.ui.test.onNodeWithTag
+import com.pluk.reader.domain.model.ReadingTheme
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.fragment.app.FragmentContainerView
@@ -25,6 +26,7 @@ import dagger.hilt.android.testing.HiltAndroidRule
 import dagger.hilt.android.testing.HiltAndroidTest
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertEquals
+import org.readium.r2.navigator.preferences.Theme
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Before
@@ -151,22 +153,21 @@ class ReaderScreenTest {
         }
     }
 
-    // RDR-001: el ajuste llega al navegador
-    @Test
-    fun scrollSettingIsAppliedToNavigator() {
-        launch(copyAsset("minimal.epub")).use { scenario ->
-            waitUntil { navigator(scenario) != null }
-            runBlocking { settingsRepository.update { it.toggleScroll() } }
-            waitUntil { navigator(scenario)?.settings?.value?.scroll == true }
-        }
-    }
-
     // RDR-008 (local): los ajustes guardados se aplican al abrir el libro
     @Test
     fun savedSettingsAreAppliedWhenOpeningBook() {
-        runBlocking { settingsRepository.update { it.toggleScroll() } }
+        runBlocking { settingsRepository.update { it.withTheme(ReadingTheme.SEPIA) } }
         launch(copyAsset("minimal.epub")).use { scenario ->
-            waitUntil { navigator(scenario)?.settings?.value?.scroll == true }
+            waitUntil { navigator(scenario)?.settings?.value?.theme == Theme.SEPIA }
+        }
+    }
+
+    // RDR-001: la lectura es siempre paginada
+    @Test
+    fun readingIsAlwaysPaged() {
+        launch(copyAsset("minimal.epub")).use { scenario ->
+            waitUntil { navigator(scenario) != null }
+            assertEquals(false, navigator(scenario)?.settings?.value?.scroll)
         }
     }
 
@@ -175,7 +176,9 @@ class ReaderScreenTest {
     fun tocDialogListsChaptersAndNavigates() {
         launch(copyAsset("minimal.epub")).use { scenario ->
             waitUntil { navigator(scenario) != null }
-            compose.onNodeWithText("Índice").performClick()
+            // RDR-014: el índice se abre desde el panel de ajustes ("Aa" → "Abrir").
+            compose.onNodeWithTag("reader-settings-button").performClick()
+            compose.onNodeWithTag("reader-toc-button").performClick()
             compose.onNodeWithText("Capítulo 1").assertIsDisplayed()
             compose.onNodeWithText("Capítulo 2").assertIsDisplayed().performClick()
             waitUntil { currentHref(scenario).endsWith("ch2.xhtml") }
@@ -193,17 +196,13 @@ class ReaderScreenTest {
         }
     }
 
-    // RDR-010: el pie muestra el número de página en modo paginado y no en scroll
+    // RDR-010: el pie muestra el número de página
     @Test
-    fun pageNumberShownOnlyInPagedMode() {
+    fun pageNumberIsShown() {
         launch(copyAsset("minimal.epub")).use { scenario ->
             waitUntil { navigator(scenario) != null }
             waitUntil {
                 runCatching { compose.onNodeWithTag("page-number").assertIsDisplayed() }.isSuccess
-            }
-            runBlocking { settingsRepository.update { it.copy(scroll = true) } }
-            waitUntil {
-                runCatching { compose.onNodeWithTag("page-number").assertDoesNotExist() }.isSuccess
             }
         }
     }

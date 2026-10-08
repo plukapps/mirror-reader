@@ -2,22 +2,33 @@ package com.pluk.reader.domain.model
 
 import kotlin.math.roundToInt
 
-enum class ReadingTheme {
-    LIGHT, DARK, SEPIA;
+enum class ReadingTheme { LIGHT, DARK, SEPIA }
 
-    fun next(): ReadingTheme = entries[(ordinal + 1) % entries.size]
+/** RDR-014: tipo de letra del libro. Cada valor se asocia a una fuente que viaja en la app (ADR 0009). */
+enum class ReaderFont(val familyName: String) {
+    SERIF("Newsreader"),
+    SANS("Host Grotesk"),
+    MONO("JetBrains Mono"),
+}
+
+/** RDR-014: interlineado del libro. */
+enum class LineSpacing(val lineHeight: Double) {
+    NORMAL(1.4),
+    WIDE(1.7),
 }
 
 data class ReaderSettings(
-    val scroll: Boolean = false,
     val theme: ReadingTheme = ReadingTheme.LIGHT,
     val fontScale: Double = 1.0,
     /** RDR-009: animación de paso de página en modo paginado. */
     val pageAnimation: Boolean = true,
+    val font: ReaderFont = ReaderFont.SERIF,
+    val lineSpacing: LineSpacing = LineSpacing.NORMAL,
 ) {
-    fun toggleScroll() = copy(scroll = !scroll)
     fun togglePageAnimation() = copy(pageAnimation = !pageAnimation)
-    fun nextTheme() = copy(theme = theme.next())
+    fun withTheme(theme: ReadingTheme) = copy(theme = theme)
+    fun withFont(font: ReaderFont) = copy(font = font)
+    fun withLineSpacing(lineSpacing: LineSpacing) = copy(lineSpacing = lineSpacing)
     fun biggerFont() = copy(fontScale = step(+1))
     fun smallerFont() = copy(fontScale = step(-1))
 
