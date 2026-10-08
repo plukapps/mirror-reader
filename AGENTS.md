@@ -88,7 +88,7 @@ Arquitectura MVVM en capas, un solo módulo Gradle, paquetes `com.pluk.reader.{u
 Raíz: `code/backend/v1` (reglas de Firestore y Storage, Cloud Functions en `functions/`, tests en `tests/`). Detalle y pasos manuales: `code/backend/v1/README.md`. Modelo de datos: `specs/platforms/backend.md`.
 
 - Tests (emuladores de Auth, Firestore, Storage y Functions): desde `code/backend/v1`, `npm test`. Exige JDK 21 o superior: en esta máquina, `export JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home"` y su `bin` en el `PATH`.
-- Los tests usan el proyecto `demo-pluk-reader`; nunca tocan el proyecto real (`mirror-reading-staging`, región `us-central1`).
+- Los tests usan el proyecto `demo-pluk-reader`; nunca tocan el proyecto real (`mirror-reading-staging`: Firestore en `us-central1`, bucket de Storage en `us-east1`).
 - Desplegar al proyecto real es una acción aparte que se pide al usuario.
 
 ## Decisiones vigentes

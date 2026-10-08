@@ -10,13 +10,17 @@ initializeApp();
 // Misma región que Firestore y Storage del proyecto (ADR 0007).
 setGlobalOptions({ region: "us-central1" });
 
-export const onBookFileFinalized = onObjectFinalized(async (event) => {
+// Las funciones de Storage deben estar en la región de su bucket. El bucket por defecto de
+// mirror-reading-staging quedó en us-east1 (no se puede mover), mientras que Firestore está en us-central1.
+const STORAGE_REGION = "us-east1";
+
+export const onBookFileFinalized = onObjectFinalized({ region: STORAGE_REGION }, async (event) => {
   const file = parseBookFilePath(event.data.name);
   if (!file) return;
   await addStoredFile(getFirestore(), file, parseObjectSize(event.data.size));
 });
 
-export const onBookFileDeleted = onObjectDeleted(async (event) => {
+export const onBookFileDeleted = onObjectDeleted({ region: STORAGE_REGION }, async (event) => {
   const file = parseBookFilePath(event.data.name);
   if (!file) return;
   await removeStoredFile(getFirestore(), file);

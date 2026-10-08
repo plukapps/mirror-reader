@@ -2,7 +2,7 @@
 
 Reglas de seguridad, índices y tests del backend de Pluk Reader. Decisión: `specs/adr/0007-backend-firebase.md`. Plan: `specs/plans/2026-10-07-backend-firebase.md`.
 
-Proyecto de Firebase: `mirror-reading-staging` (región `us-central1`). Los tests usan el proyecto de demostración `demo-pluk-reader`, así que nunca tocan recursos reales.
+Proyecto de Firebase: `mirror-reading-staging` (Firestore y cuentas en `us-central1`; el bucket de Storage por defecto y sus funciones en `us-east1`, porque una función debe estar en la región de su bucket). Los tests usan el proyecto de demostración `demo-pluk-reader`, así que nunca tocan recursos reales.
 
 ## Requisitos
 
