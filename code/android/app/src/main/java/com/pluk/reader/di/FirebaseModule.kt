@@ -30,5 +30,11 @@ object FirebaseModule {
 
     @Provides
     @Singleton
-    fun provideStorage(): FirebaseStorage = FirebaseStorage.getInstance()
+    fun provideStorage(): FirebaseStorage = FirebaseStorage.getInstance().apply {
+        // Por defecto reintenta 10 minutos sin red; un minuto basta para avisar y dejar el libro pendiente.
+        maxUploadRetryTimeMillis = UPLOAD_RETRY_MS
+        maxOperationRetryTimeMillis = UPLOAD_RETRY_MS
+    }
+
+    private const val UPLOAD_RETRY_MS = 60_000L
 }

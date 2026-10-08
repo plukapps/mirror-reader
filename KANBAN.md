@@ -23,10 +23,10 @@ Plan de referencia: `specs/plans/2026-10-06-android-epub-viewer.md`
 
 ## En curso
 
-- **K-054** Libros remotos, Tarea 4: subir libros con control de cuota. LIB-009, SYN-001.
 
 ## Revisión
 
+- **K-054** Libros remotos, Tarea 4: subir libros con control de cuota. LIB-009, SYN-001. Rama `feature/remote-books`. `UploadBooksUseCase` (archivo, luego metadatos, luego marcar; cuota previa con espacio libre que baja en la tanda; sin conexión corta y deja pendiente) con 10 tests JVM verificados por mutación; implementaciones con Storage y Firestore (`FirebaseBookFileStore`, `FirestoreRemoteLibrary`, `FirestoreQuotaSource`); botón "Subir a la nube" y avisos en la biblioteca, 5 tests de ViewModel nuevos. Falta probarlo a mano en el teléfono contra el proyecto real. Falta que lo revises.
 - **K-044** Bug: tras abrir y cerrar varios libros pasando páginas, a veces la página no avanza. Causa probable: `awaitMoved` marcaba la página como borde del libro tras 400 ms sin cambio y `BookEdges` la bloqueaba para siempre. Ahora el bloqueo vence a los 3 s y el plazo es de 800 ms (`BookEdgesTest`). RDR-009. Rama `feature/home`. Compila y pasan los tests JVM. Instalada en el teléfono; el bloqueo real no se pudo reproducir a propósito, falta que lo uses unos días y confirmes.
 - **K-043** Aviso de fin de lectura: detectar el fin del cuerpo por la tabla de contenidos y mostrar un toast. RDR-012. Plan `2026-10-07-android-reading-end.md`. Rama `feature/home`. Compila y pasan los tests JVM (`BackMatterTest`). Detección por palabras clave del título (ajustada con 4 libros reales: la primera versión solo acertaba 1 de 4). Instalada en el teléfono; falta probarla a mano.
 - **K-042** Fuente de la app: Host Grotesk (variable, normal e itálica) como tipografía por defecto del tema. Rama `feature/home`. Compila; falta verla a mano.

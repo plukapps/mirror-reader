@@ -69,6 +69,7 @@ fun LibraryScreen(onBookClick: (bookId: String) -> Unit, viewModel: LibraryViewM
         onFilterSelected = viewModel::onFilterSelected,
         onImport = viewModel::onImport,
         onBookClick = onBookClick,
+        onUpload = viewModel::onUpload,
     )
 }
 
@@ -80,6 +81,7 @@ fun LibraryContent(
     onFilterSelected: (LibraryFilter) -> Unit,
     onImport: (List<String>) -> Unit,
     onBookClick: (String) -> Unit,
+    onUpload: () -> Unit = {},
 ) {
     // El libro se copia a la app (ADR 0006), así que no hace falta permiso persistente.
     val picker = rememberLauncherForActivityResult(ActivityResultContracts.OpenMultipleDocuments()) { uris ->
@@ -90,6 +92,9 @@ fun LibraryContent(
     Box(Modifier.fillMaxSize().background(MarginColors.Paper)) {
         Column(Modifier.fillMaxSize().statusBarsPadding()) {
             Header(importing = state.importing, onImport = launchPicker)
+            if (state.signedIn && (state.pendingUploadCount > 0 || state.uploading)) {
+                UploadBar(state.pendingUploadCount, state.uploading, onUpload)
+            }
             Tabs(state, onFilterSelected)
             when {
                 state.loading -> Unit
@@ -129,6 +134,39 @@ private fun Header(importing: Boolean, onImport: () -> Unit) {
             Icon(LibraryIcons.Add, contentDescription = null, tint = MarginColors.Ink)
             Text(
                 text = stringResource(if (importing) R.string.library_importing else R.string.library_import),
+                color = MarginColors.Ink,
+                fontSize = 13.sp,
+                fontWeight = FontWeight.Bold,
+            )
+        }
+    }
+}
+
+/** LIB-007: libros importados que aún no están en la nube, con el botón para subirlos. */
+@Composable
+private fun UploadBar(pendingCount: Int, uploading: Boolean, onUpload: () -> Unit) {
+    Row(
+        Modifier.fillMaxWidth().padding(start = 20.dp, end = 20.dp, top = 14.dp).testTag("upload-bar"),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Text(
+            text = pluralStringResource(R.plurals.library_pending_upload, pendingCount, pendingCount),
+            color = MarginColors.Muted,
+            fontSize = 13.sp,
+        )
+        Box(
+            Modifier
+                .height(34.dp)
+                .clip(RoundedCornerShape(17.dp))
+                .background(MarginColors.Yellow)
+                .clickable(enabled = !uploading, role = Role.Button, onClick = onUpload)
+                .padding(horizontal = 14.dp)
+                .testTag("upload-button"),
+            contentAlignment = Alignment.Center,
+        ) {
+            Text(
+                text = stringResource(if (uploading) R.string.library_uploading else R.string.library_upload),
                 color = MarginColors.Ink,
                 fontSize = 13.sp,
                 fontWeight = FontWeight.Bold,
