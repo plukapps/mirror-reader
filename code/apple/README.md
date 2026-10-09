@@ -40,6 +40,12 @@ xcrun simctl install booted .build/xcode/Build/Products/Debug-iphonesimulator/Re
 # Tests de la app (cambiar el destino para correrlos en la Mac: 'platform=macOS')
 xcodebuild -project Reader.xcodeproj -scheme Reader -destination 'platform=iOS Simulator,name=iPhone 16' -derivedDataPath .build/xcode test
 
+# En un iPhone físico (cuenta gratuita de Apple): una vez por máquina, crear Signing.local.xcconfig
+# con DEVELOPMENT_TEAM (ver Signing.xcconfig), agregar el Apple ID en Xcode → Settings → Accounts
+# y activar el Modo de desarrollador en el iPhone. La app instalada así vence a los 7 días.
+xcodebuild -project Reader.xcodeproj -scheme Reader -destination 'generic/platform=iOS' -derivedDataPath .build/xcode -allowProvisioningUpdates build
+xcrun devicectl device install app --device <id de devicectl list devices> .build/xcode/Build/Products/Debug-iphoneos/Reader.app
+
 # Tests del dominio
 cd Packages/ReaderDomain && swift test
 ```

@@ -24,9 +24,16 @@ targets:
     sources: [App]
     dependencies:
       - package: ReaderDomain
+    # Equipo de firma para iPhone físico; ver Signing.xcconfig.
+    configFiles:
+      Debug: Signing.xcconfig
+      Release: Signing.xcconfig
     settings:
       base:
-        PRODUCT_BUNDLE_IDENTIFIER: com.pluk.reader
+        PRODUCT_BUNDLE_IDENTIFIER: com.pluk.reader$(BUNDLE_ID_SUFFIX)
+        # En un iPhone físico se firma con el equipo de Signing.local.xcconfig.
+        "CODE_SIGN_STYLE[sdk=iphoneos*]": Automatic
+        "CODE_SIGN_IDENTITY[sdk=iphoneos*]": Apple Development
         PRODUCT_NAME: Reader
         GENERATE_INFOPLIST_FILE: YES
         INFOPLIST_KEY_CFBundleDisplayName: Reader
