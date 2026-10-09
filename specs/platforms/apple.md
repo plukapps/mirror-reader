@@ -26,8 +26,9 @@ Stack y capas en `specs/adr/0010-apple-stack-and-architecture.md` (provisional):
 
 - Versión mínima: macOS 14 e iOS 17. Un solo target con los dos destinos.
 - Interfaz con Host Grotesk y la paleta del diseño, como Android.
-- Inicio con datos reales (K-100 a K-104): sesión con la cuenta de desarrollo (solo Debug), libros, posiciones y portadas bajados de Firebase a la base local al arrancar. Solo lectura: Apple todavía no sube nada.
-- Inicio (prueba, K-076): mismo contenido que en Android, centrado con un ancho máximo de 640 pt. Sin barra inferior: la navegación de la Mac (probablemente barra lateral) espera un diseño.
+- Inicio con datos reales (K-107 a K-111): sesión con la cuenta de desarrollo (solo Debug), libros, posiciones y portadas bajados de Firebase a la base local al arrancar. Solo lectura: Apple todavía no sube nada.
+- Inicio (prueba, K-076): mismo contenido que en Android, centrado con un ancho máximo de 640 pt.
+- Barra inferior (HOM-005, K-096): en iPhone, la misma que Android (píldora flotante, el contenido pasa por debajo). Mientras solo exista Inicio, los otros tres destinos muestran el aviso de HOM-006. En la Mac no hay barra: su navegación (probablemente barra lateral) espera un diseño (K-078).
 
 ## Criterio de terminado
 

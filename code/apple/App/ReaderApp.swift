@@ -11,7 +11,7 @@ struct ReaderApp: App {
 
     var body: some Scene {
         WindowGroup {
-            HomeView(viewModel: home)
+            RootView(home: home)
                 .windowMinimumSize()
                 #if os(iOS)
                 // La paleta del diseño es clara y no hay tema oscuro: la barra de estado va oscura (IOS-002).

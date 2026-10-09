@@ -22,11 +22,11 @@
 
 ## Tareas
 
-- **K-100** Docs: ADR 0012, este plan, `apple.md`, Kanban.
-- **K-101** Dominio: modelos y protocolos remotos, `LibrarySync`. Tests con `swift test` y repositorios falsos (LIB-007, LIB-012, SYN-001).
-- **K-102** Base local con SwiftData: `BookRecord`, `PositionRecord`, `LibraryStore` (biblioteca y libros de la nube), portadas en `Application Support/covers`. Tests en el simulador con la base en memoria.
-- **K-103** Firebase: SDK en `project.yml`, app de iOS registrada, `GoogleService-Info.plist` fuera del repo, implementaciones de Auth, Firestore (libros y posiciones) y Storage (portadas), credenciales de la cuenta de desarrollo (script que las copia de `local.properties`).
-- **K-104** Inicio con datos reales: `ReaderApp` arma el grafo, `HomeViewModel` carga lo local, sincroniza y recarga. Tests del ViewModel. Verificación a mano en el simulador de iPhone contra el proyecto real y build de la Mac.
+- **K-107** Docs: ADR 0012, este plan, `apple.md`, Kanban.
+- **K-108** Dominio: modelos y protocolos remotos, `LibrarySync`. Tests con `swift test` y repositorios falsos (LIB-007, LIB-012, SYN-001).
+- **K-109** Base local con SwiftData: `BookRecord`, `PositionRecord`, `LibraryStore` (biblioteca y libros de la nube), portadas en `Application Support/covers`. Tests en el simulador con la base en memoria.
+- **K-110** Firebase: SDK en `project.yml`, app de iOS registrada, `GoogleService-Info.plist` fuera del repo, implementaciones de Auth, Firestore (libros y posiciones) y Storage (portadas), credenciales de la cuenta de desarrollo (script que las copia de `local.properties`).
+- **K-111** Inicio con datos reales: `ReaderApp` arma el grafo, `HomeViewModel` carga lo local, sincroniza y recarga. Tests del ViewModel. Verificación a mano en el simulador de iPhone contra el proyecto real y build de la Mac.
 
 ## Verificación
 
