@@ -26,6 +26,7 @@ Stack y capas definidos en `specs/adr/0005-android-stack-and-architecture.md`: C
 - Tipografías del lector (RDR-014): Newsreader, Host Grotesk y JetBrains Mono viajan en `assets/fonts` y se sirven al libro con Readium. ADR 0009 (provisional). Con una fuente elegida se apagan los estilos del editor.
 - Controles del lector (RDR-013, RDR-014): barra superior (`ReaderTopBar`) y panel inferior (`ReaderSettingsSheet`, un `ModalBottomSheet`). Plan `specs/plans/2026-10-08-android-reader-settings.md`.
 - Dos páginas en el lector (RDR-016, AND-006): `useTwoPages` decide por el tamaño de la ventana; `toEpubPreferences(twoPages)` fija `columnCount`/`spread` y, con dos páginas, `pageMargins = 1.0` (separa las páginas, ≈ 100 dp al centro). Al girar Android recrea el navegador: `NavigatorFragmentHost` arma la fábrica en cada instanciación con la última posición conocida (el `ReaderViewModel` se la informa), no la del momento de abrir. Plan `specs/plans/2026-10-08-android-tablet-spread.md`.
+- Búsqueda (LIB-006, LIB-013 a LIB-015): local, sobre `LibraryRepository.books` filtrada en memoria con `searchBooks` (`domain/search`), sin índice ni consulta SQL. Normaliza con `Normalizer` NFD para ignorar acentos. Destino `search` de la barra inferior. Plan `specs/plans/2026-10-09-android-search.md`.
 
 ## Criterio de terminado
 
