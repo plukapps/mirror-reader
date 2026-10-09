@@ -27,7 +27,7 @@ data class SyncReport(
 /**
  * Deja la biblioteca igual en la nube y en este dispositivo (SYN-001, LIB-007): trae los libros que hay en la nube,
  * sube los importados que faltan (LIB-009 decide cuáles entran en la cuota), sincroniza las portadas (LIB-012) y baja
- * los archivos que aún no están aquí. Cada paso se puede repetir sin duplicar nada. Sin conexión corta la pasada.
+ * los archivos que aún no están aquí, y envía las posiciones de lectura pendientes. Cada paso se puede repetir sin duplicar nada. Sin conexión corta la pasada.
  */
 class SyncLibraryUseCase @Inject constructor(
     private val syncRemoteBooks: SyncRemoteBooksUseCase,
@@ -35,6 +35,7 @@ class SyncLibraryUseCase @Inject constructor(
     private val syncCovers: SyncCoversUseCase,
     private val downloadBook: DownloadBookUseCase,
     private val cloud: CloudBooksRepository,
+    private val positions: PositionFlusher,
 ) {
     suspend operator fun invoke(): SyncReport {
         if (syncRemoteBooks().exceptionOrNull() is RemoteUnavailableException) return SyncReport(unreachable = true)
@@ -54,6 +55,9 @@ class SyncLibraryUseCase @Inject constructor(
                 else -> failed++
             }
         }
+        // Los libros recién subidos ya existen en la nube: ahora puede salir la posición de lectura que estaba
+        // esperándolos (SYN-011).
+        positions.flush()
         return SyncReport(upload, downloaded, failed)
     }
 }

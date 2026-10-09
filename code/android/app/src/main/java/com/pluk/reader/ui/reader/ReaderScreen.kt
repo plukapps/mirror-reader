@@ -5,10 +5,18 @@ import android.content.Context
 import android.content.ContextWrapper
 import android.widget.Toast
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.BoxScope
+import androidx.compose.foundation.layout.navigationBarsPadding
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.rememberUpdatedState
 import android.view.Window
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Rect
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.sp
 import com.pluk.reader.domain.model.ReadingTheme
 import androidx.compose.ui.graphics.BlendMode
 import androidx.compose.ui.graphics.Color
@@ -42,10 +50,12 @@ import androidx.compose.foundation.layout.navigationBarsIgnoringVisibility
 import androidx.compose.foundation.layout.statusBarsIgnoringVisibility
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -57,6 +67,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.foundation.background
 import androidx.compose.ui.platform.LocalInspectionMode
 import androidx.compose.ui.platform.LocalUriHandler
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.fragment.compose.AndroidFragment
@@ -70,6 +81,9 @@ import com.pluk.reader.domain.model.ReaderSettings
 import com.pluk.reader.domain.pageLabel
 import com.pluk.reader.domain.useTwoPages
 import com.pluk.reader.ui.theme.ReaderTheme
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.emptyFlow
+import org.json.JSONObject
 import org.readium.r2.navigator.epub.EpubNavigatorFragment
 import org.readium.r2.navigator.input.InputListener
 import org.readium.r2.navigator.input.TapEvent
@@ -111,6 +125,12 @@ fun ReaderScreen(
             CircularProgressIndicator()
         }
 
+        // SYN-003
+        is ReaderUiState.ResumePrompt -> ResumePromptDialog(
+            state = current,
+            onChoice = viewModel::onResumeChoice,
+        )
+
         is ReaderUiState.Failed -> Column(
             modifier = Modifier.fillMaxSize().padding(24.dp),
             verticalArrangement = Arrangement.Center,
@@ -129,10 +149,38 @@ fun ReaderScreen(
             controlsVisible = current.controlsVisible,
             chapterTitle = current.chapterTitle,
             settingsOpen = current.settingsOpen,
+            continueFrom = current.continueFrom,
+            jumps = viewModel.jumps,
             onBack = onBack,
             actions = ReaderActions.of(viewModel),
         )
     }
+}
+
+/** SYN-003: hay una lectura más reciente en otro dispositivo. Mientras se decide, la pantalla queda en blanco. */
+@Composable
+private fun ResumePromptDialog(state: ReaderUiState.ResumePrompt, onChoice: (useRemote: Boolean) -> Unit) {
+    Box(Modifier.fillMaxSize())
+    AlertDialog(
+        onDismissRequest = { onChoice(false) },
+        title = { Text(stringResource(R.string.reader_resume_title, state.deviceName)) },
+        text = {
+            Text(
+                state.remotePercent?.let { stringResource(R.string.reader_resume_message_percent, it) }
+                    ?: stringResource(R.string.reader_resume_message),
+            )
+        },
+        confirmButton = {
+            TextButton(onClick = { onChoice(true) }, modifier = Modifier.testTag("resume-continue")) {
+                Text(stringResource(R.string.reader_resume_continue))
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = { onChoice(false) }, modifier = Modifier.testTag("resume-stay")) {
+                Text(stringResource(R.string.reader_resume_stay))
+            }
+        },
+    )
 }
 
 @OptIn(ExperimentalReadiumApi::class, ExperimentalLayoutApi::class)
@@ -148,6 +196,8 @@ private fun ReaderContent(
     settingsOpen: Boolean,
     onBack: () -> Unit,
     actions: ReaderActions,
+    continueFrom: ContinueFrom? = null,
+    jumps: Flow<String> = emptyFlow(),
 ) {
     var showToc by remember { mutableStateOf(false) }
     var navigator by remember { mutableStateOf<EpubNavigatorFragment?>(null) }
@@ -226,6 +276,14 @@ private fun ReaderContent(
                 locator.locations.position,
                 locator.href.toString(),
             )
+        }
+    }
+
+    // SYN-013: el usuario eligió seguir desde otro dispositivo.
+    LaunchedEffect(navigator) {
+        val nav = navigator ?: return@LaunchedEffect
+        jumps.collect { json ->
+            runCatching { Locator.fromJSON(JSONObject(json)) }.getOrNull()?.let { nav.go(it, animated = false) }
         }
     }
 
@@ -354,6 +412,8 @@ private fun ReaderContent(
                 ),
             )
         }
+        // SYN-013: aviso discreto, sin mover la página; se toca para seguir o se descarta.
+        continueFrom?.let { ContinueFromChip(it, settings.theme, actions.onContinueFrom, actions.onDismissContinueFrom) }
         if (showToc) {
             ReaderTocDialog(
                 toc = toc,
@@ -364,6 +424,48 @@ private fun ReaderContent(
                 },
             )
         }
+    }
+}
+
+/** SYN-013: "Seguir desde [dispositivo]". Aparece abajo, sobre el número de página, y nunca mueve la página sola. */
+@Composable
+private fun BoxScope.ContinueFromChip(
+    continueFrom: ContinueFrom,
+    theme: ReadingTheme,
+    onContinue: () -> Unit,
+    onDismiss: () -> Unit,
+) {
+    val label = continueFrom.percent?.let { stringResource(R.string.reader_continue_from_percent, continueFrom.deviceName, it) }
+        ?: stringResource(R.string.reader_continue_from, continueFrom.deviceName)
+    Row(
+        Modifier
+            .align(Alignment.BottomCenter)
+            .navigationBarsPadding()
+            .padding(bottom = 40.dp, start = 16.dp, end = 16.dp)
+            .clip(RoundedCornerShape(22.dp))
+            .background(theme.pageTextColor().copy(alpha = 0.92f))
+            .testTag("continue-from-chip"),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Text(
+            text = label,
+            color = theme.pageBackground(),
+            fontSize = 13.sp,
+            fontWeight = FontWeight.Bold,
+            modifier = Modifier
+                .clickable(role = Role.Button, onClick = onContinue)
+                .padding(start = 16.dp, top = 11.dp, bottom = 11.dp, end = 8.dp)
+                .testTag("continue-from-go"),
+        )
+        Text(
+            text = stringResource(R.string.reader_continue_from_dismiss),
+            color = theme.pageBackground(),
+            fontSize = 13.sp,
+            modifier = Modifier
+                .clickable(role = Role.Button, onClick = onDismiss)
+                .padding(start = 8.dp, end = 16.dp, top = 11.dp, bottom = 11.dp)
+                .testTag("continue-from-dismiss"),
+        )
     }
 }
 
@@ -467,6 +569,8 @@ private class ReaderActions(
     val onSetTheme: (ReadingTheme) -> Unit,
     val onSetFont: (ReaderFont) -> Unit,
     val onSetLineSpacing: (LineSpacing) -> Unit,
+    val onContinueFrom: () -> Unit = {},
+    val onDismissContinueFrom: () -> Unit = {},
 ) {
     companion object {
         fun of(viewModel: ReaderViewModel) = ReaderActions(
@@ -483,6 +587,8 @@ private class ReaderActions(
             onSetTheme = viewModel::setTheme,
             onSetFont = viewModel::setFont,
             onSetLineSpacing = viewModel::setLineSpacing,
+            onContinueFrom = viewModel::continueFromOtherDevice,
+            onDismissContinueFrom = viewModel::dismissContinueFrom,
         )
 
         val None = ReaderActions({}, {}, { _, _, _, _ -> }, {}, {}, {}, {}, {}, {}, {}, {})
