@@ -22,6 +22,6 @@ class BookUploadRepositoryImpl @Inject constructor(
         }
     }
 
-    override suspend fun markUploaded(bookId: String, sizeBytes: Long) =
-        dao.markUploaded(bookId, uploadedAt = System.currentTimeMillis(), sizeBytes = sizeBytes)
+    override suspend fun markUploaded(bookId: String, sizeBytes: Long, coverUploaded: Boolean) =
+        dao.markUploaded(bookId, uploadedAt = System.currentTimeMillis(), sizeBytes = sizeBytes, coverUploaded = coverUploaded)
 }

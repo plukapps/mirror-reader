@@ -25,7 +25,9 @@ class CloudBooksRepositoryImpl @Inject constructor(
         dao.insertAll(books.mapIndexed { index, book -> book.toCloudOnlyEntity(now - index) })
     }
 
-    override suspend fun uploadedBooksWithCover(): List<CoverFile> = dao.getUploadedWithCover().mapNotNull {
+    override suspend fun markCoverUploaded(bookId: String) = dao.markCoverUploaded(bookId)
+
+    override suspend fun coversToUpload(): List<CoverFile> = dao.getCoversToUpload().mapNotNull {
         val file = files.coverFile(it.id)
         if (file.isFile) CoverFile(it.id, file) else null
     }

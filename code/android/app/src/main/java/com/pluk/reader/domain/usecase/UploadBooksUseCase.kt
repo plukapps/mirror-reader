@@ -69,10 +69,13 @@ class UploadBooksUseCase @Inject constructor(
         library.saveBook(item.book).exceptionOrNull()?.let { return it.toStep() }
         // La portada es secundaria (LIB-012): solo la falta de conexión deja el libro pendiente. Cualquier otro
         // fallo se ignora y SyncCoversUseCase la completa en la próxima pasada.
+        var coverUploaded = false
         item.cover?.let { cover ->
-            if (files.uploadCover(item.book.id, cover).exceptionOrNull() is RemoteUnavailableException) return Step.Unreachable
+            val result = files.uploadCover(item.book.id, cover)
+            if (result.exceptionOrNull() is RemoteUnavailableException) return Step.Unreachable
+            coverUploaded = result.isSuccess
         }
-        uploads.markUploaded(item.book.id, item.book.sizeBytes)
+        uploads.markUploaded(item.book.id, item.book.sizeBytes, coverUploaded)
         return Step.Uploaded
     }
 

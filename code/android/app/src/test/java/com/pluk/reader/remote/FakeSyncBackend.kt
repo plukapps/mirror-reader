@@ -78,7 +78,8 @@ class FakeSyncBackend : BookUploadRepository, BookFileStore, RemoteLibrary, Quot
     override suspend fun cloudOnlyBookIds(): List<String> = cloudOnly.filter { it !in downloaded }
     override suspend fun isDownloaded(bookId: String) = bookId in downloaded
     override fun newTempFile(): File = File.createTempFile("sync", ".tmp").also { it.deleteOnExit() }
-    override suspend fun uploadedBooksWithCover(): List<CoverFile> = emptyList()
+    override suspend fun coversToUpload(): List<CoverFile> = emptyList()
+    override suspend fun markCoverUploaded(bookId: String) = Unit
     override suspend fun cloudBooksWithoutCover(): List<String> = emptyList()
     override suspend fun installCover(bookId: String, downloaded: File) = Unit
     override suspend fun install(bookId: String, downloaded: File): Result<Unit> {
@@ -89,7 +90,7 @@ class FakeSyncBackend : BookUploadRepository, BookFileStore, RemoteLibrary, Quot
 
     // BookUploadRepository
     override suspend fun pending(): List<PendingUpload> = pending.toList()
-    override suspend fun markUploaded(bookId: String, sizeBytes: Long) {
+    override suspend fun markUploaded(bookId: String, sizeBytes: Long, coverUploaded: Boolean) {
         pending.removeAll { it.book.id == bookId }
     }
 

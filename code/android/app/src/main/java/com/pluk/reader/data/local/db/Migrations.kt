@@ -26,3 +26,13 @@ val MIGRATION_2_3 = object : Migration(2, 3) {
         db.execSQL("ALTER TABLE `books` ADD COLUMN `uploadedAt` INTEGER")
     }
 }
+
+/**
+ * Registra qué portadas ya están en la nube (LIB-012). Todas quedan como no subidas: la próxima sincronización
+ * las comprueba una vez y las marca, así no hay que asumir nada sobre lo que había en la nube.
+ */
+val MIGRATION_3_4 = object : Migration(3, 4) {
+    override fun migrate(db: SupportSQLiteDatabase) {
+        db.execSQL("ALTER TABLE `books` ADD COLUMN `isCoverUploaded` INTEGER NOT NULL DEFAULT 0")
+    }
+}

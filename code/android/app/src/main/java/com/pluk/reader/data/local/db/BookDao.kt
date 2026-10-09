@@ -25,12 +25,15 @@ interface BookDao {
     @Query("SELECT * FROM books WHERE isDownloaded = 1 AND uploadedAt IS NULL ORDER BY addedAt ASC")
     suspend fun getPendingUpload(): List<BookEntity>
 
-    @Query("UPDATE books SET uploadedAt = :uploadedAt, sizeBytes = :sizeBytes WHERE id = :id")
-    suspend fun markUploaded(id: String, uploadedAt: Long, sizeBytes: Long)
+    @Query("UPDATE books SET uploadedAt = :uploadedAt, sizeBytes = :sizeBytes, isCoverUploaded = :coverUploaded WHERE id = :id")
+    suspend fun markUploaded(id: String, uploadedAt: Long, sizeBytes: Long, coverUploaded: Boolean = false)
 
-    /** Libros ya subidos que tienen portada en este dispositivo (LIB-012). */
-    @Query("SELECT * FROM books WHERE isDownloaded = 1 AND uploadedAt IS NOT NULL AND hasCover = 1")
-    suspend fun getUploadedWithCover(): List<BookEntity>
+    /** Libros ya subidos con portada en este dispositivo cuya portada aún no se sabe en la nube (LIB-012). */
+    @Query("SELECT * FROM books WHERE isDownloaded = 1 AND uploadedAt IS NOT NULL AND hasCover = 1 AND isCoverUploaded = 0")
+    suspend fun getCoversToUpload(): List<BookEntity>
+
+    @Query("UPDATE books SET isCoverUploaded = 1 WHERE id = :id")
+    suspend fun markCoverUploaded(id: String)
 
     /** Libros solo en la nube: el archivo aún no está en este dispositivo (LIB-007). El más reciente primero. */
     @Query("SELECT id FROM books WHERE isDownloaded = 0 ORDER BY addedAt DESC")
@@ -40,7 +43,8 @@ interface BookDao {
     @Query("SELECT id FROM books WHERE isDownloaded = 0 AND hasCover = 0")
     suspend fun getCloudOnlyWithoutCover(): List<String>
 
-    @Query("UPDATE books SET hasCover = 1 WHERE id = :id")
+    /** La portada se bajó de la nube: allí está. */
+    @Query("UPDATE books SET hasCover = 1, isCoverUploaded = 1 WHERE id = :id")
     suspend fun markCover(id: String)
 
     /** El archivo del libro ya está en este dispositivo (descargado o importado de nuevo). */

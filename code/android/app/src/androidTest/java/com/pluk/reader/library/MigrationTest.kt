@@ -6,6 +6,7 @@ import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
 import com.pluk.reader.data.local.db.MIGRATION_1_2
 import com.pluk.reader.data.local.db.MIGRATION_2_3
+import com.pluk.reader.data.local.db.MIGRATION_3_4
 import com.pluk.reader.data.local.db.ReaderDatabase
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
@@ -61,10 +62,31 @@ class MigrationTest {
         }
     }
 
+    // LIB-012: migrar a la versión 4 conserva los libros y deja todas las portadas como no anotadas en la nube
+    @Test
+    fun migrates3To4KeepingBooksWithCoversNotMarkedUploaded() {
+        helper.createDatabase("migration-test-4", 3).apply {
+            execSQL(
+                "INSERT INTO books (id, title, author, hasCover, addedAt, sizeBytes, isDownloaded, uploadedAt) " +
+                    "VALUES ('h', 'Moby Dick', 'Melville', 1, 5, 2048, 1, 9)",
+            )
+            close()
+        }
+        val db = helper.runMigrationsAndValidate("migration-test-4", 4, true, MIGRATION_3_4)
+        db.query("SELECT title, hasCover, sizeBytes, uploadedAt, isCoverUploaded FROM books WHERE id = 'h'").use {
+            assertTrue(it.moveToFirst())
+            assertEquals("Moby Dick", it.getString(0))
+            assertEquals(1, it.getInt(1))
+            assertEquals(2048L, it.getLong(2))
+            assertEquals(9L, it.getLong(3))
+            assertEquals(0, it.getInt(4))
+        }
+    }
+
     // La cadena completa desde la primera versión sigue funcionando
     @Test
-    fun migratesFrom1To3() {
+    fun migratesFrom1To4() {
         helper.createDatabase("migration-test-all", 1).close()
-        helper.runMigrationsAndValidate("migration-test-all", 3, true, MIGRATION_1_2, MIGRATION_2_3)
+        helper.runMigrationsAndValidate("migration-test-all", 4, true, MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4)
     }
 }
