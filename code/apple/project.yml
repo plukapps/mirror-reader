@@ -15,15 +15,27 @@ settings:
 packages:
   ReaderDomain:
     path: Packages/ReaderDomain
+  # SDK de Firebase (ADR 0012). Desde la 12.15 exige Swift 6.1 (Xcode 16.3); esta máquina tiene Xcode 16.2.
+  Firebase:
+    url: https://github.com/firebase/firebase-ios-sdk
+    exactVersion: 12.14.0
 targets:
   # Un solo target para Mac e iOS (ADR 0010). Lo que es solo de Mac va condicionado con [sdk=macosx*].
   Reader:
     type: application
     platform: auto
     supportedDestinations: [macOS, iOS]
-    sources: [App]
+    sources:
+      - path: App
+        excludes: [Info.plist]
     dependencies:
       - package: ReaderDomain
+      - package: Firebase
+        product: FirebaseAuth
+      - package: Firebase
+        product: FirebaseFirestore
+      - package: Firebase
+        product: FirebaseStorage
     # Equipo de firma para iPhone físico; ver Signing.xcconfig.
     configFiles:
       Debug: Signing.xcconfig
@@ -31,11 +43,16 @@ targets:
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.pluk.reader$(BUNDLE_ID_SUFFIX)
-        # En un iPhone físico se firma con el equipo de Signing.local.xcconfig.
+        # En un iPhone físico y en la Mac se firma con el equipo de Signing.local.xcconfig. En la Mac hace falta
+        # para el llavero: Firebase Auth guarda ahí la sesión y sin equipo falla con -34018 (ADR 0012).
         "CODE_SIGN_STYLE[sdk=iphoneos*]": Automatic
         "CODE_SIGN_IDENTITY[sdk=iphoneos*]": Apple Development
+        "CODE_SIGN_STYLE[sdk=macosx*]": Automatic
+        "CODE_SIGN_IDENTITY[sdk=macosx*]": Apple Development
         PRODUCT_NAME: Reader
         GENERATE_INFOPLIST_FILE: YES
+        # Se combina con lo generado: lleva la cuenta de desarrollo (ver Signing.xcconfig).
+        INFOPLIST_FILE: App/Info.plist
         INFOPLIST_KEY_CFBundleDisplayName: Reader
         # La App Store de Mac exige el sandbox (App/Reader.entitlements).
         "CODE_SIGN_ENTITLEMENTS[sdk=macosx*]": App/Reader.entitlements
@@ -49,6 +66,11 @@ targets:
         # Firma local ("Sign to Run Locally"): no requiere cuenta de Apple Developer.
         CODE_SIGN_STYLE: Manual
         CODE_SIGN_IDENTITY: "-"
+      configs:
+        # La cuenta de desarrollo nunca viaja en un build Release.
+        Release:
+          DEV_ACCOUNT_EMAIL: ""
+          DEV_ACCOUNT_PASSWORD: ""
     scheme:
       testTargets: [ReaderTests]
   ReaderTests:

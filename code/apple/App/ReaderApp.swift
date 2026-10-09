@@ -2,11 +2,11 @@ import SwiftUI
 
 @main
 struct ReaderApp: App {
-    // Prueba de Inicio (K-076): la biblioteca es falsa hasta que exista la importación.
-    @State private var home = HomeViewModel(library: FakeLibraryRepository())
+    @State private var home: HomeViewModel
 
     init() {
         AppFont.register()
+        _home = State(initialValue: AppGraph.makeHome())
     }
 
     var body: some Scene {

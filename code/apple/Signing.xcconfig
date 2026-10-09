@@ -2,5 +2,9 @@
 // Los datos de cada máquina van en Signing.local.xcconfig, que no va al repo:
 //   DEVELOPMENT_TEAM = ABCDE12345     (Xcode → Settings → Accounts, o el equipo personal gratuito)
 //   BUNDLE_ID_SUFFIX = .santilod      (opcional, si Apple no acepta com.pluk.reader para el equipo)
+//   DEV_ACCOUNT_EMAIL = ...           (cuenta de desarrollo de Firebase, solo Debug; ver tools/copy-dev-account.sh)
+//   DEV_ACCOUNT_PASSWORD = ...
 BUNDLE_ID_SUFFIX =
+DEV_ACCOUNT_EMAIL =
+DEV_ACCOUNT_PASSWORD =
 #include? "Signing.local.xcconfig"

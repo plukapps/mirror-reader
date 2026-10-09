@@ -96,6 +96,7 @@ Raíz: `code/apple`. Detalle y comandos: `code/apple/README.md`. Plataforma: `sp
 - Tests con Swift Testing: dominio con `swift test` (desde `Packages/ReaderDomain`); app con `xcodebuild -project Reader.xcodeproj -scheme Reader -destination 'platform=macOS' -derivedDataPath .build/xcode test` (en iPhone: `-destination 'platform=iOS Simulator,name=iPhone 16'`). Hay tests que solo corren en una de las dos; correr ambos destinos.
 - Un solo target `Reader` con destinos Mac e iOS (`supportedDestinations`); lo que es solo de Mac va en `project.yml` con `[sdk=macosx*]`.
 - Firma local, sin cuenta de Apple Developer. Sandbox activado.
+- Base local con SwiftData y SDK de Firebase 12.14.0 (fijo: la 12.15 exige Xcode 16.3), ADR 0012. `App/GoogleService-Info.plist` y la cuenta de desarrollo (`Signing.local.xcconfig`, con `tools/copy-dev-account.sh`) no van al repo; sin ellos la app funciona solo en local. Los tests nunca tocan Firebase.
 
 ## Backend (Firebase)
 
