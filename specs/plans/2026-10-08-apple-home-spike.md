@@ -36,6 +36,10 @@ code/apple/
 3. **K-076 Pantalla:** `HomeView` + `HomeViewModel` con un repositorio falso (portadas de color, 6 a 8 libros), fuentes de ADR 0009. Verificación: se ve a mano en la Mac; un test del ViewModel.
 4. **K-077 Cierre:** `specs/platforms/apple.md` (borrador), ADR 0010 (stack de Apple), AGENTS.md (sección Apple), Kanban.
 
+## Resultado
+
+Hecho (K-074 a K-077). La app abre Inicio en la Mac con 9 libros falsos. 11 tests del dominio y 6 de la app pasan. Decisiones registradas en ADR 0010 (provisional) y `specs/platforms/apple.md` (borrador). Queda para después: persistencia, importación, Readium, Firebase, navegación de la Mac (requiere diseño) e iOS.
+
 ## Riesgos
 
 - Xcode 16.2 viejo para publicar: la App Store exige SDK reciente; antes de publicar hay que actualizar macOS y Xcode.
