@@ -11,6 +11,9 @@ interface CloudBooksRepository {
     /** Registra como "solo en la nube" los libros que aún no están en la biblioteca. No toca los que ya existen. */
     suspend fun addCloudOnly(books: List<RemoteBook>)
 
+    /** Libros cuyo archivo aún no está en este dispositivo (LIB-007). */
+    suspend fun cloudOnlyBookIds(): List<String>
+
     /** El archivo del libro ya está en este dispositivo. */
     suspend fun isDownloaded(bookId: String): Boolean
 

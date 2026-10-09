@@ -27,6 +27,7 @@ class SyncCoversUseCaseTest {
     ) : CloudBooksRepository {
         val installed = mutableListOf<String>()
         val temps = mutableListOf<File>()
+        override suspend fun cloudOnlyBookIds(): List<String> = emptyList()
         override suspend fun uploadedBooksWithCover() = withCover.map { CoverFile(it, File("/portadas/$it.jpg")) }
         override suspend fun cloudBooksWithoutCover() = withoutCover
         override suspend fun installCover(bookId: String, downloaded: File) {

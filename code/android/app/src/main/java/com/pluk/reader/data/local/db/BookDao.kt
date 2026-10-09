@@ -32,6 +32,10 @@ interface BookDao {
     @Query("SELECT * FROM books WHERE isDownloaded = 1 AND uploadedAt IS NOT NULL AND hasCover = 1")
     suspend fun getUploadedWithCover(): List<BookEntity>
 
+    /** Libros solo en la nube: el archivo aún no está en este dispositivo (LIB-007). El más reciente primero. */
+    @Query("SELECT id FROM books WHERE isDownloaded = 0 ORDER BY addedAt DESC")
+    suspend fun getCloudOnlyIds(): List<String>
+
     /** Libros solo en la nube que todavía no tienen portada (LIB-012). */
     @Query("SELECT id FROM books WHERE isDownloaded = 0 AND hasCover = 0")
     suspend fun getCloudOnlyWithoutCover(): List<String>

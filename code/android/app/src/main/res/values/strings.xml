@@ -19,25 +19,21 @@
     </plurals>
 
     <string name="library_status_cloud">En la nube</string>
-    <string name="library_upload">Subir a la nube</string>
-    <string name="library_uploading">Subiendo…</string>
     <plurals name="library_pending_upload">
         <item quantity="one">%d libro sin subir</item>
         <item quantity="other">%d libros sin subir</item>
-    </plurals>
-    <plurals name="library_uploaded">
-        <item quantity="one">Se subió %d libro a la nube.</item>
-        <item quantity="other">Se subieron %d libros a la nube.</item>
     </plurals>
     <plurals name="library_no_space">
         <item quantity="one">%d libro no entra en tu espacio. Podés seguir leyendo.</item>
         <item quantity="other">%d libros no entran en tu espacio. Podés seguir leyendo.</item>
     </plurals>
-    <plurals name="library_upload_failed">
-        <item quantity="one">No se pudo subir %d libro. Se reintentará.</item>
-        <item quantity="other">No se pudieron subir %d libros. Se reintentará.</item>
+    <plurals name="library_sync_failed">
+        <item quantity="one">No se pudo sincronizar %d libro.</item>
+        <item quantity="other">No se pudieron sincronizar %d libros.</item>
     </plurals>
-    <string name="library_cloud_unreachable">Sin conexión con la nube. Tus libros siguen en el dispositivo y se subirán más tarde.</string>
+    <string name="library_syncing">Sincronizando…</string>
+    <string name="library_sync_offline">Sin conexión con la nube. Tus libros siguen aquí y se sincronizarán más tarde.</string>
+    <string name="library_sync_retry">%1$s Tocá para reintentar.</string>
 
     <string name="nav_home">Inicio</string>
     <string name="nav_search">Buscar</string>

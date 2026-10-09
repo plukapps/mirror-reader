@@ -18,6 +18,7 @@ class CloudBooksRepositoryImpl @Inject constructor(
     private val files: LibraryFiles,
     private val importer: EpubImporter,
 ) : CloudBooksRepository {
+
     override suspend fun addCloudOnly(books: List<RemoteBook>) {
         val now = System.currentTimeMillis()
         // El orden de la nube se conserva: el primero de la lista queda como el más reciente.
@@ -35,6 +36,8 @@ class CloudBooksRepositoryImpl @Inject constructor(
         val target = files.coverFile(bookId)
         if (downloaded.renameTo(target)) dao.markCover(bookId) else downloaded.delete()
     }
+
+    override suspend fun cloudOnlyBookIds(): List<String> = dao.getCloudOnlyIds()
 
     override suspend fun isDownloaded(bookId: String) = dao.get(bookId)?.isDownloaded == true
 
