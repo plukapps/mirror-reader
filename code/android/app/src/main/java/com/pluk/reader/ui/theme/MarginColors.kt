@@ -11,6 +11,9 @@ object MarginColors {
     val Line = Color(0xFFDDD9CE)
     val CoverBorder = Color(0xFFFFFFFF)
 
+    /** Íconos inactivos sobre fondo tinta (barra inferior). */
+    val InkMuted = Color(0xFF8A8676)
+
     /** Fondos de las portadas generadas cuando el EPUB no trae una. */
     val Covers = listOf(
         Color(0xFF130000), Color(0xFF1F3A5F), Color(0xFFFBD256), Color(0xFFE45A3F),
