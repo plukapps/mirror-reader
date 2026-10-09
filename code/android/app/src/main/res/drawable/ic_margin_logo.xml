@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Logo de margin.: cuatro barras, la primera inclinada (diseño 01, viewBox 110 × 88). -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="30dp"
+    android:height="24dp"
+    android:viewportWidth="110"
+    android:viewportHeight="88">
+    <path android:fillColor="@color/margin_ink" android:pathData="M0,88 L15,88 L41,0 L26,0 Z" />
+    <path android:fillColor="@color/margin_ink" android:pathData="M51,0 h14 v88 h-14 Z" />
+    <path android:fillColor="@color/margin_ink" android:pathData="M73.5,0 h14 v88 h-14 Z" />
+    <path android:fillColor="@color/margin_ink" android:pathData="M96,0 h14 v88 h-14 Z" />
+</vector>

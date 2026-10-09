@@ -1,5 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
-    <style name="Theme.Reader" parent="android:Theme.Material.Light.NoActionBar" />
+    <!--
+      WEL-001, WEL-002: mientras arranca, la ventana es amarilla con el logo. Se retira con el primer
+      frame de la app; nada la retiene.
+    -->
+    <style name="Base.Theme.Reader" parent="android:Theme.Material.Light.NoActionBar">
+        <item name="android:windowBackground">@drawable/splash_background</item>
+    </style>
+
+    <style name="Theme.Reader" parent="Base.Theme.Reader" />
 </resources>

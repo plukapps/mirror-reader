@@ -12,13 +12,34 @@ final class HomeViewModel {
     let greeting: Greeting
 
     private let library: LibraryRepository
+    private let sync: Sync?
+    private var synced = false
 
-    init(library: LibraryRepository, now: Date = .now, calendar: Calendar = .current) {
+    /// Trae la nube a la base local (`LibrarySync`) y llama al argumento cada vez que la base cambió.
+    typealias Sync = @Sendable (_ onChange: @escaping @Sendable () async -> Void) async -> LibrarySyncOutcome
+
+    /// - Parameter sync: nil si la app funciona solo en local.
+    init(
+        library: LibraryRepository,
+        now: Date = .now,
+        calendar: Calendar = .current,
+        sync: Sync? = nil
+    ) {
         self.library = library
+        self.sync = sync
         greeting = ReaderDomain.greeting(forHour: calendar.component(.hour, from: now))
     }
 
+    /// Muestra primero lo local (ADR 0002) y, la primera vez, sincroniza y vuelve a leer la base cada vez que
+    /// cambia (SYN-001).
     func load() async {
+        await reload()
+        guard let sync, !synced else { return }
+        synced = true
+        _ = await sync { [weak self] in await self?.reload() }
+    }
+
+    private func reload() async {
         content = homeContent(await library.books())
         loading = false
     }

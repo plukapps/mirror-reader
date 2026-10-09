@@ -1,7 +1,7 @@
 import Foundation
 import ReaderDomain
 
-/// Biblioteca de prueba para la prueba de Inicio (K-076). Sin portadas: se ven las generadas.
+/// Biblioteca de ejemplo para la vista previa de Inicio en Xcode. Sin portadas: se ven las generadas.
 struct FakeLibraryRepository: LibraryRepository {
     func books() async -> [LibraryBook] {
         let now = Date.now

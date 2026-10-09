@@ -3,7 +3,7 @@
 **Objetivo:** que "Buscar" de la barra inferior abra una pantalla de búsqueda sobre la biblioteca, como la pantalla "03 — Search" de `design/Margin Ebook App.dc.html`.
 
 **Specs que implementa:** LIB-006, LIB-013, LIB-014, LIB-015 (`specs/product/01-library.md`); cambia HOM-005 y HOM-006 (`specs/product/07-home.md`): "Buscar" deja de mostrar el aviso de "llega más adelante".
-**Rama:** `feature/android-search` (worktree `.claude/worktrees/android-search`). **Tarjetas:** K-110 a K-113. Pedido del usuario (2026-10-09): "las búsquedas por ahora son locales".
+**Rama:** `feature/android-search` (worktree `.claude/worktrees/android-search`). **Tarjetas:** K-115 a K-118. Pedido del usuario (2026-10-09): "las búsquedas por ahora son locales".
 
 ## Diseño (medidas del HTML, pantalla 03)
 
@@ -28,17 +28,17 @@
 
 ## Tareas
 
-### Tarea 1 (K-110): búsqueda en el dominio (S)
+### Tarea 1 (K-115): búsqueda en el dominio (S)
 - [x] `domain/search/BookSearch.kt`: `SearchScope { All, Authors }`, `normalizeForSearch(text)` y `searchBooks(books, query, scope)`.
 - [x] Tests JVM `BookSearchTest` (LIB-013, LIB-015): acentos y mayúsculas, varias palabras, filtro Autores, orden, consulta vacía, libro sin autor.
 **Verificación:** `./gradlew :app:testDebugUnitTest --tests '*BookSearchTest'`.
 
-### Tarea 2 (K-111): `SearchViewModel` (S)
+### Tarea 2 (K-116): `SearchViewModel` (S)
 - [x] `ui/search/SearchViewModel.kt` con `StateFlow<SearchUiState>` (consulta, filtro, resultados, `hasQuery`), consulta y filtro en `SavedStateHandle`.
 - [x] Tests JVM `SearchViewModelTest` con biblioteca falsa: resultados al escribir, cambio de filtro, sigue los cambios de la biblioteca (progreso que cambia), consulta guardada.
 **Verificación:** tests JVM pasan.
 
-### Tarea 3 (K-112): pantalla y navegación (M)
+### Tarea 3 (K-117): pantalla y navegación (M)
 - [x] `ui/search/SearchScreen.kt` (`SearchScreen` con ViewModel y `SearchContent` sin él) según el diseño.
 - [x] `SearchIcons` (`chevron_right`, `close`).
 - [x] Ruta `search` en `AppNavHost`; "Buscar" de la barra navega y queda marcado. Solo "Perfil" muestra el aviso (HOM-006).
@@ -46,7 +46,7 @@
 - [x] Test de emulador `SearchScreenTest` (LIB-014, LIB-015, HOM-005): escribir muestra resultados y cantidad, "Autores" filtra, tocar un resultado avisa el id, sin coincidencias muestra el aviso. Se compila; no se corre en el teléfono sin preguntar.
 **Verificación:** compila (`assembleDebug`, `compileDebugAndroidTestKotlin`), tests JVM pasan.
 
-### Tarea 4 (K-113): cierre (S)
+### Tarea 4 (K-118): cierre (S)
 - [x] `specs/platforms/android.md`: nota de la búsqueda.
 - [x] Instalar en el teléfono (`installDebug`) y verificar a mano con el usuario: buscar por título, por autor con y sin acentos, filtro Autores, abrir un resultado y volver.
 **Verificación:** el usuario lo ve en el teléfono.
