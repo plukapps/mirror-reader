@@ -86,14 +86,15 @@ Arquitectura MVVM en capas, un solo módulo Gradle, paquetes `com.pluk.reader.{u
 - Pruebas con adb: los enlaces web del libro abren el navegador al tocarlos. En builds de depuración se bloquean con `adb shell run-as com.pluk.reader touch files/block_external_links` y se vuelven a permitir con `rm files/block_external_links`.
 - Firebase (ADR 0005, ADR 0007): `code/android/app/google-services.json` se descarga de la consola (Configuración del proyecto → app `com.pluk.reader`) y NO va al repo (está en `.gitignore`). Sin él, el build falla. Revisar `git status` antes de commitear: nunca `git add -A` a ciegas.
 
-## Apple (Mac, después iOS)
+## Apple (Mac e iOS)
 
 Raíz: `code/apple`. Detalle y comandos: `code/apple/README.md`. Plataforma: `specs/platforms/apple.md` (borrador).
 
 - Requisitos: Xcode 16.2 (el último para macOS 14 de esta máquina) con `xcode-select` apuntando a `/Applications/Xcode.app`, y XcodeGen (`brew install xcodegen`).
 - El proyecto se describe en `project.yml`; `xcodegen` genera `Reader.xcodeproj` (no va al repo). Regenerar al agregar archivos o cambiar `project.yml`.
 - Capas: dominio en el paquete `Packages/ReaderDomain` (sin SwiftUI), UI en `App/UI`, datos en `App/Data`. `ViewModel` con `@MainActor @Observable`, repositorios por inicializador.
-- Tests con Swift Testing: dominio con `swift test` (desde `Packages/ReaderDomain`); app con `xcodebuild -project Reader.xcodeproj -scheme Reader -destination 'platform=macOS' -derivedDataPath .build/xcode test`.
+- Tests con Swift Testing: dominio con `swift test` (desde `Packages/ReaderDomain`); app con `xcodebuild -project Reader.xcodeproj -scheme Reader -destination 'platform=macOS' -derivedDataPath .build/xcode test` (en iPhone: `-destination 'platform=iOS Simulator,name=iPhone 16'`). Hay tests que solo corren en una de las dos; correr ambos destinos.
+- Un solo target `Reader` con destinos Mac e iOS (`supportedDestinations`); lo que es solo de Mac va en `project.yml` con `[sdk=macosx*]`.
 - Firma local, sin cuenta de Apple Developer. Sandbox activado.
 
 ## Backend (Firebase)
