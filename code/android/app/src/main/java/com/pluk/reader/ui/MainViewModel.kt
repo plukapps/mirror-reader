@@ -20,6 +20,9 @@ class MainViewModel @Inject constructor(
      */
     fun startLibrarySync() = librarySync.start()
 
+    /** SYN-001: la app volvió a primer plano. Sincroniza si la última pasada exitosa es vieja (TTL). */
+    fun onAppStarted() = librarySync.requestIfStale()
+
     sealed interface Incoming {
         data class Open(val bookId: String) : Incoming
         data class Failed(val message: String) : Incoming

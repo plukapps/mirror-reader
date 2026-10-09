@@ -67,6 +67,19 @@ class MainViewModelTest {
         assertEquals(1, backend.listings)
     }
 
+    // SYN-001: volver a la app justo después de arrancar no repite la pasada (TTL)
+    @Test
+    fun comingBackRightAfterStartingDoesNotSyncAgain() = runTest(dispatcher) {
+        val vm = viewModel()
+        vm.startLibrarySync()
+        advanceUntilIdle()
+
+        vm.onAppStarted()
+        advanceUntilIdle()
+
+        assertEquals(1, backend.listings)
+    }
+
     // SYN-001: un libro recibido con "Abrir con" se sube solo
     @Test
     fun anIncomingBookRequestsASync() = runTest(dispatcher) {

@@ -40,6 +40,12 @@
 - [ ] Tests JVM completos y compilación.
 - [ ] A mano en el teléfono: importar sube solo; dispositivo nuevo baja todo; sin conexión queda pendiente y se completa al reabrir.
 
+### Tarea 6: sincronizar al volver a la app, con TTL (S) — K-083
+- [x] `LibrarySync.requestIfStale()`: el consumidor corre la pasada solo si hubo un pedido explícito o la última pasada exitosa fue hace más de 5 minutos. El reloj es monotónico e inyectable para los tests.
+- [x] Una pasada sin conexión o con excepción no consume el TTL. Un pedido explícito no se pierde si llega un pedido por antigüedad después.
+- [x] `MainActivity.onStart` lo pide (cubre volver a primer plano y recrear la actividad).
+- [x] Tests con reloj falso (SYN-001).
+
 ## Riesgos
 
 | Riesgo | Impacto | Mitigación |

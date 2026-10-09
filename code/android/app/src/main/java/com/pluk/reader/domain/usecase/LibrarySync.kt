@@ -2,6 +2,7 @@ package com.pluk.reader.domain.usecase
 
 import com.pluk.reader.domain.ApplicationScope
 import com.pluk.reader.domain.account.AccountRepository
+import java.util.concurrent.atomic.AtomicBoolean
 import javax.inject.Inject
 import javax.inject.Singleton
 import kotlinx.coroutines.CancellationException
@@ -34,18 +35,39 @@ fun SyncReport.toIssue(): SyncIssue? = when {
 }
 
 /**
- * Sincroniza la biblioteca sola (SYN-001): al arrancar, al iniciar sesión y cada vez que alguien lo pide
- * (por ejemplo tras importar). Vive mientras viva la aplicación, no la pantalla. Nunca corren dos pasadas a la
- * vez: un pedido durante una pasada hace que corra una más al terminar, así un libro importado a mitad de camino
- * no queda esperando. Sin sesión no hace nada.
+ * Sincroniza la biblioteca sola (SYN-001): al arrancar, al iniciar sesión, cada vez que alguien lo pide
+ * (por ejemplo tras importar) y al volver a la app si pasó más de [ttlMs] desde la última pasada exitosa.
+ * Vive mientras viva la aplicación, no la pantalla. Nunca corren dos pasadas a la vez: un pedido durante una
+ * pasada hace que corra una más al terminar, así un libro importado a mitad de camino no queda esperando.
+ * Sin sesión no hace nada.
+ *
+ * Hay dos tipos de pedido. [request] es explícito (importar, reintentar, sesión nueva) y siempre corre.
+ * [requestIfStale] corre solo si la última pasada exitosa es vieja: una pasada sin conexión o con error no
+ * cuenta, así que el próximo regreso a la app reintenta.
  */
 @Singleton
-class LibrarySync @Inject constructor(
+class LibrarySync internal constructor(
     private val sync: SyncLibraryUseCase,
     private val account: AccountRepository,
-    @ApplicationScope private val scope: CoroutineScope,
+    private val scope: CoroutineScope,
+    private val now: () -> Long,
+    private val ttlMs: Long,
 ) {
+    @Inject
+    constructor(
+        sync: SyncLibraryUseCase,
+        account: AccountRepository,
+        @ApplicationScope scope: CoroutineScope,
+    ) : this(sync, account, scope, ::monotonicMillis, DEFAULT_TTL_MS)
+
     private val requests = Channel<Unit>(Channel.CONFLATED)
+
+    /** Hay un pedido explícito sin atender. Separado del canal para que un pedido por antigüedad no lo pise. */
+    private val explicitRequest = AtomicBoolean(false)
+
+    /** Cuándo terminó la última pasada exitosa, o null si no hubo o la última falló. */
+    @Volatile
+    private var lastSuccessAt: Long? = null
     private val _state = MutableStateFlow(SyncState())
     val state: StateFlow<SyncState> = _state
 
@@ -61,24 +83,46 @@ class LibrarySync @Inject constructor(
             account.user.filterNotNull().distinctUntilChangedBy { it.id }.collect { request() }
         }
         scope.launch {
-            requests.receiveAsFlow().collect { if (account.user.first() != null) runOnce() }
+            requests.receiveAsFlow().collect {
+                val explicit = explicitRequest.getAndSet(false)
+                if ((explicit || isStale()) && account.user.first() != null) runOnce()
+            }
         }
     }
 
-    /** Pide una pasada. Varios pedidos seguidos se juntan en uno. */
+    /** Pide una pasada que siempre corre. Varios pedidos seguidos se juntan en uno. */
     fun request() {
+        explicitRequest.set(true)
         requests.trySend(Unit)
     }
 
+    /** Pide una pasada solo si la última exitosa es más vieja que el TTL. Pensado para cuando la app vuelve a primer plano. */
+    fun requestIfStale() {
+        requests.trySend(Unit)
+    }
+
+    private fun isStale(): Boolean = lastSuccessAt?.let { now() - it >= ttlMs } ?: true
+
     private suspend fun runOnce() {
         _state.update { it.copy(running = true) }
+        var succeeded = false
         val issue = try {
-            sync().toIssue()
+            val report = sync()
+            succeeded = !report.offline
+            report.toIssue()
         } catch (e: CancellationException) {
             throw e
         } catch (e: Exception) {
             SyncIssue.Failed(1)
         }
+        lastSuccessAt = if (succeeded) now() else null
         _state.value = SyncState(running = false, issue = issue)
+    }
+
+    companion object {
+        /** Cada cuánto, como máximo, se repite la pasada al volver a la app. */
+        const val DEFAULT_TTL_MS = 5 * 60 * 1000L
+
+        private fun monotonicMillis() = System.nanoTime() / 1_000_000
     }
 }

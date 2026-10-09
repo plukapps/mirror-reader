@@ -6,7 +6,7 @@ Mismo estado en todos los dispositivos, sin acción manual, sin perder datos.
 
 ## Requisitos
 
-- **SYN-001** Todo cambio se guarda primero en el dispositivo y se envía solo cuando hay conexión: al importar un libro, al abrir la app y al iniciar sesión. El usuario no necesita pulsar nada.
+- **SYN-001** Todo cambio se guarda primero en el dispositivo y se envía solo cuando hay conexión: al importar un libro, al abrir la app, al volver a ella después de unos minutos y al iniciar sesión. El usuario no necesita pulsar nada.
 - **SYN-002** Se sincronizan: archivos de libros, metadatos, colecciones, posición, marcadores, subrayados, notas y preferencias.
 - **SYN-003** Posición: gana la más reciente. Si la diferencia con la local es grande, la app pregunta si continuar desde la posición del otro dispositivo.
 - **SYN-004** Marcadores y subrayados: se unen entre dispositivos, cada uno con ID único.

@@ -62,6 +62,12 @@ class MainActivity : FragmentActivity() {
         }
     }
 
+    override fun onStart() {
+        super.onStart()
+        // Cubre volver a la app y recrear la actividad; el TTL de LibrarySync evita pasadas de más.
+        viewModel.onAppStarted()
+    }
+
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
         intent.data?.let { incomingBook.value = it }

@@ -34,6 +34,13 @@ class LibrarySyncTest {
 
     private val session = AccountUser("u1", null)
 
+    private var clock = 0L
+    private val ttl = 5 * 60 * 1000L
+
+    /** Con reloj controlado por el test, para probar el TTL. */
+    private fun syncWithClock(account: FakeAccount) =
+        LibrarySync(backend.useCase(), account, CoroutineScope(dispatcher), { clock }, ttl).also { it.start() }
+
     @Test
     fun syncsOnStartWhenThereIsASession() = runTest(dispatcher) {
         sync(FakeAccount(session))
@@ -112,5 +119,87 @@ class LibrarySyncTest {
         sync.request()
         advanceUntilIdle()
         assertNull(sync.state.value.issue)
+    }
+
+    // SYN-001: al volver a la app dentro del TTL no se repite la pasada
+    @Test
+    fun comingBackWithinTheTtlDoesNotSyncAgain() = runTest(dispatcher) {
+        val sync = syncWithClock(FakeAccount(session))
+        advanceUntilIdle()
+        clock += ttl - 1
+
+        sync.requestIfStale()
+        advanceUntilIdle()
+
+        assertEquals(1, backend.listings)
+    }
+
+    // SYN-001: pasado el TTL, volver a la app sincroniza (sin esperar a que el proceso muera)
+    @Test
+    fun comingBackAfterTheTtlSyncsAgain() = runTest(dispatcher) {
+        val sync = syncWithClock(FakeAccount(session))
+        advanceUntilIdle()
+        clock += ttl
+
+        sync.requestIfStale()
+        advanceUntilIdle()
+
+        assertEquals(2, backend.listings)
+    }
+
+    // El arranque en frío pide la pasada por sesión y por onStart: es una sola
+    @Test
+    fun coldStartAndOnStartTogetherSyncOnce() = runTest(dispatcher) {
+        val sync = syncWithClock(FakeAccount(session))
+        sync.requestIfStale()
+        advanceUntilIdle()
+        assertEquals(1, backend.listings)
+    }
+
+    // Una pasada sin conexión no consume el TTL: al volver a la app se reintenta
+    @Test
+    fun aFailedPassDoesNotConsumeTheTtl() = runTest(dispatcher) {
+        backend.offline = true
+        val sync = syncWithClock(FakeAccount(session))
+        advanceUntilIdle()
+        clock += 1_000
+
+        backend.offline = false
+        sync.requestIfStale()
+        advanceUntilIdle()
+
+        assertEquals(2, backend.listings)
+        assertNull(sync.state.value.issue)
+    }
+
+    // Los pedidos explícitos (importar, reintentar) ignoran el TTL
+    @Test
+    fun explicitRequestsIgnoreTheTtl() = runTest(dispatcher) {
+        val sync = syncWithClock(FakeAccount(session))
+        advanceUntilIdle()
+        clock += 1_000
+
+        sync.request()
+        advanceUntilIdle()
+
+        assertEquals(2, backend.listings)
+    }
+
+    // Un pedido por antigüedad que llega después de uno explícito no lo pisa: lo importado igual se sincroniza
+    @Test
+    fun aStalenessRequestDoesNotSwallowAnExplicitOne() = runTest(dispatcher) {
+        val gate = CompletableDeferred<Unit>()
+        backend.listGate = gate
+        val sync = syncWithClock(FakeAccount(session))
+        advanceUntilIdle()
+        assertTrue(sync.state.value.running)
+
+        sync.request()
+        sync.requestIfStale()
+        backend.listGate = null
+        gate.complete(Unit)
+        advanceUntilIdle()
+
+        assertEquals(2, backend.listings)
     }
 }
