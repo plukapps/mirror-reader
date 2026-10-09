@@ -44,6 +44,10 @@ fun SyncReport.toIssue(): SyncIssue? = when {
  * Hay dos tipos de pedido. [request] es explícito (importar, reintentar, sesión nueva) y siempre corre.
  * [requestIfStale] corre solo si la última pasada exitosa es vieja: una pasada sin conexión o con error no
  * cuenta, así que el próximo regreso a la app reintenta.
+ *
+ * El momento de la última pasada exitosa vive solo en memoria, a propósito: un proceso nuevo (la app no corría o
+ * Android la mató) siempre sincroniza al arrancar, y mientras el proceso siga vivo el TTL evita repetirla de más.
+ * No hay sincronización con la app cerrada.
  */
 @Singleton
 class LibrarySync internal constructor(

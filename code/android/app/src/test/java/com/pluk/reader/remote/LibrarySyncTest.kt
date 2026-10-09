@@ -202,4 +202,20 @@ class LibrarySyncTest {
 
         assertEquals(2, backend.listings)
     }
+
+    // SYN-001: un proceso nuevo siempre sincroniza al arrancar, aunque otro haya sincronizado hace segundos.
+    // El estado del TTL no se guarda entre procesos: una instancia nueva de LibrarySync lo simula.
+    @Test
+    fun aNewProcessAlwaysSyncsEvenRightAfterAnotherOne() = runTest(dispatcher) {
+        syncWithClock(FakeAccount(session))
+        advanceUntilIdle()
+        assertEquals(1, backend.listings)
+        clock += 1_000
+
+        val newProcess = syncWithClock(FakeAccount(session))
+        newProcess.requestIfStale()
+        advanceUntilIdle()
+
+        assertEquals(2, backend.listings)
+    }
 }

@@ -45,6 +45,7 @@
 - [x] Una pasada sin conexión o con excepción no consume el TTL. Un pedido explícito no se pierde si llega un pedido por antigüedad después.
 - [x] `MainActivity.onStart` lo pide (cubre volver a primer plano y recrear la actividad).
 - [x] Tests con reloj falso (SYN-001).
+- [x] Regla (K-084): proceso nuevo siempre sincroniza; proceso vivo, a lo sumo cada 5 minutos. El TTL no se persiste. Sin WorkManager.
 
 ## Riesgos
 
