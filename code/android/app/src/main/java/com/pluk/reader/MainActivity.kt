@@ -6,7 +6,12 @@ import android.os.Bundle
 import android.widget.Toast
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.runtime.getValue
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.pluk.reader.ui.theme.MarginColors
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.LaunchedEffect
@@ -44,7 +49,11 @@ class MainActivity : FragmentActivity() {
         if (savedInstanceState == null) incomingBook.value = intent?.data
         setContent {
             ReaderTheme {
-                Surface(modifier = Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
+                val start by viewModel.start.collectAsStateWithLifecycle()
+                // WEL-006: hasta decidir entre bienvenida e Inicio, el mismo amarillo del arranque.
+                if (start == MainViewModel.Start.Loading) {
+                    Box(Modifier.fillMaxSize().background(MarginColors.Yellow))
+                } else Surface(modifier = Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
                     val navController = rememberNavController()
                     LaunchedEffect(incomingBook.value) {
                         incomingBook.value?.let { uri ->
@@ -56,7 +65,11 @@ class MainActivity : FragmentActivity() {
                             }
                         }
                     }
-                    AppNavHost(navController)
+                    AppNavHost(
+                        navController,
+                        showWelcome = start == MainViewModel.Start.Welcome,
+                        onWelcomeCompleted = viewModel::completeWelcome,
+                    )
                 }
             }
         }

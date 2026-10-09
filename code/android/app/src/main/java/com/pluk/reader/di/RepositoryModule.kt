@@ -4,10 +4,12 @@ import com.pluk.reader.data.repository.BookRepositoryImpl
 import com.pluk.reader.data.repository.LibraryRepositoryImpl
 import com.pluk.reader.data.repository.PositionRepositoryImpl
 import com.pluk.reader.data.repository.SettingsRepositoryImpl
+import com.pluk.reader.data.repository.WelcomeRepositoryImpl
 import com.pluk.reader.domain.repository.BookRepository
 import com.pluk.reader.domain.repository.LibraryRepository
 import com.pluk.reader.domain.repository.PositionRepository
 import com.pluk.reader.domain.repository.SettingsRepository
+import com.pluk.reader.domain.repository.WelcomeRepository
 import dagger.Binds
 import dagger.Module
 import dagger.hilt.InstallIn
@@ -32,4 +34,8 @@ abstract class RepositoryModule {
     @Binds
     @Singleton
     abstract fun bindLibraryRepository(impl: LibraryRepositoryImpl): LibraryRepository
+
+    @Binds
+    @Singleton
+    abstract fun bindWelcomeRepository(impl: WelcomeRepositoryImpl): WelcomeRepository
 }

@@ -1,6 +1,13 @@
 <resources>
     <string name="app_name">Reader</string>
 
+    <!-- Bienvenida (WEL-004) -->
+    <string name="welcome_brand">margin.</string>
+    <string name="welcome_headline">Leé más.\nScrolleá menos.\nPensá despacio.</string>
+    <string name="welcome_body">Tus EPUB, en un lugar tranquilo, en todos tus dispositivos.</string>
+    <string name="welcome_start">Comenzar</string>
+    <string name="welcome_footer">margin. 2026 ©</string>
+
     <string name="library_title">Biblioteca</string>
     <string name="library_import">Importar</string>
     <string name="library_importing">Importando…</string>

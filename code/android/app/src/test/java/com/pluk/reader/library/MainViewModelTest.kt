@@ -5,6 +5,7 @@ import com.pluk.reader.domain.account.AccountUser
 import com.pluk.reader.domain.model.ImportOutcome
 import com.pluk.reader.domain.model.LibraryBook
 import com.pluk.reader.domain.repository.LibraryRepository
+import com.pluk.reader.domain.repository.WelcomeRepository
 import com.pluk.reader.domain.usecase.LibrarySync
 import com.pluk.reader.remote.FakeSyncBackend
 import com.pluk.reader.ui.MainViewModel
@@ -47,8 +48,15 @@ class MainViewModelTest {
     @After
     fun tearDown() = Dispatchers.resetMain()
 
-    private fun viewModel(library: FakeLibrary = FakeLibrary()) =
-        MainViewModel(library, LibrarySync(backend.useCase(), FakeAccount(AccountUser("u1", null)), CoroutineScope(dispatcher)))
+    private object WelcomeDone : WelcomeRepository {
+        override val completed: Flow<Boolean> = flowOf(true)
+        override suspend fun markCompleted() = Unit
+    }
+
+    private fun viewModel(library: FakeLibrary = FakeLibrary()): MainViewModel {
+        val account = FakeAccount(AccountUser("u1", null))
+        return MainViewModel(library, LibrarySync(backend.useCase(), account, CoroutineScope(dispatcher)), WelcomeDone, account)
+    }
 
     @Test
     fun startingTheSyncSyncsTheLibrary() = runTest(dispatcher) {

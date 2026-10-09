@@ -26,10 +26,12 @@ import com.pluk.reader.ui.library.LibraryScreen
 import com.pluk.reader.ui.library.LibraryViewModel
 import com.pluk.reader.ui.reader.ReaderScreen
 import com.pluk.reader.ui.reader.ReaderViewModel
+import com.pluk.reader.ui.welcome.WelcomeScreen
 
 object Routes {
-    /** Inicio es la pantalla de arranque (HOM-005). */
+    /** Inicio es la pantalla de arranque (HOM-005), salvo que corresponda la bienvenida (WEL-003). */
     const val HOME = "home"
+    const val WELCOME = "welcome"
     const val LIBRARY = "library?${LibraryViewModel.ARG_FILTER}={${LibraryViewModel.ARG_FILTER}}"
     const val READER = "reader/{${ReaderViewModel.ARG_BOOK_ID}}"
 
@@ -41,7 +43,11 @@ object Routes {
 }
 
 @Composable
-fun AppNavHost(navController: NavHostController) {
+fun AppNavHost(
+    navController: NavHostController,
+    showWelcome: Boolean,
+    onWelcomeCompleted: () -> Unit,
+) {
     val context = LocalContext.current
     val route by navController.currentBackStackEntryAsState()
     val selected = when (route?.destination?.route) {
@@ -54,7 +60,19 @@ fun AppNavHost(navController: NavHostController) {
     val bottomPadding = if (selected != null) BottomBarHeight + navBarInset else 0.dp
     Box(Modifier.fillMaxSize()) {
         CompositionLocalProvider(LocalBottomBarPadding provides bottomPadding) {
-            NavHost(navController = navController, startDestination = Routes.HOME, modifier = Modifier.fillMaxSize()) {
+            NavHost(navController = navController, startDestination = if (showWelcome) Routes.WELCOME else Routes.HOME, modifier = Modifier.fillMaxSize()) {
+                composable(Routes.WELCOME) {
+                    WelcomeScreen(
+                        onStart = {
+                            onWelcomeCompleted()
+                            // WEL-005: atrás desde Inicio sale de la app, no vuelve a la bienvenida.
+                            navController.navigate(Routes.HOME) {
+                                popUpTo(Routes.WELCOME) { inclusive = true }
+                                launchSingleTop = true
+                            }
+                        },
+                    )
+                }
                 composable(Routes.HOME) {
                     HomeScreen(
                         onBookClick = { navController.navigate(Routes.reader(it)) },
