@@ -5,7 +5,6 @@ Plan de referencia: `specs/plans/2026-10-06-android-epub-viewer.md`
 
 ## Backlog
 
-- **K-099** Aviso "Seguir desde [dispositivo]" no se vio en la prueba a mano (K-091). Hipótesis: `shouldOfferJump` reutiliza el umbral del 2 % del salto al abrir, y unas pocas páginas no lo superan. Verificar el dibujo del chip con un avance grande y decidir un umbral propio para el aviso durante la lectura (por ejemplo 0,5 %). SYN-013.
 - **K-092** DEUDA TÉCNICA. Posición de lectura: envío por inactividad. Hoy la posición sale a la nube solo al cerrar el libro o pasar a segundo plano (K-088, opción A, decisión del usuario 2026-10-09). Si se encuentran problemas (por ejemplo libro abierto con la pantalla encendida e inactiva, y el otro dispositivo sin ver el avance), agregar el envío a los 60 s sin cambiar de página, y como máximo cada 5 min si se lee de corrido. Técnica y costos en la sección "Deuda técnica" de `specs/plans/2026-10-09-position-sync.md`. Cambia SYN-011. Depende de K-088.
 - **K-096** Apple, barra de navegación inferior en iPhone (HOM-005): Inicio, Buscar, Estantes y Perfil con `TabView`, siguiendo el diseño de teléfono. En la Mac sigue pendiente K-078. Requiere plan.
 - **K-094** Barra inferior en tablet, para cuando el soporte de tablet esté más maduro. HOM-005, HOM-007. Hoy la píldora de K-093 se estira a todo el ancho (en la SM_X510 apaisada va de punta a punta) mientras el contenido de Inicio es una columna centrada. Opciones: limitar el ancho y centrarla, o el riel lateral del diseño (T01). Pedido del usuario (2026-10-09): retomarlo junto con el resto del soporte de tablet.
@@ -30,6 +29,8 @@ Plan de referencia: `specs/plans/2026-10-06-android-epub-viewer.md`
 - **K-024** Quitar el padding vertical de Readium (40 dp arriba y abajo en modo paginado) y reservar la barra de estado desde la pantalla. RDR-002. Rama `feat/page-turn-animation`.
 
 ## En curso
+
+- **K-099** Aviso "Seguir desde [dispositivo]" no se vio en la prueba a mano (K-091). Hipótesis: `shouldOfferJump` reutiliza el umbral del 2 % del salto al abrir, y unas pocas páginas no lo superan. Verificar el dibujo del chip con un avance grande y decidir un umbral propio para el aviso durante la lectura (por ejemplo 0,5 %). SYN-013. Rama `feature/continue-from-chip`. Umbral propio del aviso: 0,5 % (`CONTINUE_NOTICE_THRESHOLD`), en vez del 2 %. Falta ver el chip dibujado en un dispositivo.
 
 
 ## Revisión

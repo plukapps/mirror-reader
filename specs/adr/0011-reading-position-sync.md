@@ -44,7 +44,7 @@ Con la caché persistente de Firestore desactivada (ADR 0007), cada conexión de
 El listener aplica las posiciones nuevas en cuanto llegan, con la app a la vista, y Inicio y la biblioteca muestran el porcentaje actualizado (SYN-012). Por eso, al abrir un libro, la posición suele estar ya aplicada y la pregunta de SYN-003 casi no aparece: la consulta puntual y la pregunta son una red de seguridad para la app recién abierta, el listener sin conexión o la primera apertura en un dispositivo nuevo. Si se quisiera preguntar siempre que el salto sea grande, el listener tendría que guardar la posición remota aparte en lugar de reemplazar la local (más columnas y más lógica); queda como alternativa descartada por ahora.
 
 - Al abrir el libro: diferencia de hasta el 2 % del libro, se salta a la posición más reciente sin preguntar; mayor, se pregunta (SYN-003).
-- Mientras se lee: un aviso discreto, sin mover la página (SYN-013).
+- Mientras se lee: un aviso discreto, sin mover la página, si el otro dispositivo va más adelante por más del 0,5 % del libro (SYN-013). Es un umbral aparte del 2 %: la prueba real mostró que con el 2 % el aviso no aparecía tras leer unas pocas páginas.
 - Inicio y la biblioteca ya observan la base local, así que sus porcentajes cambian solos cuando el listener la actualiza (SYN-012).
 
 ## Consecuencias

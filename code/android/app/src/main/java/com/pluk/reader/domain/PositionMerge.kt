@@ -45,13 +45,16 @@ private const val EPSILON = 1e-9
 /** La distancia [gap] (fracción del libro, sin signo) es mayor que el umbral de [JUMP_CONFIRM_THRESHOLD]. */
 fun exceedsJumpThreshold(gap: Double): Boolean = gap > JUMP_CONFIRM_THRESHOLD + EPSILON
 
+/** Fracción del libro (0,5 %) a partir de la cual se avisa, mientras se lee, que otro dispositivo va más adelante (SYN-013). */
+const val CONTINUE_NOTICE_THRESHOLD = 0.005
+
 /**
  * SYN-013: mientras se lee, se ofrece seguir desde otro dispositivo solo si leyó **más adelante** que la posición
- * actual, por más del 2 % del libro. Si no se conoce el avance de la lectura remota no se ofrece nada; si se
+ * actual, por más del 0,5 % del libro (unas pocas páginas; el 2 % de la pregunta al abrir era demasiado para un aviso). Si no se conoce el avance de la lectura remota no se ofrece nada; si se
  * desconoce el de la actual, sí.
  */
 fun shouldOfferJump(currentProgress: Double?, remote: RemotePosition): Boolean {
     val ahead = remote.position.progress ?: return false
     val current = currentProgress ?: return true
-    return exceedsJumpThreshold(ahead - current)
+    return ahead - current > CONTINUE_NOTICE_THRESHOLD + EPSILON
 }

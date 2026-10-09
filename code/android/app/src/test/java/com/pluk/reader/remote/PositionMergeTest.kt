@@ -83,7 +83,15 @@ class PositionMergeTest {
     fun aJumpIsOfferedOnlyWhenTheOtherDeviceIsAhead() {
         assertEquals(true, shouldOfferJump(0.30, remoteAt(0.60)))
         assertEquals(false, shouldOfferJump(0.60, remoteAt(0.30)))
-        assertEquals(false, shouldOfferJump(0.50, remoteAt(0.51)))
+        assertEquals(false, shouldOfferJump(0.50, remoteAt(0.51 - 0.0051)))
+    }
+
+    // SYN-013: unas pocas páginas (más del 0,5 % pero menos del 2 %) ya se avisan; el 0,5 % exacto no
+    @Test
+    fun aFewPagesAheadAreOffered() {
+        assertEquals(true, shouldOfferJump(0.50, remoteAt(0.51)))
+        assertEquals(false, shouldOfferJump(0.50, remoteAt(0.505)))
+        assertEquals(false, shouldOfferJump(0.50, remoteAt(0.50)))
     }
 
     @Test
