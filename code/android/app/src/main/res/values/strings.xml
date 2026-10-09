@@ -61,4 +61,18 @@
     <string name="reader_resume_continue">Continuar allí</string>
     <string name="reader_resume_stay">Quedarme aquí</string>
     <string name="reader_body_ended">Parece que terminaste el libro</string>
+
+    <!-- Búsqueda (LIB-006, LIB-013 a LIB-015) -->
+    <string name="search_title">Buscar</string>
+    <string name="search_hint">Títulos y autores</string>
+    <string name="search_clear">Borrar búsqueda</string>
+    <string name="search_scope_all">Todo</string>
+    <string name="search_scope_authors">Autores</string>
+    <plurals name="search_results">
+        <item quantity="one">%d resultado</item>
+        <item quantity="other">%d resultados</item>
+    </plurals>
+    <string name="search_no_results">Sin resultados para «%1$s».</string>
+    <string name="search_help">Buscá en tu biblioteca por título o autor.</string>
+    <string name="search_status_reading">Leyendo · %1$d %%</string>
 </resources>
