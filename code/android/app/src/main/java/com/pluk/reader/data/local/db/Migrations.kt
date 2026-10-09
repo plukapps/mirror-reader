@@ -36,3 +36,13 @@ val MIGRATION_3_4 = object : Migration(3, 4) {
         db.execSQL("ALTER TABLE `books` ADD COLUMN `isCoverUploaded` INTEGER NOT NULL DEFAULT 0")
     }
 }
+
+/**
+ * Prepara la sincronización de la posición de lectura (SYN-011). Las posiciones existentes quedan como no
+ * enviadas: la primera sincronización las sube una vez.
+ */
+val MIGRATION_4_5 = object : Migration(4, 5) {
+    override fun migrate(db: SupportSQLiteDatabase) {
+        db.execSQL("ALTER TABLE `reading_positions` ADD COLUMN `isSynced` INTEGER NOT NULL DEFAULT 0")
+    }
+}

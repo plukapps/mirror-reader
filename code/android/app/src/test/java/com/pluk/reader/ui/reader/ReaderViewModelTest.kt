@@ -14,12 +14,18 @@ import com.pluk.reader.domain.repository.BookRepository
 import com.pluk.reader.domain.repository.CloudBooksRepository
 import com.pluk.reader.domain.repository.CoverFile
 import com.pluk.reader.domain.usecase.DownloadBookUseCase
+import com.pluk.reader.domain.usecase.ResolveOpeningPositionUseCase
 import java.io.File
 import com.pluk.reader.domain.repository.PositionRepository
 import com.pluk.reader.domain.repository.SettingsRepository
+import com.pluk.reader.domain.account.AccountUser
+import com.pluk.reader.remote.FakePositionBackend
+import com.pluk.reader.remote.FakeSession
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.filterIsInstance
 import kotlinx.coroutines.flow.first
@@ -59,10 +65,14 @@ class ReaderViewModelTest {
     private class FakePositions : PositionRepository {
         val saved = mutableMapOf<String, String>()
         val savedProgression = mutableMapOf<String, Double?>()
+
+        /** Lo que hace la base real: la posición guardada queda pendiente de enviar. */
+        var onSaved: (String) -> Unit = {}
         override suspend fun get(bookId: String): String? = saved[bookId]
         override suspend fun save(bookId: String, locatorJson: String, totalProgression: Double?) {
             saved[bookId] = locatorJson
             savedProgression[bookId] = totalProgression
+            onSaved(bookId)
         }
     }
 
@@ -140,9 +150,15 @@ class ReaderViewModelTest {
     private val cloud = FakeCloud()
     private val files = FakeFiles()
 
+    private val positionBackend = FakePositionBackend()
+    private val positionSync = positionBackend.sync(FakeSession(AccountUser("u1", null)), CoroutineScope(dispatcher))
+    private val resolveOpening by lazy {
+        ResolveOpeningPositionUseCase(positionBackend, positionBackend, positions, FakeSession(AccountUser("u1", null)))
+    }
+
     private fun viewModel(books: FakeBooks) = ReaderViewModel(
         SavedStateHandle(mapOf(ReaderViewModel.ARG_BOOK_ID to "hash-del-libro")), books, settings, positions, host,
-        DownloadBookUseCase(cloud, files),
+        DownloadBookUseCase(cloud, files), positionSync, resolveOpening,
     )
 
     private suspend fun ReaderViewModel.awaitReady(predicate: (ReaderUiState.Ready) -> Boolean = { true }) =
@@ -185,7 +201,7 @@ class ReaderViewModelTest {
         val books = FakeBooks(Result.success(book()))
         val vm = ReaderViewModel(
             SavedStateHandle(mapOf(ReaderViewModel.ARG_BOOK_ID to "hash-del-libro")), books, settings, positions, host,
-            DownloadBookUseCase(cloud, failing),
+            DownloadBookUseCase(cloud, failing), positionSync, resolveOpening,
         )
         val state = vm.uiState.first { it !is ReaderUiState.Loading }
         assertEquals(ReaderUiState.Failed("Sin conexión. No se pudo descargar el libro."), state)
@@ -369,5 +385,256 @@ class ReaderViewModelTest {
         vm.hideControls()
         vm.hideControls()
         assertEquals(false, vm.awaitReady { !it.controlsVisible }.controlsVisible)
+    }
+
+    // SYN-011: al cerrar el libro se guarda la última posición y se envía a la nube
+    @Test
+    fun closingTheBookSavesTheLastPositionAndSendsIt() = runTest(dispatcher) {
+        val vm = viewModel(FakeBooks(Result.success(book())))
+        vm.awaitReady()
+        positions.onSaved = { id ->
+            positionBackend.calls += "guardar:$id"
+            positionBackend.savedLocally(id, readAt = 5)
+        }
+        vm.onLocatorChanged("""{"p":9}""", 0.9)
+
+        // runCurrent, no advanceUntilIdle: al cerrar, Android cancela viewModelScope y el guardado con espera de
+        // 250 ms no llega a correr. Aquí solo corre lo que el cierre dejó listo en el scope de la aplicación.
+        vm.close()
+        testScheduler.runCurrent()
+
+        assertEquals(mapOf("libro-1" to """{"p":9}"""), positions.saved)
+        // Primero se guarda, después se envía
+        assertEquals(listOf("guardar:libro-1", "enviar:libro-1"), positionBackend.calls)
+    }
+
+    // Si no se leyó nada, cerrar no guarda ni envía
+    @Test
+    fun closingWithoutReadingSendsNothing() = runTest(dispatcher) {
+        val vm = viewModel(FakeBooks(Result.success(book())))
+        vm.awaitReady()
+
+        vm.close()
+        testScheduler.advanceUntilIdle()
+
+        assertTrue(positions.saved.isEmpty())
+        assertTrue(positionBackend.calls.isEmpty())
+    }
+
+    // El id del libro sale del argumento de navegación, no del libro abierto.
+    private val OPENING_ID = "hash-del-libro"
+
+    private fun localAt(progress: Double, readAt: Long = 10) {
+        positionBackend.local[OPENING_ID] = com.pluk.reader.domain.model.LocalPosition(
+            com.pluk.reader.domain.model.ReadingPosition(OPENING_ID, "local", progress, readAt),
+            isSynced = true,
+        )
+    }
+
+    private fun remoteAt(progress: Double, readAt: Long = 50) {
+        positionBackend.fetchResult = Result.success(
+            com.pluk.reader.domain.model.RemotePosition(
+                com.pluk.reader.domain.model.ReadingPosition(OPENING_ID, "remota", progress, readAt),
+                "otro-dispositivo",
+                "SM-X510",
+            ),
+        )
+    }
+
+    // SYN-003: una diferencia grande con otro dispositivo se pregunta antes de abrir el libro
+    @Test
+    fun aBigDifferenceAsksBeforeOpeningTheBook() = runTest(dispatcher) {
+        localAt(0.10)
+        remoteAt(0.60)
+        val books = FakeBooks(Result.success(book()))
+        val vm = viewModel(books)
+
+        val state = vm.uiState.first { it !is ReaderUiState.Loading }
+
+        assertEquals(ReaderUiState.ResumePrompt("SM-X510", 60), state)
+        assertNull(books.opened)
+        assertNull(host.installedFor)
+    }
+
+    @Test
+    fun continuingFromTheOtherDeviceAppliesItAndOpensTheBook() = runTest(dispatcher) {
+        localAt(0.10)
+        remoteAt(0.60)
+        val books = FakeBooks(Result.success(book()))
+        val vm = viewModel(books)
+        vm.uiState.first { it is ReaderUiState.ResumePrompt }
+
+        vm.onResumeChoice(useRemote = true)
+        vm.awaitReady()
+
+        assertEquals("remota", positionBackend.local.getValue(OPENING_ID).position.locatorJson)
+        assertTrue(books.opened != null)
+    }
+
+    // El usuario se queda: su posición se guarda de nuevo para ser la más reciente
+    @Test
+    fun stayingKeepsTheLocalPositionAndOpensTheBook() = runTest(dispatcher) {
+        localAt(0.10)
+        remoteAt(0.60)
+        val books = FakeBooks(Result.success(book()))
+        val vm = viewModel(books)
+        vm.uiState.first { it is ReaderUiState.ResumePrompt }
+
+        vm.onResumeChoice(useRemote = false)
+        vm.awaitReady()
+
+        assertEquals("local", positionBackend.local.getValue(OPENING_ID).position.locatorJson)
+        assertEquals(mapOf(OPENING_ID to "local"), positions.saved)
+        assertTrue(books.opened != null)
+    }
+
+    // SYN-003: una diferencia chica salta sola, sin preguntar
+    @Test
+    fun aSmallDifferenceOpensTheBookWithoutAsking() = runTest(dispatcher) {
+        localAt(0.50)
+        remoteAt(0.51)
+        val vm = viewModel(FakeBooks(Result.success(book())))
+        vm.awaitReady()
+        assertEquals("remota", positionBackend.local.getValue(OPENING_ID).position.locatorJson)
+    }
+
+    @Test
+    fun choosingWhenNothingWasAskedDoesNothing() = runTest(dispatcher) {
+        val vm = viewModel(FakeBooks(Result.success(book())))
+        vm.awaitReady()
+        vm.onResumeChoice(useRemote = true)
+        assertTrue(positions.saved.isEmpty())
+    }
+
+    // --- SYN-013: aviso mientras se lee ---
+
+    private suspend fun kotlinx.coroutines.test.TestScope.otherDeviceReads(progress: Double, bookId: String = OPENING_ID) {
+        positionSync.startListening()
+        testScheduler.advanceUntilIdle()
+        positionBackend.changes.emit(
+            Result.success(
+                com.pluk.reader.domain.remote.RemoteChanges(
+                    listOf(
+                        com.pluk.reader.domain.model.RemotePosition(
+                            com.pluk.reader.domain.model.ReadingPosition(bookId, "otro-lugar", progress, 99),
+                            "otro-dispositivo",
+                            "SM-X510",
+                        ),
+                    ),
+                    1_000L,
+                ),
+            ),
+        )
+        testScheduler.advanceUntilIdle()
+    }
+
+    /** Estado actual del lector, con la suscripción activa para que se recalcule (el cache de `stateIn` puede estar viejo). */
+    private fun kotlinx.coroutines.test.TestScope.hotState(vm: ReaderViewModel): () -> ReaderUiState {
+        backgroundScope.launch { vm.uiState.collect {} }
+        return { vm.uiState.value }
+    }
+
+    private suspend fun ReaderViewModel.readyAt(progress: Double): ReaderUiState.Ready {
+        awaitReady()
+        onLocatorChanged("""{"p":1}""", progress)
+        return awaitReady()
+    }
+
+    @Test
+    fun anotherDeviceAheadOffersToContinueFromThere() = runTest(dispatcher) {
+        localAt(0.10)
+        val vm = viewModel(FakeBooks(Result.success(book())))
+        vm.readyAt(0.10)
+
+        otherDeviceReads(0.60)
+
+        assertEquals(ContinueFrom("SM-X510", 60), vm.awaitReady { it.continueFrom != null }.continueFrom)
+    }
+
+    // El otro dispositivo quedó atrás o casi igual: no hay nada que ofrecer
+    @Test
+    fun noOfferWhenTheOtherDeviceIsBehindOrAlmostTheSame() = runTest(dispatcher) {
+        localAt(0.50)
+        val vm = viewModel(FakeBooks(Result.success(book())))
+        vm.readyAt(0.50)
+        val state = hotState(vm)
+
+        otherDeviceReads(0.30)
+        otherDeviceReads(0.51)
+
+        assertNull((state() as ReaderUiState.Ready).continueFrom)
+    }
+
+    // Una posición de otro libro no interrumpe la lectura de este
+    @Test
+    fun anotherBooksPositionIsIgnored() = runTest(dispatcher) {
+        localAt(0.10)
+        val vm = viewModel(FakeBooks(Result.success(book())))
+        vm.readyAt(0.10)
+        val state = hotState(vm)
+
+        otherDeviceReads(0.90, bookId = "otro-libro")
+
+        assertNull((state() as ReaderUiState.Ready).continueFrom)
+    }
+
+    // SYN-013: la página nunca se mueve sola; solo cuando el usuario acepta
+    @Test
+    fun acceptingNavigatesToTheOtherDevicesPositionAndClearsTheNotice() = runTest(dispatcher) {
+        localAt(0.10)
+        val vm = viewModel(FakeBooks(Result.success(book())))
+        vm.readyAt(0.10)
+        val jumps = mutableListOf<String>()
+        backgroundScope.launch(kotlinx.coroutines.test.UnconfinedTestDispatcher(testScheduler)) { vm.jumps.collect { jumps += it } }
+        otherDeviceReads(0.60)
+        vm.awaitReady { it.continueFrom != null }
+        assertTrue(jumps.isEmpty())
+
+        vm.continueFromOtherDevice()
+
+        assertEquals(listOf("otro-lugar"), jumps)
+        assertNull(vm.awaitReady { it.continueFrom == null }.continueFrom)
+    }
+
+    @Test
+    fun dismissingClearsTheNoticeWithoutNavigating() = runTest(dispatcher) {
+        localAt(0.10)
+        val vm = viewModel(FakeBooks(Result.success(book())))
+        vm.readyAt(0.10)
+        val jumps = mutableListOf<String>()
+        backgroundScope.launch(kotlinx.coroutines.test.UnconfinedTestDispatcher(testScheduler)) { vm.jumps.collect { jumps += it } }
+        otherDeviceReads(0.60)
+        vm.awaitReady { it.continueFrom != null }
+
+        vm.dismissContinueFrom()
+
+        assertNull(vm.awaitReady { it.continueFrom == null }.continueFrom)
+        assertTrue(jumps.isEmpty())
+    }
+
+    // El aviso se retira solo cuando la lectura de aquí alcanza a la del otro dispositivo
+    @Test
+    fun theNoticeDisappearsWhenReadingCatchesUp() = runTest(dispatcher) {
+        localAt(0.10)
+        val vm = viewModel(FakeBooks(Result.success(book())))
+        vm.readyAt(0.10)
+        otherDeviceReads(0.60)
+        vm.awaitReady { it.continueFrom != null }
+
+        vm.onLocatorChanged("""{"p":2}""", 0.30)
+        assertEquals(60, vm.awaitReady { it.progressPercent == 30 }.continueFrom?.percent)
+
+        vm.onLocatorChanged("""{"p":3}""", 0.59)
+        assertNull(vm.awaitReady { it.progressPercent == 59 }.continueFrom)
+    }
+
+    @Test
+    fun continuingWithNothingOfferedDoesNothing() = runTest(dispatcher) {
+        val vm = viewModel(FakeBooks(Result.success(book())))
+        vm.awaitReady()
+        val jumps = mutableListOf<String>()
+        backgroundScope.launch(kotlinx.coroutines.test.UnconfinedTestDispatcher(testScheduler)) { vm.jumps.collect { jumps += it } }
+        vm.continueFromOtherDevice()
+        assertTrue(jumps.isEmpty())
     }
 }

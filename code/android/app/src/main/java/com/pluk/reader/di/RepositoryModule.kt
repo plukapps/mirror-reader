@@ -4,11 +4,14 @@ import com.pluk.reader.data.repository.BookRepositoryImpl
 import com.pluk.reader.data.repository.LibraryRepositoryImpl
 import com.pluk.reader.data.repository.PositionRepositoryImpl
 import com.pluk.reader.data.repository.SettingsRepositoryImpl
+import com.pluk.reader.data.repository.SyncPreferencesImpl
 import com.pluk.reader.data.repository.WelcomeRepositoryImpl
 import com.pluk.reader.domain.repository.BookRepository
 import com.pluk.reader.domain.repository.LibraryRepository
 import com.pluk.reader.domain.repository.PositionRepository
+import com.pluk.reader.domain.repository.PositionSyncStore
 import com.pluk.reader.domain.repository.SettingsRepository
+import com.pluk.reader.domain.repository.SyncPreferences
 import com.pluk.reader.domain.repository.WelcomeRepository
 import dagger.Binds
 import dagger.Module
@@ -29,11 +32,19 @@ abstract class RepositoryModule {
 
     @Binds
     @Singleton
+    abstract fun bindPositionSyncStore(impl: PositionRepositoryImpl): PositionSyncStore
+
+    @Binds
+    @Singleton
     abstract fun bindBookRepository(impl: BookRepositoryImpl): BookRepository
 
     @Binds
     @Singleton
     abstract fun bindLibraryRepository(impl: LibraryRepositoryImpl): LibraryRepository
+
+    @Binds
+    @Singleton
+    abstract fun bindSyncPreferences(impl: SyncPreferencesImpl): SyncPreferences
 
     @Binds
     @Singleton

@@ -8,6 +8,7 @@ import com.pluk.reader.domain.repository.LibraryRepository
 import com.pluk.reader.domain.repository.WelcomeRepository
 import com.pluk.reader.domain.showsWelcome
 import com.pluk.reader.domain.usecase.LibrarySync
+import com.pluk.reader.domain.usecase.PositionSync
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -25,6 +26,7 @@ import javax.inject.Inject
 class MainViewModel @Inject constructor(
     private val library: LibraryRepository,
     private val librarySync: LibrarySync,
+    private val positionSync: PositionSync,
     private val welcome: WelcomeRepository,
     private val accounts: AccountRepository,
 ) : ViewModel() {
@@ -53,8 +55,21 @@ class MainViewModel @Inject constructor(
      */
     fun startLibrarySync() = librarySync.start()
 
-    /** SYN-001: la app volvió a primer plano. Sincroniza si la última pasada exitosa es vieja (TTL). */
-    fun onAppStarted() = librarySync.requestIfStale()
+    /**
+     * SYN-001, SYN-011, SYN-012: la app volvió a primer plano. Sincroniza la biblioteca si la última pasada exitosa
+     * es vieja (TTL), reenvía las posiciones pendientes y empieza a recibir las de otros dispositivos.
+     */
+    fun onAppStarted() {
+        librarySync.requestIfStale()
+        positionSync.requestFlush()
+        positionSync.startListening()
+    }
+
+    /** SYN-011, SYN-012: la app dejó de verse. Envía la posición de lectura y deja de escuchar (sin trabajo en segundo plano). */
+    fun onAppStopped() {
+        positionSync.stopListening()
+        positionSync.requestFlush()
+    }
 
     sealed interface Incoming {
         data class Open(val bookId: String) : Incoming

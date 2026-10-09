@@ -72,6 +72,13 @@ class LibrarySync internal constructor(
     /** Cuándo terminó la última pasada exitosa, o null si no hubo o la última falló. */
     @Volatile
     private var lastSuccessAt: Long? = null
+
+    /**
+     * Usuario de la última pasada que empezó. Un pedido sin pasada previa para ese usuario corre aunque el TTL no
+     * haya vencido (cambio de cuenta); y si ya corrió una para él, el aviso de sesión no suma otra al arrancar.
+     */
+    @Volatile
+    private var lastRunUserId: String? = null
     private val _state = MutableStateFlow(SyncState())
     val state: StateFlow<SyncState> = _state
 
@@ -84,12 +91,15 @@ class LibrarySync internal constructor(
         started = true
         scope.launch {
             // La sesión llega de forma asíncrona: cada usuario que aparece dispara una pasada.
-            account.user.filterNotNull().distinctUntilChangedBy { it.id }.collect { request() }
+            // El consumidor decide si hace falta una pasada para ese usuario (ver abajo): así no hay carrera con onStart.
+            account.user.filterNotNull().distinctUntilChangedBy { it.id }.collect { requests.trySend(Unit) }
         }
         scope.launch {
             requests.receiveAsFlow().collect {
                 val explicit = explicitRequest.getAndSet(false)
-                if ((explicit || isStale()) && account.user.first() != null) runOnce()
+                val user = account.user.first()
+                // Un usuario para el que aún no corrió ninguna pasada siempre sincroniza (inicio de sesión, cambio de cuenta).
+                if (user != null && (explicit || isStale() || user.id != lastRunUserId)) runOnce(user.id)
             }
         }
     }
@@ -107,7 +117,8 @@ class LibrarySync internal constructor(
 
     private fun isStale(): Boolean = lastSuccessAt?.let { now() - it >= ttlMs } ?: true
 
-    private suspend fun runOnce() {
+    private suspend fun runOnce(userId: String) {
+        lastRunUserId = userId
         _state.update { it.copy(running = true) }
         var succeeded = false
         val issue = try {

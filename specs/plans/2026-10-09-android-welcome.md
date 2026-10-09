@@ -3,7 +3,7 @@
 **Objetivo:** pantalla de arranque amarilla con el logo y pantalla de bienvenida "01 — Welcome" de `design/Margin Ebook App.dc.html`.
 
 **Specs que implementa:** WEL-001 a WEL-008 (`specs/product/08-welcome.md`).
-**Rama:** `feature/splash-intro` (worktree `.claude/worktrees/splash-intro`, desde `master`). **Tarjetas:** K-099, K-101 a K-104 (K-100 queda en Backlog: "Iniciar sesión"). Pedido del usuario (2026-10-09).
+**Rama:** `feature/splash-intro` (worktree `.claude/worktrees/splash-intro`, desde `master`). **Tarjetas:** K-106 (antes K-099), K-101 a K-104 (K-100 queda en Backlog: "Iniciar sesión"). Pedido del usuario (2026-10-09).
 
 ## Diseño (medidas del HTML)
 
@@ -26,7 +26,7 @@
 
 ## Tareas
 
-### Tarea 1: spec y plan (K-099)
+### Tarea 1: spec y plan (K-106)
 - [x] `specs/product/08-welcome.md`, índice de specs y tarjetas.
 - [x] Este plan.
 

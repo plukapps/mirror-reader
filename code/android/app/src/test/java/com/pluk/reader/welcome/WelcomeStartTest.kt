@@ -8,6 +8,7 @@ import com.pluk.reader.domain.repository.LibraryRepository
 import com.pluk.reader.domain.repository.WelcomeRepository
 import com.pluk.reader.domain.showsWelcome
 import com.pluk.reader.domain.usecase.LibrarySync
+import com.pluk.reader.remote.FakePositionBackend
 import com.pluk.reader.remote.FakeSyncBackend
 import com.pluk.reader.ui.MainViewModel
 import com.pluk.reader.ui.MainViewModel.Start
@@ -64,6 +65,7 @@ class WelcomeStartTest {
         MainViewModel(
             NoLibrary,
             LibrarySync(FakeSyncBackend().useCase(), FakeAccount(user), CoroutineScope(dispatcher)),
+            FakePositionBackend().sync(FakeAccount(user), CoroutineScope(dispatcher)),
             welcome,
             FakeAccount(user),
         )
