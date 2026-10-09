@@ -26,6 +26,7 @@ import com.pluk.reader.ui.library.LibraryScreen
 import com.pluk.reader.ui.library.LibraryViewModel
 import com.pluk.reader.ui.reader.ReaderScreen
 import com.pluk.reader.ui.reader.ReaderViewModel
+import com.pluk.reader.ui.search.SearchScreen
 import com.pluk.reader.ui.welcome.WelcomeScreen
 
 object Routes {
@@ -34,6 +35,7 @@ object Routes {
     const val WELCOME = "welcome"
     const val LIBRARY = "library?${LibraryViewModel.ARG_FILTER}={${LibraryViewModel.ARG_FILTER}}"
     const val READER = "reader/{${ReaderViewModel.ARG_BOOK_ID}}"
+    const val SEARCH = "search"
 
     fun reader(bookId: String): String = "reader/$bookId"
 
@@ -53,6 +55,7 @@ fun AppNavHost(
     val selected = when (route?.destination?.route) {
         Routes.HOME -> MainDestination.Home
         Routes.LIBRARY -> MainDestination.Shelves
+        Routes.SEARCH -> MainDestination.Search
         else -> null // La barra se oculta en el lector.
     }
     // La barra flota sobre el contenido, que pasa por debajo; las pantallas dejan este espacio al final.
@@ -87,6 +90,9 @@ fun AppNavHost(
                 ) {
                     LibraryScreen(onBookClick = { bookId -> navController.navigate(Routes.reader(bookId)) })
                 }
+                composable(Routes.SEARCH) {
+                    SearchScreen(onBookClick = { bookId -> navController.navigate(Routes.reader(bookId)) })
+                }
                 composable(
                     route = Routes.READER,
                     arguments = listOf(navArgument(ReaderViewModel.ARG_BOOK_ID) { type = NavType.StringType }),
@@ -100,8 +106,9 @@ fun AppNavHost(
                 when (destination) {
                     MainDestination.Home -> navController.navigateTo(Routes.HOME)
                     MainDestination.Shelves -> navController.navigateTo(Routes.library())
-                    // TODO: Buscar (LIB-006) y Perfil (ACC) aún no existen (HOM-006).
-                    MainDestination.Search, MainDestination.Profile ->
+                    MainDestination.Search -> navController.navigateTo(Routes.SEARCH)
+                    // TODO: Perfil (ACC) aún no existe (HOM-006).
+                    MainDestination.Profile ->
                         Toast.makeText(context, R.string.nav_coming_soon, Toast.LENGTH_SHORT).show()
                 }
             }

@@ -11,6 +11,12 @@ object MarginColors {
     val Line = Color(0xFFDDD9CE)
     val CoverBorder = Color(0xFFFFFFFF)
 
+    /** Fondo del campo de búsqueda. */
+    val Field = Color(0xFFFDFDFD)
+
+    /** Punto de "leyendo" en los resultados de búsqueda. */
+    val ReadingDot = Color(0xFFC9A100)
+
     /** Íconos inactivos sobre fondo tinta (barra inferior). */
     val InkMuted = Color(0xFF8A8676)
 
