@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { after, afterEach, before, describe, it } from "node:test";
 import { assertFails, assertSucceeds } from "@firebase/rules-unit-testing";
-import { deleteDoc, doc, getDoc, serverTimestamp, setDoc, updateDoc } from "firebase/firestore";
+import { collection, deleteDoc, doc, getDoc, getDocs, query, serverTimestamp, setDoc, updateDoc, where } from "firebase/firestore";
 import { createTestEnv } from "./helpers.mjs";
 
 const HASH = "a".repeat(64);
@@ -24,6 +24,16 @@ const collectionData = (extra = {}) => ({
   createdAt: serverTimestamp(),
   updatedAt: serverTimestamp(),
   deletedAt: null,
+  ...extra,
+});
+
+const positionData = (extra = {}) => ({
+  locatorJson: '{"href":"c1.xhtml","locations":{"totalProgression":0.4}}',
+  progress: 0.4,
+  readAt: Date.now(),
+  deviceId: "dispositivo-a",
+  deviceName: "SM-S711B",
+  updatedAt: serverTimestamp(),
   ...extra,
 });
 
@@ -274,6 +284,120 @@ describe("Firestore", () => {
       await assertFails(setDoc(ref, collectionData({ name: "x".repeat(101) })));
       await assertFails(setDoc(ref, collectionData({ extra: 1 })));
       await assertFails(setDoc(ref, collectionData({ bookIds: "no-es-lista" })));
+    });
+  });
+
+  // SYN-002, SYN-003, SYN-011 a SYN-013: posición de lectura por libro
+  describe("posición de lectura", () => {
+    const ref = (uid = "alice", bookId = HASH) => doc(db(uid), `users/${uid}/positions/${bookId}`);
+    const seedPosition = (uid, readAt, bookId = HASH) =>
+      env.withSecurityRulesDisabled((ctx) =>
+        setDoc(doc(ctx.firestore(), `users/${uid}/positions/${bookId}`), { ...positionData(), readAt, updatedAt: new Date() }),
+      );
+
+    it("el dueño crea y lee la posición de un libro suyo", async () => {
+      await seedBook("alice");
+      await assertSucceeds(setDoc(ref(), positionData()));
+      const snap = await assertSucceeds(getDoc(ref()));
+      assert.equal(snap.get("progress"), 0.4);
+    });
+
+    it("otro usuario y sin sesión no leen ni escriben posiciones ajenas", async () => {
+      await seedBook("alice");
+      await seedPosition("alice", Date.now());
+      await assertFails(getDoc(doc(db("bob"), `users/alice/positions/${HASH}`)));
+      await assertFails(setDoc(doc(db("bob"), `users/alice/positions/${HASH}`), positionData()));
+      const anon = env.unauthenticatedContext().firestore();
+      await assertFails(getDoc(doc(anon, `users/alice/positions/${HASH}`)));
+      await assertFails(setDoc(doc(anon, `users/alice/positions/${HASH}`), positionData()));
+    });
+
+    it("solo para libros que existen: la cantidad queda acotada por la de libros", async () => {
+      await assertFails(setDoc(ref(), positionData()));
+      await seedBook("alice", OTHER_HASH);
+      await assertFails(setDoc(ref(), positionData())); // existe otro libro, no este
+      await assertSucceeds(setDoc(ref("alice", OTHER_HASH), positionData()));
+    });
+
+    it("rechaza un bookId que no es un SHA-256 en minúscula", async () => {
+      await seedBook("alice", "libro-1");
+      await assertFails(setDoc(ref("alice", "libro-1"), positionData()));
+    });
+
+    it("rechaza campos de más o de menos", async () => {
+      await seedBook("alice");
+      await assertFails(setDoc(ref(), positionData({ extra: 1 })));
+      const { deviceName, ...sinNombre } = positionData();
+      await assertFails(setDoc(ref(), sinNombre));
+    });
+
+    it("valida locatorJson, deviceId y deviceName", async () => {
+      await seedBook("alice");
+      await assertFails(setDoc(ref(), positionData({ locatorJson: "" })));
+      await assertFails(setDoc(ref(), positionData({ locatorJson: 5 })));
+      await assertFails(setDoc(ref(), positionData({ locatorJson: "x".repeat(8193) })));
+      await assertSucceeds(setDoc(ref(), positionData({ locatorJson: "x".repeat(8192) })));
+      await assertFails(setDoc(ref(), positionData({ deviceId: "" })));
+      await assertFails(setDoc(ref(), positionData({ deviceId: "x".repeat(65) })));
+      await assertFails(setDoc(ref(), positionData({ deviceName: "" })));
+      await assertFails(setDoc(ref(), positionData({ deviceName: "x".repeat(65) })));
+    });
+
+    it("progress es un número entre 0 y 1, o null", async () => {
+      await seedBook("alice");
+      await assertSucceeds(setDoc(ref(), positionData({ progress: 0 })));
+      await assertSucceeds(setDoc(ref(), positionData({ progress: 1 })));
+      await assertSucceeds(setDoc(ref(), positionData({ progress: null })));
+      await assertFails(setDoc(ref(), positionData({ progress: -0.01 })));
+      await assertFails(setDoc(ref(), positionData({ progress: 1.01 })));
+      await assertFails(setDoc(ref(), positionData({ progress: "0.5" })));
+    });
+
+    it("readAt es un entero positivo y no está más de una hora en el futuro", async () => {
+      await seedBook("alice");
+      await assertFails(setDoc(ref(), positionData({ readAt: 0 })));
+      await assertFails(setDoc(ref(), positionData({ readAt: "ayer" })));
+      await assertFails(setDoc(ref(), positionData({ readAt: 1.5 })));
+      await assertFails(setDoc(ref(), positionData({ readAt: Date.now() + 2 * 3600 * 1000 })));
+      await assertSucceeds(setDoc(ref(), positionData({ readAt: Date.now() + 30 * 60 * 1000 })));
+    });
+
+    it("updatedAt lo pone el servidor", async () => {
+      await seedBook("alice");
+      await assertFails(setDoc(ref(), positionData({ updatedAt: new Date() })));
+    });
+
+    // SYN-003, SYN-010: un dispositivo atrasado no pisa una lectura más nueva
+    it("la lectura más reciente gana: readAt no retrocede", async () => {
+      await seedBook("alice");
+      const base = Date.now() - 10_000;
+      await seedPosition("alice", base);
+      await assertFails(updateDoc(ref(), { readAt: base - 1, updatedAt: serverTimestamp() }));
+      await assertFails(setDoc(ref(), positionData({ readAt: base - 5000 })));
+      await assertSucceeds(updateDoc(ref(), { readAt: base + 1, updatedAt: serverTimestamp() }));
+    });
+
+    it("repetir el mismo readAt se acepta (reenvío tras un corte)", async () => {
+      await seedBook("alice");
+      const base = Date.now() - 10_000;
+      await seedPosition("alice", base);
+      await assertSucceeds(setDoc(ref(), positionData({ readAt: base })));
+    });
+
+    it("no hay borrado desde el cliente", async () => {
+      await seedBook("alice");
+      await seedPosition("alice", Date.now());
+      await assertFails(deleteDoc(ref()));
+    });
+
+    // SYN-012: el listener pide solo lo que cambió desde la última vez
+    it("el dueño consulta por updatedAt; otro usuario no", async () => {
+      await seedBook("alice");
+      await seedPosition("alice", Date.now());
+      const since = where("updatedAt", ">", new Date(0));
+      const snap = await assertSucceeds(getDocs(query(collection(db("alice"), "users/alice/positions"), since)));
+      assert.equal(snap.size, 1);
+      await assertFails(getDocs(query(collection(db("bob"), "users/alice/positions"), since)));
     });
   });
 });

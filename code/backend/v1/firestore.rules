@@ -80,5 +80,38 @@ service cloud.firestore {
         && validCollection()
         && !request.resource.data.diff(resource.data).affectedKeys().hasAny(['createdAt']);
     }
+
+    // SYN-002, SYN-003, SYN-011 a SYN-013: posición de lectura, un documento por libro (ADR 0011).
+    // bookId = SHA-256 del libro, y el libro tiene que existir: así la cantidad de posiciones queda acotada
+    // por la de libros. Gana la lectura más reciente (readAt), no la que llega último; updatedAt es del
+    // servidor y solo sirve para pedir lo que cambió desde la última vez.
+    match /users/{uid}/positions/{bookId} {
+      function validPosition() {
+        let data = request.resource.data;
+        return data.keys().hasAll(['locatorJson', 'progress', 'readAt', 'deviceId', 'deviceName', 'updatedAt'])
+          && data.keys().hasOnly(['locatorJson', 'progress', 'readAt', 'deviceId', 'deviceName', 'updatedAt'])
+          && data.locatorJson is string && data.locatorJson.size() >= 1 && data.locatorJson.size() <= 8192
+          && (data.progress == null || (data.progress is number && data.progress >= 0 && data.progress <= 1))
+          && data.readAt is int && data.readAt > 0
+          // Un reloj adelantado no puede bloquear para siempre a los demás dispositivos.
+          && data.readAt <= request.time.toMillis() + 3600000
+          && data.deviceId is string && data.deviceId.size() >= 1 && data.deviceId.size() <= 64
+          && data.deviceName is string && data.deviceName.size() >= 1 && data.deviceName.size() <= 64
+          && isServerTime(data.updatedAt);
+      }
+
+      allow read: if isOwner(uid);
+
+      allow create: if isOwner(uid)
+        && bookId.matches('^[a-f0-9]{64}$')
+        && exists(/databases/$(database)/documents/users/$(uid)/books/$(bookId))
+        && validPosition();
+
+      // Un dispositivo atrasado no pisa una lectura más nueva (SYN-003, SYN-010). Igual se acepta: reenvío.
+      // No hay delete: la posición de un libro borrado se ignora.
+      allow update: if isOwner(uid)
+        && validPosition()
+        && request.resource.data.readAt >= resource.data.readAt;
+    }
   }
 }
