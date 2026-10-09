@@ -70,6 +70,7 @@ import com.pluk.reader.domain.home.greetingFor
 import com.pluk.reader.domain.model.LibraryBook
 import com.pluk.reader.ui.library.BookCover
 import com.pluk.reader.ui.library.toText
+import com.pluk.reader.ui.navigation.LocalBottomBarPadding
 import com.pluk.reader.ui.theme.MarginColors
 import java.time.LocalTime
 
@@ -111,6 +112,7 @@ fun HomeContentView(
     val picker = rememberLauncherForActivityResult(ActivityResultContracts.OpenMultipleDocuments()) { uris ->
         onImport(uris.map { it.toString() })
     }
+    val bottomBarPadding = LocalBottomBarPadding.current
     Box(Modifier
         .fillMaxSize()
         .background(MarginColors.Paper), contentAlignment = Alignment.TopCenter) {
@@ -120,7 +122,7 @@ fun HomeContentView(
                 .fillMaxSize()
                 .statusBarsPadding()
                 .verticalScroll(rememberScrollState())
-                .padding(bottom = 24.dp),
+                .padding(bottom = 24.dp + bottomBarPadding),
         ) {
             Text(
                 text = stringResource(greeting.text()),
@@ -149,7 +151,7 @@ fun HomeContentView(
                 Sections(content, onBookClick, onSeeAll)
             }
         }
-        SnackbarHost(snackbar, Modifier.align(Alignment.BottomCenter))
+        SnackbarHost(snackbar, Modifier.align(Alignment.BottomCenter).padding(bottom = bottomBarPadding))
     }
 }
 

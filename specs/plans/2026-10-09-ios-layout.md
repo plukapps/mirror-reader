@@ -19,7 +19,7 @@ Barra de navegación inferior (HOM-005, tarjeta aparte), iPad con diseño propio
 
 ## Tareas
 
-- **K-094** Target de iOS: `project.yml` con destinos Mac e iOS, ajustes condicionados por SDK, ícono universal. Verificación: `xcodebuild build` para macOS y para el simulador de iPhone.
+- **K-097** Target de iOS: `project.yml` con destinos Mac e iOS, ajustes condicionados por SDK, ícono universal. Verificación: `xcodebuild build` para macOS y para el simulador de iPhone.
 - **K-095** Layout de Inicio en iPhone: `WindowLayout` (sin mínimo en iOS), modo claro, márgenes y tamaños revisados en un iPhone de 375 pt y en uno de 430 pt. Tests de `WindowLayout` (IOS-001). Verificación: captura en el simulador (iPhone SE/16 y 16 Pro Max) y la Mac sin cambios.
 
 ## Resultado
