@@ -14,7 +14,7 @@ class FirestoreQuotaSource @Inject constructor(
     private val db: FirebaseFirestore,
     private val auth: FirebaseAuth,
 ) : QuotaSource {
-    override suspend fun current(): Result<StorageQuota> = remoteCall {
+    override suspend fun current(): Result<StorageQuota> = remoteCall("getStorageQuota") {
         val uid = auth.currentUser?.uid ?: throw RemoteUnavailableException("No hay sesión iniciada.")
         // Siempre del servidor: un valor viejo en caché dejaría subir de más o bloquearía sin motivo.
         val doc = db.document("users/$uid").get(Source.SERVER).await()

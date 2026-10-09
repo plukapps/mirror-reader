@@ -32,10 +32,12 @@ class UploadBooksUseCaseTest {
 
     private inner class FakeUploads(val items: List<PendingUpload>) : BookUploadRepository {
         val marked = mutableListOf<Pair<String, Long>>()
+        val coverFlags = mutableMapOf<String, Boolean>()
         override suspend fun pending() = items
-        override suspend fun markUploaded(bookId: String, sizeBytes: Long) {
+        override suspend fun markUploaded(bookId: String, sizeBytes: Long, coverUploaded: Boolean) {
             calls += "marcar:$bookId"
             marked += bookId to sizeBytes
+            coverFlags[bookId] = coverUploaded
         }
     }
 
@@ -91,12 +93,16 @@ class UploadBooksUseCaseTest {
         val report = useCase(uploads).invoke()
         assertEquals(UploadReport(uploaded = 1), report)
         assertEquals(listOf("archivo:a", "metadatos:a", "portada:a", "marcar:a"), calls)
+        // La portada subida queda anotada: SyncCoversUseCase no la vuelve a consultar
+        assertEquals(mapOf("a" to true), uploads.coverFlags)
     }
 
     @Test
     fun aBookWithoutCoverSkipsTheCoverStep() = runTest {
-        useCase(FakeUploads(listOf(pending("a", MIB)))).invoke()
+        val uploads = FakeUploads(listOf(pending("a", MIB)))
+        useCase(uploads).invoke()
         assertTrue("portada:a" !in calls)
+        assertEquals(mapOf("a" to false), uploads.coverFlags)
     }
 
     // LIB-012: la portada es secundaria; un rechazo no impide que el libro quede subido
@@ -107,6 +113,8 @@ class UploadBooksUseCaseTest {
         val report = useCase(uploads, files).invoke()
         assertEquals(UploadReport(uploaded = 1), report)
         assertEquals(listOf("a" to MIB), uploads.marked)
+        // Sin portada subida queda sin anotar, para que SyncCoversUseCase la reintente
+        assertEquals(mapOf("a" to false), uploads.coverFlags)
     }
 
     // SYN-001: sin conexión al subir la portada el libro queda pendiente y se reintenta entero (es seguro)

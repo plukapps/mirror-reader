@@ -13,6 +13,6 @@ interface BookUploadRepository {
     /** Libros pendientes de subir, el más viejo primero. Se omiten los que perdieron su archivo local. */
     suspend fun pending(): List<PendingUpload>
 
-    /** Registra que el libro ya está en la nube. */
-    suspend fun markUploaded(bookId: String, sizeBytes: Long)
+    /** Registra que el libro ya está en la nube. [coverUploaded]: su portada también (LIB-012). */
+    suspend fun markUploaded(bookId: String, sizeBytes: Long, coverUploaded: Boolean)
 }

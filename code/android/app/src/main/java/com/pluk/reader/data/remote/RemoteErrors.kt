@@ -7,13 +7,32 @@ import com.pluk.reader.domain.remote.RemoteUnavailableException
 import kotlinx.coroutines.CancellationException
 import java.io.IOException
 
-/** Ejecuta una llamada al SDK y devuelve el fallo como `Result` con los tipos del dominio. La cancelación se propaga. */
-internal suspend fun <T> remoteCall(block: suspend () -> T): Result<T> = try {
-    Result.success(block())
-} catch (e: CancellationException) {
-    throw e
-} catch (e: Exception) {
-    Result.failure(e.toRemoteError())
+import android.util.Log
+
+private const val REMOTE_LOG_TAG = "RemoteRequest"
+
+/** Ejecuta una llamada al SDK, registra la petición con tiempo de ejecución y devuelve el fallo como `Result`. La cancelación se propaga. */
+internal suspend fun <T> remoteCall(
+    operationName: String = "RemoteCall",
+    block: suspend () -> T,
+): Result<T> {
+    val start = System.currentTimeMillis()
+    Log.d(REMOTE_LOG_TAG, "--> $operationName")
+    return try {
+        val result = block()
+        val duration = System.currentTimeMillis() - start
+        Log.d(REMOTE_LOG_TAG, "<-- $operationName (${duration}ms)")
+        Result.success(result)
+    } catch (e: CancellationException) {
+        val duration = System.currentTimeMillis() - start
+        Log.d(REMOTE_LOG_TAG, "<-- $operationName cancelada (${duration}ms)")
+        throw e
+    } catch (e: Exception) {
+        val duration = System.currentTimeMillis() - start
+        val remoteError = e.toRemoteError()
+        Log.w(REMOTE_LOG_TAG, "<-- $operationName falló (${duration}ms): ${remoteError.message ?: remoteError}", remoteError)
+        Result.failure(remoteError)
+    }
 }
 
 /**

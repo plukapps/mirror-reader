@@ -22,12 +22,20 @@ class SyncCoversUseCaseTest {
     private val calls = mutableListOf<String>()
 
     private inner class FakeCloud(
-        val withCover: List<String> = emptyList(),
+        withCover: List<String> = emptyList(),
         val withoutCover: List<String> = emptyList(),
     ) : CloudBooksRepository {
+        /** Portadas locales cuya subida aún no está anotada; `markCoverUploaded` las saca, como la base de datos. */
+        val withCover = withCover.toMutableList()
+        val marked = mutableListOf<String>()
         val installed = mutableListOf<String>()
         val temps = mutableListOf<File>()
-        override suspend fun uploadedBooksWithCover() = withCover.map { CoverFile(it, File("/portadas/$it.jpg")) }
+        override suspend fun cloudOnlyBookIds(): List<String> = emptyList()
+        override suspend fun coversToUpload() = withCover.map { CoverFile(it, File("/portadas/$it.jpg")) }
+        override suspend fun markCoverUploaded(bookId: String) {
+            withCover.remove(bookId)
+            marked += bookId
+        }
         override suspend fun cloudBooksWithoutCover() = withoutCover
         override suspend fun installCover(bookId: String, downloaded: File) {
             installed += bookId
@@ -60,6 +68,35 @@ class SyncCoversUseCaseTest {
         val report = SyncCoversUseCase(FakeCloud(withCover = listOf("a", "b")), FakeFiles())()
         assertEquals(CoverSyncReport(uploaded = 2), report)
         assertEquals(listOf("subir:a", "subir:b"), calls)
+    }
+
+    // Una portada ya anotada como subida no se vuelve a consultar en las sincronizaciones siguientes
+    @Test
+    fun aCoverIsUploadedOnlyOnceAcrossRuns() = runTest {
+        val cloud = FakeCloud(withCover = listOf("a", "b"))
+        val useCase = SyncCoversUseCase(cloud, FakeFiles())
+        useCase()
+        calls.clear()
+
+        val second = useCase()
+
+        assertEquals(listOf("a", "b"), cloud.marked)
+        assertEquals(CoverSyncReport(), second)
+        assertEquals(emptyList<String>(), calls)
+    }
+
+    // Si la subida falla no se anota: se reintenta en la próxima pasada
+    @Test
+    fun aFailedCoverIsNotMarkedAndIsRetried() = runTest {
+        val cloud = FakeCloud(withCover = listOf("a"))
+        val failing = FakeFiles(uploadResults = mapOf("a" to Result.failure(IllegalStateException("denegado"))))
+        SyncCoversUseCase(cloud, failing)()
+        assertEquals(emptyList<String>(), cloud.marked)
+
+        calls.clear()
+        SyncCoversUseCase(cloud, FakeFiles())()
+        assertEquals(listOf("subir:a"), calls)
+        assertEquals(listOf("a"), cloud.marked)
     }
 
     @Test

@@ -19,7 +19,7 @@ class FirestoreRemoteLibrary @Inject constructor(
     private val db: FirebaseFirestore,
     private val auth: FirebaseAuth,
 ) : RemoteLibrary {
-    override suspend fun listBooks(): Result<List<RemoteBook>> = remoteCall {
+    override suspend fun listBooks(): Result<List<RemoteBook>> = remoteCall("listBooks") {
         val uid = uid()
         db.collection("users/$uid/books").whereEqualTo(DELETED_AT, null).get().await().documents.mapNotNull { doc ->
             val title = doc.getString(TITLE) ?: return@mapNotNull null
@@ -30,7 +30,7 @@ class FirestoreRemoteLibrary @Inject constructor(
     }.onSuccess { Log.i(TAG, "Libros en la nube: ${it.size}") }
         .onFailure { Log.w(TAG, "No se pudo listar la nube: $it") }
 
-    override suspend fun saveBook(book: RemoteBook): Result<Unit> = remoteCall {
+    override suspend fun saveBook(book: RemoteBook): Result<Unit> = remoteCall("saveBook(${book.id.take(8)})") {
         val uid = uid()
         val ref: DocumentReference = db.document("users/$uid/books/${book.id}")
         db.runTransaction { tx ->

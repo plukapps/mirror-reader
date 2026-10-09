@@ -3,13 +3,14 @@ package com.pluk.reader.ui.library
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.pluk.reader.domain.model.ImportOutcome
 import com.pluk.reader.domain.model.LibraryFilter
 import com.pluk.reader.domain.model.countBy
 import com.pluk.reader.domain.model.filterBy
 import com.pluk.reader.domain.repository.LibraryRepository
 import com.pluk.reader.domain.account.AccountRepository
 import com.pluk.reader.domain.usecase.ImportBooksUseCase
-import com.pluk.reader.domain.usecase.UploadBooksUseCase
+import com.pluk.reader.domain.usecase.LibrarySync
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -26,7 +27,7 @@ import kotlinx.coroutines.launch
 class LibraryViewModel @Inject constructor(
     library: LibraryRepository,
     private val importBooks: ImportBooksUseCase,
-    private val uploadBooks: UploadBooksUseCase,
+    private val librarySync: LibrarySync,
     account: AccountRepository,
     savedState: SavedStateHandle,
 ) : ViewModel() {
@@ -35,7 +36,6 @@ class LibraryViewModel @Inject constructor(
         LibraryFilter.entries.firstOrNull { it.name == savedState.get<String>(ARG_FILTER) } ?: LibraryFilter.All,
     )
     private val importing = MutableStateFlow(false)
-    private val uploading = MutableStateFlow(false)
 
     private val _messages = MutableSharedFlow<LibraryMessage>(extraBufferCapacity = MESSAGE_BUFFER)
     val messages: SharedFlow<LibraryMessage> = _messages.asSharedFlow()
@@ -44,9 +44,9 @@ class LibraryViewModel @Inject constructor(
         library.books,
         filter,
         importing,
-        uploading,
+        librarySync.state,
         account.user,
-    ) { books, filter, importing, uploading, user ->
+    ) { books, filter, importing, sync, user ->
         LibraryUiState(
             loading = false,
             books = books.filterBy(filter),
@@ -55,7 +55,7 @@ class LibraryViewModel @Inject constructor(
             readingCount = books.countBy(LibraryFilter.Reading),
             finishedCount = books.countBy(LibraryFilter.Finished),
             importing = importing,
-            uploading = uploading,
+            sync = sync,
             pendingUploadCount = books.count { it.isDownloaded && !it.isUploaded },
             signedIn = user != null,
         )
@@ -76,22 +76,13 @@ class LibraryViewModel @Inject constructor(
                 importing.value = false
             }
             outcomes.toMessages().forEach { _messages.tryEmit(it) }
+            // SYN-001: lo importado se sube solo.
+            if (outcomes.any { it is ImportOutcome.Imported }) librarySync.request()
         }
     }
 
-    /** Sube los libros importados que aún no están en la nube y avisa el resultado (LIB-007, LIB-009, SYN-008). */
-    fun onUpload() {
-        // Un segundo toque durante la subida no lanza otra tanda.
-        if (!uploading.compareAndSet(expect = false, update = true)) return
-        viewModelScope.launch {
-            val report = try {
-                uploadBooks()
-            } finally {
-                uploading.value = false
-            }
-            report.toMessages().forEach { _messages.tryEmit(it) }
-        }
-    }
+    /** SYN-008: reintento manual tras un problema de sincronización. */
+    fun onRetrySync() = librarySync.request()
 
     companion object {
         const val ARG_FILTER = "filter"

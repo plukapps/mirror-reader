@@ -6,19 +6,14 @@ import com.pluk.reader.domain.model.LibraryBook
 import com.pluk.reader.domain.model.LibraryFilter
 import com.pluk.reader.domain.repository.LibraryRepository
 import com.pluk.reader.domain.usecase.ImportBooksUseCase
+import com.pluk.reader.domain.usecase.LibrarySync
+import com.pluk.reader.domain.usecase.SyncIssue
+import com.pluk.reader.domain.usecase.SyncState
+import com.pluk.reader.remote.FakeSyncBackend
+import com.pluk.reader.ui.library.toMessages
+import kotlinx.coroutines.CoroutineScope
 import com.pluk.reader.domain.account.AccountRepository
 import com.pluk.reader.domain.account.AccountUser
-import com.pluk.reader.domain.account.QuotaSource
-import com.pluk.reader.domain.account.StorageQuota
-import com.pluk.reader.domain.remote.BookFileStore
-import com.pluk.reader.domain.remote.RemoteBook
-import com.pluk.reader.domain.remote.RemoteLibrary
-import com.pluk.reader.domain.repository.BookUploadRepository
-import com.pluk.reader.domain.repository.PendingUpload
-import com.pluk.reader.domain.usecase.UploadBooksUseCase
-import com.pluk.reader.domain.usecase.UploadReport
-import com.pluk.reader.ui.library.toMessages
-import java.io.File
 import com.pluk.reader.ui.library.LibraryMessage
 import com.pluk.reader.ui.library.LibraryUiState
 import com.pluk.reader.ui.library.LibraryViewModel
@@ -65,31 +60,16 @@ class LibraryViewModelTest {
         override suspend fun signIn(email: String, password: String) = Result.failure<AccountUser>(UnsupportedOperationException())
     }
 
-    private class FakeUploads(var report: UploadReport = UploadReport(uploaded = 1)) : BookUploadRepository, BookFileStore, RemoteLibrary, QuotaSource {
-        var runs = 0
-        override suspend fun pending(): List<PendingUpload> {
-            runs++
-            return listOf(PendingUpload(RemoteBook("x", "T", emptyList(), 1), File("/x.epub")))
-        }
-        override suspend fun markUploaded(bookId: String, sizeBytes: Long) = Unit
-        override suspend fun upload(bookId: String, file: File) = Result.success(Unit)
-        override suspend fun download(bookId: String, destination: File) = Result.success(Unit)
-        override suspend fun uploadCover(bookId: String, file: File) = Result.success(Unit)
-        override suspend fun downloadCover(bookId: String, destination: File) = Result.success(false)
-        override suspend fun listBooks() = Result.success(emptyList<RemoteBook>())
-        override suspend fun saveBook(book: RemoteBook) = Result.success(Unit)
-        override suspend fun current() = Result.success(StorageQuota(0, 15L * 1024 * 1024))
-    }
+    private val backend = FakeSyncBackend()
 
     private fun viewModel(
         library: FakeLibrary,
         filter: String? = null,
         account: FakeAccount = FakeAccount(),
-        uploads: FakeUploads = FakeUploads(),
     ) = LibraryViewModel(
         library,
         ImportBooksUseCase(library),
-        UploadBooksUseCase(uploads, uploads, uploads, uploads),
+        LibrarySync(backend.useCase(), account, CoroutineScope(dispatcher)).also { it.start() },
         account,
         SavedStateHandle(listOfNotNull(filter?.let { LibraryViewModel.ARG_FILTER to it }).toMap()),
     )
@@ -185,64 +165,65 @@ class LibraryViewModelTest {
         assertEquals(LibraryFilter.All, viewModel(library).ready().filter)
     }
 
-    // LIB-007, SYN-001: el botón de subir aparece solo con sesión y libros pendientes (descargados y no subidos)
+    // SYN-008: el estado de sincronización se muestra solo con sesión y si hay algo que decir
     @Test
-    fun uploadIsOfferedOnlyWithASessionAndPendingBooks() = runTest(dispatcher) {
+    fun syncStatusIsShownOnlyWithASessionAndSomethingToSay() {
+        val idle = LibraryUiState(loading = false, signedIn = true)
+        assertFalse(idle.showSyncStatus)
+        assertTrue(idle.copy(pendingUploadCount = 1).showSyncStatus)
+        assertTrue(idle.copy(sync = SyncState(running = true)).showSyncStatus)
+        assertTrue(idle.copy(sync = SyncState(issue = SyncIssue.Offline)).showSyncStatus)
+        assertFalse(idle.copy(signedIn = false, pendingUploadCount = 1).showSyncStatus)
+    }
+
+    // LIB-007, SYN-001: solo cuentan como pendientes los libros descargados y no subidos
+    @Test
+    fun pendingUploadsAreTheDownloadedBooksNotYetInTheCloud() = runTest(dispatcher) {
         val books = listOf(local("a"), local("b", uploaded = true), local("c", downloaded = false, uploaded = true))
-        val withSession = viewModel(FakeLibrary(books), account = FakeAccount(signedIn = true)).ready()
-        assertEquals(1, withSession.pendingUploadCount)
-        assertTrue(withSession.canUpload)
-
-        val noSession = viewModel(FakeLibrary(books), account = FakeAccount(signedIn = false)).ready()
-        assertFalse(noSession.canUpload)
-
-        val nothingPending = viewModel(FakeLibrary(listOf(local("b", uploaded = true))), account = FakeAccount(true)).ready()
-        assertEquals(0, nothingPending.pendingUploadCount)
-        assertFalse(nothingPending.canUpload)
+        assertEquals(1, viewModel(FakeLibrary(books), account = FakeAccount(true)).ready().pendingUploadCount)
     }
 
+    // SYN-001: importar sube solo, sin botón
     @Test
-    fun uploadReportsTheOutcomeAndClearsTheFlag() = runTest(dispatcher) {
-        val vm = viewModel(FakeLibrary(listOf(local("a"))), account = FakeAccount(true))
-        val received = mutableListOf<LibraryMessage>()
-        backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { vm.messages.collect { received += it } }
+    fun importingBooksTriggersASync() = runTest(dispatcher) {
+        val library = FakeLibrary()
+        library.outcomes["a"] = ImportOutcome.Imported("1", "A")
+        val vm = viewModel(library, account = FakeAccount(true))
         backgroundScope.launch { vm.uiState.collect {} }
         advanceUntilIdle()
+        val before = backend.listings
 
-        vm.onUpload()
+        vm.onImport(listOf("a"))
         advanceUntilIdle()
 
-        assertEquals(listOf<LibraryMessage>(LibraryMessage.Uploaded(1)), received)
-        assertFalse(vm.uiState.value.uploading)
+        assertEquals(before + 1, backend.listings)
     }
 
-    // Un segundo toque mientras sube no lanza otra tanda
+    // Si no se importó nada nuevo no hay nada que subir
     @Test
-    fun aSecondUploadWhileRunningIsIgnored() = runTest(dispatcher) {
-        val uploads = FakeUploads()
-        val vm = viewModel(FakeLibrary(listOf(local("a"))), account = FakeAccount(true), uploads = uploads)
+    fun importingNothingNewDoesNotTriggerASync() = runTest(dispatcher) {
+        val library = FakeLibrary()
+        library.outcomes["a"] = ImportOutcome.AlreadyInLibrary("1", "A")
+        library.outcomes["b"] = ImportOutcome.Rejected("dañado")
+        val vm = viewModel(library, account = FakeAccount(true))
         backgroundScope.launch { vm.uiState.collect {} }
         advanceUntilIdle()
+        val before = backend.listings
 
-        vm.onUpload()
-        vm.onUpload()
+        vm.onImport(listOf("a", "b"))
         advanceUntilIdle()
 
-        assertEquals(1, uploads.runs)
+        assertEquals(before, backend.listings)
     }
 
-    // LIB-009, SYN-008: avisos de cuota llena, falla y sin conexión
+    // SYN-008: tocar el aviso de error reintenta
     @Test
-    fun uploadReportsMapToMessages() {
-        assertEquals(
-            listOf<LibraryMessage>(LibraryMessage.Uploaded(2), LibraryMessage.NotEnoughSpace(1), LibraryMessage.UploadFailed(3)),
-            UploadReport(uploaded = 2, notEnoughSpace = 1, failed = 3).toMessages(),
-        )
-        assertEquals(listOf<LibraryMessage>(LibraryMessage.CloudUnreachable), UploadReport(unreachable = true).toMessages())
-        assertEquals(
-            listOf<LibraryMessage>(LibraryMessage.Uploaded(1), LibraryMessage.CloudUnreachable),
-            UploadReport(uploaded = 1, unreachable = true).toMessages(),
-        )
-        assertEquals(emptyList<LibraryMessage>(), UploadReport().toMessages())
+    fun retryRequestsASync() = runTest(dispatcher) {
+        val vm = viewModel(FakeLibrary(), account = FakeAccount(true))
+        advanceUntilIdle()
+        val before = backend.listings
+        vm.onRetrySync()
+        advanceUntilIdle()
+        assertEquals(before + 1, backend.listings)
     }
 }

@@ -18,28 +18,38 @@ class FirebaseBookFileStore @Inject constructor(
     private val storage: FirebaseStorage,
     private val auth: FirebaseAuth,
 ) : BookFileStore {
-    override suspend fun upload(bookId: String, file: File): Result<Unit> = remoteCall {
+    override suspend fun upload(bookId: String, file: File): Result<Unit> {
         val ref = bookRef(bookId)
         // Un libro ya subido no se vuelve a subir: el nombre es su hash y las reglas no permiten sobrescribir (LIB-002).
-        if (!exists(ref)) {
+        val existsResult = remoteCall("checkBookExists(${bookId.take(8)})") { exists(ref) }
+        val alreadyExists = existsResult.getOrElse { return Result.failure(it) }
+        if (alreadyExists) return Result.success(Unit)
+
+        return remoteCall("uploadBook(${bookId.take(8)})") {
             ref.putFile(Uri.fromFile(file), storageMetadata { contentType = EPUB_MIME_TYPE }).await()
+            Unit
         }
     }
 
-    override suspend fun download(bookId: String, destination: File): Result<Unit> = remoteCall {
+    override suspend fun download(bookId: String, destination: File): Result<Unit> = remoteCall("downloadBook(${bookId.take(8)})") {
         bookRef(bookId).getFile(destination).await()
         Unit
     }
 
-    override suspend fun uploadCover(bookId: String, file: File): Result<Unit> = remoteCall {
+    override suspend fun uploadCover(bookId: String, file: File): Result<Unit> {
         val ref = coverRef(bookId)
-        if (!exists(ref)) {
+        val existsResult = remoteCall("checkCoverExists(${bookId.take(8)})") { exists(ref) }
+        val alreadyExists = existsResult.getOrElse { return Result.failure(it) }
+        if (alreadyExists) return Result.success(Unit)
+
+        return remoteCall("uploadCover(${bookId.take(8)})") {
             ref.putFile(Uri.fromFile(file), storageMetadata { contentType = JPEG_MIME_TYPE }).await()
             Log.i(TAG, "Portada subida: ${bookId.take(8)}")
+            Unit
         }
     }
 
-    override suspend fun downloadCover(bookId: String, destination: File): Result<Boolean> = remoteCall {
+    override suspend fun downloadCover(bookId: String, destination: File): Result<Boolean> = remoteCall("downloadCover(${bookId.take(8)})") {
         try {
             coverRef(bookId).getFile(destination).await()
             Log.i(TAG, "Portada bajada: ${bookId.take(8)}")

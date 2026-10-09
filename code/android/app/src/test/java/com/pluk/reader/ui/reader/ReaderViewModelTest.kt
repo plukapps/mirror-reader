@@ -111,7 +111,9 @@ class ReaderViewModelTest {
         CloudBooksRepository {
         var installs = 0
         override suspend fun addCloudOnly(books: List<RemoteBook>) = Unit
-        override suspend fun uploadedBooksWithCover(): List<CoverFile> = emptyList()
+        override suspend fun cloudOnlyBookIds(): List<String> = emptyList()
+        override suspend fun coversToUpload(): List<CoverFile> = emptyList()
+        override suspend fun markCoverUploaded(bookId: String) = Unit
         override suspend fun cloudBooksWithoutCover(): List<String> = emptyList()
         override suspend fun installCover(bookId: String, downloaded: File) = Unit
         override suspend fun isDownloaded(bookId: String) = downloaded

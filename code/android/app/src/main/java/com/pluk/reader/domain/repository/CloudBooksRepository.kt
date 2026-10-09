@@ -11,14 +11,20 @@ interface CloudBooksRepository {
     /** Registra como "solo en la nube" los libros que aún no están en la biblioteca. No toca los que ya existen. */
     suspend fun addCloudOnly(books: List<RemoteBook>)
 
+    /** Libros cuyo archivo aún no está en este dispositivo (LIB-007). */
+    suspend fun cloudOnlyBookIds(): List<String>
+
     /** El archivo del libro ya está en este dispositivo. */
     suspend fun isDownloaded(bookId: String): Boolean
 
     /** Archivo temporal donde bajar un libro, en el mismo almacenamiento que los libros. */
     fun newTempFile(): File
 
-    /** Libros ya subidos a la nube que tienen su portada en este dispositivo (LIB-012). */
-    suspend fun uploadedBooksWithCover(): List<CoverFile>
+    /** Libros ya subidos a la nube con portada en este dispositivo cuya portada aún no se sabe en la nube (LIB-012). */
+    suspend fun coversToUpload(): List<CoverFile>
+
+    /** Registra que la portada del libro ya está en la nube, para no volver a consultarla (LIB-012). */
+    suspend fun markCoverUploaded(bookId: String)
 
     /** Libros solo en la nube que todavía no tienen portada en este dispositivo (LIB-012). */
     suspend fun cloudBooksWithoutCover(): List<String>

@@ -39,7 +39,7 @@ class MainActivity : FragmentActivity() {
         supportFragmentManager.fragmentFactory = host.fragmentFactory
         super.onCreate(if (savedInstanceState != null && !host.isInstalled) null else savedInstanceState)
         enableEdgeToEdge()
-        viewModel.syncCloudBooks()
+        viewModel.startLibrarySync()
 
         if (savedInstanceState == null) incomingBook.value = intent?.data
         setContent {
@@ -49,7 +49,7 @@ class MainActivity : FragmentActivity() {
                     LaunchedEffect(incomingBook.value) {
                         incomingBook.value?.let { uri ->
                             incomingBook.value = null
-                            when (val incoming = viewModel.importIncoming(uri)) {
+                            when (val incoming = viewModel.importIncoming(uri.toString())) {
                                 is MainViewModel.Incoming.Open -> navController.navigate(Routes.reader(incoming.bookId))
                                 is MainViewModel.Incoming.Failed ->
                                     Toast.makeText(this@MainActivity, incoming.message, Toast.LENGTH_LONG).show()
@@ -60,6 +60,12 @@ class MainActivity : FragmentActivity() {
                 }
             }
         }
+    }
+
+    override fun onStart() {
+        super.onStart()
+        // Cubre volver a la app y recrear la actividad; el TTL de LibrarySync evita pasadas de más.
+        viewModel.onAppStarted()
     }
 
     override fun onNewIntent(intent: Intent) {
