@@ -218,4 +218,43 @@ class LibrarySyncTest {
 
         assertEquals(2, backend.listings)
     }
+
+    /**
+     * La sesión llega tarde para el aviso de sesión pero no para la pasada: reproduce el arranque en frío real, en el
+     * que `onStart` pide la pasada antes de que el aviso de sesión llegue.
+     */
+    private class LateSessionAccount(private val session: AccountUser) : AccountRepository {
+        private var accesses = 0
+        override val user: kotlinx.coroutines.flow.Flow<AccountUser?>
+            get() = if (accesses++ == 0) {
+                kotlinx.coroutines.flow.flow { kotlinx.coroutines.delay(100); emit(session) }
+            } else {
+                MutableStateFlow(session)
+            }
+        override suspend fun signIn(email: String, password: String) = Result.failure<AccountUser>(IllegalStateException())
+    }
+
+    // Arranque en frío: onStart llega antes que el aviso de sesión. Una sola pasada, no dos
+    @Test
+    fun theSessionArrivingAfterAPassForTheSameUserDoesNotRunAnotherOne() = runTest(dispatcher) {
+        val sync = LibrarySync(backend.useCase(), LateSessionAccount(session), CoroutineScope(dispatcher), { clock }, ttl)
+        sync.start()
+        sync.requestIfStale()
+        advanceUntilIdle()
+        assertEquals(1, backend.listings)
+    }
+
+    // Otro usuario que inicia sesión sí sincroniza, aunque la última pasada haya sido hace segundos
+    @Test
+    fun aDifferentUserLoggingInSyncsEvenRightAfterAnotherPass() = runTest(dispatcher) {
+        val account = FakeAccount(session)
+        syncWithClock(account)
+        advanceUntilIdle()
+        assertEquals(1, backend.listings)
+
+        account.state.value = AccountUser("u2", null)
+        advanceUntilIdle()
+
+        assertEquals(2, backend.listings)
+    }
 }

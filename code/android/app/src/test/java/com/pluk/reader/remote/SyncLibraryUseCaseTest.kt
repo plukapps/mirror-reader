@@ -127,4 +127,21 @@ class SyncLibraryUseCaseTest {
         assertEquals(SyncIssue.Failed(1), noSpace.copy(downloadFailed = 1).toIssue())
         assertEquals(SyncIssue.Offline, noSpace.copy(downloadFailed = 1, unreachable = true).toIssue())
     }
+
+    // SYN-011: al terminar una pasada normal salen las posiciones de lectura que esperaban a que el libro estuviera en la nube
+    @Test
+    fun aCompletedPassSendsThePendingReadingPositionsLast() = runTest {
+        backend.pending += backend.pendingBook("p1")
+
+        backend.useCase()()
+
+        assertEquals(1, backend.positionFlushes)
+    }
+
+    @Test
+    fun anOfflinePassDoesNotTryToSendPositions() = runTest {
+        backend.offline = true
+        backend.useCase()()
+        assertEquals(0, backend.positionFlushes)
+    }
 }

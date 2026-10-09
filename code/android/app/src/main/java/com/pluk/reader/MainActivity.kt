@@ -68,6 +68,11 @@ class MainActivity : FragmentActivity() {
         viewModel.onAppStarted()
     }
 
+    override fun onStop() {
+        super.onStop()
+        viewModel.onAppStopped()
+    }
+
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
         intent.data?.let { incomingBook.value = it }

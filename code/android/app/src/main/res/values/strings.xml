@@ -52,5 +52,13 @@
     <string name="home_recently_added">Agregados recientemente</string>
     <string name="home_finished">Terminados</string>
     <string name="home_see_all">Ver todo</string>
+    <string name="reader_resume_title">¿Continuar desde donde quedaste en %1$s?</string>
+    <string name="reader_resume_message_percent">Allí vas por el %1$d %%. Si te quedás aquí, esta posición pasa a ser la más reciente.</string>
+    <string name="reader_resume_message">Leíste más adelante en otro dispositivo. Si te quedás aquí, esta posición pasa a ser la más reciente.</string>
+    <string name="reader_continue_from_percent">Seguir desde %1$s · %2$d %%</string>
+    <string name="reader_continue_from">Seguir desde %1$s</string>
+    <string name="reader_continue_from_dismiss">✕</string>
+    <string name="reader_resume_continue">Continuar allí</string>
+    <string name="reader_resume_stay">Quedarme aquí</string>
     <string name="reader_body_ended">Parece que terminaste el libro</string>
 </resources>

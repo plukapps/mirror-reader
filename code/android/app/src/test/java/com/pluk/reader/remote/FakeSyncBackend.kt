@@ -11,6 +11,7 @@ import com.pluk.reader.domain.repository.CloudBooksRepository
 import com.pluk.reader.domain.repository.CoverFile
 import com.pluk.reader.domain.repository.PendingUpload
 import com.pluk.reader.domain.usecase.DownloadBookUseCase
+import com.pluk.reader.domain.usecase.PositionFlusher
 import com.pluk.reader.domain.usecase.SyncCoversUseCase
 import com.pluk.reader.domain.usecase.SyncLibraryUseCase
 import com.pluk.reader.domain.usecase.SyncRemoteBooksUseCase
@@ -44,6 +45,9 @@ class FakeSyncBackend : BookUploadRepository, BookFileStore, RemoteLibrary, Quot
     val uploaded = mutableListOf<String>()
     var listings = 0
 
+    /** Cuántas veces la pasada pidió enviar las posiciones de lectura pendientes. */
+    var positionFlushes = 0
+
     private var downloadsDone = 0
 
     fun unavailable() = RemoteUnavailableException("sin red")
@@ -54,6 +58,7 @@ class FakeSyncBackend : BookUploadRepository, BookFileStore, RemoteLibrary, Quot
         SyncCoversUseCase(this, this),
         DownloadBookUseCase(this, this),
         this,
+        PositionFlusher { positionFlushes++ },
     )
 
     fun pendingBook(id: String, sizeBytes: Long = 1) =

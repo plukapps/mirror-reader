@@ -6,6 +6,8 @@ import com.pluk.reader.domain.model.ImportOutcome
 import com.pluk.reader.domain.model.LibraryBook
 import com.pluk.reader.domain.repository.LibraryRepository
 import com.pluk.reader.domain.usecase.LibrarySync
+import com.pluk.reader.remote.FakePositionBackend
+import com.pluk.reader.remote.FakeSession
 import com.pluk.reader.remote.FakeSyncBackend
 import com.pluk.reader.ui.MainViewModel
 import kotlinx.coroutines.CoroutineScope
@@ -47,8 +49,16 @@ class MainViewModelTest {
     @After
     fun tearDown() = Dispatchers.resetMain()
 
-    private fun viewModel(library: FakeLibrary = FakeLibrary()) =
-        MainViewModel(library, LibrarySync(backend.useCase(), FakeAccount(AccountUser("u1", null)), CoroutineScope(dispatcher)))
+    private val positionBackend = FakePositionBackend()
+
+    private fun viewModel(library: FakeLibrary = FakeLibrary()): MainViewModel {
+        val account = FakeAccount(AccountUser("u1", null))
+        return MainViewModel(
+            library,
+            LibrarySync(backend.useCase(), account, CoroutineScope(dispatcher)),
+            positionBackend.sync(FakeSession(AccountUser("u1", null)), CoroutineScope(dispatcher)),
+        )
+    }
 
     @Test
     fun startingTheSyncSyncsTheLibrary() = runTest(dispatcher) {
@@ -94,5 +104,38 @@ class MainViewModelTest {
         assertTrue(incoming is MainViewModel.Incoming.Open)
         assertEquals(2, backend.listings)
         assertEquals(listOf("1"), backend.uploaded)
+    }
+
+    // SYN-011, SYN-012: al volver a la app se reenvía lo pendiente y empieza a llegar lo de otros dispositivos
+    @Test
+    fun comingToTheForegroundSendsPendingPositionsAndStartsListening() = runTest(dispatcher) {
+        positionBackend.savedLocally("a", readAt = 10)
+        val vm = viewModel()
+
+        vm.onAppStarted()
+        advanceUntilIdle()
+
+        assertEquals(listOf("enviar:a"), positionBackend.calls)
+        assertEquals(1, positionBackend.observedSince.size)
+    }
+
+    // Sin trabajo en segundo plano: al dejar de verse se envía y se deja de escuchar
+    @Test
+    fun leavingTheForegroundSendsAndStopsListening() = runTest(dispatcher) {
+        val vm = viewModel()
+        vm.onAppStarted()
+        advanceUntilIdle()
+        positionBackend.savedLocally("a", readAt = 10, synced = true)
+
+        vm.onAppStopped()
+        positionBackend.savedLocally("b", readAt = 20)
+        advanceUntilIdle()
+        positionBackend.changes.emit(
+            Result.success(com.pluk.reader.domain.remote.RemoteChanges(listOf(positionBackend.remotePosition("a", readAt = 50)), 1L)),
+        )
+        advanceUntilIdle()
+
+        assertEquals(10L, positionBackend.local.getValue("a").position.readAt)
+        assertEquals(listOf("enviar:b"), positionBackend.calls)
     }
 }

@@ -10,6 +10,7 @@ import com.pluk.reader.data.local.db.BookDao
 import com.pluk.reader.data.local.db.MIGRATION_1_2
 import com.pluk.reader.data.local.db.MIGRATION_2_3
 import com.pluk.reader.data.local.db.MIGRATION_3_4
+import com.pluk.reader.data.local.db.MIGRATION_4_5
 import com.pluk.reader.data.local.db.ReaderDatabase
 import com.pluk.reader.data.local.db.ReadingPositionDao
 import dagger.Module
@@ -26,7 +27,7 @@ object StorageModule {
     @Singleton
     fun provideDatabase(@ApplicationContext context: Context): ReaderDatabase =
         Room.databaseBuilder(context, ReaderDatabase::class.java, "reader.db")
-            .addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4)
+            .addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5)
             .build()
 
     @Provides

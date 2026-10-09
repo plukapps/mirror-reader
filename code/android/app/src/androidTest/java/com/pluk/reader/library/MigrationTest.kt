@@ -7,6 +7,7 @@ import androidx.test.platform.app.InstrumentationRegistry
 import com.pluk.reader.data.local.db.MIGRATION_1_2
 import com.pluk.reader.data.local.db.MIGRATION_2_3
 import com.pluk.reader.data.local.db.MIGRATION_3_4
+import com.pluk.reader.data.local.db.MIGRATION_4_5
 import com.pluk.reader.data.local.db.ReaderDatabase
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
@@ -83,10 +84,27 @@ class MigrationTest {
         }
     }
 
+    // SYN-011: migrar a la versión 5 conserva las posiciones y las deja pendientes de enviar
+    @Test
+    fun migrates4To5KeepingPositionsAsNotSynced() {
+        helper.createDatabase("migration-test-5", 4).apply {
+            execSQL("INSERT INTO reading_positions (bookId, locatorJson, updatedAt, progress) VALUES ('b', '{\"href\":\"c1\"}', 7, 0.25)")
+            close()
+        }
+        val db = helper.runMigrationsAndValidate("migration-test-5", 5, true, MIGRATION_4_5)
+        db.query("SELECT locatorJson, updatedAt, progress, isSynced FROM reading_positions WHERE bookId = 'b'").use {
+            assertTrue(it.moveToFirst())
+            assertEquals("{\"href\":\"c1\"}", it.getString(0))
+            assertEquals(7L, it.getLong(1))
+            assertEquals(0.25, it.getDouble(2), 0.0)
+            assertEquals(0, it.getInt(3))
+        }
+    }
+
     // La cadena completa desde la primera versión sigue funcionando
     @Test
-    fun migratesFrom1To4() {
+    fun migratesFrom1To5() {
         helper.createDatabase("migration-test-all", 1).close()
-        helper.runMigrationsAndValidate("migration-test-all", 4, true, MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4)
+        helper.runMigrationsAndValidate("migration-test-all", 5, true, MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5)
     }
 }
