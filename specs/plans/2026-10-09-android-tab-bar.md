@@ -30,3 +30,5 @@
 ## Resultado
 
 Compila y los tests JVM pasan. El test de emulador (`MarginBottomBarTest`, 3 casos) compila, pero no se corrió. Instalado en el teléfono: Inicio y Estantes se ven como en el diseño (2026-10-09).
+
+Ajuste pedido por el usuario: la barra flota sobre el contenido y el contenido pasa por debajo, sin fondo alrededor, sin translucidez ni sombra. Las pantallas con barra dejan al final el alto de la barra (72 dp) más la barra del sistema, que reciben por `LocalBottomBarPadding`; los avisos también suben. Verificado en el teléfono.

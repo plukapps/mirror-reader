@@ -1,11 +1,17 @@
 package com.pluk.reader.ui.navigation
 
 import android.widget.Toast
-import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.navigationBars
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
 import androidx.compose.ui.platform.LocalContext
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
@@ -43,31 +49,36 @@ fun AppNavHost(navController: NavHostController) {
         Routes.LIBRARY -> MainDestination.Shelves
         else -> null // La barra se oculta en el lector.
     }
-    Column(Modifier.fillMaxSize()) {
-        NavHost(navController = navController, startDestination = Routes.HOME, modifier = Modifier.weight(1f)) {
-            composable(Routes.HOME) {
-                HomeScreen(
-                    onBookClick = { navController.navigate(Routes.reader(it)) },
-                    onSeeAll = { filter -> navController.navigateTo(Routes.library(filter)) },
-                )
-            }
-            composable(
-                route = Routes.LIBRARY,
-                arguments = listOf(
-                    navArgument(LibraryViewModel.ARG_FILTER) { type = NavType.StringType; nullable = true; defaultValue = null },
-                ),
-            ) {
-                LibraryScreen(onBookClick = { bookId -> navController.navigate(Routes.reader(bookId)) })
-            }
-            composable(
-                route = Routes.READER,
-                arguments = listOf(navArgument(ReaderViewModel.ARG_BOOK_ID) { type = NavType.StringType }),
-            ) {
-                ReaderScreen(onBack = { navController.popBackStack() })
+    // La barra flota sobre el contenido, que pasa por debajo; las pantallas dejan este espacio al final.
+    val navBarInset = WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding()
+    val bottomPadding = if (selected != null) BottomBarHeight + navBarInset else 0.dp
+    Box(Modifier.fillMaxSize()) {
+        CompositionLocalProvider(LocalBottomBarPadding provides bottomPadding) {
+            NavHost(navController = navController, startDestination = Routes.HOME, modifier = Modifier.fillMaxSize()) {
+                composable(Routes.HOME) {
+                    HomeScreen(
+                        onBookClick = { navController.navigate(Routes.reader(it)) },
+                        onSeeAll = { filter -> navController.navigateTo(Routes.library(filter)) },
+                    )
+                }
+                composable(
+                    route = Routes.LIBRARY,
+                    arguments = listOf(
+                        navArgument(LibraryViewModel.ARG_FILTER) { type = NavType.StringType; nullable = true; defaultValue = null },
+                    ),
+                ) {
+                    LibraryScreen(onBookClick = { bookId -> navController.navigate(Routes.reader(bookId)) })
+                }
+                composable(
+                    route = Routes.READER,
+                    arguments = listOf(navArgument(ReaderViewModel.ARG_BOOK_ID) { type = NavType.StringType }),
+                ) {
+                    ReaderScreen(onBack = { navController.popBackStack() })
+                }
             }
         }
         if (selected != null) {
-            MarginBottomBar(selected) { destination ->
+            MarginBottomBar(selected, Modifier.align(Alignment.BottomCenter)) { destination ->
                 when (destination) {
                     MainDestination.Home -> navController.navigateTo(Routes.HOME)
                     MainDestination.Shelves -> navController.navigateTo(Routes.library())

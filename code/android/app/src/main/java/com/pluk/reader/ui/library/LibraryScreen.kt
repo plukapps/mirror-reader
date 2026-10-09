@@ -14,7 +14,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.statusBarsPadding
-import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
@@ -43,6 +42,7 @@ import androidx.compose.ui.semantics.selected
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.em
 import androidx.compose.ui.unit.sp
@@ -53,6 +53,7 @@ import com.pluk.reader.domain.model.LibraryBook
 import com.pluk.reader.domain.model.LibraryFilter
 import com.pluk.reader.domain.model.ReadingStatus
 import com.pluk.reader.domain.usecase.SyncIssue
+import com.pluk.reader.ui.navigation.LocalBottomBarPadding
 import com.pluk.reader.ui.theme.MarginColors
 
 /** Pantalla de inicio: la biblioteca del usuario (LIB-001, LIB-010, LIB-011). */
@@ -90,6 +91,7 @@ fun LibraryContent(
     }
     val launchPicker = { picker.launch(arrayOf(EPUB_MIME_TYPE)) }
 
+    val bottomBarPadding = LocalBottomBarPadding.current
     Box(Modifier.fillMaxSize().background(MarginColors.Paper)) {
         Column(Modifier.fillMaxSize().statusBarsPadding()) {
             Header(importing = state.importing, onImport = launchPicker)
@@ -97,11 +99,11 @@ fun LibraryContent(
             Tabs(state, onFilterSelected)
             when {
                 state.loading -> Unit
-                state.isLibraryEmpty -> EmptyLibrary(onImport = launchPicker)
-                else -> BookGrid(state.books, onBookClick)
+                state.isLibraryEmpty -> EmptyLibrary(onImport = launchPicker, modifier = Modifier.padding(bottom = bottomBarPadding))
+                else -> BookGrid(state.books, onBookClick, bottomBarPadding)
             }
         }
-        SnackbarHost(snackbar, Modifier.align(Alignment.BottomCenter).navigationBarsPadding())
+        SnackbarHost(snackbar, Modifier.align(Alignment.BottomCenter).padding(bottom = bottomBarPadding))
     }
 }
 
@@ -215,10 +217,10 @@ private fun Tab(
 }
 
 @Composable
-private fun BookGrid(books: List<LibraryBook>, onBookClick: (String) -> Unit) {
+private fun BookGrid(books: List<LibraryBook>, onBookClick: (String) -> Unit, bottomPadding: Dp) {
     LazyVerticalGrid(
         columns = GridCells.Adaptive(minSize = 96.dp),
-        contentPadding = PaddingValues(start = 20.dp, end = 20.dp, top = 18.dp, bottom = 24.dp),
+        contentPadding = PaddingValues(start = 20.dp, end = 20.dp, top = 18.dp, bottom = 24.dp + bottomPadding),
         horizontalArrangement = Arrangement.spacedBy(12.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp),
         modifier = Modifier.fillMaxSize().testTag("book-grid"),
@@ -272,9 +274,9 @@ private fun BookCell(book: LibraryBook, onClick: () -> Unit) {
 }
 
 @Composable
-private fun EmptyLibrary(onImport: () -> Unit) {
+private fun EmptyLibrary(onImport: () -> Unit, modifier: Modifier = Modifier) {
     Column(
-        Modifier.fillMaxSize().padding(32.dp).testTag("empty-library"),
+        modifier.fillMaxSize().padding(32.dp).testTag("empty-library"),
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {

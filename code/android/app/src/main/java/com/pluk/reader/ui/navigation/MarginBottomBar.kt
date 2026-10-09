@@ -15,6 +15,7 @@ import androidx.compose.foundation.selection.selectableGroup
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -23,6 +24,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.pluk.reader.R
 import com.pluk.reader.ui.theme.MarginColors
@@ -35,13 +37,27 @@ enum class MainDestination(@StringRes val label: Int, val icon: ImageVector, val
     Profile(R.string.nav_profile, NavIcons.Person, NavIcons.PersonFilled),
 }
 
+/** Lo que ocupa la barra sobre el contenido: 60 dp de alto y 12 dp de margen abajo. */
+val BottomBarHeight = 72.dp
+
+/**
+ * Espacio que las pantallas con barra dejan al final de su contenido para que lo último no quede
+ * tapado: la barra más la barra de navegación del sistema. Cero donde no hay barra (lector, tests).
+ */
+val LocalBottomBarPadding = staticCompositionLocalOf<Dp> { 0.dp }
+
 /**
  * Barra inferior del diseño (pantallas 02, 03 y 05): píldora tinta flotante, solo íconos, y el
- * destino activo en una píldora amarilla. El nombre de cada destino queda para TalkBack (HOM-007).
+ * destino activo en una píldora amarilla. Flota sobre el contenido, que pasa por debajo, sin fondo
+ * alrededor ni sombra. El nombre de cada destino queda para TalkBack (HOM-007).
  */
 @Composable
-fun MarginBottomBar(selected: MainDestination, onDestinationClick: (MainDestination) -> Unit) {
-    Box(Modifier.fillMaxWidth().background(MarginColors.Paper).navigationBarsPadding()) {
+fun MarginBottomBar(
+    selected: MainDestination,
+    modifier: Modifier = Modifier,
+    onDestinationClick: (MainDestination) -> Unit,
+) {
+    Box(modifier.fillMaxWidth().navigationBarsPadding()) {
         Row(
             Modifier
                 .padding(start = 40.dp, end = 40.dp, bottom = 12.dp)
