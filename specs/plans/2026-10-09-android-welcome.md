@@ -18,7 +18,7 @@
 ## Decisiones
 
 - **Arranque sin librería nueva (WEL-001, WEL-002).** Android 12 o superior: atributos del tema en `values-v31` (`windowSplashScreenBackground` amarillo y `windowSplashScreenAnimatedIcon` con el logo en un vector de 288 dp con el dibujo dentro del círculo central). Android 8 a 11: `windowBackground` del tema con un `layer-list` (amarillo y logo centrado). No se usa `androidx.core:core-splashscreen` ni `setKeepOnScreenCondition`: nada retiene el arranque. Se verifica contra la documentación oficial de Android antes de escribirlo.
-- **Estado de la bienvenida (WEL-003, WEL-005).** Interfaz `WelcomeRepository` en `domain` (`completed: Flow<Boolean>`, `markCompleted()`), implementada con la misma DataStore de preferencias (clave `welcomeCompleted`). Regla pura `startDestination(completed, signedIn)`: bienvenida si no se completó o si no hay sesión; si no, Inicio.
+- **Estado de la bienvenida (WEL-003, WEL-005).** Interfaz `WelcomeRepository` en `domain` (`completed: Flow<Boolean>`, `markCompleted()`), implementada con la misma DataStore de preferencias (clave `welcomeCompleted`). Regla pura `showsWelcome(completed, signedIn)`: bienvenida si no se completó o si no hay sesión; si no, Inicio.
 - **Decisión una vez por arranque (WEL-003, WEL-006).** `MainViewModel` expone `start: StateFlow<Start>` (`Loading`, `Welcome`, `Home`) con el primer valor de la marca y de `AccountRepository.user` (Firebase entrega la sesión guardada al registrar el listener, sin red). Mientras es `Loading`, la app dibuja solo el fondo amarillo. Si la sesión cambia con la app abierta, no se reubica al usuario.
 - **Navegación.** Ruta nueva `welcome` como destino inicial cuando corresponde. "Comenzar" marca la bienvenida y navega a Inicio sacando `welcome` de la pila (WEL-005). Sin barra inferior en la bienvenida.
 - **"Abrir con" (WEL-008).** Sin cambios: el lector se apila sobre la pantalla de inicio que toque. No marca la bienvenida.
@@ -39,10 +39,10 @@
 
 ### Tarea 3: regla y estado de la bienvenida (K-102) (S)
 - `WelcomeRepository` + `WelcomeRepositoryImpl` (DataStore) + binding de Hilt.
-- Regla pura `startDestination` y `MainViewModel.start`.
+- Regla pura `showsWelcome` y `MainViewModel.start`.
 - **Aceptación:** sin marcar → bienvenida; marcada sin sesión → bienvenida; marcada con sesión → Inicio; antes de leer los datos → `Loading` (WEL-003, WEL-006).
-- **Verificación:** tests JVM (`./gradlew :app:testDebugUnitTest`) de la regla y de `MainViewModel` con repositorios falsos, que citan WEL-003 y WEL-006. Test de emulador del repositorio (compilado; correrlo es aparte).
-- **Archivos:** `domain/repository/WelcomeRepository.kt`, `domain/StartDestination.kt`, `data/repository/WelcomeRepositoryImpl.kt`, `di/RepositoryModule.kt`, `ui/MainViewModel.kt`, tests.
+- **Verificación:** tests JVM (`./gradlew :app:testDebugUnitTest`) de la regla y de `MainViewModel` con repositorios falsos, que citan WEL-003 y WEL-006. El repositorio (una clave booleana de DataStore) no tiene test propio: se verificó en el dispositivo.
+- **Archivos:** `domain/repository/WelcomeRepository.kt`, `domain/Welcome.kt`, `data/repository/WelcomeRepositoryImpl.kt`, `di/RepositoryModule.kt`, `ui/MainViewModel.kt`, tests.
 
 ### Tarea 4: pantalla de bienvenida y navegación (K-103) (M)
 - `WelcomeScreen` según el diseño, con desplazamiento si no entra (apaisado, tablet) y descripciones para TalkBack.
@@ -59,6 +59,16 @@
 ### Tarea 5: cierre (K-104) (XS)
 - `specs/platforms/android.md` si corresponde, resultado en este plan, Kanban.
 - Verificación a mano en teléfono (y en la tablet si está a mano), incluido "Abrir con" un EPUB con la bienvenida pendiente (WEL-008).
+
+## Resultado (2026-10-09)
+
+- Tests JVM pasan, con `WelcomeStartTest` (7 tests). `WelcomeScreenTest` (3 tests de emulador) compila, sin correr.
+- Instalado en el teléfono SM-S711B y en la tablet SM-X510. Antes se desinstaló la app (decisión del usuario): tenían la base v5 de `feature/position-sync`.
+- Verificado en el teléfono:
+  - Instalación limpia: arranque amarillo con el logo, bienvenida, "Comenzar", Inicio. La marca `welcomeCompleted` queda guardada (WEL-001 a WEL-005).
+  - Sin sesión, la bienvenida vuelve a salir aunque ya se haya tocado "Comenzar". Al iniciar sesión, el siguiente arranque abre Inicio (WEL-003).
+- **WEL-008 bloqueado por K-105:** "Abrir con" no abre el libro, ni con la bienvenida ni sin ella. El efecto que importa se cancela a sí mismo; el código es el mismo en `master`. Se arregla en un PR aparte.
+- Visto en el teléfono: la barra de navegación de tres botones de Samsung muestra un velo sobre el amarillo, que en el diseño no está. Queda para revisar con el diseño.
 
 ## Riesgos
 

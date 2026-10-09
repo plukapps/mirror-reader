@@ -5,6 +5,7 @@ Plan de referencia: `specs/plans/2026-10-06-android-epub-viewer.md`
 
 ## Backlog
 
+- **K-105** Bug: "Abrir con" un EPUB no abre el libro. AND-003, LIB-001, WEL-008. En `MainActivity`, el `LaunchedEffect(incomingBook.value)` pone `incomingBook.value = null` antes de importar; eso cambia la clave del efecto, Compose lo reinicia y cancela la importación a mitad de camino: el archivo queda copiado en `files/books` (o como `import-*.tmp`), pero el libro no entra a la biblioteca ni se abre el lector. Visto en el SM-S711B (2026-10-09) con el EPUB de `make_fixture_epub.py`. El código es el mismo en `master`: no lo introdujo la bienvenida. Arreglo propuesto: importar en `viewModelScope` (o limpiar la clave después de importar) y borrar el temporal si la importación se cancela.
 - **K-100** Bienvenida: agregar "Iniciar sesión" y el menú del diseño 01 cuando existan las pantallas de cuenta (ACC-001). Fuera de alcance de WEL (2026-10-09).
 - **K-096** Apple, barra de navegación inferior en iPhone (HOM-005): Inicio, Buscar, Estantes y Perfil con `TabView`, siguiendo el diseño de teléfono. En la Mac sigue pendiente K-078. Requiere plan.
 - **K-094** Barra inferior en tablet, para cuando el soporte de tablet esté más maduro. HOM-005, HOM-007. Hoy la píldora de K-093 se estira a todo el ancho (en la SM_X510 apaisada va de punta a punta) mientras el contenido de Inicio es una columna centrada. Opciones: limitar el ancho y centrarla, o el riel lateral del diseño (T01). Pedido del usuario (2026-10-09): retomarlo junto con el resto del soporte de tablet.
@@ -30,10 +31,10 @@ Plan de referencia: `specs/plans/2026-10-06-android-epub-viewer.md`
 
 ## En curso
 
-- **K-104** Arranque y bienvenida, Tarea 5: cierre de docs y verificación a mano. WEL-008. Rama `feature/splash-intro`.
 
 ## Revisión
 
+- **K-104** Arranque y bienvenida, Tarea 5: cierre de docs y verificación a mano. WEL-008. Rama `feature/splash-intro`. Hecho: `specs/platforms/android.md` (decisión del arranque y la bienvenida), resultado en el plan. Verificado en el teléfono: bienvenida sin sesión aunque ya se haya completado, e Inicio con sesión (WEL-003). WEL-008 queda bloqueado por K-105 (bug anterior de "Abrir con"), que va en un PR aparte por decisión del usuario.
 - **K-101** Arranque y bienvenida, Tarea 2: arranque amarillo con el logo. WEL-001, WEL-002. Plan `2026-10-09-android-welcome.md`. Rama `feature/splash-intro`. Hecho: `ic_margin_logo` (vector), `splash_icon` (288 dp, logo dentro del círculo de 192 dp), `splash_background` (`layer-list` para Android 8 a 11), `values-v31/themes.xml` con `windowSplashScreenBackground` y `windowSplashScreenAnimatedIcon`. Sin `core-splashscreen` ni condición de espera (API verificada en developer.android.com). Instalado en SM-S711B y SM-X510.
 - **K-102** Arranque y bienvenida, Tarea 3: regla y estado de la bienvenida (`WelcomeRepository`, `MainViewModel.start`). WEL-003, WEL-006. Rama `feature/splash-intro`. Hecho: `WelcomeRepository` (DataStore, clave `welcomeCompleted`), regla `showsWelcome`, `MainViewModel.start` (`Loading`, `Welcome`, `Home`, una vez por arranque) y `completeWelcome`. `WelcomeStartTest` (7 tests JVM) pasa; los JVM existentes también.
 - **K-103** Arranque y bienvenida, Tarea 4: pantalla de bienvenida y navegación. WEL-004, WEL-005, WEL-006, WEL-007. Rama `feature/splash-intro`. Hecho: `WelcomeScreen` (titular con autoajuste de 54 a 32 sp, columna de 560 dp como máximo en tablet, desplazable), ruta `welcome`, fondo amarillo mientras es `Loading`, "Comenzar" saca la bienvenida de la pila. `WelcomeScreenTest` (3 tests de emulador) compilado, sin correr. Instalado en los dos dispositivos (desinstalando antes, por decisión del usuario: la base estaba en v5 de `feature/position-sync`).
