@@ -9,6 +9,8 @@ enum MarginColors {
     static let muted = Color(hex: 0x6B6650)
     static let line = Color(hex: 0xDDD9CE)
     static let coverBorder = Color.white
+    /// Íconos inactivos sobre fondo tinta (barra inferior).
+    static let inkMuted = Color(hex: 0x8A8676)
 
     /// Fondos de las portadas generadas cuando el EPUB no trae una.
     static let covers: [(color: Color, isLight: Bool)] = [
