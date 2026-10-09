@@ -3,6 +3,7 @@ name: Reader
 options:
   bundleIdPrefix: com.pluk
   createIntermediateGroups: true
+  developmentLanguage: es
   deploymentTarget:
     macOS: "14.0"
 settings:
@@ -36,4 +37,18 @@ targets:
         # Firma local ("Sign to Run Locally"): no requiere cuenta de Apple Developer.
         CODE_SIGN_STYLE: Manual
         CODE_SIGN_IDENTITY: "-"
-    scheme: {}
+    scheme:
+      testTargets: [ReaderTests]
+  ReaderTests:
+    type: bundle.unit-test
+    platform: macOS
+    sources: [Tests]
+    dependencies:
+      - target: Reader
+      - package: ReaderDomain
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.pluk.reader.tests
+        GENERATE_INFOPLIST_FILE: YES
+        CODE_SIGN_STYLE: Manual
+        CODE_SIGN_IDENTITY: "-"

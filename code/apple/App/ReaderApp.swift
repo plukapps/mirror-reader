@@ -1,13 +1,19 @@
-import ReaderDomain
 import SwiftUI
 
 @main
 struct ReaderApp: App {
+    // Prueba de Inicio (K-076): la biblioteca es falsa hasta que exista la importación.
+    @State private var home = HomeViewModel(library: FakeLibraryRepository())
+
+    init() {
+        AppFont.register()
+    }
+
     var body: some Scene {
         WindowGroup {
-            // Provisorio (K-074): confirma que la app enlaza el paquete de dominio. Inicio llega en K-076.
-            Text(verbatim: "Reader · \(greeting(forHour: Calendar.current.component(.hour, from: .now)))")
-                .frame(minWidth: 480, minHeight: 320)
+            HomeView(viewModel: home)
+                .frame(minWidth: 480, minHeight: 480)
         }
+        .defaultSize(width: 720, height: 900)
     }
 }
