@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Fondo de la ventana mientras arranca la app en Android 8 a 11 (WEL-001): amarillo con el logo. -->
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:drawable="@color/margin_yellow" />
+    <item
+        android:width="132dp"
+        android:height="106dp"
+        android:drawable="@drawable/ic_margin_logo"
+        android:gravity="center" />
+</layer-list>
