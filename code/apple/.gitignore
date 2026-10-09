@@ -5,3 +5,5 @@
 DerivedData/
 xcuserdata/
 .swiftpm/
+# Equipo de firma de cada máquina (ver Signing.xcconfig)
+Signing.local.xcconfig
