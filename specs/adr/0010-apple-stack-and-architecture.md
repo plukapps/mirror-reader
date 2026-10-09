@@ -10,7 +10,7 @@ ADR 0001 fija Swift para Mac e iOS y anticipa que pueden compartir código. Andr
 
 **Un solo proyecto para Mac e iOS**
 - Carpeta `code/apple/`, junto a `code/android/` y `code/backend/`.
-- Swift y SwiftUI. Mac primero; iOS se suma como destino del mismo target cuando llegue su fase, no como otro proyecto.
+- Swift y SwiftUI. Mac primero; iOS se suma como destino del mismo target, no como otro proyecto. Desde K-097 el target `Reader` tiene los dos destinos (`supportedDestinations: [macOS, iOS]`) y los ajustes solo de Mac van condicionados con `[sdk=macosx*]`.
 - Versiones mínimas: macOS 14 (Sonoma) y, cuando se sume, iOS 17. Las dos traen `@Observable`.
 
 **Proyecto generado con XcodeGen**
