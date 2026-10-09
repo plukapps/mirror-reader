@@ -25,6 +25,7 @@ object FirebaseModule {
     @Provides
     @Singleton
     fun provideFirestore(): FirebaseFirestore = FirebaseFirestore.getInstance().apply {
+        FirebaseFirestore.setLoggingEnabled(true)
         firestoreSettings = firestoreSettings { setLocalCacheSettings(memoryCacheSettings { }) }
     }
 
