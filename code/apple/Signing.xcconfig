@@ -1,0 +1,6 @@
+// Firma para correr en un iPhone físico (K-098). La Mac y el simulador usan firma local y no lo necesitan.
+// Los datos de cada máquina van en Signing.local.xcconfig, que no va al repo:
+//   DEVELOPMENT_TEAM = ABCDE12345     (Xcode → Settings → Accounts, o el equipo personal gratuito)
+//   BUNDLE_ID_SUFFIX = .santilod      (opcional, si Apple no acepta com.pluk.reader para el equipo)
+BUNDLE_ID_SUFFIX =
+#include? "Signing.local.xcconfig"

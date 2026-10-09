@@ -12,8 +12,14 @@ struct ReaderApp: App {
     var body: some Scene {
         WindowGroup {
             HomeView(viewModel: home)
-                .frame(minWidth: 480, minHeight: 480)
+                .windowMinimumSize()
+                #if os(iOS)
+                // La paleta del diseño es clara y no hay tema oscuro: la barra de estado va oscura (IOS-002).
+                .preferredColorScheme(.light)
+                #endif
         }
-        .defaultSize(width: 720, height: 900)
+        #if os(macOS)
+        .defaultSize(WindowLayout.defaultSize)
+        #endif
     }
 }
