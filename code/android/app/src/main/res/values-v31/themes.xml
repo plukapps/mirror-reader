@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <!-- WEL-001: arranque del sistema de Android 12+, amarillo con el logo (sin fondo de ícono). -->
+    <style name="Theme.Reader" parent="Base.Theme.Reader">
+        <item name="android:windowSplashScreenBackground">@color/margin_yellow</item>
+        <item name="android:windowSplashScreenAnimatedIcon">@drawable/splash_icon</item>
+    </style>
+</resources>

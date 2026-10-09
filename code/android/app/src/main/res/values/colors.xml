@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Paleta "Editorial bold" (MarginColors), para el arranque (WEL-001). -->
+    <color name="margin_yellow">#FBD256</color>
+    <color name="margin_ink">#130000</color>
+</resources>
