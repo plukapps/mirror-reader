@@ -13,7 +13,7 @@ struct HomeView: View {
                     .font(.app(44))
                     .tracking(-0.045 * 44)
                     .foregroundStyle(MarginColors.ink)
-                    .padding(.horizontal, 20)
+                    .padding(.horizontal, WindowLayout.horizontalPadding)
                     .padding(.top, 12)
                 if !viewModel.loading {
                     let content = viewModel.content
@@ -26,7 +26,7 @@ struct HomeView: View {
                 }
             }
             .padding(.bottom, 24)
-            .frame(maxWidth: 640, alignment: .leading)
+            .frame(maxWidth: WindowLayout.contentMaxWidth, alignment: .leading)
             .frame(maxWidth: .infinity)
         }
         .background(MarginColors.paper)
@@ -73,7 +73,7 @@ private struct ContinueCard: View {
         }
         .padding(16)
         .background(MarginColors.ink, in: RoundedRectangle(cornerRadius: 20))
-        .padding(.horizontal, 20)
+        .padding(.horizontal, WindowLayout.horizontalPadding)
         .padding(.top, 24)
         .accessibilityElement(children: .ignore)
         .accessibilityLabel([String(localized: "Continuar leyendo"), book.title, book.author, "\(percent) %"].compactMap { $0 }.joined(separator: ". "))
@@ -90,7 +90,7 @@ private struct NothingReading: View {
             Text(libraryEmpty ? "Importar un EPUB" : "Ir a la biblioteca")
                 .font(.app(14, .bold))
                 .foregroundStyle(MarginColors.yellow)
-                .padding(.horizontal, 20)
+                .padding(.horizontal, WindowLayout.horizontalPadding)
                 .frame(height: 44)
                 .background(MarginColors.ink, in: Capsule())
                 .padding(.top, 8)
@@ -98,7 +98,7 @@ private struct NothingReading: View {
         .padding(20)
         .frame(maxWidth: .infinity, alignment: .leading)
         .background(.white, in: RoundedRectangle(cornerRadius: 20))
-        .padding(.horizontal, 20)
+        .padding(.horizontal, WindowLayout.horizontalPadding)
         .padding(.top, 24)
     }
 }
@@ -148,7 +148,7 @@ private struct BookRow<Details: View>: View {
             Spacer()
             Text("Ver todo").font(.app(13, .semibold)).underline().foregroundStyle(MarginColors.ink)
         }
-        .padding(.horizontal, 20)
+        .padding(.horizontal, WindowLayout.horizontalPadding)
         .padding(.top, 26)
         .padding(.bottom, 12)
 
@@ -164,7 +164,7 @@ private struct BookRow<Details: View>: View {
                     .accessibilityElement(children: .combine)
                 }
             }
-            .padding(.horizontal, 20)
+            .padding(.horizontal, WindowLayout.horizontalPadding)
         }
     }
 }
