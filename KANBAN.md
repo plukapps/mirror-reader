@@ -35,17 +35,17 @@ Plan de referencia: `specs/plans/2026-10-06-android-epub-viewer.md`
 
 ## Listo
 
-- **K-165** Tienda, Tarea 6: cierre de docs y verificación a mano en el teléfono. Rama `feature/tienda-poc`.
 - **K-134** Lector iOS, Tarea 7: cierre de docs y verificación a mano en el simulador. Rama `feature/ios-reader`. Era K-125 hasta el merge con `master`.
 - **K-038** Inicio, Tarea 4: cierre de docs y verificación a mano. Rama `feature/home`.
 - **K-024** Quitar el padding vertical de Readium (40 dp arriba y abajo en modo paginado) y reservar la barra de estado desde la pantalla. RDR-002. Rama `feat/page-turn-animation`.
 
 ## En curso
 
-- **K-164** Tienda, Tarea 5: pantalla Buscar con catálogo, chips, hoja de compra simulada y portada remota. STO-001 a STO-007. Rama `feature/tienda-poc`.
+- **K-165** Tienda, Tarea 6: cierre de docs y verificación a mano en el teléfono. Rama `feature/tienda-poc`.
 
 ## Revisión
 
+- **K-164** Tienda, Tarea 5: pantalla Buscar con catálogo, chips, hoja de compra simulada y portada remota. STO-001 a STO-007. Rama `feature/tienda-poc`. Hecho: sección "Tienda" después de la biblioteca, botones "Obtener"/"Comprar"/"Reintentar", "Descargando…", "En tu biblioteca" (abre el libro), hoja de compra simulada, aviso sin conexión, portada remota. `SearchScreenTest` (8) compila, sin correr. Probado contra la API real en JVM (búsquedas y descargas de EPUB válidos).
 - **K-163** Tienda, Tarea 4: `SearchViewModel` con catálogo, obtener y compra simulada, con tests JVM. STO-001 a STO-004, STO-007. Rama `feature/tienda-poc`. Hecho: `SearchViewModel` con catálogo (espera de 400 ms, mínimo 2 caracteres), estados de cada obra, compra simulada; `StoreResult` deja lo obtenido en su lugar del catálogo. `SearchViewModelTest` (14 JVM) pasa; 341 en total.
 - **K-162** Tienda, Tarea 3: datos (`OpenLibraryCatalog`, `EpubDownloader`, `StoreAcquisitionsImpl`, `StoreModule`) con tests JVM del parser. STO-001, STO-003, STO-005. Rama `feature/tienda-poc`. Hecho: `OpenLibraryCatalog`, `EpubDownloader` con `deliverFirst`, `StoreAcquisitionsImpl`, `StoreModule`; `org.json` solo en tests. `OpenLibraryTest` (7 JVM) pasa.
 - **K-161** Tienda (prueba de concepto), Tarea 2: dominio (`StoreBook`, `pickEpubSource`, `testPrice`, `SearchFilter`) con tests JVM. STO-002, STO-005, STO-006, STO-008. Rama `feature/tienda-poc`. Hecho: `domain/store` (modelos, `epubSources`, `testPriceCents`, `SearchFilter`, `libraryResults`, `catalogResults` e interfaces). `StoreRulesTest` (9 JVM) pasa.

@@ -64,13 +64,14 @@ import com.pluk.reader.R
 import com.pluk.reader.domain.model.LibraryBook
 import com.pluk.reader.domain.model.ReadingStatus
 import com.pluk.reader.domain.store.SearchFilter
+import com.pluk.reader.domain.store.StoreBook
 import com.pluk.reader.ui.library.BookCover
 import com.pluk.reader.ui.navigation.LocalBottomBarPadding
 import com.pluk.reader.ui.navigation.NavIcons
 import com.pluk.reader.ui.theme.HostGrotesk
 import com.pluk.reader.ui.theme.MarginColors
 
-/** Búsqueda local en la biblioteca (LIB-006, LIB-013 a LIB-015). Diseño: "03 — Search". */
+/** Búsqueda en la biblioteca (LIB-006, LIB-013 a LIB-015) y en la tienda (STO-001 a STO-008). Diseño: "03 — Search". */
 @Composable
 fun SearchScreen(onBookClick: (bookId: String) -> Unit, viewModel: SearchViewModel = hiltViewModel()) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
@@ -86,6 +87,10 @@ fun SearchScreen(onBookClick: (bookId: String) -> Unit, viewModel: SearchViewMod
         onClear = viewModel::onClear,
         onFilterChange = viewModel::onFilterChange,
         onBookClick = onBookClick,
+        onGet = viewModel::onGet,
+        onBuy = viewModel::onBuy,
+        onConfirmPurchase = viewModel::onConfirmPurchase,
+        onDismissPurchase = viewModel::onDismissPurchase,
     )
 }
 
@@ -100,6 +105,10 @@ fun SearchContent(
     onBookClick: (String) -> Unit,
     requestFocus: Boolean = false,
     onFocusRequested: () -> Unit = {},
+    onGet: (StoreBook) -> Unit = {},
+    onBuy: (StoreBook) -> Unit = {},
+    onConfirmPurchase: () -> Unit = {},
+    onDismissPurchase: () -> Unit = {},
 ) {
     val bottomBarPadding = LocalBottomBarPadding.current
     Box(Modifier.fillMaxSize().background(MarginColors.Paper), contentAlignment = Alignment.TopCenter) {
@@ -123,10 +132,23 @@ fun SearchContent(
             when {
                 state.loading -> Unit
                 !state.hasQuery -> Message(stringResource(R.string.search_help))
-                state.results.isEmpty() -> Message(stringResource(R.string.search_no_results, query.trim()), Modifier.testTag("search-no-results"))
-                else -> Results(state.results, onBookClick, PaddingValues(start = 20.dp, end = 20.dp, bottom = 24.dp + bottomBarPadding))
+                state.results.isEmpty() && state.storeResults.isEmpty() && state.storeStatus != StoreStatus.Loading ->
+                    Column {
+                        Message(stringResource(R.string.search_no_results, query.trim()), Modifier.testTag("search-no-results"))
+                        if (state.storeStatus == StoreStatus.Unavailable) {
+                            Message(stringResource(R.string.store_unavailable), Modifier.testTag("store-status-Unavailable"))
+                        }
+                    }
+                else -> Results(
+                    state = state,
+                    onBookClick = onBookClick,
+                    onGet = onGet,
+                    onBuy = onBuy,
+                    contentPadding = PaddingValues(start = 20.dp, end = 20.dp, bottom = 24.dp + bottomBarPadding),
+                )
             }
         }
+        state.pendingPurchase?.let { PurchaseSheet(it, onConfirmPurchase, onDismissPurchase) }
     }
 }
 
@@ -248,9 +270,17 @@ private fun Message(text: String, modifier: Modifier = Modifier) {
 }
 
 @Composable
-private fun Results(books: List<LibraryBook>, onBookClick: (String) -> Unit, contentPadding: PaddingValues) {
+private fun Results(
+    state: SearchUiState,
+    onBookClick: (String) -> Unit,
+    onGet: (StoreBook) -> Unit,
+    onBuy: (StoreBook) -> Unit,
+    contentPadding: PaddingValues,
+) {
+    val books = state.results
+    val store = state.storeResults
     LazyColumn(Modifier.fillMaxSize().testTag("search-results"), contentPadding = contentPadding) {
-        item {
+        if (books.isNotEmpty()) item {
             Text(
                 text = pluralStringResource(R.plurals.search_results, books.size, books.size).uppercase(),
                 color = MarginColors.Muted,
@@ -262,6 +292,20 @@ private fun Results(books: List<LibraryBook>, onBookClick: (String) -> Unit, con
         }
         itemsIndexed(books, key = { _, book -> book.id }) { index, book ->
             ResultRow(book, showDivider = index < books.lastIndex) { onBookClick(book.id) }
+        }
+        // STO-001: el catálogo va después de la biblioteca. "En mi biblioteca" no lo muestra (STO-006).
+        if (state.filter != SearchFilter.InLibrary && state.storeStatus != StoreStatus.Idle) {
+            item(key = "store-header") { StoreHeader(state.storeStatus, store.isEmpty()) }
+            itemsIndexed(store, key = { _, result -> "store-${result.book.key}" }) { index, result ->
+                StoreRow(
+                    result = result,
+                    itemState = state.itemStates[result.book.key],
+                    showDivider = index < store.lastIndex,
+                    onOpen = onBookClick,
+                    onGet = onGet,
+                    onBuy = onBuy,
+                )
+            }
         }
     }
 }
@@ -307,7 +351,7 @@ private fun ResultRow(book: LibraryBook, showDivider: Boolean, onClick: () -> Un
 
 /** "Leyendo · 42 %", "Nuevo" o "Terminado", y "En la nube" si no está en el dispositivo (LIB-007). */
 @Composable
-private fun statusText(book: LibraryBook): String {
+internal fun statusText(book: LibraryBook): String {
     val reading = when (book.status) {
         ReadingStatus.Reading -> stringResource(R.string.search_status_reading, book.progressPercent ?: 0)
         ReadingStatus.New -> stringResource(R.string.library_status_new)

@@ -51,8 +51,8 @@ Investigado con el usuario el 2026-10-10:
 **Verificación:** tests JVM pasan.
 
 ### Tarea 5 (K-164): pantalla (M)
-- [ ] Chips "Todo", "En mi biblioteca", "Gratis" y "Autores"; sección del catálogo con fila, botón "Obtener"/"Comprar", "Descargando…", "En tu biblioteca", "No disponible en digital"; hoja de compra simulada; aviso de la tienda no disponible; portada remota.
-- [ ] Textos en `strings.xml`. `SearchScreenTest` actualizado para compilar con los nuevos parámetros.
+- [x] Chips "Todo", "En mi biblioteca", "Gratis" y "Autores"; sección del catálogo con fila, botón "Obtener"/"Comprar", "Descargando…", "En tu biblioteca", "No disponible en digital"; hoja de compra simulada; aviso de la tienda no disponible; portada remota.
+- [x] Textos en `strings.xml`. `StoreResults.kt` (encabezado, fila, hoja de compra) y `StoreCover.kt` (portada remota con caché en memoria). `SearchScreenTest` con 4 casos nuevos de la tienda (STO-002 a STO-004, STO-007); compila, sin correr.
 **Verificación:** `assembleDebug` y `compileDebugAndroidTestKotlin`.
 
 ### Tarea 6 (K-165): cierre (S)

@@ -211,7 +211,22 @@
         <item quantity="other">%d resultados</item>
     </plurals>
     <string name="search_no_results">Sin resultados para «%1$s».</string>
-    <string name="search_help">Buscá en tu biblioteca por título o autor.</string>
+    <string name="search_help">Buscá por título o autor en tu biblioteca y en la tienda.</string>
+    <string name="store_section">Tienda</string>
+    <string name="store_loading">Buscando en la tienda…</string>
+    <string name="store_unavailable">La tienda no está disponible. Revisá la conexión.</string>
+    <string name="store_no_results">Sin resultados en la tienda.</string>
+    <string name="store_free">Gratis</string>
+    <string name="store_test_price">%1$s · precio de prueba</string>
+    <string name="store_unavailable_digital">No disponible en digital</string>
+    <string name="store_get">Obtener</string>
+    <string name="store_buy">Comprar</string>
+    <string name="store_retry">Reintentar</string>
+    <string name="store_downloading">Descargando…</string>
+    <string name="store_in_library">En tu biblioteca</string>
+    <string name="store_purchase_simulated">Compra simulada: es una prueba de concepto y no se cobra nada. Al confirmar, el libro se descarga a tu biblioteca.</string>
+    <string name="store_purchase_confirm">Pagar %1$s</string>
+    <string name="store_purchase_cancel">Cancelar</string>
     <string name="search_status_reading">Leyendo · %1$d %%</string>
 
     <!-- Recordatorio diario (ONB-012) -->
