@@ -58,6 +58,7 @@ class StartTest {
             LibrarySync(FakeSyncBackend().useCase(), FakeAccount(user), CoroutineScope(dispatcher)),
             FakePositionBackend().sync(FakeAccount(user), CoroutineScope(dispatcher)),
             FakeAccount(user),
+            FakeAuth(),
         )
 
     @Test

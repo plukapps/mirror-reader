@@ -16,6 +16,11 @@ android {
         versionCode = 1
         versionName = "1.0"
         testInstrumentationRunner = "com.pluk.reader.HiltTestRunner"
+
+        // Enlaces de los emails de la cuenta (ONB-007, ONB-018, ADR 0014): página de acción de Firebase del proyecto.
+        val authLinkHost = "mirror-reading-staging.firebaseapp.com"
+        manifestPlaceholders["authLinkHost"] = authLinkHost
+        resValue("string", "auth_link_host", authLinkHost)
     }
 
     buildTypes {
@@ -33,6 +38,7 @@ android {
       compose = true
       aidl = false
       buildConfig = true
+      resValues = true
       shaders = false
     }
 

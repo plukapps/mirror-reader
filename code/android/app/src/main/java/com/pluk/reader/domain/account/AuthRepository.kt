@@ -49,4 +49,7 @@ interface AuthRepository {
     suspend fun emailForResetCode(code: String): Result<String>
 
     suspend fun confirmPasswordReset(code: String, newPassword: String): Result<Unit>
+
+    /** Aplica el enlace de verificación cuando lo abre la app en lugar del navegador (ONB-007). */
+    suspend fun applyEmailVerification(code: String): Result<Unit>
 }

@@ -72,6 +72,13 @@ class FakeAuth : AccountRepository, AuthRepository {
 
     override suspend fun emailForResetCode(code: String) = resetEmail
 
+    val applied = mutableListOf<String>()
+
+    override suspend fun applyEmailVerification(code: String): Result<Unit> {
+        applied += code
+        return Result.success(Unit)
+    }
+
     override suspend fun confirmPasswordReset(code: String, newPassword: String): Result<Unit> {
         confirmed += code to newPassword
         return confirmResult

@@ -1,6 +1,8 @@
 package com.pluk.reader.onboarding
 
 import com.pluk.reader.domain.account.AccountUser
+import com.pluk.reader.domain.account.AuthLink
+import com.pluk.reader.domain.account.parseAuthLink
 import com.pluk.reader.domain.onboarding.Genre
 import com.pluk.reader.domain.onboarding.PasswordStrength
 import com.pluk.reader.domain.onboarding.ReadingGoal
@@ -97,5 +99,21 @@ class OnboardingRulesTest {
             night.plusDays(1).toInstant().toEpochMilli(),
             nextReminderAt(night.toInstant().toEpochMilli(), zone, 21, 30),
         )
+    }
+
+    // ONB-007, ONB-018: enlaces de los emails abiertos en la app
+    @Test
+    fun authLinksAreRecognizedOnlyFromTheProjectHost() {
+        val host = "demo.firebaseapp.com"
+        assertEquals(
+            AuthLink.ResetPassword("ab-C_1"),
+            parseAuthLink("https://demo.firebaseapp.com/__/auth/action?mode=resetPassword&oobCode=ab-C_1&apiKey=k&lang=es", host),
+        )
+        assertEquals(AuthLink.VerifyEmail("x%y"), parseAuthLink("https://demo.firebaseapp.com/__/auth/action?oobCode=x%25y&mode=verifyEmail", host))
+        assertNull(parseAuthLink("https://demo.firebaseapp.com/__/auth/action?mode=recoverEmail&oobCode=c", host))
+        assertNull(parseAuthLink("https://demo.firebaseapp.com/__/auth/action?mode=resetPassword", host))
+        assertNull(parseAuthLink("https://evil.example.com/__/auth/action?mode=resetPassword&oobCode=c", host))
+        assertNull(parseAuthLink("http://demo.firebaseapp.com/__/auth/action?mode=resetPassword&oobCode=c", host))
+        assertNull(parseAuthLink("content://media/book.epub", host))
     }
 }

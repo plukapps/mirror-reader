@@ -58,6 +58,7 @@ class MainViewModelTest {
             LibrarySync(backend.useCase(), account, CoroutineScope(dispatcher)),
             positionBackend.sync(FakeSession(AccountUser("u1", null)), CoroutineScope(dispatcher)),
             account,
+            com.pluk.reader.onboarding.FakeAuth(),
         )
     }
 

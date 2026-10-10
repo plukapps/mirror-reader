@@ -89,6 +89,13 @@ class FirebaseAccountRepository @Inject constructor(
         Unit
     }
 
+    override suspend fun applyEmailVerification(code: String): Result<Unit> = runAuth {
+        auth.applyActionCode(code).await()
+        // Si es el usuario de esta sesión, que se entere ya (ONB-007).
+        auth.currentUser?.let { it.reload().await(); it.getIdToken(true).await() }
+        Unit
+    }
+
     private suspend fun <T> runAuth(block: suspend () -> T): Result<T> =
         try {
             Result.success(block())

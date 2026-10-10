@@ -31,6 +31,16 @@
                 <data android:scheme="file" />
                 <data android:mimeType="application/epub+zip" />
             </intent-filter>
+            <!-- Enlaces de verificación y de contraseña nueva (ONB-007, ONB-018, ADR 0014). Sin assetlinks.json
+                 publicado en el host, Android los abre en el navegador. -->
+            <intent-filter android:autoVerify="true">
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="https" />
+                <data android:host="${authLinkHost}" />
+                <data android:path="/__/auth/action" />
+            </intent-filter>
         </activity>
 
         <receiver

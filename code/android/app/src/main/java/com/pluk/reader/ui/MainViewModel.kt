@@ -3,6 +3,7 @@ package com.pluk.reader.ui
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.pluk.reader.domain.account.AccountRepository
+import com.pluk.reader.domain.account.AuthRepository
 import com.pluk.reader.domain.model.ImportOutcome
 import com.pluk.reader.domain.repository.LibraryRepository
 import com.pluk.reader.domain.onboarding.StartDestination
@@ -15,6 +16,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 /**
@@ -27,6 +29,7 @@ class MainViewModel @Inject constructor(
     private val librarySync: LibrarySync,
     private val positionSync: PositionSync,
     private val accounts: AccountRepository,
+    private val auth: AuthRepository,
 ) : ViewModel() {
 
     enum class Start { Loading, Welcome, VerifyEmail, Home }
@@ -66,6 +69,14 @@ class MainViewModel @Inject constructor(
     fun onAppStopped() {
         positionSync.stopListening()
         positionSync.requestFlush()
+    }
+
+    /**
+     * ONB-007: la app abrió el enlace de verificación del email. Avisa con [onResult] si salió bien; la pantalla
+     * de verificación, si está a la vista, avanza sola.
+     */
+    fun verifyEmailLink(code: String, onResult: (Boolean) -> Unit) {
+        viewModelScope.launch { onResult(auth.applyEmailVerification(code).isSuccess) }
     }
 
     sealed interface Incoming {
