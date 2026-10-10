@@ -32,7 +32,6 @@ Plan de referencia: `specs/plans/2026-10-06-android-epub-viewer.md`
 
 ## Listo
 
-- **K-140** Onboarding, Tarea 3: datos (Firebase Auth con email y Google, mapeo de errores, preferencias en DataStore, fuera `DevAccountSignIn` y `WelcomeRepository`). ADR 0014. Rama `feature/onboarding`.
 - **K-141** Onboarding, Tarea 4: ViewModels de O2 a O9 y arranque, con tests JVM. ONB-004 a ONB-021. Rama `feature/onboarding`.
 - **K-142** Onboarding, Tarea 5: pantallas O1 a O9, Google con Credential Manager, navegación y App Link de O9. ONB-001 a ONB-022. Rama `feature/onboarding`.
 - **K-143** Onboarding, Tarea 6: recordatorio diario (alarma, notificación, reinicio). ONB-011, ONB-012. Rama `feature/onboarding`.
@@ -43,10 +42,11 @@ Plan de referencia: `specs/plans/2026-10-06-android-epub-viewer.md`
 
 ## En curso
 
-- **K-139** Onboarding, Tarea 2: dominio y reglas (`AuthRepository`, `AuthError`, `PasswordRules`, `startDestination`, `OnboardingPreferences`, `ReminderScheduler`) con tests JVM. ONB-005, ONB-009, ONB-010, ONB-019. Rama `feature/onboarding`. Plan `2026-10-10-android-onboarding.md`.
+- **K-140** Onboarding, Tarea 3: datos (Firebase Auth con email y Google, mapeo de errores, preferencias en DataStore, fuera `DevAccountSignIn` y `WelcomeRepository`). ADR 0014. Rama `feature/onboarding`.
 
 ## Revisión
 
+- **K-139** Onboarding, Tarea 2: dominio y reglas (`AuthRepository`, `AuthError`, `PasswordRules`, `startDestination`, `OnboardingPreferences`, `ReminderScheduler`) con tests JVM. ONB-005, ONB-009, ONB-010, ONB-019. Rama `feature/onboarding`. Plan `2026-10-10-android-onboarding.md`. Hecho: `AuthRepository` y `AuthError`, `checkPassword`, `isValidEmail`, `startDestination`, `Genre`, `ReadingGoal`, `DailyReminder`, `OnboardingPreferences`, `ReminderScheduler`, `nextReminderAt`. `OnboardingRulesTest` (8 tests JVM) pasa.
 - **K-138** Onboarding, Tarea 1: spec `specs/product/09-onboarding.md` (ONB-001 a ONB-022), cambios en WEL, ADR 0014 y plan `2026-10-10-android-onboarding.md`. Rama `feature/onboarding`. Pedido del usuario (2026-10-10), sin consultas. Hecho.
 - **K-099** Aviso "Seguir desde [dispositivo]" no se vio en la prueba a mano (K-091). Hipótesis: `shouldOfferJump` reutiliza el umbral del 2 % del salto al abrir, y unas pocas páginas no lo superan. Verificar el dibujo del chip con un avance grande y decidir un umbral propio para el aviso durante la lectura (por ejemplo 0,5 %). SYN-013. Rama `feature/continue-from-chip`. Umbral propio del aviso: 0,5 % (`CONTINUE_NOTICE_THRESHOLD`), en vez del 2 %. Falta ver el chip dibujado en un dispositivo. Pasa a Revisión el 2026-10-10 (ya fusionada en `master`) para dejar lugar al onboarding.
 - **K-133** Lector iOS, Tarea 6: panel de ajustes según el diseño. RDR-002, RDR-003, RDR-014. Rama `feature/ios-reader`. Hecho: `ReaderSettingsSheet` (tipo de letra con su propia fuente, A− y A+, Clásico, Sepia y Noche, interlineado con los íconos de Android, índice) en una hoja de 340 pt sobre el libro; el índice abre al cerrarse el panel. Sin el interruptor de animación (K-135). Test del mapeo a `EPUBPreferences` (53 en total en el simulador). Falta verlo a mano (K-134). Era K-124 hasta el merge con `master`.
