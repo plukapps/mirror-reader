@@ -5,7 +5,6 @@ import com.pluk.reader.domain.account.AccountUser
 import com.pluk.reader.domain.model.ImportOutcome
 import com.pluk.reader.domain.model.LibraryBook
 import com.pluk.reader.domain.repository.LibraryRepository
-import com.pluk.reader.domain.repository.WelcomeRepository
 import com.pluk.reader.domain.usecase.LibrarySync
 import com.pluk.reader.remote.FakePositionBackend
 import com.pluk.reader.remote.FakeSession
@@ -52,18 +51,12 @@ class MainViewModelTest {
 
     private val positionBackend = FakePositionBackend()
 
-    private object WelcomeDone : WelcomeRepository {
-        override val completed: Flow<Boolean> = flowOf(true)
-        override suspend fun markCompleted() = Unit
-    }
-
     private fun viewModel(library: FakeLibrary = FakeLibrary()): MainViewModel {
         val account = FakeAccount(AccountUser("u1", null))
         return MainViewModel(
             library,
             LibrarySync(backend.useCase(), account, CoroutineScope(dispatcher)),
             positionBackend.sync(FakeSession(AccountUser("u1", null)), CoroutineScope(dispatcher)),
-            WelcomeDone,
             account,
         )
     }

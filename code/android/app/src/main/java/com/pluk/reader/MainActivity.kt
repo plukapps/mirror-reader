@@ -68,7 +68,7 @@ class MainActivity : FragmentActivity() {
                     AppNavHost(
                         navController,
                         showWelcome = start == MainViewModel.Start.Welcome,
-                        onWelcomeCompleted = viewModel::completeWelcome,
+                        onWelcomeCompleted = {},
                     )
                 }
             }

@@ -5,14 +5,14 @@ import com.pluk.reader.data.repository.LibraryRepositoryImpl
 import com.pluk.reader.data.repository.PositionRepositoryImpl
 import com.pluk.reader.data.repository.SettingsRepositoryImpl
 import com.pluk.reader.data.repository.SyncPreferencesImpl
-import com.pluk.reader.data.repository.WelcomeRepositoryImpl
+import com.pluk.reader.data.repository.OnboardingPreferencesImpl
+import com.pluk.reader.domain.onboarding.OnboardingPreferences
 import com.pluk.reader.domain.repository.BookRepository
 import com.pluk.reader.domain.repository.LibraryRepository
 import com.pluk.reader.domain.repository.PositionRepository
 import com.pluk.reader.domain.repository.PositionSyncStore
 import com.pluk.reader.domain.repository.SettingsRepository
 import com.pluk.reader.domain.repository.SyncPreferences
-import com.pluk.reader.domain.repository.WelcomeRepository
 import dagger.Binds
 import dagger.Module
 import dagger.hilt.InstallIn
@@ -48,5 +48,5 @@ abstract class RepositoryModule {
 
     @Binds
     @Singleton
-    abstract fun bindWelcomeRepository(impl: WelcomeRepositoryImpl): WelcomeRepository
+    abstract fun bindOnboardingPreferences(impl: OnboardingPreferencesImpl): OnboardingPreferences
 }
