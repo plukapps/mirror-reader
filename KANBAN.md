@@ -32,16 +32,23 @@ Plan de referencia: `specs/plans/2026-10-06-android-epub-viewer.md`
 
 ## Listo
 
+- **K-140** Onboarding, Tarea 3: datos (Firebase Auth con email y Google, mapeo de errores, preferencias en DataStore, fuera `DevAccountSignIn` y `WelcomeRepository`). ADR 0014. Rama `feature/onboarding`.
+- **K-141** Onboarding, Tarea 4: ViewModels de O2 a O9 y arranque, con tests JVM. ONB-004 a ONB-021. Rama `feature/onboarding`.
+- **K-142** Onboarding, Tarea 5: pantallas O1 a O9, Google con Credential Manager, navegación y App Link de O9. ONB-001 a ONB-022. Rama `feature/onboarding`.
+- **K-143** Onboarding, Tarea 6: recordatorio diario (alarma, notificación, reinicio). ONB-011, ONB-012. Rama `feature/onboarding`.
+- **K-144** Onboarding, Tarea 7: cierre de docs, verificación y PR. Rama `feature/onboarding`.
 - **K-134** Lector iOS, Tarea 7: cierre de docs y verificación a mano en el simulador. Rama `feature/ios-reader`. Era K-125 hasta el merge con `master`.
 - **K-038** Inicio, Tarea 4: cierre de docs y verificación a mano. Rama `feature/home`.
 - **K-024** Quitar el padding vertical de Readium (40 dp arriba y abajo en modo paginado) y reservar la barra de estado desde la pantalla. RDR-002. Rama `feat/page-turn-animation`.
 
 ## En curso
 
-- **K-099** Aviso "Seguir desde [dispositivo]" no se vio en la prueba a mano (K-091). Hipótesis: `shouldOfferJump` reutiliza el umbral del 2 % del salto al abrir, y unas pocas páginas no lo superan. Verificar el dibujo del chip con un avance grande y decidir un umbral propio para el aviso durante la lectura (por ejemplo 0,5 %). SYN-013. Rama `feature/continue-from-chip`. Umbral propio del aviso: 0,5 % (`CONTINUE_NOTICE_THRESHOLD`), en vez del 2 %. Falta ver el chip dibujado en un dispositivo.
+- **K-139** Onboarding, Tarea 2: dominio y reglas (`AuthRepository`, `AuthError`, `PasswordRules`, `startDestination`, `OnboardingPreferences`, `ReminderScheduler`) con tests JVM. ONB-005, ONB-009, ONB-010, ONB-019. Rama `feature/onboarding`. Plan `2026-10-10-android-onboarding.md`.
 
 ## Revisión
 
+- **K-138** Onboarding, Tarea 1: spec `specs/product/09-onboarding.md` (ONB-001 a ONB-022), cambios en WEL, ADR 0014 y plan `2026-10-10-android-onboarding.md`. Rama `feature/onboarding`. Pedido del usuario (2026-10-10), sin consultas. Hecho.
+- **K-099** Aviso "Seguir desde [dispositivo]" no se vio en la prueba a mano (K-091). Hipótesis: `shouldOfferJump` reutiliza el umbral del 2 % del salto al abrir, y unas pocas páginas no lo superan. Verificar el dibujo del chip con un avance grande y decidir un umbral propio para el aviso durante la lectura (por ejemplo 0,5 %). SYN-013. Rama `feature/continue-from-chip`. Umbral propio del aviso: 0,5 % (`CONTINUE_NOTICE_THRESHOLD`), en vez del 2 %. Falta ver el chip dibujado en un dispositivo. Pasa a Revisión el 2026-10-10 (ya fusionada en `master`) para dejar lugar al onboarding.
 - **K-133** Lector iOS, Tarea 6: panel de ajustes según el diseño. RDR-002, RDR-003, RDR-014. Rama `feature/ios-reader`. Hecho: `ReaderSettingsSheet` (tipo de letra con su propia fuente, A− y A+, Clásico, Sepia y Noche, interlineado con los íconos de Android, índice) en una hoja de 340 pt sobre el libro; el índice abre al cerrarse el panel. Sin el interruptor de animación (K-135). Test del mapeo a `EPUBPreferences` (53 en total en el simulador). Falta verlo a mano (K-134). Era K-124 hasta el merge con `master`.
 - **K-131** Lector iOS, Tarea 4: importar desde Inicio y "Abrir con", libros de Inicio que abren el lector. LIB-001, LIB-007. Rama `feature/ios-reader`. Hecho: `HomeViewModel` importa (avisos como Android), abre y cierra el lector, "Abrir con" importa y abre; `AppGraph` arma importador y lector (solo iOS; en la Mac tocar un libro avisa); libros de Inicio tocables, selector de Archivos en "Importar un EPUB", tipo de documento EPUB en `Info-iOS.plist`. 6 tests nuevos (51 en total en el simulador). Falta verlo a mano (K-134). Era K-122 hasta el merge con `master`.
 - **K-132** Lector iOS, Tarea 5: pantalla del lector (navegador, toques, barra superior, número de página, índice, fin de lectura, barra de estado). RDR-001, RDR-004 a RDR-007, RDR-010 a RDR-013, RDR-015. Rama `feature/ios-reader`. Hecho: `ReaderViewModel` (cargando, error, listo; guarda la posición con 250 ms de espera y al cerrar), `EpubBookSource` (baja, abre, índice y posición), `ReaderNavigator` (Readium en SwiftUI: preferencias, fuentes, bordes del 20 %, toque central, márgenes fijos), `ReaderView` (barra superior, pie, aviso de fin, índice, barra de estado oculta). 11 tests del ViewModel (45 en total en el simulador). Se hizo antes que K-131 porque Inicio necesita el lector para abrir. Falta verlo a mano (K-134). Era K-123 hasta el merge con `master`.
