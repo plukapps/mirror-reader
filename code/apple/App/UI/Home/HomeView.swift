@@ -1,10 +1,12 @@
 import ReaderDomain
 import SwiftUI
+import UniformTypeIdentifiers
 
 /// Pantalla de inicio (HOM-001 a HOM-003, HOM-008 a HOM-010), según "02 — Home" del diseño.
-/// En la prueba (K-076) tocar libros o "Ver todo" no navega todavía.
+/// Tocar un libro abre el lector; "Ver todo" no navega todavía (no hay biblioteca en Apple).
 struct HomeView: View {
     let viewModel: HomeViewModel
+    @State private var picking = false
 
     var body: some View {
         ScrollView {
@@ -18,11 +20,14 @@ struct HomeView: View {
                 if !viewModel.loading {
                     let content = viewModel.content
                     if let book = content.continueReading {
-                        ContinueCard(book: book)
+                        Button { viewModel.open(bookId: book.id) } label: { ContinueCard(book: book) }
+                            .buttonStyle(.plain)
                     } else {
-                        NothingReading(libraryEmpty: content.libraryEmpty)
+                        NothingReading(libraryEmpty: content.libraryEmpty) {
+                            if content.libraryEmpty, viewModel.canImport { picking = true }
+                        }
                     }
-                    Sections(content: content)
+                    Sections(content: content, onOpen: viewModel.open(bookId:))
                 }
             }
             .padding(.bottom, 24)
@@ -31,6 +36,10 @@ struct HomeView: View {
         }
         .background(MarginColors.paper)
         .task { await viewModel.load() }
+        // LIB-001: uno o varios EPUB desde Archivos.
+        .fileImporter(isPresented: $picking, allowedContentTypes: [.epub], allowsMultipleSelection: true) { result in
+            if case let .success(urls) = result { Task { await viewModel.importBooks(urls) } }
+        }
     }
 }
 
@@ -82,18 +91,22 @@ private struct ContinueCard: View {
 
 private struct NothingReading: View {
     let libraryEmpty: Bool
+    let onAction: () -> Void
 
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
             Text("Nada en lectura todavía").font(.app(20, .semibold)).foregroundStyle(MarginColors.ink)
             Text("Abrí un libro de tu biblioteca y lo retomás desde acá.").font(.app(14)).foregroundStyle(MarginColors.muted)
-            Text(libraryEmpty ? "Importar un EPUB" : "Ir a la biblioteca")
-                .font(.app(14, .bold))
-                .foregroundStyle(MarginColors.yellow)
-                .padding(.horizontal, WindowLayout.horizontalPadding)
-                .frame(height: 44)
-                .background(MarginColors.ink, in: Capsule())
-                .padding(.top, 8)
+            Button(action: onAction) {
+                Text(libraryEmpty ? "Importar un EPUB" : "Ir a la biblioteca")
+                    .font(.app(14, .bold))
+                    .foregroundStyle(MarginColors.yellow)
+                    .padding(.horizontal, WindowLayout.horizontalPadding)
+                    .frame(height: 44)
+                    .background(MarginColors.ink, in: Capsule())
+            }
+            .buttonStyle(.plain)
+            .padding(.top, 8)
         }
         .padding(20)
         .frame(maxWidth: .infinity, alignment: .leading)
@@ -105,10 +118,11 @@ private struct NothingReading: View {
 
 private struct Sections: View {
     let content: HomeContent
+    let onOpen: (String) -> Void
 
     var body: some View {
         if !content.reading.isEmpty {
-            BookRow(title: "Leyendo", count: content.readingCount, books: content.reading) { book in
+            BookRow(title: "Leyendo", count: content.readingCount, books: content.reading, onOpen: onOpen) { book in
                 let percent = book.progressPercent ?? 0
                 TitleAndAuthor(book: book, subtitle: book.author)
                 HStack(spacing: 8) {
@@ -119,12 +133,12 @@ private struct Sections: View {
             }
         }
         if !content.recentlyAdded.isEmpty {
-            BookRow(title: "Agregados recientemente", count: content.recentlyAddedCount, books: content.recentlyAdded) { book in
+            BookRow(title: "Agregados recientemente", count: content.recentlyAddedCount, books: content.recentlyAdded, onOpen: onOpen) { book in
                 TitleAndAuthor(book: book, subtitle: book.author)
             }
         }
         if !content.finished.isEmpty {
-            BookRow(title: "Terminados", count: content.finishedCount, books: content.finished, finished: true) { book in
+            BookRow(title: "Terminados", count: content.finishedCount, books: content.finished, finished: true, onOpen: onOpen) { book in
                 TitleAndAuthor(book: book, subtitle: finishedSubtitle(author: book.author, lastReadAt: book.lastReadAt))
             }
         }
@@ -137,6 +151,7 @@ private struct BookRow<Details: View>: View {
     let count: Int
     let books: [LibraryBook]
     var finished = false
+    let onOpen: (String) -> Void
     @ViewBuilder let details: (LibraryBook) -> Details
 
     var body: some View {
@@ -155,12 +170,16 @@ private struct BookRow<Details: View>: View {
         ScrollView(.horizontal, showsIndicators: false) {
             HStack(alignment: .top, spacing: 12) {
                 ForEach(books) { book in
-                    VStack(alignment: .leading, spacing: 4) {
-                        BookCover(book: book)
-                            .overlay(alignment: .topTrailing) { if finished { FinishedBadge() } }
-                        VStack(alignment: .leading, spacing: 1) { details(book) }
+                    Button { onOpen(book.id) } label: {
+                        VStack(alignment: .leading, spacing: 4) {
+                            BookCover(book: book)
+                                .overlay(alignment: .topTrailing) { if finished { FinishedBadge() } }
+                            VStack(alignment: .leading, spacing: 1) { details(book) }
+                        }
+                        .frame(width: 104)
+                        .contentShape(Rectangle())
                     }
-                    .frame(width: 104)
+                    .buttonStyle(.plain)
                     .accessibilityElement(children: .combine)
                 }
             }

@@ -31,7 +31,7 @@ targets:
     supportedDestinations: [macOS, iOS]
     sources:
       - path: App
-        excludes: [Info.plist]
+        excludes: [Info.plist, Info-iOS.plist]
     dependencies:
       - package: ReaderDomain
       - package: Firebase
@@ -66,6 +66,8 @@ targets:
         GENERATE_INFOPLIST_FILE: YES
         # Se combina con lo generado: lleva la cuenta de desarrollo (ver Signing.xcconfig).
         INFOPLIST_FILE: App/Info.plist
+        # En iOS, además, el tipo de documento EPUB para "Abrir con" (LIB-001).
+        "INFOPLIST_FILE[sdk=iphone*]": App/Info-iOS.plist
         INFOPLIST_KEY_CFBundleDisplayName: Reader
         # La App Store de Mac exige el sandbox (App/Reader.entitlements).
         "CODE_SIGN_ENTITLEMENTS[sdk=macosx*]": App/Reader.entitlements
