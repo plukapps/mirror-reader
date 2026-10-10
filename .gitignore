@@ -8,3 +8,6 @@ code/android/samples/
 
 # Configuración del cliente Firebase: se descarga de la consola, no va al repo
 code/android/app/google-services.json
+
+# Worktrees de Claude Code (locales)
+.claude/worktrees/
