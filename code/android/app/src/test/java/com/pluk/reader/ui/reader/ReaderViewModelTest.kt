@@ -624,8 +624,8 @@ class ReaderViewModelTest {
         vm.onLocatorChanged("""{"p":2}""", 0.30)
         assertEquals(60, vm.awaitReady { it.progressPercent == 30 }.continueFrom?.percent)
 
-        vm.onLocatorChanged("""{"p":3}""", 0.59)
-        assertNull(vm.awaitReady { it.progressPercent == 59 }.continueFrom)
+        vm.onLocatorChanged("""{"p":3}""", 0.598)
+        assertNull(vm.awaitReady { it.progressPercent == 60 }.continueFrom)
     }
 
     @Test

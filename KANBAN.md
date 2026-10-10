@@ -13,7 +13,6 @@ Plan de referencia: `specs/plans/2026-10-06-android-epub-viewer.md`
 - **K-114** Apple: sincronizar al volver a la app con TTL de 5 minutos, como Android (K-083). Hoy solo al arrancar. SYN-001.
 - **K-105** Bug: "Abrir con" un EPUB no abre el libro. AND-003, LIB-001, WEL-008. En `MainActivity`, el `LaunchedEffect(incomingBook.value)` pone `incomingBook.value = null` antes de importar; eso cambia la clave del efecto, Compose lo reinicia y cancela la importación a mitad de camino: el archivo queda copiado en `files/books` (o como `import-*.tmp`), pero el libro no entra a la biblioteca ni se abre el lector. Visto en el SM-S711B (2026-10-09) con el EPUB de `make_fixture_epub.py`. El código es el mismo en `master`: no lo introdujo la bienvenida. Arreglo propuesto: importar en `viewModelScope` (o limpiar la clave después de importar) y borrar el temporal si la importación se cancela.
 - **K-100** Bienvenida: agregar "Iniciar sesión" y el menú del diseño 01 cuando existan las pantallas de cuenta (ACC-001). Fuera de alcance de WEL (2026-10-09).
-- **K-099** Aviso "Seguir desde [dispositivo]" no se vio en la prueba a mano (K-091). Hipótesis: `shouldOfferJump` reutiliza el umbral del 2 % del salto al abrir, y unas pocas páginas no lo superan. Verificar el dibujo del chip con un avance grande y decidir un umbral propio para el aviso durante la lectura (por ejemplo 0,5 %). SYN-013.
 - **K-092** DEUDA TÉCNICA. Posición de lectura: envío por inactividad. Hoy la posición sale a la nube solo al cerrar el libro o pasar a segundo plano (K-088, opción A, decisión del usuario 2026-10-09). Si se encuentran problemas (por ejemplo libro abierto con la pantalla encendida e inactiva, y el otro dispositivo sin ver el avance), agregar el envío a los 60 s sin cambiar de página, y como máximo cada 5 min si se lee de corrido. Técnica y costos en la sección "Deuda técnica" de `specs/plans/2026-10-09-position-sync.md`. Cambia SYN-011. Depende de K-088.
 - **K-094** Barra inferior en tablet, para cuando el soporte de tablet esté más maduro. HOM-005, HOM-007. Hoy la píldora de K-093 se estira a todo el ancho (en la SM_X510 apaisada va de punta a punta) mientras el contenido de Inicio es una columna centrada. Opciones: limitar el ancho y centrarla, o el riel lateral del diseño (T01). Pedido del usuario (2026-10-09): retomarlo junto con el resto del soporte de tablet.
 - **K-078** Apple, navegación de la Mac: diseño de la ventana (barra lateral en lugar de la barra inferior de HOM-005) antes de implementarla. Requiere diseño. ADR 0010.
@@ -38,6 +37,8 @@ Plan de referencia: `specs/plans/2026-10-06-android-epub-viewer.md`
 - **K-024** Quitar el padding vertical de Readium (40 dp arriba y abajo en modo paginado) y reservar la barra de estado desde la pantalla. RDR-002. Rama `feat/page-turn-animation`.
 
 ## En curso
+
+- **K-099** Aviso "Seguir desde [dispositivo]" no se vio en la prueba a mano (K-091). Hipótesis: `shouldOfferJump` reutiliza el umbral del 2 % del salto al abrir, y unas pocas páginas no lo superan. Verificar el dibujo del chip con un avance grande y decidir un umbral propio para el aviso durante la lectura (por ejemplo 0,5 %). SYN-013. Rama `feature/continue-from-chip`. Umbral propio del aviso: 0,5 % (`CONTINUE_NOTICE_THRESHOLD`), en vez del 2 %. Falta ver el chip dibujado en un dispositivo.
 
 ## Revisión
 
