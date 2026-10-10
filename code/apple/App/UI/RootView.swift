@@ -1,14 +1,27 @@
+import ReaderDomain
 import SwiftUI
 
-/// Pantalla raíz. En iPhone, Inicio con la barra inferior flotante (HOM-005); en la Mac, sin barra
-/// hasta que su navegación tenga diseño (K-078).
+/// Pantalla raíz. En iPhone, Inicio y la biblioteca (Estantes) con la barra inferior flotante (HOM-005); en la Mac,
+/// sin barra hasta que su navegación tenga diseño (K-078): la biblioteca se abre desde Inicio y se vuelve atrás.
 struct RootView: View {
     let home: HomeViewModel
+    let library: LibraryViewModel
     @State private var tabs = TabBarModel()
+    #if os(macOS)
+    @State private var path: [LibraryFilter] = []
+    #endif
 
     var body: some View {
+        content
+            // La sincronización arranca con la app, sin importar qué pantalla se ve primero (SYN-001).
+            // Cada pantalla vuelve a leer la base al aparecer y cuando la sincronización la cambia.
+            .task { await home.load() }
+    }
+
+    @ViewBuilder
+    private var content: some View {
         #if os(iOS)
-        HomeView(viewModel: home)
+        destination
             // La barra va en el área segura de abajo: el scroll pasa por debajo y deja su alto al final.
             .safeAreaInset(edge: .bottom, spacing: 0) {
                 MarginTabBar(selected: tabs.selected, onSelect: tabs.select)
@@ -29,7 +42,30 @@ struct RootView: View {
                 if shows { AccessibilityNotification.Announcement(String(localized: "Llega más adelante.")).post() }
             }
         #else
-        HomeView(viewModel: home)
+        NavigationStack(path: $path) {
+            HomeView(viewModel: home, onOpenLibrary: openLibrary)
+                .navigationDestination(for: LibraryFilter.self) { _ in LibraryView(viewModel: library) }
+        }
+        #endif
+    }
+
+    #if os(iOS)
+    @ViewBuilder
+    private var destination: some View {
+        switch tabs.selected {
+        case .shelves: LibraryView(viewModel: library, onImport: tabs.showComingSoon)
+        default: HomeView(viewModel: home, onOpenLibrary: openLibrary)
+        }
+    }
+    #endif
+
+    /// HOM-011: la biblioteca abre con el filtro de la sección de Inicio.
+    private func openLibrary(_ filter: LibraryFilter) {
+        library.select(filter)
+        #if os(iOS)
+        tabs.select(.shelves)
+        #else
+        path = [filter]
         #endif
     }
 }

@@ -85,6 +85,17 @@ struct HomeViewModelTests {
         #expect(await library.syncs == 1)
     }
 
+    @Test("SYN-001: volver a Inicio relee la base sin sincronizar (la sincronización la arranca la app)")
+    func reloadDoesNotSync() async {
+        let library = SyncingLibrary()
+        let viewModel = HomeViewModel(library: library) { onChange in await library.sync(.offline, adding: [], onChange: onChange) }
+
+        await viewModel.reload()
+
+        #expect(await library.syncs == 0)
+        #expect(!viewModel.loading)
+    }
+
     @Test("ADR 0002: sin conexión, Inicio muestra lo local")
     func offlineKeepsLocal() async {
         let viewModel = HomeViewModel(library: StubLibrary(stored: [cloudBook])) { _ in .offline }

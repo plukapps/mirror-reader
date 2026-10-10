@@ -45,7 +45,8 @@ actor LibraryStore: ModelActor, LibraryRepository, CloudBooksRepository {
                     coverPath: record.hasCover ? files.coverFile(bookId: record.id).path : nil,
                     progressPercent: position.flatMap { progressPercent($0.progress) },
                     lastReadAt: position.map { Date(timeIntervalSince1970: Double($0.readAt) / 1000) },
-                    addedAt: record.addedAt
+                    addedAt: record.addedAt,
+                    isDownloaded: record.isDownloaded
                 )
             }
         } catch {

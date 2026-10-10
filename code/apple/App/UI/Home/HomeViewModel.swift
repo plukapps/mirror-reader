@@ -39,7 +39,8 @@ final class HomeViewModel {
         _ = await sync { [weak self] in await self?.reload() }
     }
 
-    private func reload() async {
+    /// Vuelve a leer la base, sin sincronizar. Lo usa la pantalla al aparecer.
+    func reload() async {
         content = homeContent(await library.books())
         loading = false
     }

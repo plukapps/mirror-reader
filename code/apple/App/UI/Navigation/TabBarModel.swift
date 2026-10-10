@@ -35,8 +35,8 @@ enum MainDestination: CaseIterable, Identifiable {
         }
     }
 
-    /// En Apple solo existe Inicio. Estantes se suma con la biblioteca (K-079); Buscar y Perfil, después.
-    var isAvailable: Bool { self == .home }
+    /// En Apple existen Inicio y la biblioteca (Estantes, como en Android). Buscar y Perfil, después.
+    var isAvailable: Bool { self == .home || self == .shelves }
 }
 
 /// Estado de la barra: destino actual y el aviso de los destinos que aún no existen (HOM-006).
@@ -57,8 +57,9 @@ final class TabBarModel {
         selected = destination
     }
 
+    /// Aviso de HOM-006, también para acciones que aún no existen (Importar).
     /// Un toque más reinicia el tiempo del aviso en lugar de apilar otro.
-    private func showComingSoon() {
+    func showComingSoon() {
         showsComingSoon = true
         noticeTask?.cancel()
         noticeTask = Task { [noticeDuration] in
