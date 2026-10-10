@@ -32,6 +32,16 @@ private func file(_ name: String) -> URL { URL(fileURLWithPath: "/tmp/\(name)") 
 
 @MainActor
 struct HomeImportTests {
+    @Test("SYN-001: importar pide una sincronización para subir lo importado")
+    func importRequestsSync() async {
+        var requests = 0
+        let viewModel = HomeViewModel(library: CountingLibrary(), importer: importer) { requests += 1 }
+        await viewModel.importBooks([file("a.epub")])
+        #expect(requests == 1)
+        await viewModel.openIncoming(file("b.epub"))
+        #expect(requests == 2)
+    }
+
     @Test("LIB-001: importar varios cuenta los nuevos y avisa los repetidos y los rechazados, y recarga Inicio")
     func importSummarizesOutcomes() async {
         let library = CountingLibrary()

@@ -9,7 +9,9 @@ struct RootView: View {
     let home: HomeViewModel
     let search: SearchViewModel
     let library: LibraryViewModel
+    let sync: SyncCoordinator
     let makeReader: ((String) -> ReaderViewModel)?
+    @Environment(\.scenePhase) private var scenePhase
     @State private var tabs = TabBarModel()
     /// LIB-001: selector de Archivos, desde Inicio o desde la biblioteca.
     @State private var picking = false
@@ -21,7 +23,19 @@ struct RootView: View {
         content
             // La sincronización arranca con la app, sin importar qué pantalla se ve primero (SYN-001).
             // Cada pantalla vuelve a leer la base al aparecer y cuando la sincronización la cambia.
-            .task { await home.load() }
+            .task {
+                await home.load()
+                sync.request()
+            }
+            // SYN-001: al volver a la app, sincroniza si la última pasada buena tiene más de 5 minutos.
+            // SYN-011, SYN-012: la posición se escucha mientras la app se ve y lo pendiente sale al dejar de verse.
+            .onChange(of: scenePhase) { _, phase in
+                switch phase {
+                case .active: sync.appBecameActive()
+                case .background: sync.appWentToBackground()
+                default: break
+                }
+            }
             .fileImporter(isPresented: $picking, allowedContentTypes: [.epub], allowsMultipleSelection: true) { result in
                 if case let .success(urls) = result {
                     Task {

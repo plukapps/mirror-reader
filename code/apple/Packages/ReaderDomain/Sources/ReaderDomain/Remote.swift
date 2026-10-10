@@ -24,24 +24,6 @@ public struct RemoteBook: Equatable, Sendable {
     }
 }
 
-/// Última posición de lectura de un libro en la nube (`users/{uid}/positions/{bookId}`, ADR 0011).
-public struct RemotePosition: Equatable, Sendable {
-    public let bookId: String
-    /// Locator serializado por el lector que la escribió. Apple todavía no lo interpreta.
-    public let locatorJson: String
-    /// Progresión total 0...1, o nil si se desconoce.
-    public let progress: Double?
-    /// Milisegundos desde 1970 en que se leyó, según el reloj del dispositivo (SYN-003).
-    public let readAt: Int64
-
-    public init(bookId: String, locatorJson: String, progress: Double?, readAt: Int64) {
-        self.bookId = bookId
-        self.locatorJson = locatorJson
-        self.progress = progress
-        self.readAt = readAt
-    }
-}
-
 /// La nube no se pudo alcanzar (sin red, sin sesión, error del servicio). No cambia nada local (ADR 0002).
 public struct RemoteUnavailableError: Error, Equatable, Sendable {
     public let message: String
@@ -52,15 +34,14 @@ public struct RemoteUnavailableError: Error, Equatable, Sendable {
 public protocol RemoteLibrary: Sendable {
     /// Libros vivos (no marcados como borrados, SYN-007) del usuario actual.
     func listBooks() async throws -> [RemoteBook]
-}
-
-/// Posiciones de lectura en la nube (SYN-002). Por ahora Apple solo las lee.
-public protocol RemotePositions: Sendable {
-    func listPositions() async throws -> [RemotePosition]
+    /// Crea el documento del libro o, si ya existe, actualiza título y autores (gana el último cambio, SYN-006).
+    func saveBook(_ book: RemoteBook) async throws
 }
 
 /// Portadas en la nube (LIB-012).
 public protocol CoverStore: Sendable {
     /// Baja la portada a `destination`. `true` si la había; `false` si el libro no tiene portada en la nube.
     func downloadCover(bookId: String, to destination: URL) async throws -> Bool
+    /// Sube la portada (JPEG). Si ya está en la nube no hace nada: no se sobrescribe.
+    func uploadCover(bookId: String, from file: URL) async throws
 }

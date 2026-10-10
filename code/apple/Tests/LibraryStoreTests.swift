@@ -61,10 +61,9 @@ struct LibraryStoreTests {
     func remotePositionGivesProgress() async throws {
         let store = try makeStore()
         try await store.addCloudOnly([remote("a")])
-        let saved = try await store.applyRemotePositions([RemotePosition(bookId: "a", locatorJson: "{}", progress: 0.42, readAt: 2_000)])
+        await store.applyRemote(ReadingPosition(bookId: "a", locatorJson: "{}", progress: 0.42, readAt: 2_000))
 
         let book = try #require(await store.books().first)
-        #expect(saved == 1)
         #expect(book.progressPercent == 42)
         #expect(book.status == .reading)
         #expect(book.lastReadAt == Date(timeIntervalSince1970: 2))
@@ -74,10 +73,9 @@ struct LibraryStoreTests {
     func olderPositionIsIgnored() async throws {
         let store = try makeStore()
         try await store.addCloudOnly([remote("a")])
-        _ = try await store.applyRemotePositions([RemotePosition(bookId: "a", locatorJson: "{}", progress: 0.8, readAt: 2_000)])
-        let saved = try await store.applyRemotePositions([RemotePosition(bookId: "a", locatorJson: "{}", progress: 0.1, readAt: 1_000)])
+        await store.applyRemote(ReadingPosition(bookId: "a", locatorJson: "{}", progress: 0.8, readAt: 2_000))
+        await store.applyRemote(ReadingPosition(bookId: "a", locatorJson: "{}", progress: 0.1, readAt: 1_000))
 
-        #expect(saved == 0)
         #expect(await store.books().first?.progressPercent == 80)
     }
 
@@ -85,8 +83,8 @@ struct LibraryStoreTests {
     func newerPositionReplaces() async throws {
         let store = try makeStore()
         try await store.addCloudOnly([remote("a")])
-        _ = try await store.applyRemotePositions([RemotePosition(bookId: "a", locatorJson: "{}", progress: 0.1, readAt: 1_000)])
-        _ = try await store.applyRemotePositions([RemotePosition(bookId: "a", locatorJson: "{}", progress: 1.0, readAt: 3_000)])
+        await store.applyRemote(ReadingPosition(bookId: "a", locatorJson: "{}", progress: 0.1, readAt: 1_000))
+        await store.applyRemote(ReadingPosition(bookId: "a", locatorJson: "{}", progress: 1.0, readAt: 3_000))
 
         #expect(await store.books().first?.status == .finished)
     }

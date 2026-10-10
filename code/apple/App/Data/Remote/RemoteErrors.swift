@@ -22,6 +22,16 @@ func remoteError(_ error: Error) -> Error {
     return unavailable ? RemoteUnavailableError(nsError.localizedDescription) : error
 }
 
+/// Como `remoteError`, para una subida a Storage: la regla rechaza una subida del dueño por tipo, tamaño o cuota; la
+/// app ya controla los dos primeros, así que `unauthorized` se toma como falta de espacio (LIB-009), como en Android.
+func uploadError(_ error: Error) -> Error {
+    let nsError = error as NSError
+    if nsError.domain == StorageErrorDomain, nsError.code == StorageErrorCode.unauthorized.rawValue {
+        return QuotaExceededError()
+    }
+    return remoteError(error)
+}
+
 /// `uid` del usuario con sesión, o `RemoteUnavailableError` si no hay sesión.
 func currentUid() throws -> String {
     guard let uid = Auth.auth().currentUser?.uid else { throw RemoteUnavailableError("No hay sesión iniciada.") }

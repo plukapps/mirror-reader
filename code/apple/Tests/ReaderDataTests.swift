@@ -38,21 +38,23 @@ struct ReaderDataTests {
     func ownReadingIsNewerThanOlderRemote() async throws {
         let store = try makeStore()
         await store.save(bookId: "a", position: SavedPosition(locatorJson: "local", progress: 0.1))
-        let remote = RemotePosition(bookId: "a", locatorJson: "remota", progress: 0.9, readAt: 6_000_000)
-        #expect(try await store.applyRemotePositions([remote]) == 0)
+        await store.applyRemote(ReadingPosition(bookId: "a", locatorJson: "remota", progress: 0.9, readAt: 6_000_000))
         #expect(await store.position(bookId: "a")?.locatorJson == "local")
     }
 
     @Test("LIB-007: un libro solo en la nube no está descargado hasta instalar su archivo")
     func installingBookMarksItDownloaded() async throws {
         let store = try makeStore()
-        try await store.addCloudOnly([RemoteBook(id: "a", title: "Walden", authors: [], sizeBytes: 3)])
-        #expect(await !store.isDownloaded(bookId: "a"))
+        let file = try tempFile("epub")
+        // El id es el hash del contenido: la instalación lo comprueba.
+        let id = try LibraryFiles.sha256(of: file)
+        try await store.addCloudOnly([RemoteBook(id: id, title: "Walden", authors: [], sizeBytes: 3)])
+        #expect(await !store.isDownloaded(bookId: id))
 
-        try await store.installBook(bookId: "a", from: try tempFile("epub"))
+        try await store.installBook(bookId: id, from: file)
 
-        #expect(await store.isDownloaded(bookId: "a"))
-        #expect(try String(contentsOf: files.bookFile(bookId: "a"), encoding: .utf8) == "epub")
+        #expect(await store.isDownloaded(bookId: id))
+        #expect(try String(contentsOf: files.bookFile(bookId: id), encoding: .utf8) == "epub")
     }
 
     @Test("LIB-007: si el archivo se borró, el libro vuelve a bajarse")
