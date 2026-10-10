@@ -1,10 +1,12 @@
 import ReaderDomain
 import SwiftUI
 
-/// Pantalla raíz. En iPhone, Inicio y la biblioteca (Estantes) con la barra inferior flotante (HOM-005); en la Mac,
-/// sin barra hasta que su navegación tenga diseño (K-078): la biblioteca se abre desde Inicio y se vuelve atrás.
+/// Pantalla raíz. En iPhone, Inicio, Buscar y la biblioteca (Estantes) con la barra inferior flotante (HOM-005);
+/// en la Mac, sin barra hasta que su navegación tenga diseño (K-078): la biblioteca se abre desde Inicio y se vuelve
+/// atrás.
 struct RootView: View {
     let home: HomeViewModel
+    let search: SearchViewModel
     let library: LibraryViewModel
     @State private var tabs = TabBarModel()
     #if os(macOS)
@@ -53,6 +55,7 @@ struct RootView: View {
     @ViewBuilder
     private var destination: some View {
         switch tabs.selected {
+        case .search: SearchView(viewModel: search)
         case .shelves: LibraryView(viewModel: library, onImport: tabs.showComingSoon)
         default: HomeView(viewModel: home, onOpenLibrary: openLibrary)
         }

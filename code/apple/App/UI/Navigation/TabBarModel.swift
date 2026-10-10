@@ -35,8 +35,8 @@ enum MainDestination: CaseIterable, Identifiable {
         }
     }
 
-    /// En Apple existen Inicio y la biblioteca (Estantes, como en Android). Buscar y Perfil, después.
-    var isAvailable: Bool { self == .home || self == .shelves }
+    /// En Apple existen Inicio, Buscar y la biblioteca (Estantes, como en Android). Perfil, después.
+    var isAvailable: Bool { self != .profile }
 }
 
 /// Estado de la barra: destino actual y el aviso de los destinos que aún no existen (HOM-006).

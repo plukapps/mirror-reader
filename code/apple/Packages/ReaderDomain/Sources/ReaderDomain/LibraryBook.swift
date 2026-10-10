@@ -18,7 +18,7 @@ public struct LibraryBook: Identifiable, Equatable, Sendable {
     public let lastReadAt: Date?
     /// Momento de la importación (HOM-009).
     public let addedAt: Date
-    /// El archivo está en este dispositivo; si no, el libro está solo en la nube (LIB-007).
+    /// El archivo está en este dispositivo. Falso: solo en la nube (LIB-007).
     public let isDownloaded: Bool
 
     public var status: ReadingStatus { readingStatus(progressPercent: progressPercent) }

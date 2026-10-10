@@ -6,14 +6,25 @@ import SwiftData
 /// Arma las dependencias de la app (ADR 0010: sin framework de inyección, por inicializador).
 @MainActor
 enum AppGraph {
-    /// Inicio y la biblioteca leen la misma base local.
-    static func makeViewModels() -> (home: HomeViewModel, library: LibraryViewModel) {
+    /// ViewModels de las pantallas principales, sobre la misma base local.
+    struct Screens {
+        let home: HomeViewModel
+        let search: SearchViewModel
+        let library: LibraryViewModel
+    }
+
+    static func makeScreens() -> Screens {
         let store = LibraryStore(container: container(), files: .standard)
         let library = LibraryViewModel(library: store)
+        return Screens(home: makeHome(store: store, library: library), search: SearchViewModel(library: store), library: library)
+    }
+
+    /// La sincronización vuelve a leer la base en Inicio y en la biblioteca cada vez que la cambia.
+    private static func makeHome(store: LibraryStore, library: LibraryViewModel) -> HomeViewModel {
         // Los tests corren dentro de la app: nunca tocan el proyecto real.
         guard !isRunningTests, FirebaseSetup.configureIfAvailable() else {
             // Sin configuración de Firebase la app funciona solo en local (ADR 0002).
-            return (HomeViewModel(library: store), library)
+            return HomeViewModel(library: store)
         }
         let remote = FirestoreRemoteLibrary()
         let sync = LibrarySync(
@@ -34,7 +45,7 @@ enum AppGraph {
             log.info("Sincronización: \(String(describing: outcome), privacy: .public)")
             return outcome
         }
-        return (home, library)
+        return home
     }
 
     private static var isRunningTests: Bool {

@@ -11,6 +11,10 @@ enum MarginColors {
     static let coverBorder = Color.white
     /// Íconos inactivos sobre fondo tinta (barra inferior).
     static let inkMuted = Color(hex: 0x8A8676)
+    /// Fondo del campo de búsqueda.
+    static let field = Color(hex: 0xFDFDFD)
+    /// Punto de "Leyendo" en los resultados de la búsqueda.
+    static let readingDot = Color(hex: 0xC9A100)
 
     /// Fondos de las portadas generadas cuando el EPUB no trae una.
     static let covers: [(color: Color, isLight: Bool)] = [

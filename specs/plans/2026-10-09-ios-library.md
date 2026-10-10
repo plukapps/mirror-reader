@@ -3,7 +3,7 @@
 **Objetivo:** la pantalla de biblioteca de Android (K-029 a K-033, plan `2026-10-06-android-library.md`) en Apple, con los libros que ya trae la base local (Inicio con datos reales, plan `2026-10-09-ios-home-data.md`), según "05 — Library" del diseño.
 
 **Specs que implementa:** LIB-007 (marca "En la nube"), LIB-010, LIB-011, HOM-005, HOM-011 (`specs/product/01-library.md`, `07-home.md`), IOS-001, MAC-001.
-**Rama:** `feature/ios-library`. **Tarjetas:** K-119 a K-122. Pedido del usuario (2026-10-09), sin confirmación previa.
+**Rama:** `feature/ios-library`. **Tarjetas:** K-124 a K-127 (eran K-119 a K-122 hasta el merge con `master`, que ya usaba esos IDs para la búsqueda; el commit `e90c4d3` los nombra así). Pedido del usuario (2026-10-09), sin confirmación previa.
 
 ## Diseño (igual que Android)
 
@@ -22,21 +22,21 @@
 
 ## Tareas
 
-### Tarea 1: dominio (S) — K-119
+### Tarea 1: dominio (S) — K-124
 - [x] `LibraryFilter`, `filter(by:)`, `count(by:)`; `LibraryBook.isDownloaded`.
 - [x] Tests con `swift test` (LIB-010).
 
-### Tarea 2: datos y ViewModel (S) — K-120
+### Tarea 2: datos y ViewModel (S) — K-125
 - [x] `LibraryStore.books()` entrega `isDownloaded`. Test.
 - [x] `LibraryViewModel` (`@MainActor @Observable`): carga, filtro, conteos, filtro inicial elegido desde Inicio, recarga. Tests.
 
-### Tarea 3: pantalla y navegación (M) — K-121
+### Tarea 3: pantalla y navegación (M) — K-126
 - [x] `LibraryView` según el diseño (encabezado, pestañas, grilla, vacío).
 - [x] Estantes disponible; `RootView` cambia entre Inicio y Biblioteca en iPhone y empuja la biblioteca en la Mac; "Ver todo" e "Ir a la biblioteca" navegan.
 - [x] `AppGraph` arma los dos ViewModel sobre la misma base; la sincronización recarga los dos.
 - [x] Tests del modelo de la barra (Estantes disponible).
 
-### Tarea 4: cierre (S) — K-122
+### Tarea 4: cierre (S) — K-127
 - [x] `specs/platforms/apple.md`, README, Kanban.
 - [x] Tests en iPhone, Mac y dominio; verificación a ojo en el simulador.
 

@@ -1,6 +1,6 @@
 # Plataforma — Apple: Mac e iOS (borrador)
 
-Mac primero, iOS después, desde el mismo proyecto y el mismo target. Distribución: Mac App Store y App Store. Hoy existen Inicio y la biblioteca con los libros reales de la cuenta (planes `specs/plans/2026-10-09-ios-home-data.md` y `2026-10-09-ios-library.md`), sin lector ni importación.
+Mac primero, iOS después, desde el mismo proyecto y el mismo target. Distribución: Mac App Store y App Store. Hoy existen Inicio y la biblioteca con los libros reales de la cuenta (planes `specs/plans/2026-10-09-ios-home-data.md` y `2026-10-09-ios-library.md`) y, en iPhone, la búsqueda local (plan `specs/plans/2026-10-09-ios-search.md`), sin lector ni importación.
 
 ## Alcance
 
@@ -28,8 +28,9 @@ Stack y capas en `specs/adr/0010-apple-stack-and-architecture.md` (provisional):
 - Interfaz con Host Grotesk y la paleta del diseño, como Android.
 - Inicio con datos reales (K-107 a K-111): sesión con la cuenta de desarrollo (solo Debug), libros, posiciones y portadas bajados de Firebase a la base local al arrancar. Solo lectura: Apple todavía no sube nada.
 - Inicio (prueba, K-076): mismo contenido que en Android, centrado con un ancho máximo de 640 pt.
-- Barra inferior (HOM-005, K-096): en iPhone, la misma que Android (píldora flotante, el contenido pasa por debajo). Buscar y Perfil muestran el aviso de HOM-006. En la Mac no hay barra: su navegación (probablemente barra lateral) espera un diseño (K-078).
-- Biblioteca (K-119 a K-122): la de Android según el diseño 05 (pestañas Todos, Leyendo y Terminados, grilla con progreso y "En la nube"). En iPhone es el destino Estantes; en la Mac se abre desde "Ver todo" de Inicio, con volver. "Ver todo" abre la biblioteca con el filtro de la sección (HOM-011). "Importar" muestra el aviso de HOM-006 hasta K-079 y no aparece en la Mac. Sin estado de sincronización: en Apple solo se baja de la nube, una vez al arrancar, desde la raíz de la app.
+- Barra inferior (HOM-005, K-096): en iPhone, la misma que Android (píldora flotante, el contenido pasa por debajo). Inicio, Buscar y Estantes navegan; Perfil muestra el aviso de HOM-006. En la Mac no hay barra: su navegación (probablemente barra lateral) espera un diseño (K-078), y hasta entonces la búsqueda no se alcanza desde la Mac.
+- Búsqueda local (LIB-006, LIB-013 a LIB-015, K-119 a K-122): misma regla que Android (`searchBooks` en `ReaderDomain`, mismos casos de test) y la pantalla 03 del diseño. Tocar un resultado no abre nada hasta que exista el lector.
+- Biblioteca (K-124 a K-127): la de Android según el diseño 05 (pestañas Todos, Leyendo y Terminados, grilla con progreso y "En la nube"). En iPhone es el destino Estantes; en la Mac se abre desde "Ver todo" de Inicio, con volver. "Ver todo" abre la biblioteca con el filtro de la sección (HOM-011). "Importar" muestra el aviso de HOM-006 hasta K-079 y no aparece en la Mac. Sin estado de sincronización: en Apple solo se baja de la nube, una vez al arrancar, desde la raíz de la app.
 
 ## Criterio de terminado
 
