@@ -1,14 +1,18 @@
 import ReaderDomain
 import SwiftUI
+import UniformTypeIdentifiers
 
-/// Pantalla raíz. En iPhone, Inicio, Buscar y la biblioteca (Estantes) con la barra inferior flotante (HOM-005);
-/// en la Mac, sin barra hasta que su navegación tenga diseño (K-078): la biblioteca se abre desde Inicio y se vuelve
-/// atrás.
+/// Pantalla raíz. En iPhone, Inicio, Buscar y la biblioteca (Estantes) con la barra inferior flotante (HOM-005), y el
+/// lector a pantalla completa (RDR-007); en la Mac, sin barra hasta que su navegación tenga diseño (K-078): la
+/// biblioteca se abre desde Inicio y se vuelve atrás, y no hay lector (ADR 0013).
 struct RootView: View {
     let home: HomeViewModel
     let search: SearchViewModel
     let library: LibraryViewModel
+    let makeReader: ((String) -> ReaderViewModel)?
     @State private var tabs = TabBarModel()
+    /// LIB-001: selector de Archivos, desde Inicio o desde la biblioteca.
+    @State private var picking = false
     #if os(macOS)
     @State private var path: [LibraryFilter] = []
     #endif
@@ -18,6 +22,14 @@ struct RootView: View {
             // La sincronización arranca con la app, sin importar qué pantalla se ve primero (SYN-001).
             // Cada pantalla vuelve a leer la base al aparecer y cuando la sincronización la cambia.
             .task { await home.load() }
+            .fileImporter(isPresented: $picking, allowedContentTypes: [.epub], allowsMultipleSelection: true) { result in
+                if case let .success(urls) = result {
+                    Task {
+                        await home.importBooks(urls)
+                        await library.load()
+                    }
+                }
+            }
     }
 
     @ViewBuilder
@@ -27,15 +39,21 @@ struct RootView: View {
             // La barra va en el área segura de abajo: el scroll pasa por debajo y deja su alto al final.
             .safeAreaInset(edge: .bottom, spacing: 0) {
                 MarginTabBar(selected: tabs.selected, onSelect: tabs.select)
-                    // El aviso cuelga hacia arriba desde el borde de la barra, sin cambiar el alto del área segura.
+                    // Los avisos cuelgan hacia arriba desde el borde de la barra, sin cambiar el alto del área segura.
                     .overlay(alignment: .top) {
                         Color.clear.frame(height: 0).overlay(alignment: .bottom) {
-                            if tabs.showsComingSoon {
-                                ComingSoonNotice()
-                                    .fixedSize()
-                                    .padding(.bottom, 12)
-                                    .transition(.opacity)
+                            VStack(spacing: 8) {
+                                if let message = home.messages.first {
+                                    HomeMessage(text: message, onTimeout: home.dismissMessage)
+                                        .id(message)
+                                }
+                                if tabs.showsComingSoon {
+                                    ComingSoonNotice()
+                                        .fixedSize()
+                                        .transition(.opacity)
+                                }
                             }
+                            .padding(.bottom, 12)
                         }
                     }
                     .animation(.easeOut(duration: 0.2), value: tabs.showsComingSoon)
@@ -43,10 +61,28 @@ struct RootView: View {
             .onChange(of: tabs.showsComingSoon) { _, shows in
                 if shows { AccessibilityNotification.Announcement(String(localized: "Llega más adelante.")).post() }
             }
+            .fullScreenCover(item: readerBinding) { opened in
+                if let makeReader {
+                    ReaderView(viewModel: makeReader(opened.id)) {
+                        home.closeReader()
+                        Task {
+                            await home.reload()
+                            await library.load()
+                        }
+                    }
+                }
+            }
         #else
         NavigationStack(path: $path) {
             HomeView(viewModel: home, onOpenLibrary: openLibrary)
-                .navigationDestination(for: LibraryFilter.self) { _ in LibraryView(viewModel: library) }
+                .navigationDestination(for: LibraryFilter.self) { _ in
+                    LibraryView(viewModel: library, onOpen: home.open(bookId:))
+                }
+        }
+        .overlay(alignment: .bottom) {
+            if let message = home.messages.first {
+                HomeMessage(text: message, onTimeout: home.dismissMessage).id(message).padding(.bottom, 24)
+            }
         }
         #endif
     }
@@ -55,12 +91,17 @@ struct RootView: View {
     @ViewBuilder
     private var destination: some View {
         switch tabs.selected {
-        case .search: SearchView(viewModel: search)
-        case .shelves: LibraryView(viewModel: library, onImport: tabs.showComingSoon)
-        default: HomeView(viewModel: home, onOpenLibrary: openLibrary)
+        case .search: SearchView(viewModel: search, onOpen: home.open(bookId:))
+        case .shelves: LibraryView(viewModel: library, onImport: importAction ?? tabs.showComingSoon, onOpen: home.open(bookId:))
+        default: HomeView(viewModel: home, onOpenLibrary: openLibrary, onImport: importAction)
         }
     }
     #endif
+
+    /// Abre el selector de Archivos, o nil donde no se importa (la Mac, ADR 0013).
+    private var importAction: (() -> Void)? {
+        home.canImport ? { picking = true } : nil
+    }
 
     /// HOM-011: la biblioteca abre con el filtro de la sección de Inicio.
     private func openLibrary(_ filter: LibraryFilter) {
@@ -70,5 +111,38 @@ struct RootView: View {
         #else
         path = [filter]
         #endif
+    }
+
+    private var readerBinding: Binding<OpenBook?> {
+        Binding(
+            get: { home.readerBookId.map(OpenBook.init) },
+            set: { if $0 == nil { home.closeReader() } }
+        )
+    }
+}
+
+private struct OpenBook: Identifiable {
+    let id: String
+}
+
+/// Aviso breve (resultado de importar, LIB-001), como el snackbar de Android.
+private struct HomeMessage: View {
+    let text: String
+    let onTimeout: () -> Void
+
+    var body: some View {
+        Text(text)
+            .font(.app(14, .medium))
+            .foregroundStyle(.white)
+            .multilineTextAlignment(.center)
+            .padding(.horizontal, 16)
+            .padding(.vertical, 10)
+            .background(MarginColors.ink, in: RoundedRectangle(cornerRadius: 14))
+            .padding(.horizontal, 16)
+            .task {
+                AccessibilityNotification.Announcement(text).post()
+                try? await Task.sleep(for: .seconds(3))
+                onTimeout()
+            }
     }
 }

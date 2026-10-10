@@ -2,11 +2,12 @@ import ReaderDomain
 import SwiftUI
 
 /// Biblioteca del usuario (LIB-007, LIB-010, LIB-011), según "05 — Library" del diseño y `LibraryScreen` de Android.
-/// Tocar un libro no hace nada todavía: Apple no tiene lector.
+/// Tocar un libro lo abre en el lector (RDR-007; en la Mac avisa que todavía no hay).
 struct LibraryView: View {
     let viewModel: LibraryViewModel
     /// nil: sin botón "Importar" (la Mac no tiene dónde mostrar el aviso hasta K-078).
     var onImport: (() -> Void)?
+    var onOpen: (String) -> Void = { _ in }
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
@@ -15,7 +16,7 @@ struct LibraryView: View {
             if viewModel.isLibraryEmpty {
                 EmptyLibrary(onImport: onImport)
             } else if !viewModel.loading {
-                BookGrid(books: viewModel.books)
+                BookGrid(books: viewModel.books, onOpen: onOpen)
             }
             Spacer(minLength: 0)
         }
@@ -110,11 +111,15 @@ private extension LibraryFilter {
 
 private struct BookGrid: View {
     let books: [LibraryBook]
+    let onOpen: (String) -> Void
 
     var body: some View {
         ScrollView {
             LazyVGrid(columns: [GridItem(.adaptive(minimum: 96), spacing: 12, alignment: .top)], spacing: 16) {
-                ForEach(books) { BookCell(book: $0) }
+                ForEach(books) { book in
+                    Button { onOpen(book.id) } label: { BookCell(book: book).contentShape(Rectangle()) }
+                        .buttonStyle(.plain)
+                }
             }
             .padding(.horizontal, WindowLayout.horizontalPadding)
             .padding(.top, 18)

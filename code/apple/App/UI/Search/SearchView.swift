@@ -2,9 +2,10 @@ import ReaderDomain
 import SwiftUI
 
 /// Búsqueda local en la biblioteca (LIB-006, LIB-013 a LIB-015), según "03 — Search" del diseño y
-/// `SearchScreen` de Android. Tocar un resultado todavía no abre nada: Apple no tiene lector.
+/// `SearchScreen` de Android. Tocar un resultado abre el libro en el lector (RDR-007).
 struct SearchView: View {
     @Bindable var viewModel: SearchViewModel
+    var onOpen: (String) -> Void = { _ in }
     @FocusState private var fieldFocused: Bool
 
     var body: some View {
@@ -24,7 +25,7 @@ struct SearchView: View {
                     let query = viewModel.query.trimmingCharacters(in: .whitespaces)
                     Message(text: String(localized: "Sin resultados para «\(query)»."))
                 } else {
-                    Results(books: viewModel.results)
+                    Results(books: viewModel.results, onOpen: onOpen)
                 }
             }
             Spacer(minLength: 0)
@@ -142,6 +143,7 @@ private struct Message: View {
 
 private struct Results: View {
     let books: [LibraryBook]
+    let onOpen: (String) -> Void
 
     var body: some View {
         ScrollView {
@@ -153,7 +155,10 @@ private struct Results: View {
                     .padding(.top, 22)
                     .padding(.bottom, 6)
                 ForEach(Array(books.enumerated()), id: \.element.id) { index, book in
-                    ResultRow(book: book, showDivider: index < books.count - 1)
+                    Button { onOpen(book.id) } label: {
+                        ResultRow(book: book, showDivider: index < books.count - 1).contentShape(Rectangle())
+                    }
+                    .buttonStyle(.plain)
                 }
             }
             .padding(.horizontal, WindowLayout.horizontalPadding)

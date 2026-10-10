@@ -2,11 +2,13 @@ import ReaderDomain
 import SwiftUI
 
 /// Pantalla de inicio (HOM-001 a HOM-003, HOM-008 a HOM-010), según "02 — Home" del diseño.
-/// "Ver todo" e "Ir a la biblioteca" abren la biblioteca con el filtro de la sección (HOM-011). Tocar un libro
-/// no hace nada todavía: Apple no tiene lector.
+/// Tocar un libro abre el lector (en la Mac avisa que todavía no hay). "Ver todo" e "Ir a la biblioteca" abren la
+/// biblioteca con el filtro de la sección (HOM-011).
 struct HomeView: View {
     let viewModel: HomeViewModel
     var onOpenLibrary: (LibraryFilter) -> Void = { _ in }
+    /// nil donde no se importa (la Mac, ADR 0013).
+    var onImport: (() -> Void)?
 
     var body: some View {
         ScrollView {
@@ -20,11 +22,18 @@ struct HomeView: View {
                 if !viewModel.loading {
                     let content = viewModel.content
                     if let book = content.continueReading {
-                        ContinueCard(book: book)
+                        Button { viewModel.open(bookId: book.id) } label: { ContinueCard(book: book) }
+                            .buttonStyle(.plain)
                     } else {
-                        NothingReading(libraryEmpty: content.libraryEmpty, onOpenLibrary: { onOpenLibrary(.all) })
+                        NothingReading(libraryEmpty: content.libraryEmpty) {
+                            if !content.libraryEmpty {
+                                onOpenLibrary(.all)
+                            } else {
+                                onImport?()
+                            }
+                        }
                     }
-                    Sections(content: content, onSeeAll: onOpenLibrary)
+                    Sections(content: content, onOpen: viewModel.open(bookId:), onSeeAll: onOpenLibrary)
                 }
             }
             .padding(.bottom, 24)
@@ -84,16 +93,14 @@ private struct ContinueCard: View {
 
 private struct NothingReading: View {
     let libraryEmpty: Bool
-    let onOpenLibrary: () -> Void
+    let onAction: () -> Void
 
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
             Text("Nada en lectura todavía").font(.app(20, .semibold)).foregroundStyle(MarginColors.ink)
             Text("Abrí un libro de tu biblioteca y lo retomás desde acá.").font(.app(14)).foregroundStyle(MarginColors.muted)
-            // Importar todavía no existe en Apple (K-079): con la biblioteca vacía el botón no hace nada.
-            Button {
-                if !libraryEmpty { onOpenLibrary() }
-            } label: {
+            // Con la biblioteca vacía importa (solo iOS: en la Mac no hay importación, ADR 0013).
+            Button(action: onAction) {
                 Text(libraryEmpty ? "Importar un EPUB" : "Ir a la biblioteca")
                     .font(.app(14, .bold))
                     .foregroundStyle(MarginColors.yellow)
@@ -114,11 +121,12 @@ private struct NothingReading: View {
 
 private struct Sections: View {
     let content: HomeContent
+    let onOpen: (String) -> Void
     let onSeeAll: (LibraryFilter) -> Void
 
     var body: some View {
         if !content.reading.isEmpty {
-            BookRow(title: "Leyendo", count: content.readingCount, books: content.reading, onSeeAll: { onSeeAll(.reading) }) { book in
+            BookRow(title: "Leyendo", count: content.readingCount, books: content.reading, onOpen: onOpen, onSeeAll: { onSeeAll(.reading) }) { book in
                 let percent = book.progressPercent ?? 0
                 TitleAndAuthor(book: book, subtitle: book.author)
                 HStack(spacing: 8) {
@@ -129,12 +137,12 @@ private struct Sections: View {
             }
         }
         if !content.recentlyAdded.isEmpty {
-            BookRow(title: "Agregados recientemente", count: content.recentlyAddedCount, books: content.recentlyAdded, onSeeAll: { onSeeAll(.all) }) { book in
+            BookRow(title: "Agregados recientemente", count: content.recentlyAddedCount, books: content.recentlyAdded, onOpen: onOpen, onSeeAll: { onSeeAll(.all) }) { book in
                 TitleAndAuthor(book: book, subtitle: book.author)
             }
         }
         if !content.finished.isEmpty {
-            BookRow(title: "Terminados", count: content.finishedCount, books: content.finished, finished: true, onSeeAll: { onSeeAll(.finished) }) { book in
+            BookRow(title: "Terminados", count: content.finishedCount, books: content.finished, finished: true, onOpen: onOpen, onSeeAll: { onSeeAll(.finished) }) { book in
                 TitleAndAuthor(book: book, subtitle: finishedSubtitle(author: book.author, lastReadAt: book.lastReadAt))
             }
         }
@@ -147,6 +155,7 @@ private struct BookRow<Details: View>: View {
     let count: Int
     let books: [LibraryBook]
     var finished = false
+    let onOpen: (String) -> Void
     let onSeeAll: () -> Void
     @ViewBuilder let details: (LibraryBook) -> Details
 
@@ -169,12 +178,16 @@ private struct BookRow<Details: View>: View {
         ScrollView(.horizontal, showsIndicators: false) {
             HStack(alignment: .top, spacing: 12) {
                 ForEach(books) { book in
-                    VStack(alignment: .leading, spacing: 4) {
-                        BookCover(book: book)
-                            .overlay(alignment: .topTrailing) { if finished { FinishedBadge() } }
-                        VStack(alignment: .leading, spacing: 1) { details(book) }
+                    Button { onOpen(book.id) } label: {
+                        VStack(alignment: .leading, spacing: 4) {
+                            BookCover(book: book)
+                                .overlay(alignment: .topTrailing) { if finished { FinishedBadge() } }
+                            VStack(alignment: .leading, spacing: 1) { details(book) }
+                        }
+                        .frame(width: 104)
+                        .contentShape(Rectangle())
                     }
-                    .frame(width: 104)
+                    .buttonStyle(.plain)
                     .accessibilityElement(children: .combine)
                 }
             }

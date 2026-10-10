@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<!-- Cuenta de desarrollo (K-052, ADR 0012): sale de Signing.local.xcconfig y queda vacía en Release. -->
+	<key>DevAccountEmail</key>
+	<string>$(DEV_ACCOUNT_EMAIL)</string>
+	<key>DevAccountPassword</key>
+	<string>$(DEV_ACCOUNT_PASSWORD)</string>
+	<!-- "Abrir con" un EPUB desde otra app o desde Archivos (LIB-001). Solo iOS: la Mac todavía no importa (ADR 0013).
+	     La app recibe una copia y la importa a su biblioteca. -->
+	<key>CFBundleDocumentTypes</key>
+	<array>
+		<dict>
+			<key>CFBundleTypeName</key>
+			<string>EPUB</string>
+			<key>CFBundleTypeRole</key>
+			<string>Viewer</string>
+			<key>LSHandlerRank</key>
+			<string>Alternate</string>
+			<key>LSItemContentTypes</key>
+			<array>
+				<string>org.idpf.epub-container</string>
+			</array>
+		</dict>
+	</array>
+	<key>LSSupportsOpeningDocumentsInPlace</key>
+	<false/>
+</dict>
+</plist>
