@@ -18,6 +18,8 @@ public struct LibraryBook: Identifiable, Equatable, Sendable {
     public let lastReadAt: Date?
     /// Momento de la importación (HOM-009).
     public let addedAt: Date
+    /// El archivo está en este dispositivo. Falso: solo en la nube (LIB-007).
+    public let isDownloaded: Bool
 
     public var status: ReadingStatus { readingStatus(progressPercent: progressPercent) }
 
@@ -28,7 +30,8 @@ public struct LibraryBook: Identifiable, Equatable, Sendable {
         coverPath: String?,
         progressPercent: Int?,
         lastReadAt: Date? = nil,
-        addedAt: Date = Date(timeIntervalSince1970: 0)
+        addedAt: Date = Date(timeIntervalSince1970: 0),
+        isDownloaded: Bool = true
     ) {
         self.id = id
         self.title = title
@@ -37,6 +40,7 @@ public struct LibraryBook: Identifiable, Equatable, Sendable {
         self.progressPercent = progressPercent
         self.lastReadAt = lastReadAt
         self.addedAt = addedAt
+        self.isDownloaded = isDownloaded
     }
 }
 

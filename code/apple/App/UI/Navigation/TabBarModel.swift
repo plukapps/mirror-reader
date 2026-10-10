@@ -35,8 +35,8 @@ enum MainDestination: CaseIterable, Identifiable {
         }
     }
 
-    /// En Apple solo existe Inicio. Estantes se suma con la biblioteca (K-079); Buscar y Perfil, después.
-    var isAvailable: Bool { self == .home }
+    /// En Apple existen Inicio y Buscar. Estantes se suma con la biblioteca (K-079); Perfil, después.
+    var isAvailable: Bool { self == .home || self == .search }
 }
 
 /// Estado de la barra: destino actual y el aviso de los destinos que aún no existen (HOM-006).

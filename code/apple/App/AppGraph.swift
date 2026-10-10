@@ -6,8 +6,18 @@ import SwiftData
 /// Arma las dependencias de la app (ADR 0010: sin framework de inyección, por inicializador).
 @MainActor
 enum AppGraph {
-    static func makeHome() -> HomeViewModel {
+    /// ViewModels de las pantallas principales, sobre la misma base local.
+    struct Screens {
+        let home: HomeViewModel
+        let search: SearchViewModel
+    }
+
+    static func makeScreens() -> Screens {
         let store = LibraryStore(container: container(), files: .standard)
+        return Screens(home: makeHome(store: store), search: SearchViewModel(library: store))
+    }
+
+    private static func makeHome(store: LibraryStore) -> HomeViewModel {
         // Los tests corren dentro de la app: nunca tocan el proyecto real.
         guard !isRunningTests, FirebaseSetup.configureIfAvailable() else {
             // Sin configuración de Firebase la app funciona solo en local (ADR 0002).

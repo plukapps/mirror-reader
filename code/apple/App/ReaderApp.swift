@@ -2,16 +2,16 @@ import SwiftUI
 
 @main
 struct ReaderApp: App {
-    @State private var home: HomeViewModel
+    @State private var screens: AppGraph.Screens
 
     init() {
         AppFont.register()
-        _home = State(initialValue: AppGraph.makeHome())
+        _screens = State(initialValue: AppGraph.makeScreens())
     }
 
     var body: some Scene {
         WindowGroup {
-            RootView(home: home)
+            RootView(home: screens.home, search: screens.search)
                 .windowMinimumSize()
                 #if os(iOS)
                 // La paleta del diseño es clara y no hay tema oscuro: la barra de estado va oscura (IOS-002).
