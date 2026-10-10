@@ -29,6 +29,8 @@ struct LibraryStoreTests {
         #expect(books[0].coverPath == nil)
         #expect(books[0].status == .new)
         #expect(books[0].addedAt == Date(timeIntervalSince1970: 100))
+        // LIB-014: la búsqueda lo muestra "En la nube".
+        #expect(!books[0].isDownloaded)
     }
 
     @Test("HOM-009: sin fecha de la nube, la fecha de alta es cuando se vio")

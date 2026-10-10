@@ -1,14 +1,20 @@
 import SwiftUI
 
-/// Pantalla raíz. En iPhone, Inicio con la barra inferior flotante (HOM-005); en la Mac, sin barra
-/// hasta que su navegación tenga diseño (K-078).
+/// Pantalla raíz. En iPhone, Inicio o Buscar con la barra inferior flotante (HOM-005); en la Mac, solo
+/// Inicio y sin barra hasta que su navegación tenga diseño (K-078).
 struct RootView: View {
     let home: HomeViewModel
+    let search: SearchViewModel
     @State private var tabs = TabBarModel()
 
     var body: some View {
         #if os(iOS)
-        HomeView(viewModel: home)
+        Group {
+            switch tabs.selected {
+            case .search: SearchView(viewModel: search)
+            default: HomeView(viewModel: home)
+            }
+        }
             // La barra va en el área segura de abajo: el scroll pasa por debajo y deja su alto al final.
             .safeAreaInset(edge: .bottom, spacing: 0) {
                 MarginTabBar(selected: tabs.selected, onSelect: tabs.select)
