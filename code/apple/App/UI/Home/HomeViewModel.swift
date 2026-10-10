@@ -49,9 +49,6 @@ final class HomeViewModel {
         _ = await sync { [weak self] in await self?.reload() }
     }
 
-    /// Vuelve a leer la base, por ejemplo al cerrar el lector (cambió el progreso).
-    func refresh() async { await reload() }
-
     // MARK: Importar y abrir (LIB-001, RDR-007)
 
     var canImport: Bool { importer != nil }
@@ -107,7 +104,8 @@ final class HomeViewModel {
         }
     }
 
-    private func reload() async {
+    /// Vuelve a leer la base, sin sincronizar. Lo usa la pantalla al aparecer y al cerrar el lector (cambió el progreso).
+    func reload() async {
         content = homeContent(await library.books())
         loading = false
     }

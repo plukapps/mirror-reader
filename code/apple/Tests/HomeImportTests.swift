@@ -4,7 +4,7 @@ import Testing
 @testable import Reader
 
 // Importar y abrir libros desde Inicio (LIB-001, LIB-007), como `ImportBooksUseCase`, `toMessages` e
-// `importIncoming` de Android (plan `2026-10-09-ios-reader.md`, K-122).
+// `importIncoming` de Android (plan `2026-10-09-ios-reader.md`, K-131).
 
 private actor CountingLibrary: LibraryRepository {
     private(set) var reads = 0
@@ -77,7 +77,7 @@ struct HomeImportTests {
 
         viewModel.closeReader()
         #expect(viewModel.readerBookId == nil)
-        await viewModel.refresh()
+        await viewModel.reload()
         #expect(await library.reads == 1)
     }
 

@@ -15,7 +15,7 @@ struct TabBarModelTests {
         #expect(MainDestination.allCases == [.home, .search, .shelves, .profile])
     }
 
-    @Test("HOM-006: un destino que aún no existe muestra el aviso y no navega", arguments: [MainDestination.search, .shelves, .profile])
+    @Test("HOM-006: un destino que aún no existe muestra el aviso y no navega", arguments: [MainDestination.profile])
     func unavailableDestinationShowsNotice(destination: MainDestination) {
         let model = TabBarModel()
         model.select(destination)
@@ -26,7 +26,7 @@ struct TabBarModelTests {
     @Test("HOM-006: el aviso es breve")
     func noticeHidesAfterItsDuration() async throws {
         let model = TabBarModel(noticeDuration: .milliseconds(20))
-        model.select(.search)
+        model.select(.profile)
         try await Task.sleep(for: .milliseconds(200))
         #expect(!model.showsComingSoon)
     }
@@ -37,5 +37,33 @@ struct TabBarModelTests {
         model.select(.home)
         #expect(model.selected == .home)
         #expect(!model.showsComingSoon)
+    }
+
+    @Test("HOM-005: Buscar navega a la búsqueda, sin aviso")
+    func selectingSearchNavigates() {
+        let model = TabBarModel()
+        model.select(.search)
+        #expect(model.selected == .search)
+        #expect(!model.showsComingSoon)
+
+        model.select(.home)
+        #expect(model.selected == .home)
+    }
+
+    @Test("HOM-005: Estantes abre la biblioteca, sin aviso")
+    func shelvesOpensTheLibrary() {
+        let model = TabBarModel()
+        model.select(.shelves)
+        #expect(model.selected == .shelves)
+        #expect(!model.showsComingSoon)
+    }
+
+    @Test("HOM-006: una acción que aún no existe (Importar) muestra el mismo aviso sin navegar")
+    func comingSoonFromAnAction() {
+        let model = TabBarModel()
+        model.select(.shelves)
+        model.showComingSoon()
+        #expect(model.selected == .shelves)
+        #expect(model.showsComingSoon)
     }
 }

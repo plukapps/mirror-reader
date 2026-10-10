@@ -25,22 +25,22 @@
 
 ## Fuera de alcance
 
-- Animación de paso de página propia (RDR-009). Tarjeta K-126.
-- Subir la posición a la nube, diálogo de reanudar y aviso "Seguir desde" (SYN-002, SYN-003, SYN-013). Tarjeta K-127.
-- Subir a la nube los libros importados en el iPhone (SYN-001, LIB-009). Tarjeta K-128.
+- Animación de paso de página propia (RDR-009). Tarjeta K-135.
+- Subir la posición a la nube, diálogo de reanudar y aviso "Seguir desde" (SYN-002, SYN-003, SYN-013). Tarjeta K-136.
+- Subir a la nube los libros importados en el iPhone (SYN-001, LIB-009). Tarjeta K-137.
 - Lector e importación en la Mac (Readium Swift no la soporta). Sigue en K-079.
 - Pantalla de biblioteca: la pestaña sigue mostrando el aviso de HOM-006. Se importa desde Inicio y con "Abrir con".
 - Márgenes (K-012) y brillo, como en Android.
 
 ## Tareas
 
-- **K-119** Docs y dependencia: ADR 0013, este plan, `apple.md`, Kanban. Readium en `project.yml` (solo iOS) y verificar que compila con Xcode 16.2.
-- **K-120** Dominio: `ReaderSettings`, `currentChapterTitle`, `backMatterStart`, `BodyEndDetector`, `pageLabel`, `ImportOutcome`, protocolos de archivo de libro, posición y ajustes. Tests con `swift test` que repiten los de Android.
-- **K-121** Datos: archivos de libros, importador (copia con hash, validación y metadatos con Readium, portada), bajada desde Storage, posición local en `PositionRecord`, ajustes en `UserDefaults`. Tests en el simulador con el EPUB de `make_fixture_epub.py`.
-- **K-122** Importar y abrir: botón "Importar un EPUB" de Inicio con el selector de Archivos, "Abrir con" (tipo de documento EPUB), avisos del resultado, libros de Inicio que abren el lector (con bajada si hace falta).
-- **K-123** Lector: `ReaderViewModel` (cargando, error, listo; guarda la posición con 250 ms de espera), navegador de Readium, toques, barra superior (volver, capítulo, "Aa"), número de página, índice, aviso de fin de lectura, barra de estado oculta con los controles. Tests del ViewModel con repositorios falsos.
-- **K-124** Panel de ajustes según el diseño: tipo de letra, A− y A+, tema, interlineado, índice. Sin el interruptor de animación (no hay animación propia todavía).
-- **K-125** Cierre: docs, resultado en este plan y verificación a mano en el simulador de iPhone (y en el iPhone físico si está a mano).
+- **K-128** Docs y dependencia: ADR 0013, este plan, `apple.md`, Kanban. Readium en `project.yml` (solo iOS) y verificar que compila con Xcode 16.2.
+- **K-129** Dominio: `ReaderSettings`, `currentChapterTitle`, `backMatterStart`, `BodyEndDetector`, `pageLabel`, `ImportOutcome`, protocolos de archivo de libro, posición y ajustes. Tests con `swift test` que repiten los de Android.
+- **K-130** Datos: archivos de libros, importador (copia con hash, validación y metadatos con Readium, portada), bajada desde Storage, posición local en `PositionRecord`, ajustes en `UserDefaults`. Tests en el simulador con el EPUB de `make_fixture_epub.py`.
+- **K-131** Importar y abrir: botón "Importar un EPUB" de Inicio con el selector de Archivos, "Abrir con" (tipo de documento EPUB), avisos del resultado, libros de Inicio que abren el lector (con bajada si hace falta).
+- **K-132** Lector: `ReaderViewModel` (cargando, error, listo; guarda la posición con 250 ms de espera), navegador de Readium, toques, barra superior (volver, capítulo, "Aa"), número de página, índice, aviso de fin de lectura, barra de estado oculta con los controles. Tests del ViewModel con repositorios falsos.
+- **K-133** Panel de ajustes según el diseño: tipo de letra, A− y A+, tema, interlineado, índice. Sin el interruptor de animación (no hay animación propia todavía).
+- **K-134** Cierre: docs, resultado en este plan y verificación a mano en el simulador de iPhone (y en el iPhone físico si está a mano).
 
 ## Verificación
 

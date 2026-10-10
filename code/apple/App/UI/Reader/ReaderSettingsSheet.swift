@@ -3,7 +3,7 @@ import SwiftUI
 
 /// Panel de ajustes de lectura (RDR-014), según la pantalla 07 del diseño y `ReaderSettingsSheet` de Android:
 /// tipo de letra, tamaño, tema e interlineado, y acceso al índice. Cada cambio se aplica al libro de atrás y se
-/// guarda. Sin el interruptor de animación: en Apple el paso de página es el de Readium (K-126).
+/// guarda. Sin el interruptor de animación: en Apple el paso de página es el de Readium (K-135).
 struct ReaderSettingsSheet: View {
     let viewModel: ReaderViewModel
 

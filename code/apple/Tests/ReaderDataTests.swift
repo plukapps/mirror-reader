@@ -3,7 +3,7 @@ import ReaderDomain
 import Testing
 @testable import Reader
 
-// Datos del lector: posición, archivos de libros y ajustes (plan `2026-10-09-ios-reader.md`, K-121).
+// Datos del lector: posición, archivos de libros y ajustes (plan `2026-10-09-ios-reader.md`, K-130).
 struct ReaderDataTests {
     private let files = LibraryFiles(root: FileManager.default.temporaryDirectory.appending(path: "ReaderDataTests-\(UUID().uuidString)"))
     private let readAt = Date(timeIntervalSince1970: 7_000)

@@ -1,12 +1,14 @@
 import ReaderDomain
 import SwiftUI
-import UniformTypeIdentifiers
 
 /// Pantalla de inicio (HOM-001 a HOM-003, HOM-008 a HOM-010), según "02 — Home" del diseño.
-/// Tocar un libro abre el lector; "Ver todo" no navega todavía (no hay biblioteca en Apple).
+/// Tocar un libro abre el lector (en la Mac avisa que todavía no hay). "Ver todo" e "Ir a la biblioteca" abren la
+/// biblioteca con el filtro de la sección (HOM-011).
 struct HomeView: View {
     let viewModel: HomeViewModel
-    @State private var picking = false
+    var onOpenLibrary: (LibraryFilter) -> Void = { _ in }
+    /// nil donde no se importa (la Mac, ADR 0013).
+    var onImport: (() -> Void)?
 
     var body: some View {
         ScrollView {
@@ -24,10 +26,14 @@ struct HomeView: View {
                             .buttonStyle(.plain)
                     } else {
                         NothingReading(libraryEmpty: content.libraryEmpty) {
-                            if content.libraryEmpty, viewModel.canImport { picking = true }
+                            if !content.libraryEmpty {
+                                onOpenLibrary(.all)
+                            } else {
+                                onImport?()
+                            }
                         }
                     }
-                    Sections(content: content, onOpen: viewModel.open(bookId:))
+                    Sections(content: content, onOpen: viewModel.open(bookId:), onSeeAll: onOpenLibrary)
                 }
             }
             .padding(.bottom, 24)
@@ -35,11 +41,7 @@ struct HomeView: View {
             .frame(maxWidth: .infinity)
         }
         .background(MarginColors.paper)
-        .task { await viewModel.load() }
-        // LIB-001: uno o varios EPUB desde Archivos.
-        .fileImporter(isPresented: $picking, allowedContentTypes: [.epub], allowsMultipleSelection: true) { result in
-            if case let .success(urls) = result { Task { await viewModel.importBooks(urls) } }
-        }
+        .task { await viewModel.reload() }
     }
 }
 
@@ -97,6 +99,7 @@ private struct NothingReading: View {
         VStack(alignment: .leading, spacing: 8) {
             Text("Nada en lectura todavía").font(.app(20, .semibold)).foregroundStyle(MarginColors.ink)
             Text("Abrí un libro de tu biblioteca y lo retomás desde acá.").font(.app(14)).foregroundStyle(MarginColors.muted)
+            // Con la biblioteca vacía importa (solo iOS: en la Mac no hay importación, ADR 0013).
             Button(action: onAction) {
                 Text(libraryEmpty ? "Importar un EPUB" : "Ir a la biblioteca")
                     .font(.app(14, .bold))
@@ -119,10 +122,11 @@ private struct NothingReading: View {
 private struct Sections: View {
     let content: HomeContent
     let onOpen: (String) -> Void
+    let onSeeAll: (LibraryFilter) -> Void
 
     var body: some View {
         if !content.reading.isEmpty {
-            BookRow(title: "Leyendo", count: content.readingCount, books: content.reading, onOpen: onOpen) { book in
+            BookRow(title: "Leyendo", count: content.readingCount, books: content.reading, onOpen: onOpen, onSeeAll: { onSeeAll(.reading) }) { book in
                 let percent = book.progressPercent ?? 0
                 TitleAndAuthor(book: book, subtitle: book.author)
                 HStack(spacing: 8) {
@@ -133,12 +137,12 @@ private struct Sections: View {
             }
         }
         if !content.recentlyAdded.isEmpty {
-            BookRow(title: "Agregados recientemente", count: content.recentlyAddedCount, books: content.recentlyAdded, onOpen: onOpen) { book in
+            BookRow(title: "Agregados recientemente", count: content.recentlyAddedCount, books: content.recentlyAdded, onOpen: onOpen, onSeeAll: { onSeeAll(.all) }) { book in
                 TitleAndAuthor(book: book, subtitle: book.author)
             }
         }
         if !content.finished.isEmpty {
-            BookRow(title: "Terminados", count: content.finishedCount, books: content.finished, finished: true, onOpen: onOpen) { book in
+            BookRow(title: "Terminados", count: content.finishedCount, books: content.finished, finished: true, onOpen: onOpen, onSeeAll: { onSeeAll(.finished) }) { book in
                 TitleAndAuthor(book: book, subtitle: finishedSubtitle(author: book.author, lastReadAt: book.lastReadAt))
             }
         }
@@ -152,6 +156,7 @@ private struct BookRow<Details: View>: View {
     let books: [LibraryBook]
     var finished = false
     let onOpen: (String) -> Void
+    let onSeeAll: () -> Void
     @ViewBuilder let details: (LibraryBook) -> Details
 
     var body: some View {
@@ -161,7 +166,10 @@ private struct BookRow<Details: View>: View {
                 Text("\(count)").font(.app(13, .medium)).foregroundStyle(MarginColors.muted)
             }
             Spacer()
-            Text("Ver todo").font(.app(13, .semibold)).underline().foregroundStyle(MarginColors.ink)
+            Button(action: onSeeAll) {
+                Text("Ver todo").font(.app(13, .semibold)).underline().foregroundStyle(MarginColors.ink)
+            }
+            .buttonStyle(.plain)
         }
         .padding(.horizontal, WindowLayout.horizontalPadding)
         .padding(.top, 26)
