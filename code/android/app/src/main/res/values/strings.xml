@@ -204,6 +204,8 @@
     <string name="search_clear">Borrar búsqueda</string>
     <string name="search_scope_all">Todo</string>
     <string name="search_scope_authors">Autores</string>
+    <string name="search_filter_in_library">En mi biblioteca</string>
+    <string name="search_filter_free">Gratis</string>
     <plurals name="search_results">
         <item quantity="one">%d resultado</item>
         <item quantity="other">%d resultados</item>

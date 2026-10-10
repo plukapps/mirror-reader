@@ -63,7 +63,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.pluk.reader.R
 import com.pluk.reader.domain.model.LibraryBook
 import com.pluk.reader.domain.model.ReadingStatus
-import com.pluk.reader.domain.search.SearchScope
+import com.pluk.reader.domain.store.SearchFilter
 import com.pluk.reader.ui.library.BookCover
 import com.pluk.reader.ui.navigation.LocalBottomBarPadding
 import com.pluk.reader.ui.navigation.NavIcons
@@ -84,7 +84,7 @@ fun SearchScreen(onBookClick: (bookId: String) -> Unit, viewModel: SearchViewMod
         onFocusRequested = { autoFocused = true },
         onQueryChange = viewModel::onQueryChange,
         onClear = viewModel::onClear,
-        onScopeChange = viewModel::onScopeChange,
+        onFilterChange = viewModel::onFilterChange,
         onBookClick = onBookClick,
     )
 }
@@ -96,7 +96,7 @@ fun SearchContent(
     state: SearchUiState,
     onQueryChange: (String) -> Unit,
     onClear: () -> Unit,
-    onScopeChange: (SearchScope) -> Unit,
+    onFilterChange: (SearchFilter) -> Unit,
     onBookClick: (String) -> Unit,
     requestFocus: Boolean = false,
     onFocusRequested: () -> Unit = {},
@@ -119,7 +119,7 @@ fun SearchContent(
                 modifier = Modifier.padding(start = 20.dp, end = 20.dp, top = 12.dp),
             )
             SearchField(query, onQueryChange, onClear, requestFocus, onFocusRequested)
-            ScopeChips(state.scope, onScopeChange)
+            FilterChips(state.filter, onFilterChange)
             when {
                 state.loading -> Unit
                 !state.hasQuery -> Message(stringResource(R.string.search_help))
@@ -195,16 +195,16 @@ private fun SearchField(
     }
 }
 
-/** LIB-015: "Todo" y "Autores". Los chips "En mi biblioteca" y "Gratis" del diseño son del catálogo. */
+/** LIB-015, STO-006: "Todo", "En mi biblioteca", "Gratis" y "Autores". */
 @Composable
-private fun ScopeChips(current: SearchScope, onScopeChange: (SearchScope) -> Unit) {
+private fun FilterChips(current: SearchFilter, onFilterChange: (SearchFilter) -> Unit) {
     FlowRow(
         Modifier.padding(start = 16.dp, end = 16.dp, top = 14.dp),
         horizontalArrangement = Arrangement.spacedBy(8.dp),
         verticalArrangement = Arrangement.spacedBy(8.dp),
     ) {
-        SearchScope.entries.forEach { scope ->
-            val selected = scope == current
+        SearchFilter.entries.forEach { filter ->
+            val selected = filter == current
             Box(
                 Modifier
                     .height(34.dp)
@@ -213,14 +213,14 @@ private fun ScopeChips(current: SearchScope, onScopeChange: (SearchScope) -> Uni
                         if (selected) Modifier.background(MarginColors.Ink)
                         else Modifier.border(1.5.dp, MarginColors.Ink, ChipShape),
                     )
-                    .clickable(role = Role.Tab) { onScopeChange(scope) }
+                    .clickable(role = Role.Tab) { onFilterChange(filter) }
                     .semantics { this.selected = selected }
                     .padding(horizontal = 14.dp)
-                    .testTag("scope-${scope.name}"),
+                    .testTag("filter-${filter.name}"),
                 contentAlignment = Alignment.Center,
             ) {
                 Text(
-                    text = stringResource(scope.label()),
+                    text = stringResource(filter.label()),
                     color = if (selected) MarginColors.Yellow else MarginColors.Ink,
                     fontSize = 13.sp,
                     fontWeight = FontWeight.SemiBold,
@@ -230,9 +230,11 @@ private fun ScopeChips(current: SearchScope, onScopeChange: (SearchScope) -> Uni
     }
 }
 
-private fun SearchScope.label(): Int = when (this) {
-    SearchScope.All -> R.string.search_scope_all
-    SearchScope.Authors -> R.string.search_scope_authors
+private fun SearchFilter.label(): Int = when (this) {
+    SearchFilter.All -> R.string.search_scope_all
+    SearchFilter.InLibrary -> R.string.search_filter_in_library
+    SearchFilter.Free -> R.string.search_filter_free
+    SearchFilter.Authors -> R.string.search_scope_authors
 }
 
 @Composable
@@ -336,7 +338,7 @@ private fun SearchPreview() {
         ),
         onQueryChange = {},
         onClear = {},
-        onScopeChange = {},
+        onFilterChange = {},
         onBookClick = {},
     )
 }

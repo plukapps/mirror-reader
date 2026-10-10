@@ -35,7 +35,6 @@ Plan de referencia: `specs/plans/2026-10-06-android-epub-viewer.md`
 
 ## Listo
 
-- **K-164** Tienda, Tarea 5: pantalla Buscar con catálogo, chips, hoja de compra simulada y portada remota. STO-001 a STO-007. Rama `feature/tienda-poc`.
 - **K-165** Tienda, Tarea 6: cierre de docs y verificación a mano en el teléfono. Rama `feature/tienda-poc`.
 - **K-134** Lector iOS, Tarea 7: cierre de docs y verificación a mano en el simulador. Rama `feature/ios-reader`. Era K-125 hasta el merge con `master`.
 - **K-038** Inicio, Tarea 4: cierre de docs y verificación a mano. Rama `feature/home`.
@@ -43,10 +42,11 @@ Plan de referencia: `specs/plans/2026-10-06-android-epub-viewer.md`
 
 ## En curso
 
-- **K-163** Tienda, Tarea 4: `SearchViewModel` con catálogo, obtener y compra simulada, con tests JVM. STO-001 a STO-004, STO-007. Rama `feature/tienda-poc`.
+- **K-164** Tienda, Tarea 5: pantalla Buscar con catálogo, chips, hoja de compra simulada y portada remota. STO-001 a STO-007. Rama `feature/tienda-poc`.
 
 ## Revisión
 
+- **K-163** Tienda, Tarea 4: `SearchViewModel` con catálogo, obtener y compra simulada, con tests JVM. STO-001 a STO-004, STO-007. Rama `feature/tienda-poc`. Hecho: `SearchViewModel` con catálogo (espera de 400 ms, mínimo 2 caracteres), estados de cada obra, compra simulada; `StoreResult` deja lo obtenido en su lugar del catálogo. `SearchViewModelTest` (14 JVM) pasa; 341 en total.
 - **K-162** Tienda, Tarea 3: datos (`OpenLibraryCatalog`, `EpubDownloader`, `StoreAcquisitionsImpl`, `StoreModule`) con tests JVM del parser. STO-001, STO-003, STO-005. Rama `feature/tienda-poc`. Hecho: `OpenLibraryCatalog`, `EpubDownloader` con `deliverFirst`, `StoreAcquisitionsImpl`, `StoreModule`; `org.json` solo en tests. `OpenLibraryTest` (7 JVM) pasa.
 - **K-161** Tienda (prueba de concepto), Tarea 2: dominio (`StoreBook`, `pickEpubSource`, `testPrice`, `SearchFilter`) con tests JVM. STO-002, STO-005, STO-006, STO-008. Rama `feature/tienda-poc`. Hecho: `domain/store` (modelos, `epubSources`, `testPriceCents`, `SearchFilter`, `libraryResults`, `catalogResults` e interfaces). `StoreRulesTest` (9 JVM) pasa.
 - **K-159** Bug: al iniciar sesión con una cuenta de email sin verificar, la app pasaba a O3 sin enviar el email de verificación (solo salía al crear la cuenta), y O3 decía "te enviamos un enlace". Visto por el usuario en el SM-S711B (2026-10-10) con la cuenta de desarrollo, que nunca se verificó. ONB-007, ONB-016. Rama `feature/onboarding`. Hecho: `SignInViewModel` envía el email al ingresar con la cuenta sin verificar y O3 arranca con la espera de 60 s si salió; texto de O3 que no promete un envío; ONB-016 actualizado. 2 tests JVM nuevos (vistos en rojo); 317 pasan. Falta verlo en el teléfono.

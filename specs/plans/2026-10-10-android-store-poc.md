@@ -24,7 +24,7 @@ Investigado con el usuario el 2026-10-10:
   Probado a mano el 2026-10-10 con *Frankenstein*: las dos URL devuelven `application/epub+zip`, de unos 0,5 MB.
 - **Precio de prueba (STO-005):** uno de cada tres libros con EPUB lleva precio, según el hash estable de la clave de la obra (`/works/OL…W`): US$ 2,99, 4,99 o 7,99. Así el mismo libro siempre tiene el mismo precio.
 - **Entrega (STO-003):** se descarga a un temporal en `cacheDir` y se importa con `LibraryRepository.import(file://…)`, el mismo camino de LIB-001 (hash, validación, metadatos y subida a la nube si hay sesión). El temporal se borra siempre.
-- **"En tu biblioteca" (STO-008):** se guarda en DataStore la relación clave de la obra → id del libro al importar (también con `AlreadyInLibrary`). Un resultado del catálogo cuyo libro está en la biblioteca no se repite: ya aparece en la parte de la biblioteca. Si el libro se borró de la biblioteca, vuelve a ofrecerse.
+- **"En tu biblioteca" (STO-008):** se guarda en DataStore la relación clave de la obra → id del libro al importar (también con `AlreadyInLibrary`). Un resultado del catálogo cuyo libro está en la biblioteca queda en su lugar como "En tu biblioteca" (con el progreso) y no se repite en la parte de la biblioteca: así no desaparece si el título del EPUB no coincide con lo buscado (por ejemplo, buscar "orgullo y prejuicio" y obtener *Pride and Prejudice*). Si el libro se borró de la biblioteca, vuelve a ofrecerse.
 - **Red:** `HttpURLConnection` y `org.json` (los dos vienen con Android), sin dependencias nuevas en la app. Para los tests JVM del parser se agrega `org.json:json` solo como `testImplementation` (en JVM, `org.json` de Android es un stub).
 - **Búsqueda en el catálogo:** espera 400 ms desde la última tecla y al menos 2 caracteres; una consulta nueva cancela la anterior. Las portadas remotas se cargan con un cargador mínimo (`HttpURLConnection` y `BitmapFactory`) con caché en memoria.
 - **Capas:** `domain/store` (modelos, `StoreCatalog`, `StoreAcquisitions`, reglas puras), `data/store` (`OpenLibraryCatalog`, `EpubDownloader`, `StoreAcquisitionsImpl`), `di/StoreModule`. La pantalla sigue siendo `SearchScreen`/`SearchViewModel`.
@@ -36,7 +36,7 @@ Investigado con el usuario el 2026-10-10:
 **Verificación:** el usuario aprueba el plan.
 
 ### Tarea 2 (K-161): dominio (S)
-- [x] `domain/store/Store.kt`: `CatalogWork`, `StoreBook`, `Acquisition` (`Free(sources)`, `Paid(sources, priceCents)` o `Unavailable`), `epubSources`, `testPriceCents`, `SearchFilter` (`All`, `InLibrary`, `Free`, `Authors`; la búsqueda local sigue usando `SearchScope`), `libraryResults` y `catalogResults` (filtra por "Gratis", quita lo obtenido que sigue en la biblioteca). Interfaces `StoreCatalog`, `StoreDelivery` y `StoreAcquisitions`.
+- [x] `domain/store/Store.kt`: `CatalogWork`, `StoreBook`, `Acquisition` (`Free(sources)`, `Paid(sources, priceCents)` o `Unavailable`), `epubSources`, `testPriceCents`, `SearchFilter` (`All`, `InLibrary`, `Free`, `Authors`; la búsqueda local sigue usando `SearchScope`), `libraryResults` y `catalogResults` (filtra por "Gratis"; `StoreResult` lleva el libro de la biblioteca si se obtuvo y sigue ahí, y la biblioteca no lo repite). Interfaces `StoreCatalog`, `StoreDelivery` y `StoreAcquisitions`.
 - [x] Tests JVM `StoreRulesTest` (9; STO-002, STO-005, STO-006, STO-008). Mutación del precio de prueba detectada.
 **Verificación:** `./gradlew :app:testDebugUnitTest`.
 
@@ -46,8 +46,8 @@ Investigado con el usuario el 2026-10-10:
 **Verificación:** tests JVM pasan, `assembleDebug` compila.
 
 ### Tarea 4 (K-163): `SearchViewModel` (M)
-- [ ] Suma al estado los resultados del catálogo, si la tienda está cargando o no está disponible, y el estado de cada obra (descargando, falló, en la biblioteca). `onGet`, `onBuy`/`onConfirmPurchase`/`onDismissPurchase`, `onStoreBookClick`.
-- [ ] Tests JVM en `SearchViewModelTest` con catálogo y descarga falsos: espera antes de buscar, filtros, obtener, compra simulada, fallo y reintento, sin conexión.
+- [x] Suma al estado los resultados del catálogo, si la tienda está cargando o no está disponible, y el estado de cada obra (descargando, falló, en la biblioteca). `onGet`, `onBuy`/`onConfirmPurchase`/`onDismissPurchase`, `onStoreBookClick`.
+- [x] Tests JVM en `SearchViewModelTest` (14) con catálogo y descarga falsos: espera antes de buscar, consulta corta, filtros, obtener, compra simulada, fallo y reintento, sin conexión, sin repetir lo obtenido. Mutación de la espera detectada. `SearchScope` deja de usarse en la UI: los chips usan `SearchFilter`.
 **Verificación:** tests JVM pasan.
 
 ### Tarea 5 (K-164): pantalla (M)

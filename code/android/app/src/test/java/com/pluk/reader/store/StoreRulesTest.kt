@@ -94,18 +94,20 @@ class StoreRulesTest {
     // STO-006: "Todo" y "Autores" muestran todo el catálogo; "Gratis" solo lo gratis; "En mi biblioteca", nada
     @Test
     fun catalogFollowsFilter() {
-        assertEquals(catalog, catalogResults(catalog, SearchFilter.All, emptyMap(), emptySet()))
-        assertEquals(catalog, catalogResults(catalog, SearchFilter.Authors, emptyMap(), emptySet()))
-        assertEquals(listOf(free), catalogResults(catalog, SearchFilter.Free, emptyMap(), emptySet()))
-        assertTrue(catalogResults(catalog, SearchFilter.InLibrary, emptyMap(), emptySet()).isEmpty())
+        fun keys(filter: SearchFilter) = catalogResults(catalog, filter, emptyMap(), emptyList()).map { it.book }
+        assertEquals(catalog, keys(SearchFilter.All))
+        assertEquals(catalog, keys(SearchFilter.Authors))
+        assertEquals(listOf(free), keys(SearchFilter.Free))
+        assertTrue(keys(SearchFilter.InLibrary).isEmpty())
     }
 
-    // STO-008: lo obtenido que sigue en la biblioteca no se repite en el catálogo; si se borró, vuelve
+    // STO-008: lo obtenido que sigue en la biblioteca lleva su libro; si se borró, se ofrece de nuevo
     @Test
-    fun acquiredBooksInLibraryLeaveTheCatalog() {
+    fun acquiredBooksCarryTheirLibraryBook() {
+        val frankenstein = LibraryBook("hash-a", "Frankenstein", "Mary Shelley", null, 42)
         val acquired = mapOf("/works/A" to "hash-a", "/works/B" to "hash-b")
-        val result = catalogResults(catalog, SearchFilter.All, acquired, libraryIds = setOf("hash-a"))
-        assertEquals(listOf(paid, unavailable), result)
+        val result = catalogResults(catalog, SearchFilter.All, acquired, library = listOf(frankenstein))
+        assertEquals(listOf(frankenstein, null, null), result.map { it.inLibrary })
     }
 
     // STO-006: la parte de la biblioteca usa la búsqueda local (LIB-015)
@@ -119,5 +121,7 @@ class StoreRulesTest {
         assertEquals(listOf("abo", "let"), libraryResults(books, "seneca", SearchFilter.InLibrary).map { it.id })
         assertEquals(listOf("let"), libraryResults(books, "seneca", SearchFilter.Authors).map { it.id })
         assertTrue(libraryResults(books, "seneca", SearchFilter.Free).isEmpty())
+        // STO-008: lo que ya aparece en el catálogo no se repite
+        assertEquals(listOf("abo"), libraryResults(books, "seneca", SearchFilter.All, exclude = setOf("let")).map { it.id })
     }
 }

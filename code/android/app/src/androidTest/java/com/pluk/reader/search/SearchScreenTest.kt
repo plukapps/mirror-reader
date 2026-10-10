@@ -13,8 +13,8 @@ import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performTextInput
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.pluk.reader.domain.model.LibraryBook
-import com.pluk.reader.domain.search.SearchScope
-import com.pluk.reader.domain.search.searchBooks
+import com.pluk.reader.domain.store.SearchFilter
+import com.pluk.reader.domain.store.libraryResults
 import com.pluk.reader.ui.search.SearchContent
 import com.pluk.reader.ui.search.SearchUiState
 import org.junit.Assert.assertEquals
@@ -36,13 +36,13 @@ class SearchScreenTest {
     /** La pantalla con el mismo cálculo que hace el ViewModel, sin Hilt. */
     private fun show(onBook: (String) -> Unit = {}) = compose.setContent {
         var query by remember { mutableStateOf("") }
-        var scope by remember { mutableStateOf(SearchScope.All) }
+        var filter by remember { mutableStateOf(SearchFilter.All) }
         SearchContent(
             query = query,
-            state = SearchUiState(loading = false, query = query, scope = scope, results = searchBooks(books, query, scope)),
+            state = SearchUiState(loading = false, query = query, filter = filter, results = libraryResults(books, query, filter)),
             onQueryChange = { query = it },
             onClear = { query = "" },
-            onScopeChange = { scope = it },
+            onFilterChange = { filter = it },
             onBookClick = onBook,
         )
     }
@@ -65,8 +65,8 @@ class SearchScreenTest {
     fun authorsScopeFilters() {
         show()
         compose.onNodeWithTag("search-field").performTextInput("seneca")
-        compose.onNodeWithTag("scope-Authors").performClick()
-        compose.onNodeWithTag("scope-Authors").assertIsSelected()
+        compose.onNodeWithTag("filter-Authors").performClick()
+        compose.onNodeWithTag("filter-Authors").assertIsSelected()
         compose.onNodeWithTag("result-let").assertIsDisplayed()
         compose.onNodeWithTag("result-abo").assertDoesNotExist()
     }

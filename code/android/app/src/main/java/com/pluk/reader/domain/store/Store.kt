@@ -80,25 +80,40 @@ fun CatalogWork.toStoreBook(): StoreBook {
     return StoreBook(key, title, authors, coverId?.let { "https://covers.openlibrary.org/b/id/$it-M.jpg" }, acquisition)
 }
 
-/** Parte de la biblioteca de los resultados (STO-001, STO-006): la búsqueda local de LIB-013 a LIB-015. */
-fun libraryResults(books: List<LibraryBook>, query: String, filter: SearchFilter): List<LibraryBook> = when (filter) {
+/**
+ * Resultado del catálogo (STO-002). Si el libro se obtuvo de la tienda y sigue en la biblioteca,
+ * [inLibrary] es ese libro: se muestra "En tu biblioteca" y tocarlo lo abre (STO-008).
+ */
+data class StoreResult(val book: StoreBook, val inLibrary: LibraryBook? = null)
+
+/**
+ * Parte de la biblioteca de los resultados (STO-001, STO-006): la búsqueda local de LIB-013 a
+ * LIB-015, sin los libros de [exclude], que ya aparecen en la parte del catálogo (STO-008).
+ */
+fun libraryResults(
+    books: List<LibraryBook>,
+    query: String,
+    filter: SearchFilter,
+    exclude: Set<String> = emptySet(),
+): List<LibraryBook> = when (filter) {
     SearchFilter.Free -> emptyList()
     SearchFilter.Authors -> searchBooks(books, query, SearchScope.Authors)
     SearchFilter.All, SearchFilter.InLibrary -> searchBooks(books, query, SearchScope.All)
-}
+}.filterNot { it.id in exclude }
 
 /**
- * Parte del catálogo de los resultados (STO-001, STO-006, STO-008). Un libro obtenido de la tienda
- * ([acquired]: clave de la obra → id del libro) que sigue en la biblioteca ([libraryIds]) no se repite.
+ * Parte del catálogo de los resultados (STO-001, STO-006, STO-008). [acquired] relaciona la clave de
+ * la obra con el id del libro obtenido; si ese libro sigue en [library], el resultado lo lleva.
  */
 fun catalogResults(
     catalog: List<StoreBook>,
     filter: SearchFilter,
     acquired: Map<String, String>,
-    libraryIds: Set<String>,
-): List<StoreBook> {
+    library: List<LibraryBook>,
+): List<StoreResult> {
     if (filter == SearchFilter.InLibrary) return emptyList()
+    val byId = library.associateBy { it.id }
     return catalog
         .filter { filter != SearchFilter.Free || it.acquisition is Acquisition.Free }
-        .filter { book -> acquired[book.key]?.let { it in libraryIds } != true }
+        .map { book -> StoreResult(book, acquired[book.key]?.let(byId::get)) }
 }
