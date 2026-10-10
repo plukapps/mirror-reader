@@ -52,7 +52,8 @@ interface OnboardingPreferences {
 
 /** Programa la notificación diaria (ONB-012). La implementación vive en `data`. */
 interface ReminderScheduler {
-    fun schedule(reminder: DailyReminder)
+    /** Programa (o reprograma) la notificación diaria con la meta en el texto. */
+    fun schedule(reminder: DailyReminder, goal: ReadingGoal?)
 
     fun cancel()
 

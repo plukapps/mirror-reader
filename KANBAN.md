@@ -32,7 +32,6 @@ Plan de referencia: `specs/plans/2026-10-06-android-epub-viewer.md`
 
 ## Listo
 
-- **K-142** Onboarding, Tarea 5: pantallas O1 a O9, Google con Credential Manager, navegación y App Link de O9. ONB-001 a ONB-022. Rama `feature/onboarding`.
 - **K-143** Onboarding, Tarea 6: recordatorio diario (alarma, notificación, reinicio). ONB-011, ONB-012. Rama `feature/onboarding`.
 - **K-144** Onboarding, Tarea 7: cierre de docs, verificación y PR. Rama `feature/onboarding`.
 - **K-134** Lector iOS, Tarea 7: cierre de docs y verificación a mano en el simulador. Rama `feature/ios-reader`. Era K-125 hasta el merge con `master`.
@@ -41,10 +40,11 @@ Plan de referencia: `specs/plans/2026-10-06-android-epub-viewer.md`
 
 ## En curso
 
-- **K-141** Onboarding, Tarea 4: ViewModels de O2 a O9 y arranque, con tests JVM. ONB-004 a ONB-021. Rama `feature/onboarding`.
+- **K-142** Onboarding, Tarea 5: pantallas O1 a O9, Google con Credential Manager, navegación y App Link de O9. ONB-001 a ONB-022. Rama `feature/onboarding`.
 
 ## Revisión
 
+- **K-141** Onboarding, Tarea 4: ViewModels de O2 a O9 y arranque, con tests JVM. ONB-004 a ONB-021. Rama `feature/onboarding`. Hecho: `SignUpViewModel`, `VerifyEmailViewModel` (consulta cada 3 s mientras se ve, reenvío con 60 s, "Cambiar" descarta la cuenta sin verificar), `InterestsViewModel`, `GoalViewModel`, `AllSetViewModel`, `SignInViewModel`, `ForgotPasswordViewModel` (30 s), `ResetPasswordViewModel`. `OnboardingViewModelsTest` (22 JVM) pasa; 2 mutaciones detectadas.
 - **K-140** Onboarding, Tarea 3: datos (Firebase Auth con email y Google, mapeo de errores, preferencias en DataStore, fuera `DevAccountSignIn` y `WelcomeRepository`). ADR 0014. Rama `feature/onboarding`. Hecho: `FirebaseAccountRepository` implementa `AuthRepository` (alta, Google por token, verificación, reenvío, descartar sin verificar, recuperación), sesión por `IdTokenListener`, `toAuthError`, `OnboardingPreferencesImpl` (DataStore), Credential Manager 1.6.0 y googleid 1.2.1. Fuera `DevAccountSignIn`, `WelcomeRepository` y los campos de `BuildConfig`. `StartTest` (5 JVM) reemplaza a `WelcomeStartTest`; `AuthErrorsTest` de emulador compila, sin correr (el SDK no construye sus excepciones en JVM).
 - **K-139** Onboarding, Tarea 2: dominio y reglas (`AuthRepository`, `AuthError`, `PasswordRules`, `startDestination`, `OnboardingPreferences`, `ReminderScheduler`) con tests JVM. ONB-005, ONB-009, ONB-010, ONB-019. Rama `feature/onboarding`. Plan `2026-10-10-android-onboarding.md`. Hecho: `AuthRepository` y `AuthError`, `checkPassword`, `isValidEmail`, `startDestination`, `Genre`, `ReadingGoal`, `DailyReminder`, `OnboardingPreferences`, `ReminderScheduler`, `nextReminderAt`. `OnboardingRulesTest` (8 tests JVM) pasa.
 - **K-138** Onboarding, Tarea 1: spec `specs/product/09-onboarding.md` (ONB-001 a ONB-022), cambios en WEL, ADR 0014 y plan `2026-10-10-android-onboarding.md`. Rama `feature/onboarding`. Pedido del usuario (2026-10-10), sin consultas. Hecho.
