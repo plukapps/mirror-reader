@@ -45,9 +45,10 @@ private struct ReadyReader: View {
     let publication: Publication
     let colors: ReaderColors
     let onClose: () -> Void
+    /// El índice se presenta cuando el panel de ajustes terminó de cerrarse: dos hojas a la vez no se pueden.
+    @State private var tocPresented = false
 
     var body: some View {
-        @Bindable var viewModel = viewModel
         ReaderNavigator(publication: publication, initialLocatorJson: book.initialLocatorJson, viewModel: viewModel)
             .ignoresSafeArea()
             .overlay(alignment: .top) {
@@ -71,9 +72,36 @@ private struct ReadyReader: View {
                         .padding(.bottom, 56)
                 }
             }
-            .sheet(isPresented: $viewModel.tocOpen) {
+            .sheet(isPresented: settingsBinding, onDismiss: {
+                if viewModel.tocOpen { tocPresented = true }
+            }) {
+                ReaderSettingsSheet(viewModel: viewModel)
+                    .presentationDetents([.height(340)])
+                    .presentationCornerRadius(28)
+                    .presentationBackground(SheetColors.background)
+                    .presentationDragIndicator(.hidden)
+            }
+            .sheet(isPresented: tocBinding) {
                 TableOfContentsSheet(items: book.toc, onSelect: viewModel.select)
             }
+            .onChange(of: viewModel.tocOpen) { _, open in
+                if !open { tocPresented = false }
+            }
+    }
+
+    /// RDR-014: el panel se cierra tocando el libro, arrastrándolo hacia abajo o con "Aa".
+    private var settingsBinding: Binding<Bool> {
+        Binding(get: { viewModel.settingsOpen }, set: { if !$0 { viewModel.closeSettings() } })
+    }
+
+    private var tocBinding: Binding<Bool> {
+        Binding(
+            get: { tocPresented },
+            set: {
+                tocPresented = $0
+                if !$0 { viewModel.tocOpen = false }
+            }
+        )
     }
 }
 
