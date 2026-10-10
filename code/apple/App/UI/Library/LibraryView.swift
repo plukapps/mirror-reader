@@ -12,6 +12,9 @@ struct LibraryView: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
             Header(onImport: onImport)
+            if let status = viewModel.syncStatus {
+                SyncStatusView(status: status, onRetry: viewModel.retrySync)
+            }
             Tabs(viewModel: viewModel)
             if viewModel.isLibraryEmpty {
                 EmptyLibrary(onImport: onImport)

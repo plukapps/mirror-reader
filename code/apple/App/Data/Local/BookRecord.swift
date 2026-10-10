@@ -15,10 +15,12 @@ final class BookRecord {
     var isDownloaded: Bool
     /// Instante en que se subió o se vio en la nube, o nil si aún no está subido.
     var uploadedAt: Date?
+    /// La portada ya está en la nube (LIB-012). Con valor por defecto: SwiftData migra la base sola (ADR 0012).
+    var isCoverUploaded: Bool = false
 
     init(
         id: String, title: String, author: String?, hasCover: Bool, addedAt: Date,
-        sizeBytes: Int64, isDownloaded: Bool, uploadedAt: Date?
+        sizeBytes: Int64, isDownloaded: Bool, uploadedAt: Date?, isCoverUploaded: Bool = false
     ) {
         self.id = id
         self.title = title
@@ -28,6 +30,7 @@ final class BookRecord {
         self.sizeBytes = sizeBytes
         self.isDownloaded = isDownloaded
         self.uploadedAt = uploadedAt
+        self.isCoverUploaded = isCoverUploaded
     }
 }
 

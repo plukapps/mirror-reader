@@ -1,3 +1,4 @@
+import CryptoKit
 import Foundation
 
 /// Carpetas de la biblioteca en el dispositivo, con las mismas rutas que Android (ADR 0012).
@@ -27,6 +28,17 @@ struct LibraryFiles: Sendable {
     /// Mueve `file` al archivo EPUB del libro, reemplazando el anterior si lo había.
     func installBook(bookId: String, from file: URL) throws {
         try install(file, at: bookFile(bookId: bookId))
+    }
+
+    /// SHA-256 del archivo en hexadecimal minúscula, el mismo identificador que usa la importación (LIB-003).
+    static func sha256(of file: URL) throws -> String {
+        let handle = try FileHandle(forReadingFrom: file)
+        defer { try? handle.close() }
+        var hasher = SHA256()
+        while let chunk = try handle.read(upToCount: 64 * 1024), !chunk.isEmpty {
+            hasher.update(data: chunk)
+        }
+        return hasher.finalize().map { String(format: "%02x", $0) }.joined()
     }
 
     private func install(_ file: URL, at destination: URL) throws {

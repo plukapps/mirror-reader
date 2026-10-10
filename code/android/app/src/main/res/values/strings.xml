@@ -13,7 +13,7 @@
     <string name="onb_terms_notice">Al continuar aceptás los %1$s y la %2$s.</string>
     <string name="onb_terms">Términos</string>
     <string name="onb_privacy">Política de privacidad</string>
-    <!-- URLs públicas de términos y privacidad (CMP-002, CMP-003). Vacías hasta publicarlas (K-145): sin enlace. -->
+    <!-- URLs públicas de términos y privacidad (CMP-002, CMP-003). Vacías hasta publicarlas (K-156): sin enlace. -->
     <string name="onb_terms_url" translatable="false"></string>
     <string name="onb_privacy_url" translatable="false"></string>
     <string name="onb_back">Atrás</string>

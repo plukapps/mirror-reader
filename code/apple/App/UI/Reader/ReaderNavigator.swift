@@ -134,7 +134,12 @@ struct ReaderNavigator: UIViewControllerRepresentable {
             }
             if let jump, jump != appliedJump {
                 appliedJump = jump
-                Task { await navigator.go(to: Link(href: jump.href)) }
+                // SYN-013: la posición de otro dispositivo llega como locator; un capítulo del índice, como enlace.
+                if let json = jump.locatorJson, let locator = try? Locator(jsonString: json) {
+                    Task { await navigator.go(to: locator) }
+                } else {
+                    Task { await navigator.go(to: Link(href: jump.href)) }
+                }
             }
         }
 

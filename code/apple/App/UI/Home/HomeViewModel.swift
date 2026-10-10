@@ -17,36 +17,29 @@ final class HomeViewModel {
     private(set) var messages: [String] = []
 
     private let library: LibraryRepository
-    private let sync: Sync?
     private let importer: BookImporter?
-    private var synced = false
-
-    /// Trae la nube a la base local (`LibrarySync`) y llama al argumento cada vez que la base cambió.
-    typealias Sync = @Sendable (_ onChange: @escaping @Sendable () async -> Void) async -> LibrarySyncOutcome
+    private let requestSync: @MainActor () -> Void
 
     /// - Parameters:
     ///   - importer: nil donde no hay motor de EPUB (la Mac, ADR 0013): no se importa ni se abre el lector.
-    ///   - sync: nil si la app funciona solo en local.
+    ///   - requestSync: pide una pasada de sincronización (`SyncCoordinator.request`), tras importar (SYN-001).
     init(
         library: LibraryRepository,
         now: Date = .now,
         calendar: Calendar = .current,
         importer: BookImporter? = nil,
-        sync: Sync? = nil
+        requestSync: @escaping @MainActor () -> Void = {}
     ) {
         self.library = library
         self.importer = importer
-        self.sync = sync
+        self.requestSync = requestSync
         greeting = ReaderDomain.greeting(forHour: calendar.component(.hour, from: now))
     }
 
-    /// Muestra primero lo local (ADR 0002) y, la primera vez, sincroniza y vuelve a leer la base cada vez que
-    /// cambia (SYN-001).
+    /// Muestra lo local (ADR 0002). La sincronización la arranca la app (`SyncCoordinator`) y vuelve a llamar a
+    /// `reload()` cada vez que cambia la base.
     func load() async {
         await reload()
-        guard let sync, !synced else { return }
-        synced = true
-        _ = await sync { [weak self] in await self?.reload() }
     }
 
     // MARK: Importar y abrir (LIB-001, RDR-007)
@@ -60,6 +53,8 @@ final class HomeViewModel {
         for url in urls { outcomes.append(await importer.importBook(from: url)) }
         messages += Self.messages(for: outcomes)
         await reload()
+        // SYN-001: lo importado sube en cuanto se pueda, sin esperar al próximo regreso a la app.
+        requestSync()
     }
 
     /// "Abrir con" desde otra app: importa el archivo y abre el libro, aunque ya estuviera en la biblioteca.
@@ -69,6 +64,7 @@ final class HomeViewModel {
         case let .imported(bookId, _), let .alreadyInLibrary(bookId, _):
             await reload()
             readerBookId = bookId
+            requestSync()
         case let .rejected(message):
             messages.append(message)
         }

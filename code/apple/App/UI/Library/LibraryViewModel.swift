@@ -12,9 +12,26 @@ final class LibraryViewModel {
     private var allBooks: [LibraryBook] = []
 
     private let library: LibraryRepository
+    private let sync: SyncCoordinator?
 
-    init(library: LibraryRepository) {
+    /// - Parameter sync: nil si no se muestra el estado de la sincronización.
+    init(library: LibraryRepository, sync: SyncCoordinator? = nil) {
         self.library = library
+        self.sync = sync
+    }
+
+    /// Libros importados en este dispositivo que aún no están en la nube (SYN-008).
+    var pendingUploadCount: Int { allBooks.count { $0.isDownloaded && !$0.isUploaded } }
+
+    /// Línea de estado de la sincronización (SYN-008), como `SyncStatus` de Android, o nil si no hay nada que decir.
+    var syncStatus: SyncStatusLine? {
+        guard let state = sync?.state else { return nil }
+        return SyncStatusLine(state: state, pendingUploads: pendingUploadCount)
+    }
+
+    /// Con un problema, tocar la línea de estado reintenta.
+    func retrySync() {
+        sync?.request()
     }
 
     /// Libros que pasan el filtro activo, con el importado más reciente primero.

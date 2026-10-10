@@ -31,8 +31,11 @@ public protocol BookFiles: Sendable {
 }
 
 /// Archivos EPUB en la nube (`users/{uid}/books/{bookId}.epub`). Lanza `RemoteUnavailableError` sin conexión o sesión.
+/// Lanza `QuotaExceededError` si la subida no entra en la cuota (LIB-009).
 public protocol BookFileStore: Sendable {
     func downloadBook(bookId: String, to destination: URL) async throws
+    /// Sube el EPUB. Si ya está en la nube no hace nada: el nombre es su hash y no se sobrescribe.
+    func uploadBook(bookId: String, from file: URL) async throws
 }
 
 /// Descarga un libro que está solo en la nube (LIB-007), como `DownloadBookUseCase` de Android. Si el archivo ya
@@ -48,17 +51,22 @@ public struct DownloadBook: Sendable {
     }
 
     public func callAsFunction(bookId: String) async throws {
-        if await files.isDownloaded(bookId: bookId) { return }
-        let temp = files.newTempFile()
-        defer { try? FileManager.default.removeItem(at: temp) }
         do {
-            try await store.downloadBook(bookId: bookId, to: temp)
-            try await files.installBook(bookId: bookId, from: temp)
+            try await fetch(bookId: bookId)
         } catch is RemoteUnavailableError {
             throw BookOpenError("Sin conexión. No se pudo descargar el libro.")
         } catch {
             throw BookOpenError("No se pudo descargar el libro.")
         }
+    }
+
+    /// Igual que llamarlo, pero con el error original: la sincronización distingue la falta de conexión.
+    public func fetch(bookId: String) async throws {
+        if await files.isDownloaded(bookId: bookId) { return }
+        let temp = files.newTempFile()
+        defer { try? FileManager.default.removeItem(at: temp) }
+        try await store.downloadBook(bookId: bookId, to: temp)
+        try await files.installBook(bookId: bookId, from: temp)
     }
 }
 

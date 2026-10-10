@@ -60,7 +60,7 @@
 - Tests de emulador: `WelcomeScreenTest` (3, actualizado a O1) y `AuthErrorsTest` (1) compilan, sin correr (no se corren instrumentados sin consultar; el SDK de Firebase no construye sus excepciones en JVM).
 - `assembleDebug` compila. No había dispositivo conectado: **falta la verificación a mano** (K-144).
 - Cambios respecto del diseño, decididos sin consulta por pedido del usuario: enlace en lugar de código de 6 dígitos (O3); sin Apple, huella, "Explorar sin cuenta" ni clásicos gratis (O1, O6, O7); el error de O7 no dice intentos restantes; textos en español. Detalle en el spec y en ADR 0014.
-- Pendientes en Backlog: URLs de Términos y Privacidad (K-145), `assetlinks.json` para abrir O9 en la app (K-146), cerrar sesión (K-147).
+- Pendientes en Backlog: URLs de Términos y Privacidad (K-156), `assetlinks.json` para abrir O9 en la app (K-157), cerrar sesión (K-158).
 
 ### Verificación a mano pendiente
 

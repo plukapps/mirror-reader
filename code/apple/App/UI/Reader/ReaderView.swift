@@ -8,6 +8,7 @@ import SwiftUI
 struct ReaderView: View {
     @State var viewModel: ReaderViewModel
     let onClose: () -> Void
+    @Environment(\.scenePhase) private var scenePhase
 
     var body: some View {
         let colors = ReaderColors(viewModel.settings.theme)
@@ -18,6 +19,21 @@ struct ReaderView: View {
                 ProgressView().tint(colors.muted)
             case let .failed(message):
                 FailedReader(message: message, colors: colors, onClose: close)
+            case let .confirming(deviceName, remotePercent):
+                // SYN-003: mientras se decide, la pantalla queda en blanco, como Android.
+                Color.clear.alert(
+                    "¿Continuar desde donde quedaste en \(deviceName)?",
+                    isPresented: .constant(true)
+                ) {
+                    Button("Continuar allí") { Task { await viewModel.resumeChoice(useRemote: true) } }
+                    Button("Quedarme aquí", role: .cancel) { Task { await viewModel.resumeChoice(useRemote: false) } }
+                } message: {
+                    if let remotePercent {
+                        Text("Allí vas por el \(remotePercent) %. Si te quedás aquí, esta posición pasa a ser la más reciente.")
+                    } else {
+                        Text("Leíste más adelante en otro dispositivo. Si te quedás aquí, esta posición pasa a ser la más reciente.")
+                    }
+                }
             case let .ready(book):
                 if let publication = book.publication?.value as? Publication {
                     ReadyReader(viewModel: viewModel, book: book, publication: publication, colors: colors, onClose: close)
@@ -25,6 +41,10 @@ struct ReaderView: View {
             }
         }
         .task { await viewModel.load() }
+        // SYN-011: con el libro abierto, pasar a segundo plano guarda y envía la posición.
+        .onChange(of: scenePhase) { _, phase in
+            if phase == .background { Task { await viewModel.wentToBackground() } }
+        }
         // RDR-015: con los controles ocultos se oculta también la barra de estado.
         .statusBarHidden(!viewModel.controlsVisible)
         .animation(.easeOut(duration: 0.2), value: viewModel.controlsVisible)
@@ -67,6 +87,18 @@ private struct ReadyReader: View {
                 PageFooter(label: viewModel.pageLabel, colors: colors)
             }
             .overlay(alignment: .bottom) {
+                // SYN-013: aviso discreto, sin mover la página; se toca para seguir o se descarta.
+                if let continueFrom = viewModel.continueFrom {
+                    ContinueFromChip(
+                        continueFrom: continueFrom,
+                        colors: colors,
+                        onContinue: viewModel.continueFromOtherDevice,
+                        onDismiss: viewModel.dismissContinueFrom
+                    )
+                    .padding(.bottom, 40)
+                }
+            }
+            .overlay(alignment: .bottom) {
                 if let notice = viewModel.notice {
                     NoticeToast(text: notice, onTimeout: viewModel.dismissNotice)
                         .padding(.bottom, 56)
@@ -102,6 +134,46 @@ private struct ReadyReader: View {
                 if !$0 { viewModel.tocOpen = false }
             }
         )
+    }
+}
+
+/// SYN-013: "Seguir desde [dispositivo]". Aparece abajo, sobre el número de página, y nunca mueve la página sola.
+private struct ContinueFromChip: View {
+    let continueFrom: ReaderViewModel.ContinueFrom
+    let colors: ReaderColors
+    let onContinue: () -> Void
+    let onDismiss: () -> Void
+
+    var body: some View {
+        HStack(spacing: 0) {
+            Button(action: onContinue) {
+                Text(label)
+                    .font(.app(13, .bold))
+                    .padding(.leading, 16)
+                    .padding(.trailing, 8)
+                    .padding(.vertical, 11)
+            }
+            Button(action: onDismiss) {
+                Text("✕")
+                    .font(.app(13))
+                    .padding(.leading, 8)
+                    .padding(.trailing, 16)
+                    .padding(.vertical, 11)
+            }
+            .accessibilityLabel("Descartar")
+        }
+        .buttonStyle(.plain)
+        .foregroundStyle(colors.page)
+        .background(colors.text.opacity(0.92), in: RoundedRectangle(cornerRadius: 22))
+        .padding(.horizontal, 16)
+        .transition(.opacity)
+    }
+
+    private var label: String {
+        if let percent = continueFrom.percent {
+            return String(localized: "Seguir desde \(continueFrom.deviceName) · \(percent) %")
+        }
+        return String(localized: "Seguir desde \(continueFrom.deviceName)")
     }
 }
 
