@@ -1,6 +1,6 @@
 # Plataforma — Apple: Mac e iOS (borrador)
 
-Mac primero, iOS después, desde el mismo proyecto y el mismo target. Distribución: Mac App Store y App Store. Hoy existe Inicio con los libros reales de la cuenta (plan `specs/plans/2026-10-09-ios-home-data.md`), sin lector ni importación.
+Mac primero, iOS después, desde el mismo proyecto y el mismo target. Distribución: Mac App Store y App Store. Hoy existe Inicio con los libros reales de la cuenta (plan `specs/plans/2026-10-09-ios-home-data.md`), y en el iPhone el lector de EPUB con importación (plan `specs/plans/2026-10-09-ios-reader.md`). La Mac todavía no lee ni importa: Readium Swift solo soporta iOS (ADR 0013).
 
 ## Alcance
 
@@ -20,7 +20,7 @@ Requisitos de iOS (borrador, plan `specs/plans/2026-10-09-ios-layout.md`):
 
 ## Arquitectura
 
-Stack y capas en `specs/adr/0010-apple-stack-and-architecture.md` (provisional): SwiftUI, MVVM en capas con el dominio en un paquete Swift local, proyecto generado con XcodeGen, Swift Testing. Base local con SwiftData y SDK de Firebase para Apple: `specs/adr/0012-apple-persistence-and-firebase.md` (provisional).
+Stack y capas en `specs/adr/0010-apple-stack-and-architecture.md` (provisional): SwiftUI, MVVM en capas con el dominio en un paquete Swift local, proyecto generado con XcodeGen, Swift Testing. Base local con SwiftData y SDK de Firebase para Apple: `specs/adr/0012-apple-persistence-and-firebase.md` (provisional). Motor de EPUB: Readium Swift Toolkit 3.9.0, solo en iOS (`specs/adr/0013-apple-epub-engine.md`, provisional).
 
 ## Decisiones
 

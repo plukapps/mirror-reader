@@ -5,6 +5,9 @@ Plan de referencia: `specs/plans/2026-10-06-android-epub-viewer.md`
 
 ## Backlog
 
+- **K-126** Apple: animación de paso de página propia en el iPhone (RDR-009). Hoy el lector usa la de Readium (decisión del usuario, 2026-10-09, plan `2026-10-09-ios-reader.md`).
+- **K-127** Apple: subir la posición de lectura a la nube al cerrar el libro o pasar a segundo plano, diálogo "¿Continuar desde…?" y aviso "Seguir desde" (SYN-002, SYN-003, SYN-013, ADR 0011). Hoy la posición del iPhone queda solo local.
+- **K-128** Apple: subir a la nube los libros importados en el iPhone, con control de cuota (SYN-001, LIB-009).
 - **K-112** Android: fecha de alta de un libro que llega de la nube. Hoy `toCloudOnlyEntity` usa la hora en que se vio; Apple usa `createdAt` del documento (plan `2026-10-09-ios-home-data.md`), así "Agregados recientemente" tiene el mismo orden en todos los dispositivos. HOM-009, LIB-007.
 - **K-114** Apple: sincronizar al volver a la app con TTL de 5 minutos, como Android (K-083). Hoy solo al arrancar. SYN-001.
 - **K-105** Bug: "Abrir con" un EPUB no abre el libro. AND-003, LIB-001, WEL-008. En `MainActivity`, el `LaunchedEffect(incomingBook.value)` pone `incomingBook.value = null` antes de importar; eso cambia la clave del efecto, Compose lo reinicia y cancela la importación a mitad de camino: el archivo queda copiado en `files/books` (o como `import-*.tmp`), pero el libro no entra a la biblioteca ni se abre el lector. Visto en el SM-S711B (2026-10-09) con el EPUB de `make_fixture_epub.py`. El código es el mismo en `master`: no lo introdujo la bienvenida. Arreglo propuesto: importar en `viewModelScope` (o limpiar la clave después de importar) y borrar el temporal si la importación se cancela.
@@ -29,14 +32,20 @@ Plan de referencia: `specs/plans/2026-10-06-android-epub-viewer.md`
 
 ## Listo
 
+- **K-120** Lector iOS, Tarea 2: dominio (`ReaderSettings`, `currentChapterTitle`, `backMatterStart`, `BodyEndDetector`, `pageLabel`, `ImportOutcome`, protocolos) con tests. RDR-002, RDR-010, RDR-012, RDR-013, LIB-002. Rama `feature/ios-reader`.
+- **K-121** Lector iOS, Tarea 3: datos (archivos, importador, bajada desde Storage, posición local, ajustes en `UserDefaults`) con tests en el simulador. LIB-002 a LIB-004, LIB-007, RDR-006. Rama `feature/ios-reader`.
+- **K-122** Lector iOS, Tarea 4: importar desde Inicio y "Abrir con", libros de Inicio que abren el lector. LIB-001, LIB-007. Rama `feature/ios-reader`.
+- **K-123** Lector iOS, Tarea 5: pantalla del lector (navegador, toques, barra superior, número de página, índice, fin de lectura, barra de estado). RDR-001, RDR-004 a RDR-007, RDR-010 a RDR-013, RDR-015. Rama `feature/ios-reader`.
+- **K-124** Lector iOS, Tarea 6: panel de ajustes según el diseño. RDR-002, RDR-003, RDR-014. Rama `feature/ios-reader`.
+- **K-125** Lector iOS, Tarea 7: cierre de docs y verificación a mano en el simulador. Rama `feature/ios-reader`.
 - **K-038** Inicio, Tarea 4: cierre de docs y verificación a mano. Rama `feature/home`.
 - **K-024** Quitar el padding vertical de Readium (40 dp arriba y abajo en modo paginado) y reservar la barra de estado desde la pantalla. RDR-002. Rama `feat/page-turn-animation`.
 
 ## En curso
 
-
 ## Revisión
 
+- **K-119** Lector iOS, Tarea 1: ADR 0013 (Readium Swift, solo iOS), plan `2026-10-09-ios-reader.md`, `apple.md`; Readium en `project.yml` y compila con Xcode 16.2. Rama `feature/ios-reader`. Hecho: ADR 0013, Readium 3.9.0 en `project.yml` (3.10 y 3.11 exigen Xcode 16.3), fuentes del lector en `App/Fonts`; compilan iPhone y Mac.
 - **K-118** Búsqueda local, Tarea 4: cierre de docs y verificación a mano en el teléfono. Rama `feature/android-search`. Hecho: nota en `specs/platforms/android.md`, resultado en el plan. Instalada en el teléfono y la tablet; la pantalla y la búsqueda con tildes se vieron en ambos. Falta probar a mano el filtro Autores y abrir un resultado y volver.
 - **K-117** Búsqueda local, Tarea 3: pantalla según el diseño (03 Search) y destino "Buscar" de la barra. LIB-014, LIB-015, HOM-005, HOM-006. Rama `feature/android-search`. Hecho: `SearchScreen` (`SearchContent` sin ViewModel), `SearchIcons`, ruta `search` en `AppNavHost` (solo Perfil muestra el aviso), textos. `SearchScreenTest` (4 casos) compila, sin correr. 283 tests JVM pasan.
 - **K-116** Búsqueda local, Tarea 2: `SearchViewModel` con tests JVM. LIB-006, LIB-013. Rama `feature/android-search`. Plan `2026-10-09-android-search.md`. Hecho: `ui/search/SearchViewModel.kt` (consulta y filtro en `SavedStateHandle`) y `SearchViewModelTest` (6 tests JVM; verificado por mutación ignorando el filtro).

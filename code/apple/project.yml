@@ -19,6 +19,10 @@ packages:
   Firebase:
     url: https://github.com/firebase/firebase-ios-sdk
     exactVersion: 12.14.0
+  # Motor de EPUB (ADR 0004, ADR 0013). Solo soporta iOS: en la Mac no se enlaza.
+  Readium:
+    url: https://github.com/readium/swift-toolkit
+    exactVersion: 3.9.0
 targets:
   # Un solo target para Mac e iOS (ADR 0010). Lo que es solo de Mac va condicionado con [sdk=macosx*].
   Reader:
@@ -36,6 +40,15 @@ targets:
         product: FirebaseFirestore
       - package: Firebase
         product: FirebaseStorage
+      - package: Readium
+        product: ReadiumShared
+        destinationFilters: [iOS]
+      - package: Readium
+        product: ReadiumStreamer
+        destinationFilters: [iOS]
+      - package: Readium
+        product: ReadiumNavigator
+        destinationFilters: [iOS]
     # Equipo de firma para iPhone físico; ver Signing.xcconfig.
     configFiles:
       Debug: Signing.xcconfig

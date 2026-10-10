@@ -43,7 +43,7 @@ ADR 0001 fija Swift para Mac e iOS y anticipa que pueden compartir código. Andr
 
 **Pendiente de decidir (con su ADR, en la rebanada que lo necesite)**
 - Persistencia local (SwiftData, GRDB u otra), equivalente a Room y DataStore.
-- Motor de EPUB: Readium Swift Toolkit, en línea con ADR 0004.
+- Motor de EPUB: Readium Swift Toolkit, en línea con ADR 0004. Decidido en ADR 0013 (3.9.0, solo iOS).
 - SDK de Firebase para Apple, en línea con ADR 0007.
 - Navegación de la Mac (barra lateral en lugar de la barra inferior de HOM-005): requiere diseño.
 
