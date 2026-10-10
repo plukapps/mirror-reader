@@ -307,6 +307,31 @@ class OnboardingViewModelsTest {
         assertEquals(SignInViewModel.Next.VerifyEmail, vm.state.value.next)
     }
 
+    // ONB-016: al llegar a verificar desde el ingreso, el email sale en ese momento
+    @Test
+    fun signingInUnverifiedSendsTheVerificationEmail() = runTest(dispatcher) {
+        auth.signInResult = Result.success(AccountUser("u1", "ana@mail.com", needsEmailVerification = true))
+        val vm = SignInViewModel(auth)
+        vm.onEmail("ana@mail.com")
+        vm.onPassword("x")
+        vm.submit()
+        advanceUntilIdle()
+
+        assertEquals(1, auth.verificationsSent)
+        assertEquals(SignInViewModel.Next.VerifyEmail, vm.state.value.next)
+    }
+
+    // ONB-016: una cuenta verificada no recibe email
+    @Test
+    fun signingInVerifiedSendsNothing() = runTest(dispatcher) {
+        val vm = SignInViewModel(auth)
+        vm.onEmail("ana@mail.com")
+        vm.onPassword("x")
+        vm.submit()
+        advanceUntilIdle()
+        assertEquals(0, auth.verificationsSent)
+    }
+
     // ONB-015: el error se muestra y se borra al escribir
     @Test
     fun signInErrorIsShownUntilTheUserTypes() = runTest(dispatcher) {

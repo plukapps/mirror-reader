@@ -32,7 +32,7 @@ import com.pluk.reader.ui.theme.MarginColors
 fun SignInScreen(
     onBack: () -> Unit,
     onHome: () -> Unit,
-    onVerifyEmail: () -> Unit,
+    onVerifyEmail: (justSent: Boolean) -> Unit,
     onForgot: (email: String) -> Unit,
     onCreateAccount: () -> Unit,
     viewModel: SignInViewModel = hiltViewModel(),
@@ -41,7 +41,7 @@ fun SignInScreen(
     LaunchedEffect(state.next) {
         when (state.next) {
             SignInViewModel.Next.Home -> onHome()
-            SignInViewModel.Next.VerifyEmail -> onVerifyEmail()
+            SignInViewModel.Next.VerifyEmail -> onVerifyEmail(state.verificationSent)
             null -> return@LaunchedEffect
         }
         viewModel.onNavigated()

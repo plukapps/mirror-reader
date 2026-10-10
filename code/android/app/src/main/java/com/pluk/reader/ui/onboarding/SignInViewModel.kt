@@ -29,6 +29,8 @@ class SignInViewModel @Inject constructor(
         val busy: Boolean = false,
         val error: AuthError? = null,
         val next: Next? = null,
+        /** Si salió el email de verificación al ingresar (ONB-016): O3 arranca esperando para reenviar. */
+        val verificationSent: Boolean = false,
     ) {
         val canSubmit: Boolean get() = isValidEmail(email) && password.isNotEmpty() && !busy
     }
@@ -50,8 +52,10 @@ class SignInViewModel @Inject constructor(
             auth.signInWithPassword(current.email, current.password).fold(
                 // ONB-016
                 onSuccess = { user ->
+                    // ONB-016: la cuenta pudo crearse en otro lado sin verificar: el email sale ahora.
+                    val sent = user.needsEmailVerification && auth.sendEmailVerification().isSuccess
                     val next = if (user.needsEmailVerification) Next.VerifyEmail else Next.Home
-                    _state.update { it.copy(busy = false, password = "", next = next) }
+                    _state.update { it.copy(busy = false, password = "", next = next, verificationSent = sent) }
                 },
                 onFailure = { e -> _state.update { it.copy(busy = false, error = e.authError()) } },
             )

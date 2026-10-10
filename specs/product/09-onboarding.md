@@ -34,7 +34,7 @@ Recorridos:
 
 - **ONB-014** Iniciar sesión (O7): "Te damos la bienvenida de nuevo.", email y contraseña (con ver u ocultar), "¿Olvidaste tu contraseña?", "Iniciar sesión", Google, y "¿Nuevo en margin.? Crear cuenta".
 - **ONB-015** Si el ingreso falla, el error se muestra bajo el campo de contraseña en rojo, con un texto claro: email o contraseña incorrectos, cuenta deshabilitada, demasiados intentos o sin conexión. La app no revela si un email tiene cuenta.
-- **ONB-016** Al iniciar sesión con una cuenta de email sin verificar, se pasa a verificar (O3). Si no, a Inicio, sin poder volver atrás al ingreso.
+- **ONB-016** Al iniciar sesión con una cuenta de email sin verificar, se envía el email de verificación y se pasa a verificar (O3). Si no, a Inicio, sin poder volver atrás al ingreso.
 - **ONB-017** Olvidé mi contraseña (O8): email (precargado con el de O7), "Enviar enlace"; luego "Enlace enviado / ¿No llegó? Revisá spam.", "Abrir app de correo" y "Reenviar" con espera de 30 s. Se responde igual exista o no la cuenta.
 - **ONB-018** Nueva contraseña (O9): al abrir el enlace del email en el dispositivo, la app muestra "Elegí una contraseña nueva" para el email de la cuenta, con las reglas de ONB-005 marcadas a medida que se cumplen, y "Confirmar contraseña". "Guardar e ingresar" se habilita con contraseña válida y ambas iguales; guarda, inicia sesión y abre Inicio. Si el enlace venció o ya se usó, lo dice y ofrece pedir otro. La cruz cierra y vuelve a la bienvenida (o a donde estaba).
 

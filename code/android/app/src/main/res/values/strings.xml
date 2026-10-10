@@ -40,7 +40,7 @@
     <string name="onb_email_in_use_signin">Iniciar sesión</string>
 
     <string name="onb_verify_title">Revisá tu bandeja</string>
-    <string name="onb_verify_body">Te enviamos un enlace a %1$s. Tocalo para confirmar tu email y volvé acá.</string>
+    <string name="onb_verify_body">Confirmá %1$s con el enlace que te enviamos por email y volvé acá. Si no lo encontrás, revisá spam o reenvialo.</string>
     <string name="onb_change">Cambiar</string>
     <string name="onb_resend_in">Reenviar en %1$s</string>
     <string name="onb_resend">Reenviar email</string>

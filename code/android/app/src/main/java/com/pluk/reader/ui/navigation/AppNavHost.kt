@@ -159,7 +159,7 @@ fun AppNavHost(
                     SignInScreen(
                         onBack = { navController.popOrStartOver() },
                         onHome = { navController.startOver(Routes.HOME) },
-                        onVerifyEmail = { navController.startOver(Routes.verify()) },
+                        onVerifyEmail = { justSent -> navController.startOver(Routes.verify(justSent)) },
                         onForgot = { email -> navController.navigate(Routes.forgot(email)) },
                         onCreateAccount = { navController.navigate(Routes.signUp()) { popUpTo(Routes.SIGNIN) { inclusive = true } } },
                     )
