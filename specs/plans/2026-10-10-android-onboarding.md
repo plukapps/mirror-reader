@@ -54,6 +54,24 @@
 ### Tarea 7: cierre (K-144) (XS)
 - `specs/platforms/android.md`, `AGENTS.md` (cuenta de desarrollo), resultado en este plan, Kanban, PR.
 
+## Resultado (2026-10-10)
+
+- Tests JVM: 315 pasan (31 nuevos: `OnboardingRulesTest` 9, `OnboardingViewModelsTest` 22; `StartTest` 5 reemplaza a `WelcomeStartTest`). Mutaciones en `VerifyEmailViewModel` (borrar una cuenta ya verificada) y `GoalViewModel` (recordatorio sin permiso) detectadas.
+- Tests de emulador: `WelcomeScreenTest` (3, actualizado a O1) y `AuthErrorsTest` (1) compilan, sin correr (no se corren instrumentados sin consultar; el SDK de Firebase no construye sus excepciones en JVM).
+- `assembleDebug` compila. No había dispositivo conectado: **falta la verificación a mano** (K-144).
+- Cambios respecto del diseño, decididos sin consulta por pedido del usuario: enlace en lugar de código de 6 dígitos (O3); sin Apple, huella, "Explorar sin cuenta" ni clásicos gratis (O1, O6, O7); el error de O7 no dice intentos restantes; textos en español. Detalle en el spec y en ADR 0014.
+- Pendientes en Backlog: URLs de Términos y Privacidad (K-145), `assetlinks.json` para abrir O9 en la app (K-146), cerrar sesión (K-147).
+
+### Verificación a mano pendiente
+
+1. Instalación limpia (o borrar datos): arranque → O1.
+2. Crear cuenta con email → O3 → abrir el enlace del email (en el navegador) → volver a la app → O4 → O5 (permiso de notificaciones) → O6 → Inicio; atrás sale de la app.
+3. Cerrar la app en O3 sin verificar y reabrir: vuelve a O3. "Cambiar" vuelve a O2 con nombre y email.
+4. Ingresar con contraseña equivocada (error en rojo), luego bien → Inicio. Ingresar con Google.
+5. "¿Olvidaste tu contraseña?" → enlace → cambio en la página de Firebase → ingresar con la nueva.
+6. Recordatorio: elegir una hora a 2 minutos y esperar la notificación; reiniciar el teléfono y ver que sigue.
+7. Apaisado, tablet y TalkBack en O2 y O7.
+
 ## Riesgos
 
 | Riesgo | Impacto | Mitigación |
