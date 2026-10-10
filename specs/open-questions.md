@@ -8,3 +8,4 @@
 | 5 | Exportar notas y subrayados (ej. Markdown) | ANN |
 | 6 | Nombre del producto y de la cuenta de desarrollador en las tiendas | CMP |
 | 7 | Uso sin cuenta (solo local) en el futuro | ACC |
+| 8 | Tienda: ¿vender libros comerciales (LCP con un distribuidor o una tienda) y cómo cobrar (Play Billing o pago web)? Hoy, prueba de concepto con dominio público y compra simulada | STO, K-166, K-167 |

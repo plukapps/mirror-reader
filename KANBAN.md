@@ -5,6 +5,8 @@ Plan de referencia: `specs/plans/2026-10-06-android-epub-viewer.md`
 
 ## Backlog
 
+- **K-166** Tienda real con catálogo comercial: Readium LCP (certificación con EDRLab) y acuerdo con un distribuidor o una tienda (por ejemplo Readino, que usa OPDS y LCP). Requiere ADR y trabajo de negocio. Sigue a la prueba de concepto (`specs/product/10-store.md`, plan `2026-10-10-android-store-poc.md`).
+- **K-167** Tienda: cobro real. Google Play Billing, o un enlace a pago web donde se permita (Estados Unidos, programa de enlaces externos). Requiere ADR. STO-004.
 - **K-156** Términos de uso y política de privacidad públicos (CMP-002, CMP-003). Cargar sus URL en `onb_terms_url` y `onb_privacy_url` (`strings.xml`): hoy el onboarding los muestra subrayados pero sin enlace. ONB-001, ONB-004.
 - **K-157** Publicar `/.well-known/assetlinks.json` en Firebase Hosting de `mirror-reading-staging` (paquete `com.pluk.reader` y SHA-256 de las firmas de debug y release) para que los enlaces de verificación y de contraseña nueva abran la app (O9) en lugar de la página de Firebase. Despliegue al proyecto real: pedirlo al usuario. ONB-018, ADR 0014.
 - **K-158** Cerrar sesión y perfil (ACC-006): hoy la única forma de volver a ver el onboarding es borrar los datos de la app. Definir qué pasa con la biblioteca local de la cuenta anterior.
@@ -33,12 +35,17 @@ Plan de referencia: `specs/plans/2026-10-06-android-epub-viewer.md`
 
 ## Listo
 
+- **K-162** Tienda, Tarea 3: datos (`OpenLibraryCatalog`, `EpubDownloader`, `StoreAcquisitionsImpl`, `StoreModule`) con tests JVM del parser. STO-001, STO-003, STO-005. Rama `feature/tienda-poc`.
+- **K-163** Tienda, Tarea 4: `SearchViewModel` con catálogo, obtener y compra simulada, con tests JVM. STO-001 a STO-004, STO-007. Rama `feature/tienda-poc`.
+- **K-164** Tienda, Tarea 5: pantalla Buscar con catálogo, chips, hoja de compra simulada y portada remota. STO-001 a STO-007. Rama `feature/tienda-poc`.
+- **K-165** Tienda, Tarea 6: cierre de docs y verificación a mano en el teléfono. Rama `feature/tienda-poc`.
 - **K-134** Lector iOS, Tarea 7: cierre de docs y verificación a mano en el simulador. Rama `feature/ios-reader`. Era K-125 hasta el merge con `master`.
 - **K-038** Inicio, Tarea 4: cierre de docs y verificación a mano. Rama `feature/home`.
 - **K-024** Quitar el padding vertical de Readium (40 dp arriba y abajo en modo paginado) y reservar la barra de estado desde la pantalla. RDR-002. Rama `feat/page-turn-animation`.
 
 ## En curso
 
+- **K-161** Tienda (prueba de concepto), Tarea 2: dominio (`StoreBook`, `pickEpubSource`, `testPrice`, `SearchFilter`) con tests JVM. STO-002, STO-005, STO-006, STO-008. Rama `feature/tienda-poc`.
 
 ## Revisión
 
@@ -145,6 +152,7 @@ Plan de referencia: `specs/plans/2026-10-06-android-epub-viewer.md`
 
 ## Hecho
 
+- **K-160** Tienda (prueba de concepto), Tarea 1: spec `specs/product/10-store.md` (STO-001 a STO-008), LIB-015 ampliado y plan `2026-10-10-android-store-poc.md`. Rama `feature/tienda-poc`. Pedido del usuario (2026-10-10). Plan aprobado por el usuario (2026-10-10).
 - **K-096** Apple, barra de navegación inferior en iPhone (HOM-005), igual que Android (K-093): píldora flotante, mismos íconos, el contenido pasa por debajo. Barra propia, no `TabView`. En la Mac sigue pendiente K-078. Rama `feature/ios-tab-bar`. Plan `2026-10-09-ios-tab-bar.md`. Hecho: `MarginTabBar` (píldora tinta de 60 pt, activo en píldora amarilla de 52 × 44 pt), íconos de Material Symbols como SVG en el asset catalog (los mismos trazados que Android), `TabBarModel` con el aviso "Llega más adelante." para Buscar, Estantes y Perfil (en Apple solo existe Inicio) y `RootView` con la barra en `safeAreaInset`: el contenido pasa por debajo y deja su alto al final. 5 tests nuevos (HOM-005, HOM-006); pasan 13 en iPhone, 12 en la Mac y 11 del dominio. Verificado en el simulador; falta probar a mano en un iPhone. Aprobado con el merge del PR #11.
 - **K-091** Posición de lectura, Tarea 7: verificación a mano en teléfono y tablet. Rama `feature/position-sync`. Hecho (2026-10-09): `firestore.rules` desplegadas a `mirror-reading-staging` con el MCP de Firebase (ojo: `only: "firestore:rules"` dice success pero no despliega; hay que usar `only: "firestore"`); respaldo de la base de cada dispositivo en el scratchpad; app instalada en SM-S711B y SM-X510; las migraciones 3→4 y 4→5 corrieron sobre la biblioteca real (user_version 5, sin cierres); 9 posiciones llegaron a Firestore. Dos errores que apareció la prueba real y se corrigieron: (1) se reintentaban sin fin las posiciones de libros que no están en la nube (4 libros con ids anteriores al hash, 16 rechazos `PERMISSION_DENIED`): `getPending` ahora exige el libro subido; (2) doble `listBooks` en el arranque en frío por una carrera entre `onStart` y el aviso de sesión: ahora `LibrarySync` decide al consumir el pedido. Verificado: un solo `listBooks` al arrancar en frío y ninguno al volver con el proceso vivo antes de 5 min. Cerrada el 2026-10-09 por decisión del usuario: abrir en otro dispositivo y el envío sin conexión se probaron a mano y funcionan; el chip "Seguir desde…" no se llegó a ver (probable umbral del 2 %), queda como K-099.
 - **K-090** Posición de lectura, Tarea 6: aviso discreto "Seguir desde [dispositivo]" mientras se lee. SYN-013. Hecho: `shouldOfferJump` (pura: solo si el otro dispositivo leyó más adelante por más del 2 %), `ReaderViewModel` escucha `PositionSync.remoteUpdates` del libro abierto y expone `ContinueFrom` y `jumps`; chip "Seguir desde [dispositivo] · N %" con ✕ en la pantalla, que navega con `Navigator.go(Locator)` (API verificada con `javap`) solo al tocarlo; se retira solo cuando la lectura de aquí alcanza a la del otro. 267 tests JVM pasan (+11), 7 mutaciones detectadas (una exigió endurecer el test). Sin commit todavía.

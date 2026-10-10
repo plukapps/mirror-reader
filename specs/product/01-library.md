@@ -20,7 +20,7 @@ Una biblioteca única y ordenada de los EPUB del usuario.
 - **LIB-012** La portada de un libro se ve en todos mis dispositivos, también antes de descargar el libro. Las portadas no cuentan para la cuota de espacio.
 - **LIB-013** La búsqueda (LIB-006) es sobre los libros de mi biblioteca, también los que están solo en la nube, y funciona sin conexión. No distingue mayúsculas ni acentos, y con varias palabras muestra los libros que contienen todas, cada una en el título o en el autor. Los resultados aparecen mientras escribo. La búsqueda por colección llega con LIB-005.
 - **LIB-014** Cada resultado muestra portada, título, autor y su estado: el progreso si lo estoy leyendo, nuevo, terminado o solo en la nube. Arriba se ve la cantidad de resultados. Tocar un resultado abre el libro en su última posición.
-- **LIB-015** La búsqueda tiene dos filtros: "Todo" (título o autor) y "Autores" (solo los libros cuyo autor coincide). Los primeros resultados son los libros cuyo título empieza con lo buscado.
+- **LIB-015** La búsqueda tiene dos filtros: "Todo" (título o autor) y "Autores" (solo los libros cuyo autor coincide). Los primeros resultados son los libros cuyo título empieza con lo buscado. Con la tienda (STO-006) se suman "En mi biblioteca" y "Gratis".
 
 ## Escenarios
 
