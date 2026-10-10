@@ -82,4 +82,10 @@
     <string name="search_no_results">Sin resultados para «%1$s».</string>
     <string name="search_help">Buscá en tu biblioteca por título o autor.</string>
     <string name="search_status_reading">Leyendo · %1$d %%</string>
+
+    <!-- Recordatorio diario (ONB-012) -->
+    <string name="reminder_channel">Recordatorio de lectura</string>
+    <string name="reminder_title">Es hora de leer</string>
+    <string name="reminder_body_goal">Tu meta de hoy: %1$d minutos.</string>
+    <string name="reminder_body">Un rato de lectura tranquila te espera.</string>
 </resources>

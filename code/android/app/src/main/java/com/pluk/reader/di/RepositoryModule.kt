@@ -6,6 +6,8 @@ import com.pluk.reader.data.repository.PositionRepositoryImpl
 import com.pluk.reader.data.repository.SettingsRepositoryImpl
 import com.pluk.reader.data.repository.SyncPreferencesImpl
 import com.pluk.reader.data.repository.OnboardingPreferencesImpl
+import com.pluk.reader.data.reminder.AlarmReminderScheduler
+import com.pluk.reader.domain.onboarding.ReminderScheduler
 import com.pluk.reader.domain.onboarding.OnboardingPreferences
 import com.pluk.reader.domain.repository.BookRepository
 import com.pluk.reader.domain.repository.LibraryRepository
@@ -49,4 +51,7 @@ abstract class RepositoryModule {
     @Binds
     @Singleton
     abstract fun bindOnboardingPreferences(impl: OnboardingPreferencesImpl): OnboardingPreferences
+
+    @Binds
+    abstract fun bindReminderScheduler(impl: AlarmReminderScheduler): ReminderScheduler
 }
