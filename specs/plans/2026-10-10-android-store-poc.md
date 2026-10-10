@@ -36,8 +36,8 @@ Investigado con el usuario el 2026-10-10:
 **Verificación:** el usuario aprueba el plan.
 
 ### Tarea 2 (K-161): dominio (S)
-- [ ] `StoreBook` (clave, título, autores, portada, `Acquisition`: `Free(source)`, `Paid(source, price)` o `Unavailable`), `EpubSource`, `pickEpubSource`, `testPrice`, `SearchFilter` (`All`, `InLibrary`, `Free`, `Authors`, reemplaza a `SearchScope`) y la regla que arma la lista de catálogo (filtra por "Gratis", quita lo que ya está en la biblioteca).
-- [ ] Tests JVM `StoreRulesTest` (STO-002, STO-005, STO-006, STO-008).
+- [x] `domain/store/Store.kt`: `CatalogWork`, `StoreBook`, `Acquisition` (`Free(sources)`, `Paid(sources, priceCents)` o `Unavailable`), `epubSources`, `testPriceCents`, `SearchFilter` (`All`, `InLibrary`, `Free`, `Authors`; la búsqueda local sigue usando `SearchScope`), `libraryResults` y `catalogResults` (filtra por "Gratis", quita lo obtenido que sigue en la biblioteca). Interfaces `StoreCatalog`, `StoreDelivery` y `StoreAcquisitions`.
+- [x] Tests JVM `StoreRulesTest` (9; STO-002, STO-005, STO-006, STO-008). Mutación del precio de prueba detectada.
 **Verificación:** `./gradlew :app:testDebugUnitTest`.
 
 ### Tarea 3 (K-162): datos (M)
