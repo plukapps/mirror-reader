@@ -5,6 +5,7 @@ Plan de referencia: `specs/plans/2026-10-06-android-epub-viewer.md`
 
 ## Backlog
 
+- **K-129** Bug: los tests de la app en la Mac no arrancan (`xcodebuild test -destination platform=macOS`): `dyld: Library not loaded: @rpath/ReaderDomain_…_PackageProduct.framework`. Pasa igual en `master` (`b6e7935`, visto el 2026-10-10 al trabajar en K-121); en el simulador de iPhone pasan. Probable causa: `ReaderDomain` enlazado por la app y por `ReaderTests` se arma como framework dinámico que no se copia al `.app` de la Mac. ADR 0010.
 - **K-126** Apple: animación de paso de página propia en el iPhone (RDR-009). Hoy el lector usa la de Readium (decisión del usuario, 2026-10-09, plan `2026-10-09-ios-reader.md`).
 - **K-127** Apple: subir la posición de lectura a la nube al cerrar el libro o pasar a segundo plano, diálogo "¿Continuar desde…?" y aviso "Seguir desde" (SYN-002, SYN-003, SYN-013, ADR 0011). Hoy la posición del iPhone queda solo local.
 - **K-128** Apple: subir a la nube los libros importados en el iPhone, con control de cuota (SYN-001, LIB-009).
@@ -32,7 +33,6 @@ Plan de referencia: `specs/plans/2026-10-06-android-epub-viewer.md`
 
 ## Listo
 
-- **K-121** Lector iOS, Tarea 3: datos (archivos, importador, bajada desde Storage, posición local, ajustes en `UserDefaults`) con tests en el simulador. LIB-002 a LIB-004, LIB-007, RDR-006. Rama `feature/ios-reader`.
 - **K-122** Lector iOS, Tarea 4: importar desde Inicio y "Abrir con", libros de Inicio que abren el lector. LIB-001, LIB-007. Rama `feature/ios-reader`.
 - **K-123** Lector iOS, Tarea 5: pantalla del lector (navegador, toques, barra superior, número de página, índice, fin de lectura, barra de estado). RDR-001, RDR-004 a RDR-007, RDR-010 a RDR-013, RDR-015. Rama `feature/ios-reader`.
 - **K-124** Lector iOS, Tarea 6: panel de ajustes según el diseño. RDR-002, RDR-003, RDR-014. Rama `feature/ios-reader`.
@@ -44,6 +44,7 @@ Plan de referencia: `specs/plans/2026-10-06-android-epub-viewer.md`
 
 ## Revisión
 
+- **K-121** Lector iOS, Tarea 3: datos (archivos, importador, bajada desde Storage, posición local, ajustes en `UserDefaults`) con tests en el simulador. LIB-002 a LIB-004, LIB-007, RDR-006. Rama `feature/ios-reader`. Hecho: `books/{hash}.epub` en `LibraryFiles`; `LibraryStore` implementa `BookFiles`, `ReadingPositionRepository` e importados; `UserDefaultsReaderSettings` (claves de Android); `FirebaseBookStore`; `PublicationLoader` y `EpubImporter` con Readium (solo iOS). 10 tests nuevos en el simulador (34 en total), con el EPUB de `make_fixture_epub.py` en `Tests/Fixtures`. La Mac compila; sus tests no arrancan desde antes (K-129).
 - **K-120** Lector iOS, Tarea 2: dominio (`ReaderSettings`, `currentChapterTitle`, `backMatterStart`, `BodyEndDetector`, `pageLabel`, `ImportOutcome`, protocolos) con tests. RDR-002, RDR-010, RDR-012, RDR-013, LIB-002. Rama `feature/ios-reader`. Hecho: `ReaderSettings`, `ChapterTitle`, `BackMatter` (con `BodyEndDetector` y `pageLabel`), `BookFiles` (`ImportOutcome`, `DownloadBook`, protocolos de archivos, posición y ajustes). 37 tests nuevos con los casos de Android (63 en total con `swift test`); verificado por mutación.
 - **K-119** Lector iOS, Tarea 1: ADR 0013 (Readium Swift, solo iOS), plan `2026-10-09-ios-reader.md`, `apple.md`; Readium en `project.yml` y compila con Xcode 16.2. Rama `feature/ios-reader`. Hecho: ADR 0013, Readium 3.9.0 en `project.yml` (3.10 y 3.11 exigen Xcode 16.3), fuentes del lector en `App/Fonts`; compilan iPhone y Mac.
 - **K-118** Búsqueda local, Tarea 4: cierre de docs y verificación a mano en el teléfono. Rama `feature/android-search`. Hecho: nota en `specs/platforms/android.md`, resultado en el plan. Instalada en el teléfono y la tablet; la pantalla y la búsqueda con tildes se vieron en ambos. Falta probar a mano el filtro Autores y abrir un resultado y volver.
