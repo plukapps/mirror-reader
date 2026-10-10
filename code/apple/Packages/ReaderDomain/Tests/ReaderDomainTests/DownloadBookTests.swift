@@ -29,6 +29,8 @@ private struct FakeBookStore: BookFileStore {
     func downloadBook(bookId: String, to destination: URL) async throws {
         if let error { throw error }
     }
+
+    func uploadBook(bookId: String, from file: URL) async throws {}
 }
 
 struct DownloadBookTests {

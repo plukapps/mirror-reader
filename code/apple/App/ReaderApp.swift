@@ -11,7 +11,10 @@ struct ReaderApp: App {
 
     var body: some Scene {
         WindowGroup {
-            RootView(home: screens.home, search: screens.search, library: screens.library, makeReader: screens.makeReader)
+            RootView(
+                home: screens.home, search: screens.search, library: screens.library, sync: screens.sync,
+                makeReader: screens.makeReader
+            )
                 .windowMinimumSize()
                 #if os(iOS)
                 // La paleta del diseño es clara y no hay tema oscuro: la barra de estado va oscura (IOS-002).
