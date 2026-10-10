@@ -41,10 +41,10 @@ Plan de referencia: `specs/plans/2026-10-06-android-epub-viewer.md`
 
 ## En curso
 
-- **K-165** Tienda, Tarea 6: cierre de docs y verificación a mano en el teléfono. Rama `feature/tienda-poc`.
 
 ## Revisión
 
+- **K-165** Tienda, Tarea 6: cierre de docs y verificación a mano en el teléfono. Rama `feature/tienda-poc`. Hecho: `android.md`, resultado en el plan, PR. Falta la verificación a mano (no había teléfono conectado).
 - **K-164** Tienda, Tarea 5: pantalla Buscar con catálogo, chips, hoja de compra simulada y portada remota. STO-001 a STO-007. Rama `feature/tienda-poc`. Hecho: sección "Tienda" después de la biblioteca, botones "Obtener"/"Comprar"/"Reintentar", "Descargando…", "En tu biblioteca" (abre el libro), hoja de compra simulada, aviso sin conexión, portada remota. `SearchScreenTest` (8) compila, sin correr. Probado contra la API real en JVM (búsquedas y descargas de EPUB válidos).
 - **K-163** Tienda, Tarea 4: `SearchViewModel` con catálogo, obtener y compra simulada, con tests JVM. STO-001 a STO-004, STO-007. Rama `feature/tienda-poc`. Hecho: `SearchViewModel` con catálogo (espera de 400 ms, mínimo 2 caracteres), estados de cada obra, compra simulada; `StoreResult` deja lo obtenido en su lugar del catálogo. `SearchViewModelTest` (14 JVM) pasa; 341 en total.
 - **K-162** Tienda, Tarea 3: datos (`OpenLibraryCatalog`, `EpubDownloader`, `StoreAcquisitionsImpl`, `StoreModule`) con tests JVM del parser. STO-001, STO-003, STO-005. Rama `feature/tienda-poc`. Hecho: `OpenLibraryCatalog`, `EpubDownloader` con `deliverFirst`, `StoreAcquisitionsImpl`, `StoreModule`; `org.json` solo en tests. `OpenLibraryTest` (7 JVM) pasa.

@@ -56,8 +56,8 @@ Investigado con el usuario el 2026-10-10:
 **Verificación:** `assembleDebug` y `compileDebugAndroidTestKotlin`.
 
 ### Tarea 6 (K-165): cierre (S)
-- [ ] `specs/platforms/android.md`: nota de la tienda. Resultado en este plan.
-- [ ] Instalar en el teléfono y probar a mano con el usuario: buscar "frankenstein", obtenerlo gratis, comprar uno con precio de prueba, abrirlo, modo avión.
+- [x] `specs/platforms/android.md`: nota de la tienda. Resultado en este plan.
+- [ ] Instalar en el teléfono y probar a mano con el usuario: buscar "frankenstein", obtenerlo gratis, comprar uno con precio de prueba (por ejemplo *Emma*, con "Autores" y "jane austen"), abrirlo, "En mi biblioteca" y "Gratis", modo avión. Pendiente: no había teléfono conectado.
 **Verificación:** el usuario lo ve en el teléfono.
 
 ## Riesgos
@@ -65,3 +65,13 @@ Investigado con el usuario el 2026-10-10:
 - Open Library a veces tarda varios segundos. La búsqueda local no lo espera (STO-007).
 - No todas las obras tienen ids de Standard Ebooks o Gutenberg: muchos libros de dominio público quedan como "No disponible en digital". Es aceptable para la prueba.
 - Un id de Standard Ebooks con varios autores puede no seguir la regla del nombre de archivo. Si la descarga falla, se intenta con Gutenberg si hay id.
+- Las portadas remotas y la red viven en `ui/search/StoreCover.kt` y en `data/store` con `HttpURLConnection`: suficiente para la prueba. Si se sigue, una librería de imágenes y un cliente HTTP común (ADR).
+- Un libro obtenido se sube a la nube como cualquier importación y cuenta para la cuota (LIB-009).
+
+## Resultado
+
+342 tests JVM pasan (31 nuevos: `StoreRulesTest` 9, `OpenLibraryTest` 7, `SearchViewModelTest` 15, de los que 6 ya existían y se adaptaron a `SearchFilter`). `SearchScreenTest` (8, 4 nuevos) compila, sin correr. Mutaciones detectadas: precio de prueba, espera antes de buscar y estado de la tienda con "En mi biblioteca".
+
+Probado contra la API real el 2026-10-10 con un test JVM temporal (borrado): "frankenstein" y "jane austen" (por autor) devuelven obras gratis y con precio de prueba con URL de Standard Ebooks y Gutenberg; "harry potter" y las traducciones al español salen "No disponible en digital"; "orgullo y prejuicio" encuentra *Pride and Prejudice* gratis. Tres de esas URL bajan EPUB válidos (`mimetype` correcto, sin `encryption.xml`), de 0,2 a 0,8 MB.
+
+Sin teléfono conectado: falta verlo a mano en el dispositivo (Tarea 6).

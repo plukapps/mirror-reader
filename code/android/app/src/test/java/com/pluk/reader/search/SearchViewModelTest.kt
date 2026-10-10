@@ -301,4 +301,19 @@ class SearchViewModelTest {
         assertTrue(state.results.isEmpty())
         assertEquals("let", state.storeResults.single().inLibrary?.id)
     }
+
+    // STO-006: con "En mi biblioteca" la tienda no participa, ni siquiera como "buscando"
+    @Test
+    fun inLibraryFilterIgnoresTheStore() = runTest(dispatcher) {
+        catalog.result = CatalogResult.Found(listOf(freeBook))
+        val vm = viewModel()
+        collect(vm)
+        vm.onFilterChange(SearchFilter.InLibrary)
+        vm.onQueryChange("zzz")
+        runCurrent()
+        assertEquals(StoreStatus.Idle, vm.uiState.value.storeStatus)
+        advanceUntilIdle()
+        assertEquals(StoreStatus.Idle, vm.uiState.value.storeStatus)
+        assertTrue(vm.uiState.value.storeResults.isEmpty())
+    }
 }

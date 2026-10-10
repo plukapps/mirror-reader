@@ -116,7 +116,8 @@ class SearchViewModel @Inject constructor(
                 query = inputs.query,
                 filter = inputs.filter,
                 results = libraryResults(inputs.books, inputs.query, inputs.filter, exclude = inCatalog),
-                storeStatus = catalog.status,
+                // "En mi biblioteca" no muestra la tienda (STO-006).
+                storeStatus = if (inputs.filter == SearchFilter.InLibrary) StoreStatus.Idle else catalog.status,
                 storeResults = store,
                 // Lo entregado deja de mostrarse como tal cuando la biblioteca ya lo tiene.
                 itemStates = items.filterNot { (key, state) ->
