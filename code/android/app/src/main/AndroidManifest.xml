@@ -2,6 +2,9 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
     <uses-permission android:name="android.permission.INTERNET" />
+    <!-- Recordatorio diario (ONB-011, ONB-012) -->
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
 
     <application
         android:name=".ReaderApp"
@@ -28,7 +31,28 @@
                 <data android:scheme="file" />
                 <data android:mimeType="application/epub+zip" />
             </intent-filter>
+            <!-- Enlaces de verificación y de contraseña nueva (ONB-007, ONB-018, ADR 0014). Sin assetlinks.json
+                 publicado en el host, Android los abre en el navegador. -->
+            <intent-filter android:autoVerify="true">
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="https" />
+                <data android:host="${authLinkHost}" />
+                <data android:path="/__/auth/action" />
+            </intent-filter>
         </activity>
+
+        <receiver
+            android:name=".data.reminder.ReminderReceiver"
+            android:exported="false" />
+        <receiver
+            android:name=".data.reminder.BootReceiver"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="android.intent.action.BOOT_COMPLETED" />
+            </intent-filter>
+        </receiver>
     </application>
 
 </manifest>

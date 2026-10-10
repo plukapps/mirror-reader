@@ -17,7 +17,8 @@ import javax.inject.Singleton
 object FirebaseModule {
     @Provides
     @Singleton
-    fun provideAuth(): FirebaseAuth = FirebaseAuth.getInstance()
+    // Los emails de verificación y de contraseña salen en el idioma del dispositivo (ONB-006, ONB-017).
+    fun provideAuth(): FirebaseAuth = FirebaseAuth.getInstance().apply { useAppLanguage() }
 
     // Room es la fuente de verdad (ADR 0002): el caché en disco de Firestore se reemplaza por
     // uno en memoria para no tener dos cachés que se desincronicen. Los ajustes deben fijarse

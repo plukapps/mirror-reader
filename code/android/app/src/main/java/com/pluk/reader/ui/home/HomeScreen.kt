@@ -79,6 +79,8 @@ import java.time.LocalTime
 fun HomeScreen(
     onBookClick: (bookId: String) -> Unit,
     onSeeAll: (LibraryFilter?) -> Unit,
+    openImportPicker: Boolean = false,
+    onImportPickerOpened: () -> Unit = {},
     viewModel: HomeViewModel = hiltViewModel(),
 ) {
     val state = viewModel.uiState.collectAsStateWithLifecycle().value
@@ -95,6 +97,8 @@ fun HomeScreen(
         onImport = viewModel::onImport,
         onBookClick = onBookClick,
         onSeeAll = onSeeAll,
+        openImportPicker = openImportPicker,
+        onImportPickerOpened = onImportPickerOpened,
     )
 }
 
@@ -108,9 +112,18 @@ fun HomeContentView(
     onImport: (List<String>) -> Unit,
     onBookClick: (String) -> Unit,
     onSeeAll: (LibraryFilter?) -> Unit,
+    openImportPicker: Boolean = false,
+    onImportPickerOpened: () -> Unit = {},
 ) {
     val picker = rememberLauncherForActivityResult(ActivityResultContracts.OpenMultipleDocuments()) { uris ->
         onImport(uris.map { it.toString() })
+    }
+    // ONB-013: llegando desde "Importar mis libros".
+    LaunchedEffect(openImportPicker) {
+        if (openImportPicker) {
+            onImportPickerOpened()
+            picker.launch(arrayOf(EPUB_MIME_TYPE))
+        }
     }
     val bottomBarPadding = LocalBottomBarPadding.current
     Box(Modifier

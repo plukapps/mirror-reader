@@ -16,14 +16,15 @@ Fuente de verdad del producto (SDD: primero spec, después código). Si el códi
   - [06-store-compliance.md](product/06-store-compliance.md)
   - [07-home.md](product/07-home.md)
   - [08-welcome.md](product/08-welcome.md)
+  - [09-onboarding.md](product/09-onboarding.md)
 - [data-model.md](data-model.md)
 - platforms/[android.md](platforms/android.md), [apple.md](platforms/apple.md) (borrador)
-- adr/ — decisiones técnicas ([0001](adr/0001-native-clients.md), [0002](adr/0002-offline-first.md), [0003](adr/0003-backend-supabase.md), [0004](adr/0004-epub-engine-readium.md), [0005](adr/0005-android-stack-and-architecture.md), [0006](adr/0006-library-local-storage.md), [0007](adr/0007-backend-firebase.md), [0008](adr/0008-quota-accounting.md), [0009](adr/0009-reader-fonts.md), [0010](adr/0010-apple-stack-and-architecture.md), [0011](adr/0011-reading-position-sync.md), [0012](adr/0012-apple-persistence-and-firebase.md), [0013](adr/0013-apple-epub-engine.md))
+- adr/ — decisiones técnicas ([0001](adr/0001-native-clients.md), [0002](adr/0002-offline-first.md), [0003](adr/0003-backend-supabase.md), [0004](adr/0004-epub-engine-readium.md), [0005](adr/0005-android-stack-and-architecture.md), [0006](adr/0006-library-local-storage.md), [0007](adr/0007-backend-firebase.md), [0008](adr/0008-quota-accounting.md), [0009](adr/0009-reader-fonts.md), [0010](adr/0010-apple-stack-and-architecture.md), [0011](adr/0011-reading-position-sync.md), [0012](adr/0012-apple-persistence-and-firebase.md), [0013](adr/0013-apple-epub-engine.md), [0014](adr/0014-android-authentication.md))
 
 ## Convenciones
 
 - Idioma: español. IDs y términos técnicos en inglés.
-- Requisitos con ID estable: `LIB-001`, `RDR-001`, `ANN-001`, `SYN-001`, `ACC-001`, `CMP-001`, `WEL-001`. No se reutilizan IDs.
+- Requisitos con ID estable: `LIB-001`, `RDR-001`, `ANN-001`, `SYN-001`, `ACC-001`, `CMP-001`, `WEL-001`, `ONB-001`. No se reutilizan IDs.
 - Verbos: **debe** (obligatorio v1), **puede** (opcional).
 - Escenarios en formato Dado / Cuando / Entonces.
 - Código, tests y commits referencian el ID (ej. `LIB-003`).

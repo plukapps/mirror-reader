@@ -4,9 +4,138 @@
     <!-- Bienvenida (WEL-004) -->
     <string name="welcome_brand">margin.</string>
     <string name="welcome_headline">Leé más.\nScrolleá menos.\nPensá despacio.</string>
-    <string name="welcome_body">Tus EPUB, en un lugar tranquilo, en todos tus dispositivos.</string>
-    <string name="welcome_start">Comenzar</string>
+    <string name="welcome_body">Tus EPUB, en un lugar tranquilo. Sincronizados en todos tus dispositivos.</string>
     <string name="welcome_footer">margin. 2026 ©</string>
+
+    <!-- Onboarding (ONB-001 a ONB-022) -->
+    <string name="onb_create_account">Crear cuenta</string>
+    <string name="onb_have_account">Ya tengo una cuenta</string>
+    <string name="onb_terms_notice">Al continuar aceptás los %1$s y la %2$s.</string>
+    <string name="onb_terms">Términos</string>
+    <string name="onb_privacy">Política de privacidad</string>
+    <!-- URLs públicas de términos y privacidad (CMP-002, CMP-003). Vacías hasta publicarlas (K-156): sin enlace. -->
+    <string name="onb_terms_url" translatable="false"></string>
+    <string name="onb_privacy_url" translatable="false"></string>
+    <string name="onb_back">Atrás</string>
+    <string name="onb_close">Cerrar</string>
+    <string name="onb_skip">Omitir</string>
+    <string name="onb_step">Paso %1$d de %2$d</string>
+    <string name="onb_google">Google</string>
+    <string name="onb_or_email">o con email</string>
+    <string name="onb_or">o</string>
+    <string name="onb_name">Nombre</string>
+    <string name="onb_email">Email</string>
+    <string name="onb_password">Contraseña</string>
+    <string name="onb_show_password">Mostrar contraseña</string>
+    <string name="onb_hide_password">Ocultar contraseña</string>
+    <string name="onb_password_strength">Seguridad de la contraseña: %1$s</string>
+    <string name="onb_strength_weak">Débil</string>
+    <string name="onb_strength_fair">Regular</string>
+    <string name="onb_strength_good">Buena</string>
+    <string name="onb_strength_strong">Fuerte</string>
+    <string name="onb_password_hint">Al menos 8 caracteres y dos de: un número, un símbolo, una mayúscula.</string>
+    <string name="onb_terms_agree">Acepto los %1$s y la %2$s</string>
+    <string name="onb_terms_accept">Acepto los Términos y la Política de privacidad</string>
+    <string name="onb_signup_title">Creá tu\ncuenta</string>
+    <string name="onb_email_in_use_signin">Iniciar sesión</string>
+
+    <string name="onb_verify_title">Revisá tu bandeja</string>
+    <string name="onb_verify_body">Confirmá %1$s con el enlace que te enviamos por email y volvé acá. Si no lo encontrás, revisá spam o reenvialo.</string>
+    <string name="onb_change">Cambiar</string>
+    <string name="onb_resend_in">Reenviar en %1$s</string>
+    <string name="onb_resend">Reenviar email</string>
+    <string name="onb_resent">Te lo enviamos de nuevo.</string>
+    <string name="onb_open_email">Abrir email</string>
+    <string name="onb_open_email_app">Abrir app de correo</string>
+    <string name="onb_no_email_app">No encontramos una app de correo.</string>
+    <string name="onb_verify_waiting">Esperando la confirmación…</string>
+
+    <string name="onb_email_verified">Paso 3 de 4 · Email verificado</string>
+    <string name="onb_interests_title">¿Qué te gusta\nleer?</string>
+    <string name="onb_interests_body">Elegí al menos 3.</string>
+    <plurals name="onb_interests_selected">
+        <item quantity="one">%d elegido</item>
+        <item quantity="other">%d elegidos</item>
+    </plurals>
+    <string name="onb_continue">Continuar</string>
+    <string name="genre_philosophy">Filosofía</string>
+    <string name="genre_classics">Clásicos</string>
+    <string name="genre_poetry">Poesía</string>
+    <string name="genre_scifi">Ciencia ficción</string>
+    <string name="genre_history">Historia</string>
+    <string name="genre_essays">Ensayo</string>
+    <string name="genre_mystery">Misterio</string>
+    <string name="genre_romance">Romance</string>
+    <string name="genre_biography">Biografía</string>
+    <string name="genre_horror">Terror</string>
+    <string name="genre_science">Ciencia</string>
+    <string name="genre_travel">Viajes</string>
+    <string name="genre_drama">Drama</string>
+
+    <string name="onb_goal_title">¿Cuánto querés\nleer por día?</string>
+    <string name="goal_casual">Tranquilo</string>
+    <string name="goal_regular">Regular · ~12 libros/año</string>
+    <string name="goal_serious">En serio</string>
+    <string name="goal_devoted">Devoto</string>
+    <string name="goal_minutes">%1$d min</string>
+    <string name="goal_hour">1 hora</string>
+    <string name="onb_reminder">Recordatorio diario</string>
+    <string name="onb_reminder_at">Todos los días a las</string>
+    <string name="onb_reminder_change_time">Cambiar la hora del recordatorio, %1$s</string>
+    <string name="onb_finish">Terminar</string>
+    <string name="onb_time_ok">Listo</string>
+    <string name="onb_time_cancel">Cancelar</string>
+    <string name="onb_notifications_denied">Sin permiso de notificaciones, el recordatorio queda apagado.</string>
+
+    <string name="onb_allset_title">Ya estás adentro,\n%1$s.</string>
+    <string name="onb_allset_title_anonymous">Ya estás\nadentro.</string>
+    <string name="onb_allset_goal_reminder">%1$d minutos por día, recordatorio a las %2$s.</string>
+    <string name="onb_allset_goal">%1$d minutos por día.</string>
+    <string name="onb_allset_generic">Tu biblioteca te espera. Importá tus EPUB y empezá cuando quieras.</string>
+    <string name="onb_start_reading">Empezar a leer</string>
+    <string name="onb_import_books">Importar mis libros</string>
+
+    <string name="onb_signin_title">Te damos la\nbienvenida.</string>
+    <string name="onb_forgot">¿Olvidaste tu contraseña?</string>
+    <string name="onb_signin">Iniciar sesión</string>
+    <string name="onb_new_here">¿Nuevo en margin.?</string>
+
+    <string name="onb_forgot_title">¿Olvidaste tu\ncontraseña?</string>
+    <string name="onb_forgot_body">Escribí tu email y te enviamos un enlace para elegir una nueva.</string>
+    <string name="onb_send_link">Enviar enlace</string>
+    <string name="onb_link_sent">Enlace enviado</string>
+    <string name="onb_check_spam">¿No llegó? Revisá spam.</string>
+    <string name="onb_resend_link_in">Reenviar enlace en %1$s</string>
+    <string name="onb_resend_link">Reenviar enlace</string>
+
+    <string name="onb_reset_title">Elegí una\ncontraseña nueva</string>
+    <string name="onb_reset_for">Para %1$s</string>
+    <string name="onb_new_password">Contraseña nueva</string>
+    <string name="onb_confirm_password">Confirmar contraseña</string>
+    <string name="onb_repeat">Repetila</string>
+    <string name="onb_mismatch">Las contraseñas no coinciden.</string>
+    <string name="onb_rule_length">Al menos 8 caracteres</string>
+    <string name="onb_rule_number">Un número</string>
+    <string name="onb_rule_symbol">Un símbolo</string>
+    <string name="onb_rule_upper">Una mayúscula</string>
+    <string name="onb_rule_met">cumplida</string>
+    <string name="onb_rule_pending">pendiente</string>
+    <string name="onb_rules_needed">Cumplí el largo y dos de las otras tres.</string>
+    <string name="onb_save_and_signin">Guardar e ingresar</string>
+    <string name="onb_link_invalid_title">El enlace venció</string>
+    <string name="onb_link_invalid_body">Ya se usó o pasó demasiado tiempo. Pedí otro y abrilo desde este dispositivo.</string>
+    <string name="onb_request_link">Pedir otro enlace</string>
+
+    <string name="onb_error_credentials">Email o contraseña incorrectos.</string>
+    <string name="onb_error_email_in_use">Ya hay una cuenta con ese email.</string>
+    <string name="onb_error_disabled">Esta cuenta está deshabilitada.</string>
+    <string name="onb_error_too_many">Demasiados intentos. Esperá un rato o cambiá la contraseña.</string>
+    <string name="onb_error_network">Sin conexión. Revisá tu red y probá de nuevo.</string>
+    <string name="onb_error_link">El enlace venció o ya se usó.</string>
+    <string name="onb_error_weak">La contraseña es demasiado débil.</string>
+    <string name="onb_error_unknown">Algo salió mal. Probá de nuevo.</string>
+    <string name="onb_email_verified_toast">Email verificado.</string>
+    <string name="onb_google_unavailable">No hay cuentas de Google disponibles en este dispositivo.</string>
 
     <string name="library_title">Biblioteca</string>
     <string name="library_import">Importar</string>
@@ -82,4 +211,10 @@
     <string name="search_no_results">Sin resultados para «%1$s».</string>
     <string name="search_help">Buscá en tu biblioteca por título o autor.</string>
     <string name="search_status_reading">Leyendo · %1$d %%</string>
+
+    <!-- Recordatorio diario (ONB-012) -->
+    <string name="reminder_channel">Recordatorio de lectura</string>
+    <string name="reminder_title">Es hora de leer</string>
+    <string name="reminder_body_goal">Tu meta de hoy: %1$d minutos.</string>
+    <string name="reminder_body">Un rato de lectura tranquila te espera.</string>
 </resources>

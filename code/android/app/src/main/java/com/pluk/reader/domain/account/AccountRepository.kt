@@ -2,8 +2,16 @@ package com.pluk.reader.domain.account
 
 import kotlinx.coroutines.flow.Flow
 
-/** Usuario con sesión iniciada. [id] es el `uid` del backend (ACC-004). */
-data class AccountUser(val id: String, val email: String?)
+/**
+ * Usuario con sesión iniciada. [id] es el `uid` del backend (ACC-004). [needsEmailVerification] es verdadero
+ * para una cuenta de email que todavía no confirmó su dirección (ONB-019).
+ */
+data class AccountUser(
+    val id: String,
+    val email: String?,
+    val displayName: String? = null,
+    val needsEmailVerification: Boolean = false,
+)
 
 interface AccountRepository {
     /** Usuario actual, o null si no hay sesión. Emite en cada cambio de sesión. */

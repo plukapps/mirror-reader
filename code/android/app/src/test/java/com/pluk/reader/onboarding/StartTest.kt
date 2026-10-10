@@ -1,12 +1,10 @@
-package com.pluk.reader.welcome
+package com.pluk.reader.onboarding
 
 import com.pluk.reader.domain.account.AccountRepository
 import com.pluk.reader.domain.account.AccountUser
 import com.pluk.reader.domain.model.ImportOutcome
 import com.pluk.reader.domain.model.LibraryBook
 import com.pluk.reader.domain.repository.LibraryRepository
-import com.pluk.reader.domain.repository.WelcomeRepository
-import com.pluk.reader.domain.showsWelcome
 import com.pluk.reader.domain.usecase.LibrarySync
 import com.pluk.reader.remote.FakePositionBackend
 import com.pluk.reader.remote.FakeSyncBackend
@@ -27,21 +25,13 @@ import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
 import org.junit.After
 import org.junit.Assert.assertEquals
-import org.junit.Assert.assertFalse
-import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
 
-/** WEL-003, WEL-005, WEL-006: qué pantalla abre la app y cuándo deja de mostrarse la bienvenida. */
+/** ONB-019, WEL-006: qué pantalla abre la app. */
 @OptIn(ExperimentalCoroutinesApi::class)
-class WelcomeStartTest {
+class StartTest {
     private val dispatcher = StandardTestDispatcher()
-
-    private class FakeWelcome(completed: Boolean) : WelcomeRepository {
-        val stored = MutableStateFlow(completed)
-        override val completed: Flow<Boolean> = stored
-        override suspend fun markCompleted() { stored.value = true }
-    }
 
     private class FakeAccount(user: Flow<AccountUser?>) : AccountRepository {
         override val user = user
@@ -53,7 +43,8 @@ class WelcomeStartTest {
         override suspend fun import(uri: String): ImportOutcome = ImportOutcome.Rejected("x")
     }
 
-    private val someone = AccountUser("u1", null)
+    private val verified = AccountUser("u1", "a@b.c")
+    private val unverified = AccountUser("u1", "a@b.c", needsEmailVerification = true)
 
     @Before
     fun setUp() = Dispatchers.setMain(dispatcher)
@@ -61,44 +52,32 @@ class WelcomeStartTest {
     @After
     fun tearDown() = Dispatchers.resetMain()
 
-    private fun viewModel(welcome: WelcomeRepository, user: Flow<AccountUser?>) =
+    private fun viewModel(user: Flow<AccountUser?>) =
         MainViewModel(
             NoLibrary,
             LibrarySync(FakeSyncBackend().useCase(), FakeAccount(user), CoroutineScope(dispatcher)),
             FakePositionBackend().sync(FakeAccount(user), CoroutineScope(dispatcher)),
-            welcome,
             FakeAccount(user),
+            FakeAuth(),
         )
 
-    // WEL-003: la regla
     @Test
-    fun welcomeShowsUntilCompletedAndWheneverThereIsNoSession() {
-        assertTrue(showsWelcome(completed = false, signedIn = false))
-        assertTrue(showsWelcome(completed = false, signedIn = true))
-        assertTrue(showsWelcome(completed = true, signedIn = false))
-        assertFalse(showsWelcome(completed = true, signedIn = true))
-    }
-
-    // WEL-003: primera vez
-    @Test
-    fun firstLaunchOpensTheWelcome() = runTest(dispatcher) {
-        val vm = viewModel(FakeWelcome(completed = false), flowOf(someone))
+    fun withoutSessionOpensTheWelcome() = runTest(dispatcher) {
+        val vm = viewModel(flowOf(null))
         advanceUntilIdle()
         assertEquals(Start.Welcome, vm.start.value)
     }
 
-    // WEL-003: completada, pero sin sesión
     @Test
-    fun withoutSessionTheWelcomeShowsAgain() = runTest(dispatcher) {
-        val vm = viewModel(FakeWelcome(completed = true), flowOf(null))
+    fun unverifiedEmailAccountOpensTheVerification() = runTest(dispatcher) {
+        val vm = viewModel(flowOf(unverified))
         advanceUntilIdle()
-        assertEquals(Start.Welcome, vm.start.value)
+        assertEquals(Start.VerifyEmail, vm.start.value)
     }
 
-    // WEL-003: completada y con sesión
     @Test
-    fun completedWithSessionOpensHome() = runTest(dispatcher) {
-        val vm = viewModel(FakeWelcome(completed = true), flowOf(someone))
+    fun verifiedSessionOpensHome() = runTest(dispatcher) {
+        val vm = viewModel(flowOf(verified))
         advanceUntilIdle()
         assertEquals(Start.Home, vm.start.value)
     }
@@ -107,37 +86,25 @@ class WelcomeStartTest {
     @Test
     fun staysLoadingUntilTheSessionIsKnown() = runTest(dispatcher) {
         val session = CompletableDeferred<AccountUser?>()
-        val vm = viewModel(FakeWelcome(completed = true), flow { emit(session.await()) })
+        val vm = viewModel(flow { emit(session.await()) })
         advanceUntilIdle()
         assertEquals(Start.Loading, vm.start.value)
 
-        session.complete(someone)
+        session.complete(verified)
         advanceUntilIdle()
         assertEquals(Start.Home, vm.start.value)
     }
 
-    // WEL-003: se decide una vez por arranque; perder la sesión con la app abierta no reubica
+    // Se decide una vez por arranque: perder la sesión con la app abierta no reubica
     @Test
     fun theDecisionIsTakenOncePerLaunch() = runTest(dispatcher) {
-        val user = MutableStateFlow<AccountUser?>(someone)
-        val vm = viewModel(FakeWelcome(completed = true), user)
+        val user = MutableStateFlow<AccountUser?>(verified)
+        val vm = viewModel(user)
         advanceUntilIdle()
 
         user.value = null
         advanceUntilIdle()
 
         assertEquals(Start.Home, vm.start.value)
-    }
-
-    // WEL-005: "Comenzar" registra la bienvenida como completada
-    @Test
-    fun completingTheWelcomeIsRemembered() = runTest(dispatcher) {
-        val welcome = FakeWelcome(completed = false)
-        val vm = viewModel(welcome, flowOf(someone))
-
-        vm.completeWelcome()
-        advanceUntilIdle()
-
-        assertTrue(welcome.stored.value)
     }
 }

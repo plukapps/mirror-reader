@@ -84,6 +84,7 @@ Arquitectura MVVM en capas, un solo módulo Gradle, paquetes `com.pluk.reader.{u
 - Si hay más de un dispositivo conectado, `connectedDebugAndroidTest` corre en todos (también en un teléfono físico). Para limitarlo al emulador: `ANDROID_SERIAL=emulator-5554 ./gradlew ...`.
 - Fixture de pruebas: `code/android/tools/make_fixture_epub.py`.
 - Pruebas con adb: los enlaces web del libro abren el navegador al tocarlos. En builds de depuración se bloquean con `adb shell run-as com.pluk.reader touch files/block_external_links` y se vuelven a permitir con `rm files/block_external_links`.
+- Cuenta (ADR 0014): Firebase Auth con email y Google (Credential Manager). Sin cuenta de desarrollo: se entra por el onboarding. Google exige el SHA-1 de la máquina registrado en Firebase. Para volver a ver el onboarding hay que borrar los datos de la app (todavía no hay "Cerrar sesión").
 - Firebase (ADR 0005, ADR 0007): `code/android/app/google-services.json` se descarga de la consola (Configuración del proyecto → app `com.pluk.reader`) y NO va al repo (está en `.gitignore`). Sin él, el build falla. Revisar `git status` antes de commitear: nunca `git add -A` a ciegas.
 
 ## Apple (Mac e iOS)

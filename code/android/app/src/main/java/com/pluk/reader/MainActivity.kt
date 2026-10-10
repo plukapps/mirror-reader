@@ -21,6 +21,8 @@ import androidx.activity.viewModels
 import androidx.fragment.app.FragmentActivity
 import androidx.navigation.compose.rememberNavController
 import com.pluk.reader.di.MainEntryPoint
+import com.pluk.reader.domain.account.AuthLink
+import com.pluk.reader.domain.account.parseAuthLink
 import com.pluk.reader.ui.MainViewModel
 import com.pluk.reader.ui.navigation.AppNavHost
 import com.pluk.reader.ui.navigation.Routes
@@ -31,7 +33,7 @@ import dagger.hilt.android.EntryPointAccessors
 // FragmentActivity: el navegador de Readium es un Fragment (ADR 0005).
 @AndroidEntryPoint
 class MainActivity : FragmentActivity() {
-    // EPUB recibido con "Abrir con" y todavía sin mostrar.
+    // EPUB recibido con "Abrir con", o enlace de un email de la cuenta, todavía sin atender.
     private val incomingBook = mutableStateOf<Uri?>(null)
     private val viewModel: MainViewModel by viewModels()
 
@@ -50,7 +52,7 @@ class MainActivity : FragmentActivity() {
         setContent {
             ReaderTheme {
                 val start by viewModel.start.collectAsStateWithLifecycle()
-                // WEL-006: hasta decidir entre bienvenida e Inicio, el mismo amarillo del arranque.
+                // WEL-006: hasta decidir la pantalla de arranque (ONB-019), el mismo amarillo del arranque.
                 if (start == MainViewModel.Start.Loading) {
                     Box(Modifier.fillMaxSize().background(MarginColors.Yellow))
                 } else Surface(modifier = Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
@@ -58,6 +60,20 @@ class MainActivity : FragmentActivity() {
                     LaunchedEffect(incomingBook.value) {
                         incomingBook.value?.let { uri ->
                             incomingBook.value = null
+                            // ONB-007, ONB-018: enlaces de los emails de la cuenta.
+                            when (val link = parseAuthLink(uri.toString(), getString(R.string.auth_link_host))) {
+                                is AuthLink.ResetPassword -> {
+                                    navController.navigate(Routes.reset(link.code))
+                                    return@LaunchedEffect
+                                }
+                                is AuthLink.VerifyEmail -> {
+                                    viewModel.verifyEmailLink(link.code) { ok ->
+                                        Toast.makeText(this@MainActivity, if (ok) R.string.onb_email_verified_toast else R.string.onb_error_link, Toast.LENGTH_SHORT).show()
+                                    }
+                                    return@LaunchedEffect
+                                }
+                                null -> if (uri.scheme == "https") return@LaunchedEffect
+                            }
                             when (val incoming = viewModel.importIncoming(uri.toString())) {
                                 is MainViewModel.Incoming.Open -> navController.navigate(Routes.reader(incoming.bookId))
                                 is MainViewModel.Incoming.Failed ->
@@ -67,8 +83,11 @@ class MainActivity : FragmentActivity() {
                     }
                     AppNavHost(
                         navController,
-                        showWelcome = start == MainViewModel.Start.Welcome,
-                        onWelcomeCompleted = viewModel::completeWelcome,
+                        startDestination = when (start) {
+                            MainViewModel.Start.Welcome -> Routes.WELCOME
+                            MainViewModel.Start.VerifyEmail -> Routes.VERIFY
+                            else -> Routes.HOME
+                        },
                     )
                 }
             }
