@@ -7,15 +7,17 @@ struct BookCover: View {
 
     var body: some View {
         let shape = RoundedRectangle(cornerRadius: 6)
-        Group {
-            if let path = book.coverPath, let image = PlatformImage(contentsOfFile: path) {
-                Image(platformImage: image).resizable().scaledToFill()
-            } else {
-                generated
+        // El marco 2:3 manda; la imagen lo llena y se recorta, así una portada de otra proporción no desborda la columna.
+        Color.clear
+            .aspectRatio(2 / 3, contentMode: .fit)
+            .overlay {
+                if let path = book.coverPath, let image = PlatformImage(contentsOfFile: path) {
+                    Image(platformImage: image).resizable().scaledToFill()
+                } else {
+                    generated
+                }
             }
-        }
-        .aspectRatio(2 / 3, contentMode: .fit)
-        .clipShape(shape)
+            .clipShape(shape)
         .overlay(shape.strokeBorder(MarginColors.coverBorder, lineWidth: 3))
     }
 

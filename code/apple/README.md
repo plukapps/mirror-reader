@@ -1,6 +1,6 @@
 # Reader para Apple (Mac e iOS)
 
-App en Swift y SwiftUI, un solo target para Mac e iPhone. Por ahora es Inicio y, en iPhone, la búsqueda local, con los libros reales de la cuenta, guardados en una base local con SwiftData y bajados de Firebase (plan `specs/plans/2026-10-09-ios-home-data.md`, ADR 0012).
+App en Swift y SwiftUI, un solo target para Mac e iPhone. Por ahora son Inicio, la biblioteca y, en iPhone, la búsqueda local, con los libros reales de la cuenta, guardados en una base local con SwiftData y bajados de Firebase (plan `specs/plans/2026-10-09-ios-home-data.md`, ADR 0012).
 
 ## Requisitos
 

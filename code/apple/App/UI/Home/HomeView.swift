@@ -2,9 +2,11 @@ import ReaderDomain
 import SwiftUI
 
 /// Pantalla de inicio (HOM-001 a HOM-003, HOM-008 a HOM-010), según "02 — Home" del diseño.
-/// En la prueba (K-076) tocar libros o "Ver todo" no navega todavía.
+/// "Ver todo" e "Ir a la biblioteca" abren la biblioteca con el filtro de la sección (HOM-011). Tocar un libro
+/// no hace nada todavía: Apple no tiene lector.
 struct HomeView: View {
     let viewModel: HomeViewModel
+    var onOpenLibrary: (LibraryFilter) -> Void = { _ in }
 
     var body: some View {
         ScrollView {
@@ -20,9 +22,9 @@ struct HomeView: View {
                     if let book = content.continueReading {
                         ContinueCard(book: book)
                     } else {
-                        NothingReading(libraryEmpty: content.libraryEmpty)
+                        NothingReading(libraryEmpty: content.libraryEmpty, onOpenLibrary: { onOpenLibrary(.all) })
                     }
-                    Sections(content: content)
+                    Sections(content: content, onSeeAll: onOpenLibrary)
                 }
             }
             .padding(.bottom, 24)
@@ -30,7 +32,7 @@ struct HomeView: View {
             .frame(maxWidth: .infinity)
         }
         .background(MarginColors.paper)
-        .task { await viewModel.load() }
+        .task { await viewModel.reload() }
     }
 }
 
@@ -82,18 +84,25 @@ private struct ContinueCard: View {
 
 private struct NothingReading: View {
     let libraryEmpty: Bool
+    let onOpenLibrary: () -> Void
 
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
             Text("Nada en lectura todavía").font(.app(20, .semibold)).foregroundStyle(MarginColors.ink)
             Text("Abrí un libro de tu biblioteca y lo retomás desde acá.").font(.app(14)).foregroundStyle(MarginColors.muted)
-            Text(libraryEmpty ? "Importar un EPUB" : "Ir a la biblioteca")
-                .font(.app(14, .bold))
-                .foregroundStyle(MarginColors.yellow)
-                .padding(.horizontal, WindowLayout.horizontalPadding)
-                .frame(height: 44)
-                .background(MarginColors.ink, in: Capsule())
-                .padding(.top, 8)
+            // Importar todavía no existe en Apple (K-079): con la biblioteca vacía el botón no hace nada.
+            Button {
+                if !libraryEmpty { onOpenLibrary() }
+            } label: {
+                Text(libraryEmpty ? "Importar un EPUB" : "Ir a la biblioteca")
+                    .font(.app(14, .bold))
+                    .foregroundStyle(MarginColors.yellow)
+                    .padding(.horizontal, WindowLayout.horizontalPadding)
+                    .frame(height: 44)
+                    .background(MarginColors.ink, in: Capsule())
+            }
+            .buttonStyle(.plain)
+            .padding(.top, 8)
         }
         .padding(20)
         .frame(maxWidth: .infinity, alignment: .leading)
@@ -105,10 +114,11 @@ private struct NothingReading: View {
 
 private struct Sections: View {
     let content: HomeContent
+    let onSeeAll: (LibraryFilter) -> Void
 
     var body: some View {
         if !content.reading.isEmpty {
-            BookRow(title: "Leyendo", count: content.readingCount, books: content.reading) { book in
+            BookRow(title: "Leyendo", count: content.readingCount, books: content.reading, onSeeAll: { onSeeAll(.reading) }) { book in
                 let percent = book.progressPercent ?? 0
                 TitleAndAuthor(book: book, subtitle: book.author)
                 HStack(spacing: 8) {
@@ -119,12 +129,12 @@ private struct Sections: View {
             }
         }
         if !content.recentlyAdded.isEmpty {
-            BookRow(title: "Agregados recientemente", count: content.recentlyAddedCount, books: content.recentlyAdded) { book in
+            BookRow(title: "Agregados recientemente", count: content.recentlyAddedCount, books: content.recentlyAdded, onSeeAll: { onSeeAll(.all) }) { book in
                 TitleAndAuthor(book: book, subtitle: book.author)
             }
         }
         if !content.finished.isEmpty {
-            BookRow(title: "Terminados", count: content.finishedCount, books: content.finished, finished: true) { book in
+            BookRow(title: "Terminados", count: content.finishedCount, books: content.finished, finished: true, onSeeAll: { onSeeAll(.finished) }) { book in
                 TitleAndAuthor(book: book, subtitle: finishedSubtitle(author: book.author, lastReadAt: book.lastReadAt))
             }
         }
@@ -137,6 +147,7 @@ private struct BookRow<Details: View>: View {
     let count: Int
     let books: [LibraryBook]
     var finished = false
+    let onSeeAll: () -> Void
     @ViewBuilder let details: (LibraryBook) -> Details
 
     var body: some View {
@@ -146,7 +157,10 @@ private struct BookRow<Details: View>: View {
                 Text("\(count)").font(.app(13, .medium)).foregroundStyle(MarginColors.muted)
             }
             Spacer()
-            Text("Ver todo").font(.app(13, .semibold)).underline().foregroundStyle(MarginColors.ink)
+            Button(action: onSeeAll) {
+                Text("Ver todo").font(.app(13, .semibold)).underline().foregroundStyle(MarginColors.ink)
+            }
+            .buttonStyle(.plain)
         }
         .padding(.horizontal, WindowLayout.horizontalPadding)
         .padding(.top, 26)

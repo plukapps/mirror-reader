@@ -10,14 +10,17 @@ enum AppGraph {
     struct Screens {
         let home: HomeViewModel
         let search: SearchViewModel
+        let library: LibraryViewModel
     }
 
     static func makeScreens() -> Screens {
         let store = LibraryStore(container: container(), files: .standard)
-        return Screens(home: makeHome(store: store), search: SearchViewModel(library: store))
+        let library = LibraryViewModel(library: store)
+        return Screens(home: makeHome(store: store, library: library), search: SearchViewModel(library: store), library: library)
     }
 
-    private static func makeHome(store: LibraryStore) -> HomeViewModel {
+    /// La sincronización vuelve a leer la base en Inicio y en la biblioteca cada vez que la cambia.
+    private static func makeHome(store: LibraryStore, library: LibraryViewModel) -> HomeViewModel {
         // Los tests corren dentro de la app: nunca tocan el proyecto real.
         guard !isRunningTests, FirebaseSetup.configureIfAvailable() else {
             // Sin configuración de Firebase la app funciona solo en local (ADR 0002).
@@ -33,11 +36,16 @@ enum AppGraph {
             cloud: store
         )
         let log = Logger(subsystem: "com.pluk.reader", category: "LibrarySync")
-        return HomeViewModel(library: store) { onChange in
-            let outcome = await sync.run(onChange: onChange)
+        let home = HomeViewModel(library: store) { onChange in
+            // Cada cambio de la base recarga Inicio y la biblioteca.
+            let outcome = await sync.run {
+                await onChange()
+                await library.load()
+            }
             log.info("Sincronización: \(String(describing: outcome), privacy: .public)")
             return outcome
         }
+        return home
     }
 
     private static var isRunningTests: Bool {
