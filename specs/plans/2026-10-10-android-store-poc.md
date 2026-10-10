@@ -41,8 +41,8 @@ Investigado con el usuario el 2026-10-10:
 **Verificación:** `./gradlew :app:testDebugUnitTest`.
 
 ### Tarea 3 (K-162): datos (M)
-- [ ] `OpenLibraryCatalog` (URL, parser y errores como resultado, nunca excepción), `EpubDownloader` (descarga e importa; borra el temporal), `StoreAcquisitionsImpl` (DataStore), `StoreModule`.
-- [ ] Tests JVM del parser y de la URL con una respuesta guardada (`OpenLibraryParserTest`).
+- [x] `OpenLibraryCatalog` (URL, parser y errores como resultado, nunca excepción; los ids solo si la obra es `public`), `EpubDownloader` (descarga a `cacheDir`, tope de 100 MB, importa; `deliverFirst` prueba las fuentes en orden y borra el temporal), `StoreAcquisitionsImpl` (DataStore), `StoreModule`.
+- [x] Tests JVM `OpenLibraryTest` (7): URL, parser con una respuesta guardada, préstamo sin fuentes, `deliverFirst`.
 **Verificación:** tests JVM pasan, `assembleDebug` compila.
 
 ### Tarea 4 (K-163): `SearchViewModel` (M)
