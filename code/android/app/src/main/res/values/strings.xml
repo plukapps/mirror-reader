@@ -227,7 +227,7 @@
     <string name="book_actions_remove">Quitar de la biblioteca</string>
     <string name="book_actions_status_new">Sin empezar</string>
     <string name="book_actions_remove_title">¿Quitar «%1$s»?</string>
-    <string name="book_actions_remove_body">Se borra de este dispositivo con su progreso. Podés volver a importarlo.</string>
+    <string name="book_actions_remove_body">Se borra de tu cuenta y de todos tus dispositivos, con su progreso. Podés volver a importarlo.</string>
     <string name="book_actions_remove_confirm">Quitar</string>
     <string name="book_actions_cancel">Cancelar</string>
     <string name="book_actions_marked_finished">Marcado como terminado</string>

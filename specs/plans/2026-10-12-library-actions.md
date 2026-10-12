@@ -142,10 +142,20 @@ Pedido del usuario (2026-10-12), después de probar en el iPhone: "Quitar de la 
 - **Base de Android:** la versión 6 todavía no salió de la rama, así que `cloudDeleted` se agrega a la v6 (migración 5→6). Una instalación de prueba de la v6 anterior necesita borrar los datos de la app.
 
 ### Tarea 6 (K-177): Android (M)
-- [ ] Dominio: `RemoteLibrary.deleteBook(id)` y `deletedBookIds()`, `BookFileStore.deleteFiles(id)`, `CloudBooksRepository` con quitados pendientes, `markCloudDeleted` y quitar por la nube. Caso de uso `SyncRemovalsUseCase` (enviar pendientes y aplicar los de la nube) con tests JVM sobre `FakeSyncBackend`.
-- [ ] `BookActions.remove` envía al momento. La pasada de `SyncLibraryUseCase` incluye los borrados. Escucha de borrados mientras la app se ve. El lector abierto demora el quitado.
-- [ ] Firebase: `deletedAt` en Firestore, borrado en Storage, `saveBook` reinicia `deletedAt`.
-- [ ] Texto de confirmación.
+- [x] Dominio:
+  - `RemoteRemovals`: `markDeleted`, `deleteFiles`, `deletedBookIds` y `observeDeleted`. Es aparte de `RemoteLibrary` para no tocar sus fakes.
+  - `BookRemovals`: pendientes, `markCloudRemoved` y `removeDeletedInCloud`.
+  - `ReadingSession`: los libros abiertos en el lector.
+  - `RemovalSync`: enviar, aplicar, escuchar y esperar a que se cierre el lector. Lo implementa como `CloudRemovals`, `RemovalPushRequester` y `RemovalListener`.
+  - Test JVM `RemovalSyncTest` (8 casos).
+- [x] `BookActions.remove` pide enviar al momento. `SyncLibraryUseCase` empieza por `CloudRemovals.sync()`, y sin conexión corta la pasada. `MainViewModel` escucha mientras la app se ve. `ReaderViewModel` avisa a `ReadingSession` al abrir y al cerrar.
+- [x] Datos:
+  - `removed_books.cloudDeleted`, dentro de la v6.
+  - `BookEditorImpl` implementa `BookRemovals`.
+  - `FirebaseRemovals`: `deletedAt` del servidor, sin documento cuenta como hecho, y borra en Storage tolerando lo que no existe.
+  - `saveBook` pone `deletedAt = null` al actualizar.
+  - Tests de emulador en `BookEditorTest` (pendientes y quitar por la nube). Compilan y no se corrieron.
+- [x] Texto de confirmación nuevo.
 
 ### Tarea 7 (K-178): Apple (M)
 - [ ] Lo mismo en `ReaderDomain` (`LibrarySync`, `RemoteLibrary`, `BookFileStore`, `CoverStore`), `LibraryStore` (`RemovedBookRecord.isCloudDeleted`), Firebase y escucha. Tests de dominio y de app.

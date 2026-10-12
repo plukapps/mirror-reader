@@ -10,6 +10,7 @@ import com.pluk.reader.domain.onboarding.StartDestination
 import com.pluk.reader.domain.onboarding.startDestination
 import com.pluk.reader.domain.usecase.LibrarySync
 import com.pluk.reader.domain.usecase.PositionSync
+import com.pluk.reader.domain.usecase.RemovalListener
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -28,6 +29,7 @@ class MainViewModel @Inject constructor(
     private val library: LibraryRepository,
     private val librarySync: LibrarySync,
     private val positionSync: PositionSync,
+    private val removals: RemovalListener,
     private val accounts: AccountRepository,
     private val auth: AuthRepository,
 ) : ViewModel() {
@@ -63,12 +65,14 @@ class MainViewModel @Inject constructor(
         librarySync.requestIfStale()
         positionSync.requestFlush()
         positionSync.startListening()
+        removals.startListening()
     }
 
     /** SYN-011, SYN-012: la app dejó de verse. Envía la posición de lectura y deja de escuchar (sin trabajo en segundo plano). */
     fun onAppStopped() {
         positionSync.stopListening()
         positionSync.requestFlush()
+        removals.stopListening()
     }
 
     /**

@@ -41,7 +41,8 @@ class BookActionsTest {
     private val positions = FakePositions()
     private val editor = FakeEditor()
     private val flusher = CountingFlusher()
-    private val actions = BookActions(positions, editor, flusher)
+    private var pushes = 0
+    private val actions = BookActions(positions, editor, flusher) { pushes++ }
 
     // LIB-018: terminado conserva la última posición y queda al 100 %
     @Test
@@ -89,5 +90,7 @@ class BookActionsTest {
 
         assertEquals(listOf("b"), editor.removed)
         assertEquals(0, flusher.requests)
+        // LIB-020: se borra de la cuenta en cuanto se pueda
+        assertEquals(1, pushes)
     }
 }

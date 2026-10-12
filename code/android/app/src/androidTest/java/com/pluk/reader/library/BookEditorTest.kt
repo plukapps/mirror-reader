@@ -92,6 +92,36 @@ class BookEditorTest {
         assertEquals(listOf("otro"), cloud.cloudOnlyBookIds())
     }
 
+    // LIB-020: un libro de la nube queda pendiente de borrar allí; uno nunca subido, no
+    @Test
+    fun onlyUploadedBooksArePendingForTheCloud() = runBlocking {
+        cloud.addCloudOnly(listOf(remote("subido")))
+        val local = importMinimal()
+
+        editor.remove("subido")
+        editor.remove(local)
+
+        assertEquals(listOf("subido"), editor.pendingCloudRemovals())
+        editor.markCloudRemoved("subido")
+        assertTrue(editor.pendingCloudRemovals().isEmpty())
+    }
+
+    // LIB-008: un borrado de otro dispositivo quita aquí solo los libros que ya estaban en la nube
+    @Test
+    fun deletedInCloudRemovesOnlyUploadedBooks() = runBlocking {
+        cloud.addCloudOnly(listOf(remote("subido")))
+        val local = importMinimal()
+
+        editor.removeDeletedInCloud(listOf("subido", local, "desconocido"))
+
+        assertNull(db.bookDao().get("subido"))
+        assertTrue(db.bookDao().get(local) != null)
+        assertTrue(editor.pendingCloudRemovals().isEmpty())
+        // Y la sincronización no lo vuelve a traer.
+        cloud.addCloudOnly(listOf(remote("subido")))
+        assertNull(db.bookDao().get("subido"))
+    }
+
     // LIB-020: importar el mismo archivo lo devuelve a la biblioteca
     @Test
     fun importingAgainRestoresARemovedBook() = runBlocking {

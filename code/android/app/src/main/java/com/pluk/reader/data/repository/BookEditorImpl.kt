@@ -9,6 +9,7 @@ import com.pluk.reader.data.library.saveCover
 import com.pluk.reader.data.local.db.ReaderDatabase
 import com.pluk.reader.data.local.db.RemovedBookEntity
 import com.pluk.reader.domain.repository.BookEditor
+import com.pluk.reader.domain.repository.BookRemovals
 import dagger.hilt.android.qualifiers.ApplicationContext
 import java.io.File
 import javax.inject.Inject
@@ -19,7 +20,7 @@ class BookEditorImpl @Inject constructor(
     @ApplicationContext context: Context,
     private val db: ReaderDatabase,
     private val files: LibraryFiles,
-) : BookEditor {
+) : BookEditor, BookRemovals {
     private val resolver = context.applicationContext.contentResolver
 
     override suspend fun replaceCover(bookId: String, imageUri: String): Boolean = withContext(Dispatchers.IO) {
@@ -36,13 +37,29 @@ class BookEditorImpl @Inject constructor(
     }
 
     override suspend fun remove(bookId: String) = withContext(Dispatchers.IO) {
+        // Un libro que nunca se subió no tiene nada en la nube: queda hecho al quitarlo.
+        val inCloud = db.bookDao().get(bookId)?.uploadedAt != null
+        removeLocally(bookId, cloudDeleted = !inCloud)
+    }
+
+    override suspend fun pendingCloudRemovals(): List<String> = db.bookDao().getPendingCloudRemovals()
+
+    override suspend fun markCloudRemoved(bookId: String) = db.bookDao().markCloudRemoved(bookId)
+
+    override suspend fun removeDeletedInCloud(bookIds: List<String>) = withContext(Dispatchers.IO) {
+        for (bookId in bookIds) {
+            val book = db.bookDao().get(bookId) ?: continue
+            if (book.uploadedAt != null) removeLocally(bookId, cloudDeleted = true)
+        }
+    }
+
+    private suspend fun removeLocally(bookId: String, cloudDeleted: Boolean) {
         db.withTransaction {
-            db.bookDao().insertRemoved(RemovedBookEntity(bookId, System.currentTimeMillis()))
+            db.bookDao().insertRemoved(RemovedBookEntity(bookId, System.currentTimeMillis(), cloudDeleted))
             db.bookDao().delete(bookId)
             db.readingPositionDao().delete(bookId)
         }
         files.bookFile(bookId).delete()
         files.coverFile(bookId).delete()
-        Unit
     }
 }

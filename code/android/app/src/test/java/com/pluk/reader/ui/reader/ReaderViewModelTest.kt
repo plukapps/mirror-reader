@@ -14,6 +14,7 @@ import com.pluk.reader.domain.repository.BookRepository
 import com.pluk.reader.domain.repository.CloudBooksRepository
 import com.pluk.reader.domain.repository.CoverFile
 import com.pluk.reader.domain.usecase.DownloadBookUseCase
+import com.pluk.reader.domain.usecase.ReadingSession
 import com.pluk.reader.domain.usecase.ResolveOpeningPositionUseCase
 import java.io.File
 import com.pluk.reader.domain.repository.PositionRepository
@@ -158,7 +159,7 @@ class ReaderViewModelTest {
 
     private fun viewModel(books: FakeBooks) = ReaderViewModel(
         SavedStateHandle(mapOf(ReaderViewModel.ARG_BOOK_ID to "hash-del-libro")), books, settings, positions, host,
-        DownloadBookUseCase(cloud, files), positionSync, resolveOpening,
+        DownloadBookUseCase(cloud, files), positionSync, resolveOpening, ReadingSession(),
     )
 
     private suspend fun ReaderViewModel.awaitReady(predicate: (ReaderUiState.Ready) -> Boolean = { true }) =
@@ -201,7 +202,7 @@ class ReaderViewModelTest {
         val books = FakeBooks(Result.success(book()))
         val vm = ReaderViewModel(
             SavedStateHandle(mapOf(ReaderViewModel.ARG_BOOK_ID to "hash-del-libro")), books, settings, positions, host,
-            DownloadBookUseCase(cloud, failing), positionSync, resolveOpening,
+            DownloadBookUseCase(cloud, failing), positionSync, resolveOpening, ReadingSession(),
         )
         val state = vm.uiState.first { it !is ReaderUiState.Loading }
         assertEquals(ReaderUiState.Failed("Sin conexión. No se pudo descargar el libro."), state)

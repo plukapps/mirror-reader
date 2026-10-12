@@ -46,7 +46,7 @@ class BookActionsViewModelTest {
 
     private val positions = FakePositions()
     private val editor = FakeEditor()
-    private val vm by lazy { BookActionsViewModel(BookActions(positions, editor) {}) }
+    private val vm by lazy { BookActionsViewModel(BookActions(positions, editor, {}, {})) }
 
     private fun book(id: String, progress: Int?) = LibraryBook(id, "Drácula", "Bram Stoker", null, progress)
 

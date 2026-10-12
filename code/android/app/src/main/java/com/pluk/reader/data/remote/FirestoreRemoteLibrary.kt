@@ -35,8 +35,12 @@ class FirestoreRemoteLibrary @Inject constructor(
         val ref: DocumentReference = db.document("users/$uid/books/${book.id}")
         db.runTransaction { tx ->
             if (tx.get(ref).exists()) {
-                // Solo lo editable: la regla rechaza cambios en filePath, sizeBytes y createdAt.
-                tx.update(ref, mapOf(TITLE to book.title, AUTHORS to book.authors, UPDATED_AT to FieldValue.serverTimestamp()))
+                // Solo lo editable: la regla rechaza cambios en filePath, sizeBytes y createdAt. Un libro borrado que se
+                // vuelve a importar revive (LIB-020).
+                tx.update(
+                    ref,
+                    mapOf(TITLE to book.title, AUTHORS to book.authors, UPDATED_AT to FieldValue.serverTimestamp(), DELETED_AT to null),
+                )
             } else {
                 tx.set(
                     ref,

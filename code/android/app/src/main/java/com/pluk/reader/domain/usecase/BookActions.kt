@@ -15,6 +15,7 @@ class BookActions @Inject constructor(
     private val positions: PositionRepository,
     private val editor: BookEditor,
     private val flusher: PositionFlushRequester,
+    private val removals: RemovalPushRequester,
 ) {
     /** Deja el libro al 100 % conservando su última posición (LIB-018). */
     suspend fun markFinished(bookId: String) {
@@ -30,5 +31,9 @@ class BookActions @Inject constructor(
 
     suspend fun setCover(bookId: String, imageUri: String): Boolean = editor.replaceCover(bookId, imageUri)
 
-    suspend fun remove(bookId: String) = editor.remove(bookId)
+    /** Lo quita de aquí al instante y lo borra de la cuenta en cuanto haya conexión (LIB-020). */
+    suspend fun remove(bookId: String) {
+        editor.remove(bookId)
+        removals.requestPush()
+    }
 }

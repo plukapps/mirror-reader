@@ -1,6 +1,8 @@
 package com.pluk.reader.di
 
 import com.pluk.reader.data.remote.FirebaseBookFileStore
+import com.pluk.reader.data.remote.FirebaseRemovals
+import com.pluk.reader.data.repository.BookEditorImpl
 import com.pluk.reader.data.remote.FirestoreQuotaSource
 import com.pluk.reader.data.remote.FirestorePositions
 import com.pluk.reader.data.remote.FirestoreRemoteLibrary
@@ -10,6 +12,12 @@ import com.pluk.reader.domain.account.QuotaSource
 import com.pluk.reader.domain.remote.BookFileStore
 import com.pluk.reader.domain.remote.RemoteLibrary
 import com.pluk.reader.domain.remote.RemotePositions
+import com.pluk.reader.domain.remote.RemoteRemovals
+import com.pluk.reader.domain.repository.BookRemovals
+import com.pluk.reader.domain.usecase.CloudRemovals
+import com.pluk.reader.domain.usecase.RemovalListener
+import com.pluk.reader.domain.usecase.RemovalPushRequester
+import com.pluk.reader.domain.usecase.RemovalSync
 import com.pluk.reader.domain.repository.BookUploadRepository
 import com.pluk.reader.domain.repository.CloudBooksRepository
 import com.pluk.reader.domain.usecase.PositionFlusher
@@ -32,4 +40,11 @@ abstract class RemoteModule {
     @Binds @Singleton abstract fun bindQuotaSource(impl: FirestoreQuotaSource): QuotaSource
     @Binds @Singleton abstract fun bindBookUploadRepository(impl: BookUploadRepositoryImpl): BookUploadRepository
     @Binds @Singleton abstract fun bindCloudBooksRepository(impl: CloudBooksRepositoryImpl): CloudBooksRepository
+
+    // LIB-020: borrar un libro de la cuenta.
+    @Binds @Singleton abstract fun bindRemoteRemovals(impl: FirebaseRemovals): RemoteRemovals
+    @Binds @Singleton abstract fun bindBookRemovals(impl: BookEditorImpl): BookRemovals
+    @Binds @Singleton abstract fun bindCloudRemovals(impl: RemovalSync): CloudRemovals
+    @Binds @Singleton abstract fun bindRemovalPushRequester(impl: RemovalSync): RemovalPushRequester
+    @Binds @Singleton abstract fun bindRemovalListener(impl: RemovalSync): RemovalListener
 }
