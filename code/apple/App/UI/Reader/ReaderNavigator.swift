@@ -61,7 +61,7 @@ struct ReaderNavigator: UIViewControllerRepresentable {
         guard let navigator = try? EPUBNavigatorViewController(publication: publication, initialLocation: initial, config: config) else {
             return UIViewController()
         }
-        context.coordinator.attach(to: navigator)
+        context.coordinator.attach(to: navigator, initial: initial)
         return navigator
     }
 
@@ -99,6 +99,9 @@ struct ReaderNavigator: UIViewControllerRepresentable {
         private var appliedJump: ReaderViewModel.Jump?
         private var edgeTaps: DirectionalNavigationAdapter?
         private var tapToken: InputObservableToken?
+        /// SYN-014: texto que ancla la posición actual; se reemplaza cuando sale de la página visible.
+        private var keptText: Locator.Text?
+        private var anchoring: Task<Void, Never>?
 
         init(viewModel: ReaderViewModel) {
             self.viewModel = viewModel
@@ -106,8 +109,9 @@ struct ReaderNavigator: UIViewControllerRepresentable {
             appliedJump = viewModel.jump
         }
 
-        func attach(to navigator: EPUBNavigatorViewController) {
+        func attach(to navigator: EPUBNavigatorViewController, initial: Locator?) {
             self.navigator = navigator
+            keptText = initial?.text.highlight != nil ? initial?.text : nil
             navigator.delegate = self
             let edgeTaps = DirectionalNavigationAdapter(
                 pointerPolicy: .init(
@@ -136,6 +140,7 @@ struct ReaderNavigator: UIViewControllerRepresentable {
                 appliedJump = jump
                 // SYN-013: la posición de otro dispositivo llega como locator; un capítulo del índice, como enlace.
                 if let json = jump.locatorJson, let locator = try? Locator(jsonString: json) {
+                    keptText = locator.text.highlight != nil ? locator.text : nil
                     Task { await navigator.go(to: locator) }
                 } else {
                     Task { await navigator.go(to: Link(href: jump.href)) }
@@ -145,13 +150,28 @@ struct ReaderNavigator: UIViewControllerRepresentable {
 
         // MARK: EPUBNavigatorDelegate
 
+        /// SYN-014: el locator guarda además el texto del comienzo de la página. El de la posición desde la que se abrió
+        /// se conserva mientras siga a la vista.
         func navigator(_ navigator: Navigator, locationDidChange locator: Locator) {
-            viewModel.onLocationChanged(
-                locatorJson: (try? locator.jsonString()) ?? "{}",
-                totalProgression: locator.locations.totalProgression,
-                position: locator.locations.position,
-                href: locator.href.string
-            )
+            anchoring?.cancel()
+            anchoring = Task { [weak self, weak navigator = navigator as? EPUBNavigatorViewController] in
+                guard let self else { return }
+                let visible = await navigator?.firstVisibleText(kept: self.keptText) ?? .none
+                guard !Task.isCancelled else { return }
+                switch visible {
+                case .kept: break
+                case let .found(anchor): self.keptText = anchor.locatorText
+                case .none: self.keptText = nil
+                }
+                var anchored = locator
+                if let keptText = self.keptText { anchored.text = keptText }
+                self.viewModel.onLocationChanged(
+                    locatorJson: (try? anchored.jsonString()) ?? "{}",
+                    totalProgression: locator.locations.totalProgression,
+                    position: locator.locations.position,
+                    href: locator.href.string
+                )
+            }
         }
 
         func navigatorContentInset(_ navigator: VisualNavigator) -> UIEdgeInsets? {

@@ -37,6 +37,7 @@ import androidx.core.view.WindowInsetsControllerCompat
 import androidx.compose.ui.platform.testTag
 import androidx.compose.runtime.withFrameNanos
 import kotlin.math.roundToInt
+import kotlinx.coroutines.flow.collectLatest
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Box
@@ -201,6 +202,8 @@ private fun ReaderContent(
 ) {
     var showToc by remember { mutableStateOf(false) }
     var navigator by remember { mutableStateOf<EpubNavigatorFragment?>(null) }
+    // SYN-014: texto que ancla la posición actual; se reemplaza cuando sale de la página visible.
+    var keptText by remember(navigator) { mutableStateOf<Locator.Text?>(null) }
     var area by remember { mutableStateOf<Rect?>(null) }
     val scope = rememberCoroutineScope()
     val controller = remember(scope) { PageTurnController(scope) }
@@ -269,9 +272,22 @@ private fun ReaderContent(
                 return true
             }
         })
-        nav.currentLocator.collect { locator ->
+        // SYN-014: el locator guarda además el texto del comienzo de la página. El primero que llega es la posición
+        // desde la que se abrió: su texto se conserva mientras siga a la vista.
+        nav.currentLocator.collectLatest { locator ->
+            val anchored = if (locator.text.highlight != null) {
+                keptText = locator.text
+                locator
+            } else {
+                when (val visible = nav.firstVisibleText(keptText)) {
+                    VisibleText.Kept -> Unit
+                    is VisibleText.Found -> keptText = visible.anchor.toLocatorText()
+                    VisibleText.None -> keptText = null
+                }
+                keptText?.let { locator.copy(text = it) } ?: locator
+            }
             actions.onLocatorChanged(
-                locator.toJSON().toString(),
+                anchored.toJSON().toString(),
                 locator.locations.totalProgression,
                 locator.locations.position,
                 locator.href.toString(),
@@ -283,7 +299,10 @@ private fun ReaderContent(
     LaunchedEffect(navigator) {
         val nav = navigator ?: return@LaunchedEffect
         jumps.collect { json ->
-            runCatching { Locator.fromJSON(JSONObject(json)) }.getOrNull()?.let { nav.go(it, animated = false) }
+            runCatching { Locator.fromJSON(JSONObject(json)) }.getOrNull()?.let {
+                keptText = it.text.takeIf { text -> text.highlight != null }
+                nav.go(it, animated = false)
+            }
         }
     }
 
