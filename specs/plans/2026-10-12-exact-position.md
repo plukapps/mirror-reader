@@ -27,11 +27,11 @@ En los dos toolkits, si el locator trae `text.highlight`, la restauración busca
 
 ## Tareas
 
-- **K-160** Spec SYN-014, ADR 0011 y este plan.
-- **K-161** Dominio: `textAnchorAt` en Kotlin y en Swift, con tests (JVM y `swift test`).
-- **K-162** Android: script del primer carácter visible y locator con `text` en `ReaderScreen`.
-- **K-163** iOS: lo mismo en `ReaderNavigator`.
-- **K-164** Verificación a mano entre el teléfono y el iPhone (o el simulador) y cierre de docs.
+- **K-172** Spec SYN-014, ADR 0011 y este plan.
+- **K-173** Dominio: `textAnchorAt` en Kotlin y en Swift, con tests (JVM y `swift test`).
+- **K-174** Android: script del primer carácter visible y locator con `text` en `ReaderScreen`.
+- **K-175** iOS: lo mismo en `ReaderNavigator`.
+- **K-176** Verificación a mano entre el teléfono y el iPhone (o el simulador) y cierre de docs.
 
 ## Verificación a mano
 
@@ -45,4 +45,4 @@ En los dos toolkits, si el locator trae `text.highlight`, la restauración busca
 - Script probado en Chrome sin interfaz sobre un capítulo paginado con columnas CSS, como Readium, a 500×828, 800×1280 y 1280×800: el primer carácter visible coincide con un recorrido exhaustivo en el 100 % de las páginas (con guiones blandos, emojis e imágenes). Con otra letra y otros márgenes, el texto cae en la página correcta en el 100 % de los casos; por proporción, como hasta ahora, se erraba una página en 2 a 17 de cada 16 a 35.
 - Android: `TextAnchor.kt`, `FirstVisibleText.kt`, `ReaderScreen`. 322 tests JVM pasan.
 - iOS: `TextAnchor.swift`, `FirstVisibleText.swift`, `ReaderNavigator`. 154 tests de dominio y 96 en el simulador pasan; compila para Mac.
-- Pendiente: verificación a mano entre dispositivos (K-164).
+- Pendiente: verificación a mano entre dispositivos (K-176).
