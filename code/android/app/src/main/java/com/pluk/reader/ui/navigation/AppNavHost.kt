@@ -2,6 +2,10 @@ package com.pluk.reader.ui.navigation
 
 import android.widget.Toast
 import androidx.compose.foundation.layout.Box
+import androidx.compose.ui.draw.blur
+import com.pluk.reader.ui.actions.BookActionsHost
+import com.pluk.reader.ui.actions.BookActionsState
+import com.pluk.reader.ui.actions.LocalBookActions
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
@@ -9,6 +13,7 @@ import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
@@ -97,135 +102,144 @@ fun AppNavHost(
     // La barra flota sobre el contenido, que pasa por debajo; las pantallas dejan este espacio al final.
     val navBarInset = WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding()
     val bottomPadding = if (selected != null) BottomBarHeight + navBarInset else 0.dp
+    // LIB-016: un solo menú de libro para Inicio, Estantes y Buscar, dibujado encima de todo.
+    val bookActions = remember { BookActionsState() }
+    val menuOpen = bookActions.target != null
     Box(Modifier.fillMaxSize()) {
-        CompositionLocalProvider(LocalBottomBarPadding provides bottomPadding) {
-            NavHost(navController = navController, startDestination = startDestination, modifier = Modifier.fillMaxSize()) {
-                composable(Routes.WELCOME) {
-                    WelcomeScreen(
-                        onCreateAccount = { navController.navigate(Routes.signUp()) },
-                        onSignIn = { navController.navigate(Routes.SIGNIN) },
-                    )
+        // Con el menú abierto el fondo se desenfoca (diseño 05b; sin efecto antes de Android 12).
+        Box(Modifier.fillMaxSize().then(if (menuOpen) Modifier.blur(3.dp) else Modifier)) {
+            CompositionLocalProvider(LocalBottomBarPadding provides bottomPadding, LocalBookActions provides bookActions) {
+                NavHost(navController = navController, startDestination = startDestination, modifier = Modifier.fillMaxSize()) {
+                    composable(Routes.WELCOME) {
+                        WelcomeScreen(
+                            onCreateAccount = { navController.navigate(Routes.signUp()) },
+                            onSignIn = { navController.navigate(Routes.SIGNIN) },
+                        )
+                    }
+                    composable(
+                        Routes.SIGNUP,
+                        arguments = listOf(
+                            navArgument(SignUpViewModel.ARG_NAME) { type = NavType.StringType; defaultValue = "" },
+                            navArgument(SignUpViewModel.ARG_EMAIL) { type = NavType.StringType; defaultValue = "" },
+                        ),
+                    ) {
+                        SignUpScreen(
+                            onBack = { navController.popOrStartOver() },
+                            // Con la cuenta creada, crear cuenta ya no está detrás.
+                            onVerifyEmail = { navController.navigate(Routes.verify(justSent = true)) { popUpTo(Routes.SIGNUP) { inclusive = true } } },
+                            onInterests = { navController.startOver(Routes.INTERESTS) },
+                            onSignIn = { navController.navigate(Routes.SIGNIN) { popUpTo(Routes.SIGNUP) { inclusive = true } } },
+                        )
+                    }
+                    composable(
+                        Routes.VERIFY,
+                        arguments = listOf(navArgument(VerifyEmailViewModel.ARG_JUST_SENT) { type = NavType.BoolType; defaultValue = false }),
+                    ) {
+                        VerifyEmailScreen(
+                            onVerified = { navController.startOver(Routes.INTERESTS) },
+                            // ONB-008: de vuelta a crear cuenta, con la bienvenida detrás.
+                            onChange = { name, email ->
+                                navController.startOver(Routes.WELCOME)
+                                navController.navigate(Routes.signUp(name, email))
+                            },
+                        )
+                    }
+                    composable(Routes.INTERESTS) {
+                        InterestsScreen(
+                            onBack = null,
+                            onDone = { navController.navigate(Routes.GOAL) },
+                        )
+                    }
+                    composable(Routes.GOAL) {
+                        GoalScreen(
+                            onBack = { navController.popBackStack() },
+                            onDone = { navController.startOver(Routes.ALL_SET) },
+                        )
+                    }
+                    composable(Routes.ALL_SET) {
+                        AllSetScreen(
+                            onStartReading = { navController.startOver(Routes.HOME) },
+                            onImportBooks = {
+                                pendingImport = true
+                                navController.startOver(Routes.HOME)
+                            },
+                        )
+                    }
+                    composable(Routes.SIGNIN) {
+                        SignInScreen(
+                            onBack = { navController.popOrStartOver() },
+                            onHome = { navController.startOver(Routes.HOME) },
+                            onVerifyEmail = { justSent -> navController.startOver(Routes.verify(justSent)) },
+                            onForgot = { email -> navController.navigate(Routes.forgot(email)) },
+                            onCreateAccount = { navController.navigate(Routes.signUp()) { popUpTo(Routes.SIGNIN) { inclusive = true } } },
+                        )
+                    }
+                    composable(
+                        Routes.FORGOT,
+                        arguments = listOf(navArgument(ForgotPasswordViewModel.ARG_EMAIL) { type = NavType.StringType; defaultValue = "" }),
+                    ) {
+                        ForgotPasswordScreen(onBack = { navController.popOrStartOver() })
+                    }
+                    composable(
+                        Routes.RESET,
+                        arguments = listOf(navArgument(ResetPasswordViewModel.ARG_CODE) { type = NavType.StringType; defaultValue = "" }),
+                    ) {
+                        ResetPasswordScreen(
+                            onClose = { navController.popOrStartOver() },
+                            onHome = { navController.startOver(Routes.HOME) },
+                            onSignIn = {
+                                navController.startOver(Routes.WELCOME)
+                                navController.navigate(Routes.SIGNIN)
+                            },
+                            onRequestLink = { email ->
+                                navController.startOver(Routes.WELCOME)
+                                navController.navigate(Routes.SIGNIN)
+                                navController.navigate(Routes.forgot(email))
+                            },
+                        )
+                    }
+                    composable(Routes.HOME) {
+                        HomeScreen(
+                            onBookClick = { navController.navigate(Routes.reader(it)) },
+                            onSeeAll = { filter -> navController.navigateTo(Routes.library(filter)) },
+                            openImportPicker = pendingImport,
+                            onImportPickerOpened = { pendingImport = false },
+                        )
+                    }
+                    composable(
+                        route = Routes.LIBRARY,
+                        arguments = listOf(
+                            navArgument(LibraryViewModel.ARG_FILTER) { type = NavType.StringType; nullable = true; defaultValue = null },
+                        ),
+                    ) {
+                        LibraryScreen(onBookClick = { bookId -> navController.navigate(Routes.reader(bookId)) })
+                    }
+                    composable(Routes.SEARCH) {
+                        SearchScreen(onBookClick = { bookId -> navController.navigate(Routes.reader(bookId)) })
+                    }
+                    composable(
+                        route = Routes.READER,
+                        arguments = listOf(navArgument(ReaderViewModel.ARG_BOOK_ID) { type = NavType.StringType }),
+                    ) {
+                        ReaderScreen(onBack = { navController.popBackStack() })
+                    }
                 }
-                composable(
-                    Routes.SIGNUP,
-                    arguments = listOf(
-                        navArgument(SignUpViewModel.ARG_NAME) { type = NavType.StringType; defaultValue = "" },
-                        navArgument(SignUpViewModel.ARG_EMAIL) { type = NavType.StringType; defaultValue = "" },
-                    ),
-                ) {
-                    SignUpScreen(
-                        onBack = { navController.popOrStartOver() },
-                        // Con la cuenta creada, crear cuenta ya no está detrás.
-                        onVerifyEmail = { navController.navigate(Routes.verify(justSent = true)) { popUpTo(Routes.SIGNUP) { inclusive = true } } },
-                        onInterests = { navController.startOver(Routes.INTERESTS) },
-                        onSignIn = { navController.navigate(Routes.SIGNIN) { popUpTo(Routes.SIGNUP) { inclusive = true } } },
-                    )
-                }
-                composable(
-                    Routes.VERIFY,
-                    arguments = listOf(navArgument(VerifyEmailViewModel.ARG_JUST_SENT) { type = NavType.BoolType; defaultValue = false }),
-                ) {
-                    VerifyEmailScreen(
-                        onVerified = { navController.startOver(Routes.INTERESTS) },
-                        // ONB-008: de vuelta a crear cuenta, con la bienvenida detrás.
-                        onChange = { name, email ->
-                            navController.startOver(Routes.WELCOME)
-                            navController.navigate(Routes.signUp(name, email))
-                        },
-                    )
-                }
-                composable(Routes.INTERESTS) {
-                    InterestsScreen(
-                        onBack = null,
-                        onDone = { navController.navigate(Routes.GOAL) },
-                    )
-                }
-                composable(Routes.GOAL) {
-                    GoalScreen(
-                        onBack = { navController.popBackStack() },
-                        onDone = { navController.startOver(Routes.ALL_SET) },
-                    )
-                }
-                composable(Routes.ALL_SET) {
-                    AllSetScreen(
-                        onStartReading = { navController.startOver(Routes.HOME) },
-                        onImportBooks = {
-                            pendingImport = true
-                            navController.startOver(Routes.HOME)
-                        },
-                    )
-                }
-                composable(Routes.SIGNIN) {
-                    SignInScreen(
-                        onBack = { navController.popOrStartOver() },
-                        onHome = { navController.startOver(Routes.HOME) },
-                        onVerifyEmail = { justSent -> navController.startOver(Routes.verify(justSent)) },
-                        onForgot = { email -> navController.navigate(Routes.forgot(email)) },
-                        onCreateAccount = { navController.navigate(Routes.signUp()) { popUpTo(Routes.SIGNIN) { inclusive = true } } },
-                    )
-                }
-                composable(
-                    Routes.FORGOT,
-                    arguments = listOf(navArgument(ForgotPasswordViewModel.ARG_EMAIL) { type = NavType.StringType; defaultValue = "" }),
-                ) {
-                    ForgotPasswordScreen(onBack = { navController.popOrStartOver() })
-                }
-                composable(
-                    Routes.RESET,
-                    arguments = listOf(navArgument(ResetPasswordViewModel.ARG_CODE) { type = NavType.StringType; defaultValue = "" }),
-                ) {
-                    ResetPasswordScreen(
-                        onClose = { navController.popOrStartOver() },
-                        onHome = { navController.startOver(Routes.HOME) },
-                        onSignIn = {
-                            navController.startOver(Routes.WELCOME)
-                            navController.navigate(Routes.SIGNIN)
-                        },
-                        onRequestLink = { email ->
-                            navController.startOver(Routes.WELCOME)
-                            navController.navigate(Routes.SIGNIN)
-                            navController.navigate(Routes.forgot(email))
-                        },
-                    )
-                }
-                composable(Routes.HOME) {
-                    HomeScreen(
-                        onBookClick = { navController.navigate(Routes.reader(it)) },
-                        onSeeAll = { filter -> navController.navigateTo(Routes.library(filter)) },
-                        openImportPicker = pendingImport,
-                        onImportPickerOpened = { pendingImport = false },
-                    )
-                }
-                composable(
-                    route = Routes.LIBRARY,
-                    arguments = listOf(
-                        navArgument(LibraryViewModel.ARG_FILTER) { type = NavType.StringType; nullable = true; defaultValue = null },
-                    ),
-                ) {
-                    LibraryScreen(onBookClick = { bookId -> navController.navigate(Routes.reader(bookId)) })
-                }
-                composable(Routes.SEARCH) {
-                    SearchScreen(onBookClick = { bookId -> navController.navigate(Routes.reader(bookId)) })
-                }
-                composable(
-                    route = Routes.READER,
-                    arguments = listOf(navArgument(ReaderViewModel.ARG_BOOK_ID) { type = NavType.StringType }),
-                ) {
-                    ReaderScreen(onBack = { navController.popBackStack() })
+            }
+            if (selected != null) {
+                MarginBottomBar(selected, Modifier.align(Alignment.BottomCenter)) { destination ->
+                    when (destination) {
+                        MainDestination.Home -> navController.navigateTo(Routes.HOME)
+                        MainDestination.Shelves -> navController.navigateTo(Routes.library())
+                        MainDestination.Search -> navController.navigateTo(Routes.SEARCH)
+                        // TODO: Perfil (ACC) aún no existe (HOM-006).
+                        MainDestination.Profile ->
+                            Toast.makeText(context, R.string.nav_coming_soon, Toast.LENGTH_SHORT).show()
+                    }
                 }
             }
         }
         if (selected != null) {
-            MarginBottomBar(selected, Modifier.align(Alignment.BottomCenter)) { destination ->
-                when (destination) {
-                    MainDestination.Home -> navController.navigateTo(Routes.HOME)
-                    MainDestination.Shelves -> navController.navigateTo(Routes.library())
-                    MainDestination.Search -> navController.navigateTo(Routes.SEARCH)
-                    // TODO: Perfil (ACC) aún no existe (HOM-006).
-                    MainDestination.Profile ->
-                        Toast.makeText(context, R.string.nav_coming_soon, Toast.LENGTH_SHORT).show()
-                }
-            }
+            BookActionsHost(bookActions, onRead = { navController.navigate(Routes.reader(it)) }, bottomPadding = bottomPadding)
         }
     }
 }

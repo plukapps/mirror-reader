@@ -217,4 +217,21 @@
     <string name="reminder_title">Es hora de leer</string>
     <string name="reminder_body_goal">Tu meta de hoy: %1$d minutos.</string>
     <string name="reminder_body">Un rato de lectura tranquila te espera.</string>
+
+    <!-- Acciones del libro (LIB-016 a LIB-020, diseño 05b) -->
+    <string name="book_actions_more">Más acciones</string>
+    <string name="book_actions_read">Leer libro</string>
+    <string name="book_actions_mark_finished">Marcar como terminado</string>
+    <string name="book_actions_mark_unread">Marcar como no leído</string>
+    <string name="book_actions_change_cover">Subir foto de portada</string>
+    <string name="book_actions_remove">Quitar de la biblioteca</string>
+    <string name="book_actions_status_new">Sin empezar</string>
+    <string name="book_actions_remove_title">¿Quitar «%1$s»?</string>
+    <string name="book_actions_remove_body">Se borra de este dispositivo con su progreso. Podés volver a importarlo.</string>
+    <string name="book_actions_remove_confirm">Quitar</string>
+    <string name="book_actions_cancel">Cancelar</string>
+    <string name="book_actions_marked_finished">Marcado como terminado</string>
+    <string name="book_actions_marked_unread">Marcado como no leído</string>
+    <string name="book_actions_cover_failed">No se pudo usar esa foto.</string>
+    <string name="book_actions_removed">Se quitó «%1$s» de la biblioteca.</string>
 </resources>

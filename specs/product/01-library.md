@@ -25,7 +25,7 @@ Una biblioteca única y ordenada de los EPUB del usuario.
 - **LIB-017** "Leer libro" abre el libro en su última posición, igual que tocarlo.
 - **LIB-018** "Marcar como terminado" deja el libro al 100 %: pasa a "Terminados" y conserva su última posición. En un libro terminado la opción es "Marcar como no leído": el libro vuelve a estar sin empezar (no está en "Leyendo" ni en "Terminados") y se abre desde el principio. Los dos cambios llegan a mis otros dispositivos como cualquier avance de lectura (SYN).
 - **LIB-019** "Subir foto de portada" debe dejar elegir una foto del dispositivo y usarla como portada del libro en todas las pantallas. Por ahora la portada nueva se ve solo en este dispositivo (excepción a LIB-012 hasta sincronizar cambios de portada).
-- **LIB-020** "Quitar de la biblioteca" pide confirmación y borra de este dispositivo el libro, su archivo, su portada y su posición. No vuelve a aparecer con la sincronización. Importar el mismo archivo otra vez lo devuelve a la biblioteca, sin progreso. Por ahora no afecta a la nube ni a mis otros dispositivos: el borrado en todos los dispositivos de LIB-008 llega con la sincronización de borrados.
+- **LIB-020** "Quitar de la biblioteca" pide confirmación y borra de este dispositivo el libro, su archivo, su portada y su posición. No vuelve a aparecer con la sincronización. Importar el mismo archivo otra vez lo devuelve a la biblioteca. Por ahora no afecta a la nube ni a mis otros dispositivos: el borrado en todos los dispositivos de LIB-008 llega con la sincronización de borrados.
 
 ## Escenarios
 

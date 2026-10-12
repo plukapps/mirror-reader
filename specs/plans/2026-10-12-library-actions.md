@@ -94,12 +94,11 @@
 **Verificación:** `./gradlew :app:testDebugUnitTest`, `compileDebugAndroidTestKotlin`.
 
 ### Tarea 2 (K-173): Android, menú y acciones en las tres pantallas (M)
-- [ ] `BookActionsViewModel` con test JVM: abrir y cerrar el menú, cada acción, confirmación de quitar y mensajes.
-- [ ] `BookActionsMenu` según el diseño, con su función de posición y test JVM (arriba, debajo y bordes).
-- [ ] `BookActionsHost` con diálogo, Photo Picker y snackbar.
-- [ ] Mantener presionado en la biblioteca, Inicio y la búsqueda, con la acción de TalkBack. Íconos como `ImageVector`. Textos en `strings.xml`.
-- [ ] Test de emulador `BookActionsMenuTest` (LIB-016, LIB-020): mantener presionado muestra el menú y tocar fuera lo cierra. Se compila y no se corre en el teléfono sin preguntar.
-
+- [x] `BookActionsViewModel` con test JVM: opciones según el estado (`menuActions`), cada acción y sus mensajes.
+- [x] `BookActionsMenu` según el diseño, con `placeMenu` y test JVM (arriba, debajo, bordes y área segura).
+- [x] `BookActionsHost` con diálogo de confirmación, Photo Picker (`PickVisualMedia`, solo imágenes) y snackbar. Está en la raíz de `AppNavHost`, solo en Inicio, Estantes y Buscar, y el fondo se desenfoca con `Modifier.blur`.
+- [x] `Modifier.bookClickable` (tocar o mantener presionado, con vibración y "Más acciones" para TalkBack) y `coverAnchor` en `BookCell`, `ContinueCard`, `RowItem` y `ResultRow`. Íconos de Material Symbols Rounded como vector drawables. Textos en `strings.xml`.
+- [x] Test de emulador `BookActionsMenuTest` (LIB-016, LIB-018): tocar abre, mantener presionado muestra el menú y el estado, libro terminado con "no leído", tocar fuera cierra. Compila y no se corrió.
 **Verificación:** compila (`assembleDebug`), tests JVM pasan.
 
 ### Tarea 3 (K-174): Apple, datos y dominio (M)

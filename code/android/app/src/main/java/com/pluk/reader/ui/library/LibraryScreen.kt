@@ -1,5 +1,8 @@
 package com.pluk.reader.ui.library
 
+import com.pluk.reader.ui.actions.bookClickable
+import com.pluk.reader.ui.actions.coverAnchor
+import com.pluk.reader.ui.actions.rememberCoverAnchor
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
@@ -238,14 +241,15 @@ private fun BookCell(book: LibraryBook, onClick: () -> Unit) {
     }
     val cloudText = stringResource(R.string.library_status_cloud)
     val description = listOfNotNull(book.title, book.author, statusText, cloudText.takeIf { !book.isDownloaded }).joinToString(". ")
+    val anchor = rememberCoverAnchor()
     Column(
         Modifier
-            .clickable(role = Role.Button, onClick = onClick)
+            .bookClickable(book, anchor, onClick)
             .clearAndSetSemantics { contentDescription = description; role = Role.Button }
             .testTag("book-${book.id}"),
         verticalArrangement = Arrangement.spacedBy(6.dp),
     ) {
-        BookCover(book)
+        BookCover(book, Modifier.coverAnchor(anchor))
         // LIB-007: un libro solo en la nube se distingue de los descargados.
         if (!book.isDownloaded) {
             Text(cloudText, color = MarginColors.Muted, fontSize = 11.sp, fontWeight = FontWeight.SemiBold, modifier = Modifier.testTag("cloud-${book.id}"))

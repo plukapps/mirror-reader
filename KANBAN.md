@@ -5,7 +5,6 @@ Plan de referencia: `specs/plans/2026-10-06-android-epub-viewer.md`
 
 ## Backlog
 
-- **K-174** Acciones del libro, Tarea 3: Apple, datos y dominio (regla de "no leído", `BookActions`, `RemovedBookRecord`, `coverVersion`). LIB-018 a LIB-020. Rama `feature/library-actions`.
 - **K-175** Acciones del libro, Tarea 4: Apple, menú contextual, confirmación y selector de fotos. LIB-016 a LIB-020. Rama `feature/library-actions`.
 - **K-176** Acciones del libro, Tarea 5: cierre de docs y verificación a mano en el teléfono y el simulador. Rama `feature/library-actions`.
 - **K-156** Términos de uso y política de privacidad públicos (CMP-002, CMP-003). Cargar sus URL en `onb_terms_url` y `onb_privacy_url` (`strings.xml`): hoy el onboarding los muestra subrayados pero sin enlace. ONB-001, ONB-004.
@@ -42,10 +41,11 @@ Plan de referencia: `specs/plans/2026-10-06-android-epub-viewer.md`
 
 ## En curso
 
-- **K-173** Acciones del libro, Tarea 2: Android, menú de mantener presionado en Biblioteca, Inicio y Búsqueda, confirmación y Photo Picker. LIB-016 a LIB-020. Rama `feature/library-actions`.
+- **K-174** Acciones del libro, Tarea 3: Apple, datos y dominio (regla de "no leído", `BookActions`, `RemovedBookRecord`, `coverVersion`). LIB-018 a LIB-020. Rama `feature/library-actions`.
 
 ## Revisión
 
+- **K-173** Acciones del libro, Tarea 2: Android, menú de mantener presionado en Biblioteca, Inicio y Búsqueda, confirmación y Photo Picker. LIB-016 a LIB-020. Rama `feature/library-actions`. Hecho: `BookActionsViewModel`, `BookActionsMenu` (`placeMenu`), `BookActionsHost` en la raíz de `AppNavHost` con confirmación, Photo Picker y desenfoque, mantener presionado en Biblioteca, Inicio y Búsqueda. 332 tests JVM pasan (9 nuevos); `BookActionsMenuTest` (3) compila, sin correr. Falta verlo en el teléfono.
 - **K-172** Acciones del libro, Tarea 1: Android, datos y dominio (regla de "no leído", `BookActionsRepository`, base v6 con `removed_books` y `coverVersion`). LIB-018 a LIB-020. Rama `feature/library-actions`. Plan `2026-10-12-library-actions.md`. Hecho: `BookActions` (dominio), `BookEditorImpl`, base v6 con `MIGRATION_5_6`, sync que saltea quitados, importar devuelve un quitado, `coverVersion`. 323 tests JVM pasan (6 nuevos); `BookEditorTest` (5) y `MigrationTest` 5→6 compilan, sin correr (sin emulador).
 - **K-159** Bug: al iniciar sesión con una cuenta de email sin verificar, la app pasaba a O3 sin enviar el email de verificación (solo salía al crear la cuenta), y O3 decía "te enviamos un enlace". Visto por el usuario en el SM-S711B (2026-10-10) con la cuenta de desarrollo, que nunca se verificó. ONB-007, ONB-016. Rama `feature/onboarding`. Hecho: `SignInViewModel` envía el email al ingresar con la cuenta sin verificar y O3 arranca con la espera de 60 s si salió; texto de O3 que no promete un envío; ONB-016 actualizado. 2 tests JVM nuevos (vistos en rojo); 317 pasan. Falta verlo en el teléfono.
 - **K-144** Onboarding, Tarea 7: cierre de docs, verificación y PR. Rama `feature/onboarding`. Hecho: `android.md`, `AGENTS.md`, resultado y lista de verificación a mano en el plan, K-156 a K-158 en Backlog, PR. Falta la verificación a mano (no había dispositivo conectado).
