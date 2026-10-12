@@ -295,7 +295,6 @@ private fun ResultRow(book: LibraryBook, showDivider: Boolean, onClick: () -> Un
                     book.title,
                     color = MarginColors.Ink,
                     fontSize = 16.sp,
-//                    modifier = Modifier.background(Color.Yellow),
                     fontWeight = FontWeight.Bold,
                     maxLines = 2,
                     overflow = TextOverflow.Ellipsis
@@ -306,7 +305,6 @@ private fun ResultRow(book: LibraryBook, showDivider: Boolean, onClick: () -> Un
                         color = MarginColors.Muted,
                         fontSize = 13.sp,
                         maxLines = 1,
-//                        modifier = Modifier.background(Color.Red),
                         overflow = TextOverflow.Ellipsis
                     )
                 }
@@ -319,7 +317,6 @@ private fun ResultRow(book: LibraryBook, showDivider: Boolean, onClick: () -> Un
                         status,
                         color = if (reading) MarginColors.Ink else MarginColors.Muted,
                         fontSize = 11.sp,
-//                        modifier = Modifier.background(Color.Blue),
                         fontWeight = FontWeight.SemiBold,
                     )
                 }
