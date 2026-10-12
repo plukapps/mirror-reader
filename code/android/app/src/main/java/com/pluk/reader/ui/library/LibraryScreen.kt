@@ -219,7 +219,7 @@ private fun Tab(
 @Composable
 private fun BookGrid(books: List<LibraryBook>, onBookClick: (String) -> Unit, bottomPadding: Dp) {
     LazyVerticalGrid(
-        columns = GridCells.Adaptive(minSize = 96.dp),
+        columns = GridCells.Adaptive(minSize = 104.dp),
         contentPadding = PaddingValues(start = 20.dp, end = 20.dp, top = 18.dp, bottom = 24.dp + bottomPadding),
         horizontalArrangement = Arrangement.spacedBy(12.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp),
@@ -322,3 +322,29 @@ private fun LibraryPreview() {
         onBookClick = {},
     )
 }
+
+@Preview(
+    name = "Galaxy S25",
+    widthDp = 412,
+    heightDp = 892,
+    showBackground = true
+)
+@Composable
+private fun LibraryPreview2() {
+    val books = listOf(
+        LibraryBook("a", "MEDI-\nTATIONS", "Marcus Aurelius", null, 42),
+        LibraryBook("b", "MOBY\n—DICK", null, null, 8),
+        LibraryBook("c", "The Odyssey", null, null, 71),
+        LibraryBook("d", "Pride & Prejudice", null, null, 100),
+        LibraryBook("e", "DRAC-\nULA", null, null, null),
+        LibraryBook("f", "Walden", null, null, 100),
+    )
+    LibraryContent(
+        state = LibraryUiState(loading = false, books = books, allCount = 24, readingCount = 3, finishedCount = 12),
+        snackbar = remember { SnackbarHostState() },
+        onFilterSelected = {},
+        onImport = {},
+        onBookClick = {},
+    )
+}
+

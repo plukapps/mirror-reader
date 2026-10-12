@@ -309,18 +309,18 @@ private fun BookRow(
     Row(
         Modifier
             .fillMaxWidth()
-            .padding(start = 20.dp, end = 20.dp, top = 26.dp, bottom = 12.dp),
+            .padding(start = 24.dp, end = 20.dp, top = 48.dp, bottom = 12.dp),
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.Bottom) {
-            Text(stringResource(title), color = MarginColors.Ink, fontSize = 18.sp, fontWeight = FontWeight.Bold, letterSpacing = (-0.02).em)
-            Text("$count", color = MarginColors.Muted, fontSize = 13.sp, fontWeight = FontWeight.Medium)
+            Text(stringResource(title), color = MarginColors.Ink, fontSize = 15.sp, fontWeight = FontWeight.Bold, letterSpacing = (-0.02).em)
+            Text("$count", color = MarginColors.Muted, fontSize = 11.sp, fontWeight = FontWeight.Medium)
         }
         Text(
             stringResource(R.string.home_see_all),
             color = MarginColors.Ink,
-            fontSize = 13.sp,
+            fontSize = 12.sp,
             fontWeight = FontWeight.SemiBold,
             textDecoration = TextDecoration.Underline,
             modifier = Modifier
