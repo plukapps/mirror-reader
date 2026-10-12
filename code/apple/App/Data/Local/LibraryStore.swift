@@ -358,6 +358,11 @@ actor LibraryStore: ModelActor, LibraryRepository, CloudBooksRepository, BookUpl
         try? FileManager.default.removeItem(at: files.coverFile(bookId: bookId))
     }
 
+    /// El libro ya tiene portada en este dispositivo (LIB-012).
+    func hasCover(bookId: String) -> Bool {
+        (try? record(bookId))?.hasCover == true
+    }
+
     /// Título del libro, para el lector.
     func title(bookId: String) -> String? {
         (try? record(bookId))?.title

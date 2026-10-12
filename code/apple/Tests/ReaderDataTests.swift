@@ -129,6 +129,23 @@ struct EpubImporterTests {
         #expect(book.author == "Autor de prueba")
     }
 
+    @Test("LIB-012: un libro bajado de la nube sin portada la saca del EPUB, como Android")
+    func downloadedBookGetsCoverFromEpub() async throws {
+        let (importer, store) = try makeImporter()
+        let source = try #require(Bundle(for: BundleToken.self).url(forResource: "fixture-cover", withExtension: "epub"))
+        let bookId = try LibraryFiles.sha256(of: source)
+        try await store.addCloudOnly([RemoteBook(id: bookId, title: "Libro de prueba", authors: [], sizeBytes: 1)])
+        let downloaded = files.newTempFile()
+        try FileManager.default.copyItem(at: source, to: downloaded)
+
+        try await CoverExtractingBookFiles(store: store, importer: importer).installBook(bookId: bookId, from: downloaded)
+
+        let book = try #require(await store.books().first)
+        #expect(book.isDownloaded)
+        let cover = try #require(book.coverPath)
+        #expect(FileManager.default.fileExists(atPath: cover))
+    }
+
     @Test("LIB-003: importar dos veces el mismo archivo no lo duplica")
     func secondImportIsAlreadyInLibrary() async throws {
         let (importer, store) = try makeImporter()

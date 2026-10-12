@@ -92,6 +92,16 @@ final class EpubImporter: BookImporter {
         }
     }
 
+    /// LIB-012: un libro bajado de la nube que todavía no tiene portada la saca del EPUB.
+    func extractCoverIfMissing(bookId: String) async {
+        guard await !store.hasCover(bookId: bookId) else { return }
+        guard let publication = try? await loader.open(files.bookFile(bookId: bookId)) else { return }
+        defer { publication.close() }
+        if await saveCover(publication, to: files.coverFile(bookId: bookId)) {
+            try? await store.markImported(id: bookId, hasCover: true)
+        }
+    }
+
     /// Portada en JPEG de hasta 600 px de alto, como Android (LIB-004).
     private func saveCover(_ publication: Publication, to target: URL) async -> Bool {
         guard case let .success(image?) = await publication.cover() else { return false }
