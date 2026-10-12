@@ -54,13 +54,7 @@
 - **Base de datos:** versión 6.
   - `MIGRATION_5_6` crea `removed_books(id TEXT PRIMARY KEY NOT NULL, removedAt INTEGER NOT NULL)` y agrega `coverVersion INTEGER NOT NULL DEFAULT 0` a `books`.
   - `MigrationTest` cubre 5→6. Es de emulador: se compila y no se corre sin preguntar.
-- **Dominio:** interfaz nueva `BookActionsRepository` en `domain/repository`, con:
-  - `markFinished(bookId)`
-  - `markUnread(bookId)`
-  - `setCover(bookId, imageUri: String): Boolean`
-  - `remove(bookId)`
-
-  Es aparte de `LibraryRepository` para no tocar los seis `FakeLibrary` de los tests. La implementa `BookActionsRepositoryImpl` en `data`, con un módulo de Hilt.
+- **Dominio:** caso de uso `BookActions` (`domain/usecase`) con `markFinished`, `markUnread`, `setCover` y `remove`. Usa `PositionRepository`, una interfaz nueva `BookEditor` (`domain/repository`: `replaceCover(bookId, imageUri)` y `remove(bookId)`) y `PositionFlushRequester` (lo implementa `PositionSync`). Es aparte de `LibraryRepository` para no tocar los seis `FakeLibrary` de los tests. `BookEditorImpl` en `data`, enlazado en `RepositoryModule`. Las consultas de `removed_books` viven en `BookDao`.
 - **Estado de lectura:** se ajusta `LibraryRepositoryImpl.books` a la regla de `"{}"`. La lógica pura va en `domain` (`readingStatus`/mapeo) con test JVM.
 - **UI:**
   - `BookActionsMenu` en `ui/library` es un `Popup` a pantalla completa con el velo, la portada elevada en la posición de la original y la tarjeta. La posición se calcula con una función pura con test JVM.
@@ -91,11 +85,11 @@
 ## Tareas
 
 ### Tarea 1 (K-172): Android, datos y dominio (M)
-- [ ] Regla `"{}"` en el estado de lectura, con test JVM (LIB-018).
-- [ ] `BookActionsRepository`, implementación y módulo de Hilt. Base de datos v6 (`removed_books`, `coverVersion`) con `MIGRATION_5_6`.
-- [ ] `addCloudOnly` ignora quitados e importar borra la marca (LIB-020). `coverVersion` llega a `LibraryBook`, y `BookCover` lo usa como clave.
-- [ ] Escalado de la foto compartido con `EpubImporter.saveCover`.
-- [ ] Tests JVM con fakes: `markFinished` y `markUnread` guardan la posición correcta y piden el envío; la sincronización no re-agrega un quitado. `MigrationTest` 5→6 compila.
+- [x] Regla `"{}"` en el estado de lectura (`positionProgression`), con test JVM (LIB-018).
+- [x] `BookActions`, `BookEditor` y `BookEditorImpl`, con Hilt. Base de datos v6 (`removed_books`, `coverVersion`) con `MIGRATION_5_6`.
+- [x] `addCloudOnly` ignora quitados e importar borra la marca (LIB-020). `coverVersion` llega a `LibraryBook`, y `BookCover` lo usa como clave.
+- [x] Guardado de portada compartido con `EpubImporter` (`CoverImages.kt`). La foto se lee con `ImageDecoder`, que respeta la orientación, y en Android 8 con `BitmapFactory`.
+- [x] Tests JVM `BookActionsTest`: `markFinished` y `markUnread` guardan la posición correcta y piden el envío. Tests de emulador `BookEditorTest`: quitar, la sincronización no re-agrega un quitado, reimportar y portada. `MigrationTest` 5→6. Los de emulador compilan y no se corrieron (sin emulador).
 
 **Verificación:** `./gradlew :app:testDebugUnitTest`, `compileDebugAndroidTestKotlin`.
 

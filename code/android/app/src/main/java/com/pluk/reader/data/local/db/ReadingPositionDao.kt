@@ -12,11 +12,14 @@ interface ReadingPositionDao {
     @Query("SELECT * FROM reading_positions WHERE bookId = :bookId")
     suspend fun get(bookId: String): ReadingPositionEntity?
 
-    @Query("SELECT bookId, progress, updatedAt FROM reading_positions")
+    @Query("SELECT bookId, locatorJson, progress, updatedAt FROM reading_positions")
     fun observeProgress(): Flow<List<BookProgress>>
 
     @Upsert
     suspend fun upsert(entity: ReadingPositionEntity)
+
+    @Query("DELETE FROM reading_positions WHERE bookId = :bookId")
+    suspend fun delete(bookId: String)
 
     /**
      * Posiciones que la nube aún no tiene y cuyo libro ya está en la nube, para enviarlas (SYN-011). La regla del
@@ -53,4 +56,4 @@ interface ReadingPositionDao {
 }
 
 /** Progresión guardada de un libro. */
-data class BookProgress(val bookId: String, val progress: Double?, val updatedAt: Long)
+data class BookProgress(val bookId: String, val locatorJson: String, val progress: Double?, val updatedAt: Long)

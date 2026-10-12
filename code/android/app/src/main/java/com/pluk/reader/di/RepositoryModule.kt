@@ -1,5 +1,6 @@
 package com.pluk.reader.di
 
+import com.pluk.reader.data.repository.BookEditorImpl
 import com.pluk.reader.data.repository.BookRepositoryImpl
 import com.pluk.reader.data.repository.LibraryRepositoryImpl
 import com.pluk.reader.data.repository.PositionRepositoryImpl
@@ -9,6 +10,7 @@ import com.pluk.reader.data.repository.OnboardingPreferencesImpl
 import com.pluk.reader.data.reminder.AlarmReminderScheduler
 import com.pluk.reader.domain.onboarding.ReminderScheduler
 import com.pluk.reader.domain.onboarding.OnboardingPreferences
+import com.pluk.reader.domain.repository.BookEditor
 import com.pluk.reader.domain.repository.BookRepository
 import com.pluk.reader.domain.repository.LibraryRepository
 import com.pluk.reader.domain.repository.PositionRepository
@@ -39,6 +41,10 @@ abstract class RepositoryModule {
     @Binds
     @Singleton
     abstract fun bindBookRepository(impl: BookRepositoryImpl): BookRepository
+
+    @Binds
+    @Singleton
+    abstract fun bindBookEditor(impl: BookEditorImpl): BookEditor
 
     @Binds
     @Singleton

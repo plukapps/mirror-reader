@@ -13,6 +13,7 @@ import com.pluk.reader.domain.remote.RemotePositions
 import com.pluk.reader.domain.repository.BookUploadRepository
 import com.pluk.reader.domain.repository.CloudBooksRepository
 import com.pluk.reader.domain.usecase.PositionFlusher
+import com.pluk.reader.domain.usecase.PositionFlushRequester
 import com.pluk.reader.domain.usecase.PositionSync
 import dagger.Binds
 import dagger.Module
@@ -25,6 +26,7 @@ import javax.inject.Singleton
 abstract class RemoteModule {
     @Binds @Singleton abstract fun bindRemoteLibrary(impl: FirestoreRemoteLibrary): RemoteLibrary
     @Binds @Singleton abstract fun bindPositionFlusher(impl: PositionSync): PositionFlusher
+    @Binds @Singleton abstract fun bindPositionFlushRequester(impl: PositionSync): PositionFlushRequester
     @Binds @Singleton abstract fun bindRemotePositions(impl: FirestorePositions): RemotePositions
     @Binds @Singleton abstract fun bindBookFileStore(impl: FirebaseBookFileStore): BookFileStore
     @Binds @Singleton abstract fun bindQuotaSource(impl: FirestoreQuotaSource): QuotaSource

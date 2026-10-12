@@ -15,4 +15,5 @@ fun BookEntity.toLibraryBook(progression: Double?, coverPath: String?, lastReadA
     addedAt = addedAt,
     isDownloaded = isDownloaded,
     isUploaded = uploadedAt != null,
+    coverVersion = coverVersion,
 )

@@ -47,6 +47,23 @@ interface BookDao {
     @Query("UPDATE books SET hasCover = 1, isCoverUploaded = 1 WHERE id = :id")
     suspend fun markCover(id: String)
 
+    /** El usuario eligió una foto como portada (LIB-019). La nube conserva la anterior. */
+    @Query("UPDATE books SET hasCover = 1, coverVersion = :version WHERE id = :id")
+    suspend fun setCustomCover(id: String, version: Long)
+
+    @Query("DELETE FROM books WHERE id = :id")
+    suspend fun delete(id: String)
+
+    /** Ids de los libros quitados de este dispositivo (LIB-020). */
+    @Query("SELECT id FROM removed_books")
+    suspend fun getRemovedIds(): List<String>
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertRemoved(entity: RemovedBookEntity)
+
+    @Query("DELETE FROM removed_books WHERE id = :id")
+    suspend fun deleteRemoved(id: String)
+
     /** El archivo del libro ya está en este dispositivo (descargado o importado de nuevo). */
     @Query("UPDATE books SET isDownloaded = 1, hasCover = :hasCover WHERE id = :id")
     suspend fun markDownloaded(id: String, hasCover: Boolean)
