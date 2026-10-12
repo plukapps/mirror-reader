@@ -5,6 +5,7 @@ Plan de referencia: `specs/plans/2026-10-06-android-epub-viewer.md`
 
 ## Backlog
 
+- **K-181** Android: `FirestoreRemoteLibrary.listBooks` usa `get()` sin fuente, y con la caché de Firestore desactivada puede devolver 0 libros "con éxito" si el servidor tarda al arrancar (visto en la SM-X510 el 2026-10-12: una pasada con 0 y la siguiente con 25). Inofensivo pero retrasa la sincronización. Pedir `Source.SERVER` (como iOS, `.server`) en `listBooks` y `deletedBookIds`. SYN-001.
 - **K-156** Términos de uso y política de privacidad públicos (CMP-002, CMP-003). Cargar sus URL en `onb_terms_url` y `onb_privacy_url` (`strings.xml`): hoy el onboarding los muestra subrayados pero sin enlace. ONB-001, ONB-004.
 - **K-157** Publicar `/.well-known/assetlinks.json` en Firebase Hosting de `mirror-reading-staging` (paquete `com.pluk.reader` y SHA-256 de las firmas de debug y release) para que los enlaces de verificación y de contraseña nueva abran la app (O9) en lugar de la página de Firebase. Despliegue al proyecto real: pedirlo al usuario. ONB-018, ADR 0014.
 - **K-158** Cerrar sesión y perfil (ACC-006): hoy la única forma de volver a ver el onboarding es borrar los datos de la app. Definir qué pasa con la biblioteca local de la cuenta anterior.
