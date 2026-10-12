@@ -20,6 +20,7 @@ Mismo estado en todos los dispositivos, sin acción manual, sin perder datos.
 - **SYN-012** La posición y el porcentaje de lo leído en otros dispositivos se mantienen al día solos mientras la app está a la vista, sin esperar a la sincronización de la biblioteca. Al abrir un libro se consulta su posición más reciente antes de mostrarlo.
 - **SYN-013** Si mientras se lee un libro otro dispositivo avanza ese mismo libro, se ofrece seguir desde allí con un aviso discreto, siempre que haya leído más adelante por unas pocas páginas (más del 0,5 % del libro). La página nunca se mueve sola.
 - **SYN-014** La posición de lectura recuerda el texto que estaba al comienzo de la página, no solo la proporción del capítulo. Al continuar en otro dispositivo, o en el mismo con otra letra, márgenes o tamaño de pantalla, se abre la página que contiene ese texto, aunque los dos paginen distinto. Si el libro no permite ubicar el texto (maquetación fija, escritura de derecha a izquierda o vertical), se usa la proporción del capítulo.
+- **SYN-015** Mientras la app está a la vista, un libro que agrego (o vuelvo a importar) en otro dispositivo aparece solo en segundos, sin esperar a la sincronización de la biblioteca de SYN-001. Si la app estaba en segundo plano, aparece al volver a ella.
 
 ## Escenarios
 
@@ -27,6 +28,7 @@ Mismo estado en todos los dispositivos, sin acción manual, sin perder datos.
 - Dado que borro un subrayado en A, cuando B sincroniza, entonces desaparece en B.
 - Dado que leo en el teléfono una página que empieza con "y entonces la puerta", cuando abro el mismo libro en la tablet, entonces la página que se muestra contiene "y entonces la puerta".
 - Dado que pierdo conexión durante una subida, cuando vuelve, entonces continúa sin duplicar el libro.
+- Dado mi teléfono y mi tablet con la app abierta, cuando importo un libro en el teléfono, entonces en unos segundos aparece en la tablet sin tocar nada.
 
 ## Fuera de alcance
 

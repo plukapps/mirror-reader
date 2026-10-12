@@ -17,6 +17,7 @@ enum class LibraryFilter { All, Reading, Finished }
  * @param lastReadAt instante de la última posición guardada, o null si nunca se abrió (HOM-002).
  * @param isDownloaded el archivo está en este dispositivo; si no, el libro está solo en la nube (LIB-007).
  * @param isUploaded el libro ya está en la nube.
+ * @param coverVersion cambia cuando el usuario reemplaza la portada (LIB-019): la ruta es la misma.
  */
 data class LibraryBook(
     val id: String,
@@ -28,6 +29,7 @@ data class LibraryBook(
     val addedAt: Long = 0L,
     val isDownloaded: Boolean = true,
     val isUploaded: Boolean = false,
+    val coverVersion: Long = 0L,
 ) {
     val status: ReadingStatus = readingStatus(progressPercent)
 }
@@ -37,6 +39,22 @@ fun readingStatus(progressPercent: Int?): ReadingStatus = when {
     progressPercent == null -> ReadingStatus.New
     progressPercent >= 100 -> ReadingStatus.Finished
     else -> ReadingStatus.Reading
+}
+
+/**
+ * Localizador de un libro marcado como no leído (LIB-018): viaja como una posición más, así llega a los otros
+ * dispositivos, y el lector lo abre desde el principio porque no apunta a ningún capítulo (no tiene `href`). No es
+ * `"{}"`, que ya se usa como posición de relleno.
+ */
+const val UNREAD_LOCATOR = """{"unread":true}"""
+
+/**
+ * Progresión de un libro que tiene posición guardada. Una posición "no leído" cuenta como sin abrir (null), salvo que
+ * se haya marcado terminado sin abrirlo. Una posición sin progresión (libro leído antes de LIB-011) cuenta como 0 %.
+ */
+fun positionProgression(locatorJson: String, progress: Double?): Double? = when {
+    locatorJson == UNREAD_LOCATOR && (progress ?: 0.0) < 1.0 -> null
+    else -> progress ?: 0.0
 }
 
 fun List<LibraryBook>.filterBy(filter: LibraryFilter): List<LibraryBook> = when (filter) {

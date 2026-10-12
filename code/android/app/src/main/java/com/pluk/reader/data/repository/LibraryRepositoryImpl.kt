@@ -8,6 +8,7 @@ import com.pluk.reader.data.local.db.BookDao
 import com.pluk.reader.data.local.db.ReadingPositionDao
 import com.pluk.reader.domain.model.ImportOutcome
 import com.pluk.reader.domain.model.LibraryBook
+import com.pluk.reader.domain.model.positionProgression
 import com.pluk.reader.domain.repository.LibraryRepository
 import javax.inject.Inject
 import kotlinx.coroutines.flow.Flow
@@ -21,12 +22,11 @@ class LibraryRepositoryImpl @Inject constructor(
 ) : LibraryRepository {
     override val books: Flow<List<LibraryBook>> =
         combine(bookDao.observeAll(), positionDao.observeProgress()) { books, positions ->
-            val progressById = positions.associate { it.bookId to it.progress }
-            val readAtById = positions.associate { it.bookId to it.updatedAt }
+            val positionById = positions.associateBy { it.bookId }
             books.map { book ->
-                // Una posición sin progresión (libro leído antes de LIB-011) cuenta como 0 %: ya se abrió.
-                val progression = if (book.id in progressById) progressById[book.id] ?: 0.0 else null
-                book.toLibraryBook(progression, files.coverFile(book.id).absolutePath, readAtById[book.id])
+                val position = positionById[book.id]
+                val progression = position?.let { positionProgression(it.locatorJson, it.progress) }
+                book.toLibraryBook(progression, files.coverFile(book.id).absolutePath, position?.updatedAt)
             }
         }
 

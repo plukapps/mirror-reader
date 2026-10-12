@@ -31,10 +31,13 @@ import kotlinx.coroutines.withContext
 
 private val CoverShape = RoundedCornerShape(8.dp)
 
-/** Portada 2:3 (LIB-011). Sin portada en el EPUB se genera una con color y título. */
+/**
+ * Portada 2:3 (LIB-011). Sin portada en el EPUB se genera una con color y título. Se vuelve a leer cuando el usuario
+ * la reemplaza (LIB-019): la ruta es la misma y cambia la versión.
+ */
 @Composable
 fun BookCover(book: LibraryBook, modifier: Modifier = Modifier) {
-    val bitmap by produceState<ImageBitmap?>(initialValue = null, book.coverPath) {
+    val bitmap by produceState<ImageBitmap?>(initialValue = null, book.coverPath, book.coverVersion) {
         value = book.coverPath?.let { path ->
             withContext(Dispatchers.IO) { BitmapFactory.decodeFile(path)?.asImageBitmap() }
         }

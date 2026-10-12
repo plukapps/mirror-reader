@@ -1,7 +1,6 @@
 package com.pluk.reader.data.library
 
 import android.content.Context
-import android.graphics.Bitmap
 import android.net.Uri
 import android.provider.OpenableColumns
 import com.pluk.reader.data.epub.PublicationLoader
@@ -9,7 +8,6 @@ import com.pluk.reader.data.local.db.BookDao
 import com.pluk.reader.data.local.db.BookEntity
 import com.pluk.reader.domain.model.ImportOutcome
 import dagger.hilt.android.qualifiers.ApplicationContext
-import java.io.File
 import java.io.IOException
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -80,24 +78,13 @@ class EpubImporter @Inject constructor(
                 dao.markDownloaded(hash, hasCover)
                 return ImportOutcome.Imported(hash, existing.title)
             }
+            // Si el usuario lo había quitado (LIB-020), importarlo de nuevo lo devuelve a la biblioteca.
+            dao.deleteRemoved(hash)
             dao.insert(BookEntity(hash, title, author, hasCover, System.currentTimeMillis(), sizeBytes = bookFile.length()))
             return ImportOutcome.Imported(hash, title)
         } finally {
             publication.close()
         }
-    }
-
-    private fun saveCover(bitmap: Bitmap, target: File): Boolean = try {
-        val scale = MAX_COVER_HEIGHT.toFloat() / bitmap.height
-        val scaled = if (scale < 1f) {
-            Bitmap.createScaledBitmap(bitmap, (bitmap.width * scale).toInt().coerceAtLeast(1), MAX_COVER_HEIGHT, true)
-        } else {
-            bitmap
-        }
-        target.outputStream().use { scaled.compress(Bitmap.CompressFormat.JPEG, 85, it) }
-    } catch (_: IOException) {
-        target.delete()
-        false
     }
 
     private fun displayName(uri: Uri): String {
@@ -106,9 +93,5 @@ class EpubImporter @Inject constructor(
             ?: uri.lastPathSegment
             ?: "Sin título"
         return name.removeSuffix(".epub").ifBlank { "Sin título" }
-    }
-
-    private companion object {
-        const val MAX_COVER_HEIGHT = 600
     }
 }

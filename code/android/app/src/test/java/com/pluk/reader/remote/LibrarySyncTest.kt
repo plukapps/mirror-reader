@@ -168,7 +168,9 @@ class LibrarySyncTest {
         sync.requestIfStale()
         advanceUntilIdle()
 
-        assertEquals(2, backend.listings)
+        // Dos pasadas: cada una empieza por los borrados (LIB-020).
+        assertEquals(2, backend.removalSyncs)
+        assertEquals(1, backend.listings)
         assertNull(sync.state.value.issue)
     }
 

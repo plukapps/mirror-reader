@@ -17,6 +17,9 @@ object MarginColors {
     /** Punto de "leyendo" en los resultados de búsqueda. */
     val ReadingDot = Color(0xFFC9A100)
 
+    /** Acción destructiva: "Quitar de la biblioteca" (diseño 05b). */
+    val Danger = Color(0xFFB3261E)
+
     /** Íconos inactivos sobre fondo tinta (barra inferior). */
     val InkMuted = Color(0xFF8A8676)
 

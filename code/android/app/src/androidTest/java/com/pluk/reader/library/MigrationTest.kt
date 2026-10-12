@@ -8,6 +8,8 @@ import com.pluk.reader.data.local.db.MIGRATION_1_2
 import com.pluk.reader.data.local.db.MIGRATION_2_3
 import com.pluk.reader.data.local.db.MIGRATION_3_4
 import com.pluk.reader.data.local.db.MIGRATION_4_5
+import com.pluk.reader.data.local.db.MIGRATION_5_6
+import com.pluk.reader.data.local.db.MIGRATION_6_7
 import com.pluk.reader.data.local.db.ReaderDatabase
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
@@ -101,10 +103,51 @@ class MigrationTest {
         }
     }
 
+    // LIB-019, LIB-020: migrar a la versión 6 conserva los libros, con portada sin reemplazar y sin libros quitados
+    @Test
+    fun migrates5To6KeepingBooks() {
+        helper.createDatabase("migration-test-6", 5).apply {
+            execSQL(
+                "INSERT INTO books (id, title, author, hasCover, addedAt, sizeBytes, isDownloaded, uploadedAt, isCoverUploaded) " +
+                    "VALUES ('h', 'Drácula', 'Stoker', 1, 5, 10, 1, 9, 1)",
+            )
+            close()
+        }
+        val db = helper.runMigrationsAndValidate("migration-test-6", 6, true, MIGRATION_5_6)
+        db.query("SELECT title, hasCover, isCoverUploaded, coverVersion FROM books WHERE id = 'h'").use {
+            assertTrue(it.moveToFirst())
+            assertEquals("Drácula", it.getString(0))
+            assertEquals(1, it.getInt(1))
+            assertEquals(1, it.getInt(2))
+            assertEquals(0L, it.getLong(3))
+        }
+        db.query("SELECT COUNT(*) FROM removed_books").use {
+            it.moveToFirst()
+            assertEquals(0, it.getInt(0))
+        }
+    }
+
+    // LIB-020: los libros quitados antes de la versión 7 se quitaron solo de este dispositivo: no se borran de la nube
+    @Test
+    fun migrates6To7KeepingOldRemovalsLocal() {
+        helper.createDatabase("migration-test-7", 6).apply {
+            execSQL("INSERT INTO removed_books (id, removedAt) VALUES ('q', 3)")
+            close()
+        }
+        val db = helper.runMigrationsAndValidate("migration-test-7", 7, true, MIGRATION_6_7)
+        db.query("SELECT removedAt, cloudDeleted FROM removed_books WHERE id = 'q'").use {
+            assertTrue(it.moveToFirst())
+            assertEquals(3L, it.getLong(0))
+            assertEquals(1, it.getInt(1))
+        }
+    }
+
     // La cadena completa desde la primera versión sigue funcionando
     @Test
-    fun migratesFrom1To5() {
+    fun migratesFrom1To7() {
         helper.createDatabase("migration-test-all", 1).close()
-        helper.runMigrationsAndValidate("migration-test-all", 5, true, MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5)
+        helper.runMigrationsAndValidate(
+            "migration-test-all", 7, true, MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5, MIGRATION_5_6, MIGRATION_6_7,
+        )
     }
 }

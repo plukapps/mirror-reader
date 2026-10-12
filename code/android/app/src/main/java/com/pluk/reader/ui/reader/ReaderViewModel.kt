@@ -22,6 +22,7 @@ import com.pluk.reader.domain.repository.SettingsRepository
 import com.pluk.reader.domain.usecase.DownloadBookUseCase
 import com.pluk.reader.domain.usecase.OpeningPosition
 import com.pluk.reader.domain.usecase.PositionSync
+import com.pluk.reader.domain.usecase.ReadingSession
 import com.pluk.reader.domain.usecase.ResolveOpeningPositionUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.FlowPreview
@@ -50,6 +51,7 @@ class ReaderViewModel @Inject constructor(
     private val downloadBook: DownloadBookUseCase,
     private val positionSync: PositionSync,
     private val resolveOpeningPosition: ResolveOpeningPositionUseCase,
+    private val readingSession: ReadingSession,
 ) : ViewModel() {
 
     private data class PendingPosition(val locatorJson: String, val totalProgression: Double?)
@@ -117,6 +119,7 @@ class ReaderViewModel @Inject constructor(
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(STOP_TIMEOUT_MS), ReaderUiState.Loading)
 
     init {
+        readingSession.opened(bookId)
         open()
         savePositionWhileReading()
         offerPositionsFromOtherDevices()
@@ -262,6 +265,8 @@ class ReaderViewModel @Inject constructor(
     fun close() {
         saveAndSendLastPosition()
         release()
+        // LIB-020: si el libro se borró desde otro dispositivo mientras estaba abierto, se quita ahora.
+        readingSession.closed(bookId)
     }
 
     /**

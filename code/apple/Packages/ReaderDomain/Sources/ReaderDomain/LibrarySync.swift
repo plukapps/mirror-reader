@@ -76,6 +76,7 @@ public struct LibrarySync: Sendable {
     private let upload: UploadBooks
     private let download: DownloadBook
     private let positions: PositionFlusher
+    private let removals: (any CloudRemovals)?
 
     public init(
         account: AccountRepository,
@@ -84,8 +85,10 @@ public struct LibrarySync: Sendable {
         cloud: CloudBooksRepository,
         upload: UploadBooks,
         download: DownloadBook,
-        positions: PositionFlusher
+        positions: PositionFlusher,
+        removals: (any CloudRemovals)? = nil
     ) {
+        self.removals = removals
         self.account = account
         self.remote = remote
         self.covers = covers
@@ -99,6 +102,14 @@ public struct LibrarySync: Sendable {
     ///   descarga), para que la pantalla no espere al final de la pasada.
     public func run(onChange: @Sendable () async -> Void = {}) async -> LibrarySyncOutcome {
         guard await account.currentUser() != nil else { return .noSession }
+        // LIB-020, LIB-008: primero los borrados, así no se baja un libro que ya no existe en la cuenta.
+        do {
+            try await removals?.sync()
+        } catch is RemoteUnavailableError {
+            return .done(SyncReport(unreachable: true))
+        } catch {
+            // Otro fallo no impide el resto de la pasada; se reintenta en la próxima.
+        }
         do {
             try await cloud.addCloudOnly(try await remote.listBooks())
         } catch is RemoteUnavailableError {

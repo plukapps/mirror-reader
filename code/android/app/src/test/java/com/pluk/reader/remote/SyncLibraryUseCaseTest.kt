@@ -32,6 +32,18 @@ class SyncLibraryUseCaseTest {
         assertEquals(listOf("listar", "subir:p1", "bajar:n1", "bajar:n2"), backend.calls)
     }
 
+    // LIB-020: cada pasada envía y aplica los borrados antes de tocar los libros; sin conexión, corta
+    @Test
+    fun removalsRunFirstAndOfflineStopsThePass() = runTest {
+        backend.useCase()()
+        assertEquals(1, backend.removalSyncs)
+
+        backend.offline = true
+        val report = backend.useCase()()
+        assertTrue(report.offline)
+        assertEquals(1, backend.listings)
+    }
+
     // LIB-007: un libro que ya está en el dispositivo no se baja otra vez
     @Test
     fun doesNotDownloadWhatIsAlreadyOnTheDevice() = runTest {

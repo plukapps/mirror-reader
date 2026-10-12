@@ -11,6 +11,7 @@ import androidx.room.PrimaryKey
  * @param isDownloaded el archivo está en este dispositivo. Falso: libro solo en la nube (LIB-007).
  * @param uploadedAt instante en que se subió o se vio en la nube, o null si aún no está subido.
  * @param isCoverUploaded la portada ya está en la nube (LIB-012). Evita volver a consultarla en cada sincronización.
+ * @param coverVersion instante en que el usuario reemplazó la portada (LIB-019), o 0. La ruta del archivo no cambia.
  */
 @Entity(tableName = "books")
 data class BookEntity(
@@ -23,4 +24,5 @@ data class BookEntity(
     @ColumnInfo(defaultValue = "1") val isDownloaded: Boolean = true,
     val uploadedAt: Long? = null,
     @ColumnInfo(defaultValue = "0") val isCoverUploaded: Boolean = false,
+    @ColumnInfo(defaultValue = "0") val coverVersion: Long = 0,
 )

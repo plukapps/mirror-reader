@@ -52,7 +52,7 @@ struct AppRootView: View {
         case .home:
             RootView(
                 home: screens.home, search: screens.search, library: screens.library, sync: screens.sync,
-                makeReader: screens.makeReader,
+                bookActions: screens.bookActions, makeReader: screens.makeReader,
                 importOnAppear: start.pendingImport, onImportOpened: start.importOpened
             )
             .sheet(item: $resetFromHome) { link in

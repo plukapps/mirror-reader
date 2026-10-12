@@ -17,6 +17,8 @@ final class BookRecord {
     var uploadedAt: Date?
     /// La portada ya está en la nube (LIB-012). Con valor por defecto: SwiftData migra la base sola (ADR 0012).
     var isCoverUploaded: Bool = false
+    /// Instante (ms desde 1970) en que el usuario reemplazó la portada, o 0 (LIB-019). La ruta del archivo no cambia.
+    var coverVersion: Int64 = 0
 
     init(
         id: String, title: String, author: String?, hasCover: Bool, addedAt: Date,
@@ -52,5 +54,21 @@ final class PositionRecord {
         self.readAt = readAt
         self.progress = progress
         self.isSynced = isSynced
+    }
+}
+
+/// Libro quitado de la biblioteca (LIB-020). La sincronización no lo vuelve a agregar; importar el mismo archivo
+/// borra la marca. Como `RemovedBookEntity` de Android.
+@Model
+final class RemovedBookRecord {
+    @Attribute(.unique) var id: String
+    var removedAt: Date
+    /// La nube ya lo tiene borrado (marca y archivos), o nunca estuvo allí. Falso: falta enviarlo.
+    var isCloudDeleted: Bool = false
+
+    init(id: String, removedAt: Date, isCloudDeleted: Bool = false) {
+        self.id = id
+        self.removedAt = removedAt
+        self.isCloudDeleted = isCloudDeleted
     }
 }

@@ -24,6 +24,7 @@ struct HomeView: View {
                     if let book = content.continueReading {
                         Button { viewModel.open(bookId: book.id) } label: { ContinueCard(book: book) }
                             .buttonStyle(.plain)
+                            .bookContextMenu(book) { viewModel.open(bookId: book.id) }
                     } else {
                         NothingReading(libraryEmpty: content.libraryEmpty) {
                             if !content.libraryEmpty {
@@ -189,6 +190,7 @@ private struct BookRow<Details: View>: View {
                     }
                     .buttonStyle(.plain)
                     .accessibilityElement(children: .combine)
+                    .bookContextMenu(book) { onOpen(book.id) }
                 }
             }
             .padding(.horizontal, WindowLayout.horizontalPadding)

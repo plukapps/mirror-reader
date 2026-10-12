@@ -159,6 +159,7 @@ private struct Results: View {
                         ResultRow(book: book, showDivider: index < books.count - 1).contentShape(Rectangle())
                     }
                     .buttonStyle(.plain)
+                    .bookContextMenu(book) { onOpen(book.id) }
                 }
             }
             .padding(.horizontal, WindowLayout.horizontalPadding)

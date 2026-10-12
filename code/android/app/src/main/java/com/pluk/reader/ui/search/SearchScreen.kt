@@ -1,5 +1,8 @@
 package com.pluk.reader.ui.search
 
+import com.pluk.reader.ui.actions.bookClickable
+import com.pluk.reader.ui.actions.coverAnchor
+import com.pluk.reader.ui.actions.rememberCoverAnchor
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -276,9 +279,10 @@ private fun Results(books: List<LibraryBook>, onBookClick: (String) -> Unit, con
 private fun ResultRow(book: LibraryBook, showDivider: Boolean, onClick: () -> Unit) {
     val status = statusText(book)
     val description = listOfNotNull(book.title, book.author, status).joinToString(". ")
+    val anchor = rememberCoverAnchor()
     Column(
         Modifier
-            .clickable(role = Role.Button, onClick = onClick)
+            .bookClickable(book, anchor, onClick)
             .clearAndSetSemantics { contentDescription = description; role = Role.Button }
             .testTag("result-${book.id}"),
     ) {
@@ -289,7 +293,7 @@ private fun ResultRow(book: LibraryBook, showDivider: Boolean, onClick: () -> Un
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(14.dp),
         ) {
-            BookCover(book, Modifier.width(52.dp))
+            BookCover(book, Modifier.width(52.dp).coverAnchor(anchor))
             Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
                 Text(
                     book.title,

@@ -5,8 +5,10 @@ import com.pluk.reader.data.local.db.BookEntity
 import com.pluk.reader.domain.model.LibraryBook
 import com.pluk.reader.domain.model.LibraryFilter
 import com.pluk.reader.domain.model.ReadingStatus
+import com.pluk.reader.domain.model.UNREAD_LOCATOR
 import com.pluk.reader.domain.model.countBy
 import com.pluk.reader.domain.model.filterBy
+import com.pluk.reader.domain.model.positionProgression
 import com.pluk.reader.domain.model.readingStatus
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
@@ -30,6 +32,18 @@ class LibraryBookTest {
         assertEquals(ReadingStatus.Reading, readingStatus(0))
         assertEquals(ReadingStatus.Reading, readingStatus(99))
         assertEquals(ReadingStatus.Finished, readingStatus(100))
+    }
+
+    // LIB-018: una posición "no leído" cuenta como sin abrir, salvo que esté terminada
+    @Test
+    fun unreadPositionCountsAsNew() {
+        assertNull(positionProgression(UNREAD_LOCATOR, 0.0))
+        assertNull(positionProgression(UNREAD_LOCATOR, null))
+        assertEquals(1.0, positionProgression(UNREAD_LOCATOR, 1.0)!!, 0.0)
+        assertEquals(0.42, positionProgression("{}", 0.42)!!, 0.0)
+        assertEquals(0.42, positionProgression("""{"href":"c3.xhtml"}""", 0.42)!!, 0.0)
+        // Una posición sin progresión (libro leído antes de LIB-011) cuenta como 0 %: ya se abrió.
+        assertEquals(0.0, positionProgression("""{"href":"c1.xhtml"}""", null)!!, 0.0)
     }
 
     // LIB-010: escenario "libro al 42 %"

@@ -47,7 +47,7 @@ class PositionSync @Inject constructor(
     private val prefs: SyncPreferences,
     private val account: AccountRepository,
     @ApplicationScope private val scope: CoroutineScope,
-) : PositionFlusher {
+) : PositionFlusher, PositionFlushRequester {
     private val flushLock = Mutex()
     private val _remoteUpdates = MutableSharedFlow<RemotePosition>(extraBufferCapacity = UPDATES_BUFFER)
     private var listenJob: Job? = null
@@ -75,7 +75,7 @@ class PositionSync @Inject constructor(
     }
 
     /** Envía lo pendiente sin esperar el resultado. */
-    fun requestFlush() {
+    override fun requestFlush() {
         scope.launch { flush() }
     }
 

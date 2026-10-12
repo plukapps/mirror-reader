@@ -56,7 +56,7 @@ class LibrarySync internal constructor(
     private val scope: CoroutineScope,
     private val now: () -> Long,
     private val ttlMs: Long,
-) {
+) : LibrarySyncRequester {
     @Inject
     constructor(
         sync: SyncLibraryUseCase,
@@ -105,7 +105,7 @@ class LibrarySync internal constructor(
     }
 
     /** Pide una pasada que siempre corre. Varios pedidos seguidos se juntan en uno. */
-    fun request() {
+    override fun request() {
         explicitRequest.set(true)
         requests.trySend(Unit)
     }

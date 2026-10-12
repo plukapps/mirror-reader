@@ -11,6 +11,9 @@ interface BookDao {
     @Query("SELECT * FROM books ORDER BY addedAt DESC")
     fun observeAll(): Flow<List<BookEntity>>
 
+    @Query("SELECT id FROM books")
+    suspend fun getAllIds(): List<String>
+
     @Query("SELECT * FROM books WHERE id = :id")
     suspend fun get(id: String): BookEntity?
 
@@ -46,6 +49,34 @@ interface BookDao {
     /** La portada se bajó de la nube: allí está. */
     @Query("UPDATE books SET hasCover = 1, isCoverUploaded = 1 WHERE id = :id")
     suspend fun markCover(id: String)
+
+    /** El usuario eligió una foto como portada (LIB-019). La nube conserva la anterior. */
+    @Query("UPDATE books SET hasCover = 1, coverVersion = :version WHERE id = :id")
+    suspend fun setCustomCover(id: String, version: Long)
+
+    @Query("DELETE FROM books WHERE id = :id")
+    suspend fun delete(id: String)
+
+    /** Ids de los libros quitados de este dispositivo (LIB-020). */
+    @Query("SELECT id FROM removed_books")
+    suspend fun getRemovedIds(): List<String>
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertRemoved(entity: RemovedBookEntity)
+
+    @Query("DELETE FROM removed_books WHERE id = :id")
+    suspend fun deleteRemoved(id: String)
+
+    /** Quitados aquí que la nube todavía no tiene borrados (LIB-020). */
+    @Query("SELECT id FROM removed_books WHERE cloudDeleted = 0 ORDER BY removedAt ASC")
+    suspend fun getPendingCloudRemovals(): List<String>
+
+    @Query("UPDATE removed_books SET cloudDeleted = 1 WHERE id = :id")
+    suspend fun markCloudRemoved(id: String)
+
+    /** Olvida los borrados ya completos de estos libros: la nube los volvió a listar vivos (LIB-020). */
+    @Query("DELETE FROM removed_books WHERE cloudDeleted = 1 AND id IN (:ids)")
+    suspend fun deleteCompletedRemovals(ids: List<String>)
 
     /** El archivo del libro ya está en este dispositivo (descargado o importado de nuevo). */
     @Query("UPDATE books SET isDownloaded = 1, hasCover = :hasCover WHERE id = :id")

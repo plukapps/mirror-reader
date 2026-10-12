@@ -10,6 +10,7 @@ import com.pluk.reader.domain.repository.BookUploadRepository
 import com.pluk.reader.domain.repository.CloudBooksRepository
 import com.pluk.reader.domain.repository.CoverFile
 import com.pluk.reader.domain.repository.PendingUpload
+import com.pluk.reader.domain.usecase.CloudRemovals
 import com.pluk.reader.domain.usecase.DownloadBookUseCase
 import com.pluk.reader.domain.usecase.PositionFlusher
 import com.pluk.reader.domain.usecase.SyncCoversUseCase
@@ -59,7 +60,14 @@ class FakeSyncBackend : BookUploadRepository, BookFileStore, RemoteLibrary, Quot
         DownloadBookUseCase(this, this),
         this,
         PositionFlusher { positionFlushes++ },
+        CloudRemovals {
+            removalSyncs++
+            if (offline) Result.failure(unavailable()) else Result.success(Unit)
+        },
     )
+
+    /** Cuántas veces la pasada envió y aplicó borrados (LIB-020). */
+    var removalSyncs = 0
 
     fun pendingBook(id: String, sizeBytes: Long = 1) =
         PendingUpload(RemoteBook(id, "T$id", emptyList(), sizeBytes), File("/libros/$id.epub"))
@@ -122,4 +130,10 @@ class FakeSyncBackend : BookUploadRepository, BookFileStore, RemoteLibrary, Quot
     // QuotaSource
     override suspend fun current(): Result<StorageQuota> =
         if (offline) Result.failure(unavailable()) else Result.success(quota)
+}
+
+/** Sin escucha de borrados (pruebas que no la usan). */
+object NoRemovals : com.pluk.reader.domain.usecase.CloudListener {
+    override fun startListening() = Unit
+    override fun stopListening() = Unit
 }

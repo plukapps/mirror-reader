@@ -1,5 +1,6 @@
 package com.pluk.reader.library
 
+import com.pluk.reader.remote.NoRemovals
 import com.pluk.reader.domain.account.AccountRepository
 import com.pluk.reader.domain.account.AccountUser
 import com.pluk.reader.domain.model.ImportOutcome
@@ -57,6 +58,7 @@ class MainViewModelTest {
             library,
             LibrarySync(backend.useCase(), account, CoroutineScope(dispatcher)),
             positionBackend.sync(FakeSession(AccountUser("u1", null)), CoroutineScope(dispatcher)),
+            NoRemovals,
             account,
             com.pluk.reader.onboarding.FakeAuth(),
         )

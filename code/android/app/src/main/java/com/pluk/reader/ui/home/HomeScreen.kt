@@ -1,5 +1,8 @@
 package com.pluk.reader.ui.home
 
+import com.pluk.reader.ui.actions.bookClickable
+import com.pluk.reader.ui.actions.coverAnchor
+import com.pluk.reader.ui.actions.rememberCoverAnchor
 import android.app.Activity
 import androidx.annotation.StringRes
 import androidx.compose.foundation.layout.ColumnScope
@@ -179,19 +182,20 @@ private fun ContinueCard(book: LibraryBook, onClick: () -> Unit) {
     val percent = book.progressPercent ?: 0
     val description = listOfNotNull(stringResource(R.string.home_continue), book.title, book.author, "$percent %")
         .joinToString(". ")
+    val anchor = rememberCoverAnchor()
     Row(
         Modifier
             .padding(start = 20.dp, end = 20.dp, top = 24.dp)
             .fillMaxWidth()
             .clip(RoundedCornerShape(20.dp))
             .background(MarginColors.Ink)
-            .clickable(role = Role.Button, onClick = onClick)
+            .bookClickable(book, anchor, onClick)
             .clearAndSetSemantics { contentDescription = description; role = Role.Button }
             .padding(16.dp)
             .testTag("continue-card"),
         horizontalArrangement = Arrangement.spacedBy(16.dp),
     ) {
-        BookCover(book, Modifier.width(96.dp))
+        BookCover(book, Modifier.width(96.dp).coverAnchor(anchor))
         Column(Modifier
             .weight(1f)
             .heightIn(min = 144.dp), verticalArrangement = Arrangement.SpaceBetween) {
@@ -342,18 +346,19 @@ private fun RowItem(
     book: LibraryBook,
     description: String,
     onClick: () -> Unit,
-    cover: @Composable () -> Unit = { BookCover(book) },
+    cover: @Composable (Modifier) -> Unit = { BookCover(book, it) },
     details: @Composable ColumnScope.() -> Unit,
 ) {
+    val anchor = rememberCoverAnchor()
     Column(
         Modifier
             .width(104.dp)
-            .clickable(role = Role.Button, onClick = onClick)
+            .bookClickable(book, anchor, onClick)
             .clearAndSetSemantics { contentDescription = description; role = Role.Button }
             .testTag("home-book-${book.id}"),
         verticalArrangement = Arrangement.spacedBy(4.dp),
     ) {
-        cover()
+        cover(Modifier.coverAnchor(anchor))
         Column(verticalArrangement = Arrangement.spacedBy(1.dp), content = details)
     }
 }
@@ -436,8 +441,8 @@ private fun FinishedItem(book: LibraryBook, onBookClick: (String) -> Unit) {
         book,
         description,
         onClick = { onBookClick(book.id) },
-        cover = {
-            Box {
+        cover = { modifier ->
+            Box(modifier) {
                 BookCover(book)
                 Box(
                     Modifier
