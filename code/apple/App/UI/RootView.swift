@@ -1,3 +1,4 @@
+import PhotosUI
 import ReaderDomain
 import SwiftUI
 import UniformTypeIdentifiers
@@ -10,6 +11,7 @@ struct RootView: View {
     let search: SearchViewModel
     let library: LibraryViewModel
     let sync: SyncCoordinator
+    @Bindable var bookActions: BookActionsViewModel
     let makeReader: ((String) -> ReaderViewModel)?
     @Environment(\.scenePhase) private var scenePhase
     @State private var tabs = TabBarModel()
@@ -18,6 +20,8 @@ struct RootView: View {
     #if os(macOS)
     @State private var path: [LibraryFilter] = []
     #endif
+    /// LIB-019: la foto elegida en el selector.
+    @State private var coverPhoto: PhotosPickerItem?
 
     var body: some View {
         content
@@ -44,6 +48,33 @@ struct RootView: View {
                     }
                 }
             }
+            // LIB-016 a LIB-020: el menú de cada portada usa estas acciones.
+            .environment(bookActions)
+            .photosPicker(isPresented: $bookActions.isPickingCover, selection: $coverPhoto, matching: .images)
+            .onChange(of: coverPhoto) { _, item in
+                guard let item else { return }
+                coverPhoto = nil
+                Task {
+                    if let data = try? await item.loadTransferable(type: Data.self) {
+                        await bookActions.setCover(data)
+                    } else {
+                        bookActions.coverFailed()
+                    }
+                }
+            }
+            .alert(
+                removeTitle,
+                isPresented: Binding(get: { bookActions.removing != nil }, set: { if !$0 { bookActions.cancelRemove() } })
+            ) {
+                Button("Cancelar", role: .cancel) { bookActions.cancelRemove() }
+                Button("Quitar", role: .destructive) { Task { await bookActions.confirmRemove() } }
+            } message: {
+                Text("Se borra de este dispositivo con su progreso. Podés volver a importarlo.")
+            }
+    }
+
+    private var removeTitle: String {
+        bookActions.removing.map { String(localized: "¿Quitar «\($0.title)»?") } ?? ""
     }
 
     @ViewBuilder

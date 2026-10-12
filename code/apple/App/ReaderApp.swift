@@ -13,7 +13,7 @@ struct ReaderApp: App {
         WindowGroup {
             RootView(
                 home: screens.home, search: screens.search, library: screens.library, sync: screens.sync,
-                makeReader: screens.makeReader
+                bookActions: screens.bookActions, makeReader: screens.makeReader
             )
                 .windowMinimumSize()
                 #if os(iOS)

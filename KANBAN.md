@@ -40,10 +40,10 @@ Plan de referencia: `specs/plans/2026-10-06-android-epub-viewer.md`
 
 ## En curso
 
-- **K-175** Acciones del libro, Tarea 4: Apple, menú contextual, confirmación y selector de fotos. LIB-016 a LIB-020. Rama `feature/library-actions`.
 
 ## Revisión
 
+- **K-175** Acciones del libro, Tarea 4: Apple, menú contextual, confirmación y selector de fotos. LIB-016 a LIB-020. Rama `feature/library-actions`. Hecho: `BookActionsViewModel`, `.bookContextMenu` (vista previa en iPhone, sección en la Mac) en Inicio, Estantes y Buscar, alerta de confirmación y `photosPicker` en `RootView`. Tests: iPhone 107, Mac 101. Falta probar el menú a mano en el simulador.
 - **K-174** Acciones del libro, Tarea 3: Apple, datos y dominio (regla de "no leído", `BookActions`, `RemovedBookRecord`, `coverVersion`). LIB-018 a LIB-020. Rama `feature/library-actions`. Hecho: `BookActions`/`BookEditor` en `ReaderDomain`, `RemovedBookRecord`, `coverVersion`, `CoverImages` (ImageIO). El centinela de "no leído" pasa a `{"unread":true}` en las dos plataformas (`"{}"` ya lo usa el lector de iOS como relleno). Tests: dominio 155, iPhone 102, Mac 96 (con `ENABLE_HARDENED_RUNTIME=NO`, K-123); Android 332 JVM.
 - **K-173** Acciones del libro, Tarea 2: Android, menú de mantener presionado en Biblioteca, Inicio y Búsqueda, confirmación y Photo Picker. LIB-016 a LIB-020. Rama `feature/library-actions`. Hecho: `BookActionsViewModel`, `BookActionsMenu` (`placeMenu`), `BookActionsHost` en la raíz de `AppNavHost` con confirmación, Photo Picker y desenfoque, mantener presionado en Biblioteca, Inicio y Búsqueda. 332 tests JVM pasan (9 nuevos); `BookActionsMenuTest` (3) compila, sin correr. Falta verlo en el teléfono.
 - **K-172** Acciones del libro, Tarea 1: Android, datos y dominio (regla de "no leído", `BookActionsRepository`, base v6 con `removed_books` y `coverVersion`). LIB-018 a LIB-020. Rama `feature/library-actions`. Plan `2026-10-12-library-actions.md`. Hecho: `BookActions` (dominio), `BookEditorImpl`, base v6 con `MIGRATION_5_6`, sync que saltea quitados, importar devuelve un quitado, `coverVersion`. 323 tests JVM pasan (6 nuevos); `BookEditorTest` (5) y `MigrationTest` 5→6 compilan, sin correr (sin emulador).

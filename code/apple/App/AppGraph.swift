@@ -12,6 +12,8 @@ enum AppGraph {
         let search: SearchViewModel
         let library: LibraryViewModel
         let sync: SyncCoordinator
+        /// Menú de un libro con mantener presionado (LIB-016).
+        let bookActions: BookActionsViewModel
         /// nil en la Mac: Readium Swift solo soporta iOS (ADR 0013).
         let makeReader: ((_ bookId: String) -> ReaderViewModel)?
     }
@@ -35,11 +37,23 @@ enum AppGraph {
         let home = HomeViewModel(library: store, importer: reader?.importer) { sync.request() }
         refs.home = home
         refs.library = library
+        let search = SearchViewModel(library: store)
+        let bookActions = BookActionsViewModel(
+            // La posición sale en cuanto se pueda, sin esperar la red (SYN-011).
+            actions: BookActions(positions: store, editor: store, requestFlush: { if let positions { Task { await positions.flush() } } }),
+            reload: {
+                await home.reload()
+                await library.load()
+                await search.load()
+            },
+            notify: { [weak home] in home?.show($0) }
+        )
         return Screens(
             home: home,
-            search: SearchViewModel(library: store),
+            search: search,
             library: library,
             sync: sync,
+            bookActions: bookActions,
             makeReader: reader?.makeReader
         )
     }

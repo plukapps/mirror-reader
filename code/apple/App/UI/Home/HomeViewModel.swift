@@ -80,6 +80,11 @@ final class HomeViewModel {
 
     func closeReader() { readerBookId = nil }
 
+    /// Aviso de otra parte de la app (acciones del libro, LIB-016), en el mismo lugar que los de importar.
+    func show(_ message: String) {
+        messages.append(message)
+    }
+
     func dismissMessage() {
         if !messages.isEmpty { messages.removeFirst() }
     }

@@ -110,9 +110,10 @@
 **Verificación:** `swift test` y `xcodebuild … test` en iPhone y en la Mac.
 
 ### Tarea 4 (K-175): Apple, menú contextual y acciones (M)
-- [ ] `BookActionsViewModel` con tests (fake de `BookActions`).
-- [ ] `.contextMenu` en las cuatro vistas, `.confirmationDialog` y `.photosPicker`. Recarga de pantallas y envío de posiciones.
-- [ ] Regenerar el proyecto con `xcodegen`.
+- [x] `BookActionsViewModel` con tests (`menu(for:)`, `subtitle(for:)`, terminado y no leído, confirmación de quitar, portada). Recarga Inicio, la biblioteca y la búsqueda, y avisa con los mensajes de Inicio (`HomeViewModel.show`).
+- [x] `.bookContextMenu` en `BookGrid`, `ContinueCard`, `BookRow` y `Results`. En iPhone lleva una vista previa con la portada, el título y "Autor · estado"; en la Mac lleva una sección con el título. En la raíz están el `.alert` de confirmación y `.photosPicker`, y la foto se carga con `loadTransferable(type: Data.self)`. La posición sale con `PositionSync.flush()` sin esperar.
+- [x] Proyecto regenerado con `xcodegen`.
+- Nota: la app instalada en un simulador propio ("Acciones iPhone 16", sin `GoogleService-Info.plist` para no tocar Firebase) arranca. No se pudo probar mantener presionado desde aquí: falta el permiso de grabación de pantalla. Queda para K-176.
 
 **Verificación:** tests en iPhone y en la Mac pasan; se ve en el simulador.
 

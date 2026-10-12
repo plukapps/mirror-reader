@@ -122,6 +122,7 @@ private struct BookGrid: View {
                 ForEach(books) { book in
                     Button { onOpen(book.id) } label: { BookCell(book: book).contentShape(Rectangle()) }
                         .buttonStyle(.plain)
+                        .bookContextMenu(book) { onOpen(book.id) }
                 }
             }
             .padding(.horizontal, WindowLayout.horizontalPadding)
