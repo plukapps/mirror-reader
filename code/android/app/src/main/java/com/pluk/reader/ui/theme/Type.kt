@@ -47,7 +47,7 @@ val HostGrotesk =
 private val base = Typography()
 
 /**
- * K-160: interlineado en `em` (proporcional al tamaño de letra) en vez de `sp` fijo. Así un `Text` que solo cambia
+ * K-169: interlineado en `em` (proporcional al tamaño de letra) en vez de `sp` fijo. Así un `Text` que solo cambia
  * `fontSize` no hereda las líneas del estilo base: con 24 sp fijos, un texto de 11 sp ocupaba líneas de 24 sp.
  * `Trim.Both` quita el aire que la fuente deja arriba de la primera línea y debajo de la última.
  * Criterio: lo más apretado posible, interlineado igual al tamaño de letra. Si un rol necesita más aire, se le pasa
