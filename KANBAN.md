@@ -34,17 +34,17 @@ Plan de referencia: `specs/plans/2026-10-06-android-epub-viewer.md`
 
 ## Listo
 
-- **K-176** Acciones del libro, Tarea 5: cierre de docs y verificación a mano en el teléfono y el simulador. Rama `feature/library-actions`.
 - **K-134** Lector iOS, Tarea 7: cierre de docs y verificación a mano en el simulador. Rama `feature/ios-reader`. Era K-125 hasta el merge con `master`.
 - **K-038** Inicio, Tarea 4: cierre de docs y verificación a mano. Rama `feature/home`.
 - **K-024** Quitar el padding vertical de Readium (40 dp arriba y abajo en modo paginado) y reservar la barra de estado desde la pantalla. RDR-002. Rama `feat/page-turn-animation`.
 
 ## En curso
 
-- **K-183** Libros nuevos al instante, Tarea 9: Apple. SYN-014. Rama `feature/library-actions`. Plan `2026-10-12-library-actions.md`.
+- **K-176** Acciones del libro, Tarea 5: cierre de docs y verificación a mano en el teléfono y el simulador. Rama `feature/library-actions`.
 
 ## Revisión
 
+- **K-183** Libros nuevos al instante, Tarea 9: Apple. SYN-014. Rama `feature/library-actions`. Plan `2026-10-12-library-actions.md`. Hecho: `LibraryWatcher` en `ReaderDomain`, escucha en `FirestoreRemoteLibrary`, conexión en `AppGraph` y `SyncCoordinator`. Tests: dominio 167, iPhone 112, Mac 106.
 - **K-182** Libros nuevos al instante, Tarea 8: Android (escucha de `books` cambiados hace poco; un libro desconocido pide una pasada). SYN-014. Rama `feature/library-actions`. Plan `2026-10-12-library-actions.md`. Hecho: `LibraryWatcher`, `CloudListeners`, escucha en `FirestoreRemoteLibrary`. 345 tests JVM pasan (4 nuevos).
 - **K-180** Bug: un libro borrado que se vuelve a importar no aparecía en los otros dispositivos (prueba del usuario, 2026-10-12, libro `dfdfc227`). La marca de quitado bloqueaba para siempre; ahora solo bloquea mientras el borrado local está pendiente (`cloudDeleted = false`), y si la nube lista vivo un libro ya borrado, se olvida la marca. Android e iOS. Rama `feature/library-actions`.
 - **K-179** Bug: en la prueba cruzada (2026-10-12) quitar no borraba de la cuenta en ningún sentido. (1) iOS: al tocar "Quitar", la alerta se cierra y limpia `removing` antes de que corra `confirmRemove()`, que no hacía nada; ahora recibe el libro (`presenting:`). Test de regresión. (2) El Android tenía una build anterior a K-177 (solo local). La v6 se había cambiado en el lugar: se restaura y `cloudDeleted` pasa a `MIGRATION_6_7` (los quitados antes quedan como hechos, no se borran de la nube). Rama `feature/library-actions`.

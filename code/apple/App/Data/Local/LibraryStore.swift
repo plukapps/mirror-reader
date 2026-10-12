@@ -5,7 +5,7 @@ import SwiftData
 /// Base local de la biblioteca (ADR 0002, ADR 0012): la fuente de verdad de lo que muestra la app.
 /// Es un `ModelActor`: todo acceso a SwiftData pasa por su propio contexto, fuera del hilo principal.
 actor LibraryStore: ModelActor, LibraryRepository, CloudBooksRepository, BookUploadRepository, BookFiles, PositionSyncStore,
-    ReadingPositionRepository, BookEditor, BookRemovals {
+    ReadingPositionRepository, BookEditor, BookRemovals, KnownBooks {
     nonisolated let modelContainer: ModelContainer
     nonisolated let modelExecutor: any ModelExecutor
     private let files: LibraryFiles
@@ -313,6 +313,12 @@ actor LibraryStore: ModelActor, LibraryRepository, CloudBooksRepository, BookUpl
         // Un libro que nunca se subió no tiene nada en la nube: queda hecho al quitarlo.
         let inCloud = (try? record(bookId))?.uploadedAt != nil
         removeLocally(bookId: bookId, isCloudDeleted: !inCloud)
+    }
+
+    // MARK: KnownBooks (SYN-014)
+
+    func knownBookIds() async -> Set<String> {
+        Set((try? modelContext.fetch(FetchDescriptor<BookRecord>()))?.map(\.id) ?? [])
     }
 
     // MARK: BookRemovals (LIB-020, LIB-008)

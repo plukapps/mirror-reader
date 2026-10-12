@@ -18,6 +18,7 @@ final class SyncCoordinator {
     @ObservationIgnored private var scheduler: SyncScheduler?
     @ObservationIgnored private let positions: PositionSync?
     @ObservationIgnored private let removals: RemovalSync?
+    @ObservationIgnored private let watcher: LibraryWatcher?
     @ObservationIgnored private var removalUpdates: Task<Void, Never>?
     @ObservationIgnored private let reload: @MainActor () async -> Void
     @ObservationIgnored private var isActive = true
@@ -31,12 +32,14 @@ final class SyncCoordinator {
         pass: Pass?,
         positions: PositionSync? = nil,
         removals: RemovalSync? = nil,
+        watcher: LibraryWatcher? = nil,
         ttl: Duration = SyncScheduler.defaultTTL,
         reload: @escaping @MainActor () async -> Void
     ) {
         self.reload = reload
         self.positions = positions
         self.removals = removals
+        self.watcher = watcher
         guard let pass else { return }
         state = SyncState()
         let onChange: @Sendable () async -> Void = { [weak self] in await self?.changed() }
@@ -66,6 +69,7 @@ final class SyncCoordinator {
     func appWentToBackground() {
         isActive = false
         if let removals { Task { await removals.stopListening() } }
+        if let watcher { Task { await watcher.stopListening() } }
         guard let positions else { return }
         Task {
             await positions.stopListening()
@@ -102,8 +106,10 @@ final class SyncCoordinator {
         }
     }
 
-    /// LIB-020: con la app a la vista, los libros borrados en otro dispositivo se quitan al llegar.
+    /// LIB-020, SYN-014: con la app a la vista, los libros borrados en otro dispositivo se quitan al llegar y los
+    /// agregados piden una pasada.
     private func startListeningForRemovals() {
+        if let watcher, isActive { Task { await watcher.startListening() } }
         guard let removals, isActive else { return }
         Task { await removals.startListening() }
         guard removalUpdates == nil else { return }

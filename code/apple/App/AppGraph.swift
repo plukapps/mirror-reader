@@ -31,7 +31,13 @@ enum AppGraph {
         // La sincronización vuelve a leer la base en Inicio y en la biblioteca cada vez que la cambia.
         let refs = ScreenRefs()
         let pass = positions.map { libraryPass(store: store, positions: $0, removals: removals) }
-        let sync = SyncCoordinator(pass: pass, positions: positions, removals: removals) {
+        // SYN-014: un libro agregado en otro dispositivo pide una pasada (la app a la vista).
+        let watcher = firebase
+            ? LibraryWatcher(remote: FirestoreRemoteLibrary(), known: store, account: FirebaseAccountRepository()) {
+                await MainActor.run { refs.sync?.request() }
+            }
+            : nil
+        let sync = SyncCoordinator(pass: pass, positions: positions, removals: removals, watcher: watcher) {
             await refs.home?.reload()
             await refs.library?.load()
         }
@@ -39,6 +45,7 @@ enum AppGraph {
         let home = HomeViewModel(library: store, importer: reader?.importer) { sync.request() }
         refs.home = home
         refs.library = library
+        refs.sync = sync
         let search = SearchViewModel(library: store)
         let bookActions = BookActionsViewModel(
             // La posición sale en cuanto se pueda, sin esperar la red (SYN-011).
@@ -145,6 +152,7 @@ enum AppGraph {
 private final class ScreenRefs {
     weak var home: HomeViewModel?
     weak var library: LibraryViewModel?
+    weak var sync: SyncCoordinator?
 }
 
 /// Sin Firebase no hay de dónde bajar libros: un libro solo en la nube no se puede abrir (ADR 0002).

@@ -186,7 +186,8 @@ Pedido del usuario (2026-10-12), tras la prueba cruzada: borrar llega solo a los
 - [x] `LibrarySync` implementa `LibrarySyncRequester`. `RemovalListener` pasa a llamarse `CloudListener`, y `CloudListeners` arranca y para las dos escuchas (borrados y libros) desde `MainViewModel`.
 
 ### Tarea 9 (K-183): Apple (S)
-- [ ] Lo mismo en `ReaderDomain` y la app (`SyncCoordinator`), con tests.
+- [x] `RemoteBookChanges`, `KnownBooks` y `LibraryWatcher` (actor, con `onNewBooks`) en `ReaderDomain`, con `LibraryWatcherTests` (3 casos); dominio 167.
+- [x] La escucha está en `FirestoreRemoteLibrary` y `LibraryStore` implementa `KnownBooks`. `AppGraph` hace que `onNewBooks` llame a `SyncCoordinator.request()` y `SyncCoordinator` arranca y para la escucha junto con la de borrados. iPhone 112, Mac 106.
 
 ## Riesgos
 
