@@ -5,7 +5,7 @@ import SwiftData
 /// Base local de la biblioteca (ADR 0002, ADR 0012): la fuente de verdad de lo que muestra la app.
 /// Es un `ModelActor`: todo acceso a SwiftData pasa por su propio contexto, fuera del hilo principal.
 actor LibraryStore: ModelActor, LibraryRepository, CloudBooksRepository, BookUploadRepository, BookFiles, PositionSyncStore,
-    ReadingPositionRepository {
+    ReadingPositionRepository, BookEditor {
     nonisolated let modelContainer: ModelContainer
     nonisolated let modelExecutor: any ModelExecutor
     private let files: LibraryFiles
@@ -29,7 +29,7 @@ actor LibraryStore: ModelActor, LibraryRepository, CloudBooksRepository, BookUpl
         try ModelContainer(for: schema, configurations: ModelConfiguration(isStoredInMemoryOnly: true))
     }
 
-    private static let schema = Schema([BookRecord.self, PositionRecord.self])
+    private static let schema = Schema([BookRecord.self, PositionRecord.self, RemovedBookRecord.self])
 
     // MARK: LibraryRepository
 
@@ -44,11 +44,12 @@ actor LibraryStore: ModelActor, LibraryRepository, CloudBooksRepository, BookUpl
                     title: record.title,
                     author: record.author,
                     coverPath: record.hasCover ? files.coverFile(bookId: record.id).path : nil,
-                    progressPercent: position.flatMap { progressPercent($0.progress) },
+                    progressPercent: progressPercent(position.flatMap { positionProgression(locatorJson: $0.locatorJson, progress: $0.progress) }),
                     lastReadAt: position.map { Date(timeIntervalSince1970: Double($0.readAt) / 1000) },
                     addedAt: record.addedAt,
                     isDownloaded: record.isDownloaded,
-                    isUploaded: record.uploadedAt != nil
+                    isUploaded: record.uploadedAt != nil,
+                    coverVersion: record.coverVersion
                 )
             }
         } catch {
@@ -59,7 +60,9 @@ actor LibraryStore: ModelActor, LibraryRepository, CloudBooksRepository, BookUpl
     // MARK: CloudBooksRepository
 
     func addCloudOnly(_ books: [RemoteBook]) async throws {
+        // Un libro que el usuario quitó de este dispositivo no vuelve (LIB-020).
         let existing = Set(try modelContext.fetch(FetchDescriptor<BookRecord>()).map(\.id))
+            .union(try modelContext.fetch(FetchDescriptor<RemovedBookRecord>()).map(\.id))
         let seenAt = now()
         for book in books where !existing.contains(book.id) {
             modelContext.insert(
@@ -263,6 +266,8 @@ actor LibraryStore: ModelActor, LibraryRepository, CloudBooksRepository, BookUpl
 
     /// Registra un libro recién importado, con su archivo ya en `books/{id}.epub`.
     func addImported(id: String, title: String, author: String?, hasCover: Bool, sizeBytes: Int64) throws {
+        // Si el usuario lo había quitado (LIB-020), importarlo de nuevo lo devuelve a la biblioteca.
+        try modelContext.delete(model: RemovedBookRecord.self, where: #Predicate { $0.id == id })
         modelContext.insert(
             BookRecord(
                 id: id, title: title, author: author, hasCover: hasCover, addedAt: now(),
@@ -279,6 +284,39 @@ actor LibraryStore: ModelActor, LibraryRepository, CloudBooksRepository, BookUpl
         book.isDownloaded = true
         book.hasCover = book.hasCover || hasCover
         try modelContext.save()
+    }
+
+    // MARK: BookEditor (LIB-019, LIB-020)
+
+    func replaceCover(bookId: String, imageData: Data) async -> Bool {
+        guard let jpeg = CoverImages.jpeg(from: imageData) else { return false }
+        do {
+            // Se escribe aparte y se reemplaza de una vez: una pantalla nunca lee una portada a medio escribir.
+            let temp = files.newTempFile()
+            try jpeg.write(to: temp)
+            try files.installCover(bookId: bookId, from: temp)
+            guard let book = try record(bookId) else { return false }
+            book.hasCover = true
+            book.coverVersion = Int64((now().timeIntervalSince1970 * 1000).rounded())
+            try modelContext.save()
+            return true
+        } catch {
+            return false
+        }
+    }
+
+    func remove(bookId: String) async {
+        do {
+            modelContext.insert(RemovedBookRecord(id: bookId, removedAt: now()))
+            try modelContext.delete(model: BookRecord.self, where: #Predicate { $0.id == bookId })
+            try modelContext.delete(model: PositionRecord.self, where: #Predicate { $0.bookId == bookId })
+            try modelContext.save()
+        } catch {
+            modelContext.rollback()
+            return
+        }
+        try? FileManager.default.removeItem(at: files.bookFile(bookId: bookId))
+        try? FileManager.default.removeItem(at: files.coverFile(bookId: bookId))
     }
 
     /// Título del libro, para el lector.

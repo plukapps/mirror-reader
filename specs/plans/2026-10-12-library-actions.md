@@ -30,12 +30,12 @@
 
 - **"No leído" como posición.** El estado sale de la posición:
   - Hoy es "nuevo" si no hay posición, "terminado" si el progreso llega al 100 % y "leyendo" en otro caso.
-  - Se agrega una regla: una posición con el localizador vacío `"{}"` (`UNREAD_LOCATOR`) y progreso menor a 100 % también es "nuevo".
-  - "Marcar como no leído" guarda `"{}"` con progreso 0. Como es una posición más nueva, viaja con la sincronización de posición (LIB-018) y los otros dispositivos aplican la misma regla.
-  - Las reglas de Firestore exigen un `locatorJson` de 1 carácter o más, y `"{}"` lo cumple.
+  - Se agrega una regla: una posición con el localizador `{"unread":true}` (`UNREAD_LOCATOR`, `unreadLocator`) y progreso menor a 100 % también es "nuevo". No se usa `"{}"`: el lector de iOS lo guarda cuando no puede serializar una posición real, y los tests lo usan como relleno.
+  - "Marcar como no leído" guarda ese localizador con progreso 0. Como es una posición más nueva, viaja con la sincronización de posición (LIB-018) y los otros dispositivos aplican la misma regla.
+  - Las reglas de Firestore exigen un `locatorJson` de 1 carácter o más, y este lo cumple.
   - Los dos lectores ya toleran un localizador sin `href`: `Locator.fromJSON` devuelve null y `try? Locator(jsonString:)` da nil, así que abren al principio.
   - Los avisos "¿Continuar desde…?" y "Seguir desde…" comparan progresos y no cambian.
-- **"Marcar como terminado"** guarda progreso 1,0 con el localizador actual del libro, o `"{}"` si nunca se abrió. Se usa el mismo `save` del lector, que marca la posición como pendiente y le pone la hora actual. Después se pide un envío (`requestFlush` en Android, `flush` en iOS) para no esperar a la próxima pasada.
+- **"Marcar como terminado"** guarda progreso 1,0 con el localizador actual del libro, o el de "no leído" si nunca se abrió. Se usa el mismo `save` del lector, que marca la posición como pendiente y le pone la hora actual. Después se pide un envío (`requestFlush` en Android, `flush` en iOS) para no esperar a la próxima pasada.
 - **Quitar con marca local.**
   - Se borran el registro del libro, la posición, el archivo EPUB y la portada.
   - El id queda en una tabla aparte de libros quitados (`removed_books`), con su fecha.
@@ -55,7 +55,7 @@
   - `MIGRATION_5_6` crea `removed_books(id TEXT PRIMARY KEY NOT NULL, removedAt INTEGER NOT NULL)` y agrega `coverVersion INTEGER NOT NULL DEFAULT 0` a `books`.
   - `MigrationTest` cubre 5→6. Es de emulador: se compila y no se corre sin preguntar.
 - **Dominio:** caso de uso `BookActions` (`domain/usecase`) con `markFinished`, `markUnread`, `setCover` y `remove`. Usa `PositionRepository`, una interfaz nueva `BookEditor` (`domain/repository`: `replaceCover(bookId, imageUri)` y `remove(bookId)`) y `PositionFlushRequester` (lo implementa `PositionSync`). Es aparte de `LibraryRepository` para no tocar los seis `FakeLibrary` de los tests. `BookEditorImpl` en `data`, enlazado en `RepositoryModule`. Las consultas de `removed_books` viven en `BookDao`.
-- **Estado de lectura:** se ajusta `LibraryRepositoryImpl.books` a la regla de `"{}"`. La lógica pura va en `domain` (`readingStatus`/mapeo) con test JVM.
+- **Estado de lectura:** se ajusta `LibraryRepositoryImpl.books` a la regla de "no leído". La lógica pura va en `domain` (`readingStatus`/mapeo) con test JVM.
 - **UI:**
   - `BookActionsMenu` en `ui/library` es un `Popup` a pantalla completa con el velo, la portada elevada en la posición de la original y la tarjeta. La posición se calcula con una función pura con test JVM.
   - El desenfoque usa `Modifier.blur` sobre el contenido de la pantalla en Android 12 o superior. En versiones anteriores queda solo el velo.
@@ -69,7 +69,7 @@
 - **Datos:** modelo SwiftData nuevo `RemovedBookRecord(id, removedAt)` y campo `coverVersion: Int64 = 0` en `BookRecord`. Los valores por defecto permiten la migración automática (ADR 0012).
   - `LibraryStore` implementa un protocolo nuevo `BookActions` en `ReaderDomain` con `markFinished`, `markUnread`, `setCover(bookId:imageData:)` y `remove`.
   - `addCloudOnly` salta los quitados y `addImported` borra la marca.
-  - La regla de `"{}"` va en `ReaderDomain` (`readingStatus`/`LibraryStore.books()`).
+  - La regla de "no leído" va en `ReaderDomain` (`readingStatus`/`LibraryStore.books()`).
 - **UI:**
   - Se usa `.contextMenu(menuItems:preview:)` nativo en `BookCell`, `ContinueCard`, `BookRow` y `ResultRow`. En iPhone es mantener presionado, con la portada elevada y el fondo desenfocado del sistema, que es lo que dibuja el diseño. En la Mac es el clic secundario.
   - La cabecera (título y "Autor · estado") es un `Section` con encabezado.
@@ -85,7 +85,7 @@
 ## Tareas
 
 ### Tarea 1 (K-172): Android, datos y dominio (M)
-- [x] Regla `"{}"` en el estado de lectura (`positionProgression`), con test JVM (LIB-018).
+- [x] Regla de "no leído" en el estado de lectura (`positionProgression`), con test JVM (LIB-018).
 - [x] `BookActions`, `BookEditor` y `BookEditorImpl`, con Hilt. Base de datos v6 (`removed_books`, `coverVersion`) con `MIGRATION_5_6`.
 - [x] `addCloudOnly` ignora quitados e importar borra la marca (LIB-020). `coverVersion` llega a `LibraryBook`, y `BookCover` lo usa como clave.
 - [x] Guardado de portada compartido con `EpubImporter` (`CoverImages.kt`). La foto se lee con `ImageDecoder`, que respeta la orientación, y en Android 8 con `BitmapFactory`.
@@ -102,9 +102,10 @@
 **Verificación:** compila (`assembleDebug`), tests JVM pasan.
 
 ### Tarea 3 (K-174): Apple, datos y dominio (M)
-- [ ] Regla `"{}"` en `ReaderDomain` con test (`swift test`).
-- [ ] Protocolo `BookActions`, `RemovedBookRecord` y `coverVersion`. Implementación en `LibraryStore`: `addCloudOnly` salta quitados y `addImported` borra la marca.
-- [ ] Tests de app con `inMemoryContainer()`: terminado, no leído, quitar (registro, posición, archivos, marca), reimportar y portada.
+- [x] Regla de "no leído" (`unreadLocator`, `positionProgression`) en `ReaderDomain`, y `BookActions` y `BookEditor`, con tests (`swift test`). Una posición sin progreso sigue contando como "nuevo", como antes en Apple.
+- [x] `RemovedBookRecord` y `coverVersion` (valores por defecto, migración automática). `LibraryStore` implementa `BookEditor`, `addCloudOnly` salta los quitados y `addImported` borra la marca. La foto se escala con ImageIO (`CoverImages`), en iPhone y en la Mac, respetando la orientación.
+- [x] Tests de app `BookActionsDataTests` con `inMemoryContainer()`: terminado y no leído, quitar (registro, posición y archivos), sincronización que no lo trae, reimportar, portada de 600 px y datos que no son imagen.
+- Nota: en un worktree nuevo, `xcodebuild` no resuelve Readium sin red. Se copiaron `SourcePackages` y `Package.resolved` de otro worktree y se usó `-disableAutomaticPackageResolution`.
 
 **Verificación:** `swift test` y `xcodebuild … test` en iPhone y en la Mac.
 

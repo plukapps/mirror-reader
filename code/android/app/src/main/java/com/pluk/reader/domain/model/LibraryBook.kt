@@ -43,9 +43,10 @@ fun readingStatus(progressPercent: Int?): ReadingStatus = when {
 
 /**
  * Localizador de un libro marcado como no leído (LIB-018): viaja como una posición más, así llega a los otros
- * dispositivos, y el lector lo abre desde el principio porque no apunta a ningún capítulo.
+ * dispositivos, y el lector lo abre desde el principio porque no apunta a ningún capítulo (no tiene `href`). No es
+ * `"{}"`, que ya se usa como posición de relleno.
  */
-const val UNREAD_LOCATOR = "{}"
+const val UNREAD_LOCATOR = """{"unread":true}"""
 
 /**
  * Progresión de un libro que tiene posición guardada. Una posición "no leído" cuenta como sin abrir (null), salvo que
