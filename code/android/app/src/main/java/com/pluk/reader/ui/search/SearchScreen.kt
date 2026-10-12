@@ -39,6 +39,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.testTag
@@ -102,7 +103,9 @@ fun SearchContent(
     onFocusRequested: () -> Unit = {},
 ) {
     val bottomBarPadding = LocalBottomBarPadding.current
-    Box(Modifier.fillMaxSize().background(MarginColors.Paper), contentAlignment = Alignment.TopCenter) {
+    Box(Modifier
+        .fillMaxSize()
+        .background(MarginColors.Paper), contentAlignment = Alignment.TopCenter) {
         Column(
             Modifier
                 .widthIn(max = MAX_CONTENT_WIDTH)
@@ -247,7 +250,9 @@ private fun Message(text: String, modifier: Modifier = Modifier) {
 
 @Composable
 private fun Results(books: List<LibraryBook>, onBookClick: (String) -> Unit, contentPadding: PaddingValues) {
-    LazyColumn(Modifier.fillMaxSize().testTag("search-results"), contentPadding = contentPadding) {
+    LazyColumn(Modifier
+        .fillMaxSize()
+        .testTag("search-results"), contentPadding = contentPadding) {
         item {
             Text(
                 text = pluralStringResource(R.plurals.search_results, books.size, books.size).uppercase(),
@@ -255,7 +260,9 @@ private fun Results(books: List<LibraryBook>, onBookClick: (String) -> Unit, con
                 fontSize = 11.sp,
                 fontWeight = FontWeight.SemiBold,
                 letterSpacing = 0.08.em,
-                modifier = Modifier.padding(top = 22.dp, bottom = 6.dp).testTag("search-count"),
+                modifier = Modifier
+                    .padding(top = 22.dp, bottom = 6.dp)
+                    .testTag("search-count"),
             )
         }
         itemsIndexed(books, key = { _, book -> book.id }) { index, book ->
@@ -276,19 +283,36 @@ private fun ResultRow(book: LibraryBook, showDivider: Boolean, onClick: () -> Un
             .testTag("result-${book.id}"),
     ) {
         Row(
-            Modifier.fillMaxWidth().padding(vertical = 12.dp),
+            Modifier
+                .fillMaxWidth()
+                .padding(vertical = 12.dp),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(14.dp),
         ) {
             BookCover(book, Modifier.width(52.dp))
-            Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(3.dp)) {
-                Text(book.title, color = MarginColors.Ink, fontSize = 16.sp, fontWeight = FontWeight.Bold, maxLines = 2, overflow = TextOverflow.Ellipsis)
+            Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                Text(
+                    book.title,
+                    color = MarginColors.Ink,
+                    fontSize = 16.sp,
+                    fontWeight = FontWeight.Bold,
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis
+                )
                 book.author?.let {
-                    Text(it, color = MarginColors.Muted, fontSize = 13.sp, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                    Text(
+                        it,
+                        color = MarginColors.Muted,
+                        fontSize = 13.sp,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
                 }
                 Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                     val reading = book.status == ReadingStatus.Reading
-                    if (reading) Box(Modifier.size(6.dp).background(MarginColors.ReadingDot, CircleShape))
+                    if (reading) Box(Modifier
+                        .size(6.dp)
+                        .background(MarginColors.ReadingDot, CircleShape))
                     Text(
                         status,
                         color = if (reading) MarginColors.Ink else MarginColors.Muted,
@@ -299,7 +323,10 @@ private fun ResultRow(book: LibraryBook, showDivider: Boolean, onClick: () -> Un
             }
             Icon(SearchIcons.ChevronRight, contentDescription = null, tint = MarginColors.Ink, modifier = Modifier.size(22.dp))
         }
-        if (showDivider) Box(Modifier.fillMaxWidth().height(1.dp).background(MarginColors.Line))
+        if (showDivider) Box(Modifier
+            .fillMaxWidth()
+            .height(1.dp)
+            .background(MarginColors.Line))
     }
 }
 
@@ -320,7 +347,9 @@ private val FieldShape = RoundedCornerShape(28.dp)
 private val ChipShape = RoundedCornerShape(17.dp)
 private val FieldText = TextStyle(fontFamily = HostGrotesk, fontSize = 16.sp, fontWeight = FontWeight.Medium, color = MarginColors.Ink)
 
-@Preview(showBackground = true, widthDp = 360, heightDp = 780)
+@Preview(showBackground = true,
+//    widthDp = 360, heightDp = 780
+)
 @Composable
 private fun SearchPreview() {
     SearchContent(

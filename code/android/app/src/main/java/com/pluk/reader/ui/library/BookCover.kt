@@ -29,7 +29,7 @@ import kotlin.math.abs
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
-private val CoverShape = RoundedCornerShape(6.dp)
+private val CoverShape = RoundedCornerShape(8.dp)
 
 /** Portada 2:3 (LIB-011). Sin portada en el EPUB se genera una con color y título. */
 @Composable
