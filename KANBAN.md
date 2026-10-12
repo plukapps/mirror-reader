@@ -34,13 +34,15 @@ Plan de referencia: `specs/plans/2026-10-06-android-epub-viewer.md`
 
 ## Listo
 
+- **K-176** Acciones del libro, Tarea 5: cierre de docs y verificación a mano en el teléfono y el simulador. Rama `feature/library-actions`.
+- **K-183** Libros nuevos al instante, Tarea 9: Apple. SYN-014. Rama `feature/library-actions`. Plan `2026-10-12-library-actions.md`.
 - **K-134** Lector iOS, Tarea 7: cierre de docs y verificación a mano en el simulador. Rama `feature/ios-reader`. Era K-125 hasta el merge con `master`.
 - **K-038** Inicio, Tarea 4: cierre de docs y verificación a mano. Rama `feature/home`.
 - **K-024** Quitar el padding vertical de Readium (40 dp arriba y abajo en modo paginado) y reservar la barra de estado desde la pantalla. RDR-002. Rama `feat/page-turn-animation`.
 
 ## En curso
 
-- **K-176** Acciones del libro, Tarea 5: cierre de docs y verificación a mano en el teléfono y el simulador. Rama `feature/library-actions`.
+- **K-182** Libros nuevos al instante, Tarea 8: Android (escucha de `books` cambiados hace poco; un libro desconocido pide una pasada). SYN-014. Rama `feature/library-actions`. Plan `2026-10-12-library-actions.md`.
 
 ## Revisión
 

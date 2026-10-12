@@ -3,7 +3,7 @@
 **Objetivo:** que mantener presionada una portada abra el menú de la pantalla "05b — Library · Long press" de `design/Margin Ebook App.dc.html` con cuatro acciones: Leer libro, Marcar como terminado (o como no leído), Subir foto de portada y Quitar de la biblioteca.
 
 **Specs que implementa:** LIB-016 a LIB-020 (`specs/product/01-library.md`, nuevos). Toca LIB-008, LIB-010, LIB-011 y LIB-012 (excepciones explícitas en los requisitos nuevos).
-**Rama:** `feature/library-actions` (worktree `.claude/worktrees/library-actions`). **Tarjetas:** K-172 a K-178.
+**Rama:** `feature/library-actions` (worktree `.claude/worktrees/library-actions`). **Tarjetas:** K-172 a K-183.
 **Pedido del usuario (2026-10-12):** "primero siempre en local", Android e iOS. Decisiones tomadas con el usuario en esta sesión:
 - Quitar: borra en este dispositivo y deja una marca local para que la sincronización no lo traiga de nuevo. La nube y los otros dispositivos, con K-154.
 - Terminado: se guarda como posición (100 %) y viaja con la sincronización de posición que ya existe.
@@ -169,6 +169,23 @@ Pedido del usuario (2026-10-12), después de probar en el iPhone: "Quitar de la 
   - `SyncCoordinator` escucha los borrados mientras la app se ve y recarga las pantallas. Recibe `readerOpened`/`readerClosed` desde `RootView`, que mira `home.readerBookId`.
   - Texto de confirmación nuevo.
   - Tests de app en `BookActionsDataTests` (pendientes y quitar por la nube): iPhone 109, Mac 103.
+
+## Ampliación: libros nuevos al instante (K-182, K-183)
+
+Pedido del usuario (2026-10-12), tras la prueba cruzada: borrar llega solo a los otros dispositivos, pero un libro importado no aparece hasta matar la app (con la app en marcha la pasada corre a lo sumo cada 5 minutos, SYN-001, y no hay escucha de libros nuevos). El usuario quiere conservar el tope de 5 minutos y sumar la escucha, como la de borrados y posiciones. Requisito nuevo SYN-014.
+
+### Decisiones
+
+- **Escucha acotada:** mientras la app se ve y hay sesión, se escuchan los documentos de `books` con `updatedAt` posterior a "ahora menos 15 minutos" (al empezar a escuchar). Lee solo lo cambiado hace poco, no toda la biblioteca. El margen cubre la app en segundo plano dentro del tope de 5 minutos; pasado el tope, la pasada al volver ya lo trae. Una sola desigualdad sobre `updatedAt`: no necesita índice compuesto. `deletedAt` se filtra en el dispositivo.
+- **Qué dispara:** si en lo recibido hay un libro vivo que este dispositivo no tiene, se pide una pasada de la biblioteca (`request`, sin tope), que lo agrega, baja la portada y el archivo, como al arrancar. Los cambios de libros que ya están (por ejemplo el `saveBook` de una subida propia) no disparan nada.
+- **Arranque y parada:** junto con la escucha de borrados (al volver a primer plano y al dejar de verse la app).
+- **Sin backend:** las reglas ya permiten leer `books` al dueño.
+
+### Tarea 8 (K-182): Android (S)
+- [ ] `RemoteBookChanges` (escucha), `KnownBooks` (ids locales) y `LibraryWatcher` en el dominio, con tests JVM. Firestore. Arranque y parada con la escucha de borrados.
+
+### Tarea 9 (K-183): Apple (S)
+- [ ] Lo mismo en `ReaderDomain` y la app (`SyncCoordinator`), con tests.
 
 ## Riesgos
 
