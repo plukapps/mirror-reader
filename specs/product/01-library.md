@@ -25,7 +25,7 @@ Una biblioteca única y ordenada de los EPUB del usuario.
 - **LIB-017** "Leer libro" abre el libro en su última posición, igual que tocarlo.
 - **LIB-018** "Marcar como terminado" deja el libro al 100 %: pasa a "Terminados" y conserva su última posición. "Marcar como no leído" deja el libro sin empezar (no está en "Leyendo" ni en "Terminados") y se abre desde el principio. Un libro sin empezar ofrece solo la primera, uno terminado solo la segunda y uno en lectura las dos. Los dos cambios llegan a mis otros dispositivos como cualquier avance de lectura (SYN).
 - **LIB-019** "Subir foto de portada" debe dejar elegir una foto del dispositivo y usarla como portada del libro en todas las pantallas. Por ahora la portada nueva se ve solo en este dispositivo (excepción a LIB-012 hasta sincronizar cambios de portada).
-- **LIB-020** "Quitar de la biblioteca" pide confirmación y borra de este dispositivo el libro, su archivo, su portada y su posición. No vuelve a aparecer con la sincronización. Importar el mismo archivo otra vez lo devuelve a la biblioteca. Por ahora no afecta a la nube ni a mis otros dispositivos: el borrado en todos los dispositivos de LIB-008 llega con la sincronización de borrados.
+- **LIB-020** "Quitar de la biblioteca" pide confirmación y borra el libro de mi cuenta (LIB-008): desaparece al instante de este dispositivo, con su archivo, su portada y su progreso, también sin conexión. En cuanto hay conexión se borra de la nube (el archivo y la portada dejan de ocupar espacio) y de mis otros dispositivos: los que tienen la app abierta lo quitan en segundos; el resto, al sincronizar. Si el libro está abierto en el lector de otro dispositivo, se quita al cerrarlo. Importar el mismo archivo otra vez lo devuelve a la biblioteca y a la nube.
 
 ## Escenarios
 
@@ -43,6 +43,8 @@ Una biblioteca única y ordenada de los EPUB del usuario.
 - Dado un libro al 42 %, cuando elijo "Marcar como terminado", entonces aparece en "Terminados" y no en "Leyendo"; cuando después elijo "Marcar como no leído", entonces no está en ninguna de las dos y al abrirlo empieza desde el principio.
 - Dado un libro sin portada, cuando elijo "Subir foto de portada" y una foto, entonces la grilla, Inicio y la búsqueda muestran esa foto.
 - Dado un libro que está en la nube, cuando elijo "Quitar de la biblioteca" y confirmo, entonces desaparece y no vuelve después de sincronizar; cuando cancelo, sigue ahí.
+- Dado un libro en mi teléfono y en mi tablet con la app abierta, cuando lo quito en el teléfono, entonces desaparece de la tablet sin tocar nada; si la tablet estaba apagada, desaparece al abrir la app.
+- Dado que quito un libro sin conexión, entonces desaparece del dispositivo y se borra de la nube y de los demás cuando vuelve la conexión.
 
 ## Fuera de alcance
 

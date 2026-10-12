@@ -5,7 +5,6 @@ Plan de referencia: `specs/plans/2026-10-06-android-epub-viewer.md`
 
 ## Backlog
 
-- **K-177** Quitar de la biblioteca borra el libro de la cuenta y de todos los dispositivos (pedido del usuario, 2026-10-12): `deletedAt` en Firestore, borrar EPUB y portada de Storage, escucha de borrados en los dispositivos activos y limpieza al sincronizar en el resto. Cambia LIB-020, cumple LIB-008 y la parte de borrados de K-154. Rama `feature/library-actions`. Requiere actualizar el plan.
 - **K-156** Términos de uso y política de privacidad públicos (CMP-002, CMP-003). Cargar sus URL en `onb_terms_url` y `onb_privacy_url` (`strings.xml`): hoy el onboarding los muestra subrayados pero sin enlace. ONB-001, ONB-004.
 - **K-157** Publicar `/.well-known/assetlinks.json` en Firebase Hosting de `mirror-reading-staging` (paquete `com.pluk.reader` y SHA-256 de las firmas de debug y release) para que los enlaces de verificación y de contraseña nueva abran la app (O9) en lugar de la página de Firebase. Despliegue al proyecto real: pedirlo al usuario. ONB-018, ADR 0014.
 - **K-158** Cerrar sesión y perfil (ACC-006): hoy la única forma de volver a ver el onboarding es borrar los datos de la app. Definir qué pasa con la biblioteca local de la cuenta anterior.
@@ -34,13 +33,15 @@ Plan de referencia: `specs/plans/2026-10-06-android-epub-viewer.md`
 
 ## Listo
 
+- **K-176** Acciones del libro, Tarea 5: cierre de docs y verificación a mano en el teléfono y el simulador. Rama `feature/library-actions`.
+- **K-178** Quitar borra de la cuenta, Tarea 7: Apple. LIB-020, LIB-008. Rama `feature/library-actions`. Plan `2026-10-12-library-actions.md`.
 - **K-134** Lector iOS, Tarea 7: cierre de docs y verificación a mano en el simulador. Rama `feature/ios-reader`. Era K-125 hasta el merge con `master`.
 - **K-038** Inicio, Tarea 4: cierre de docs y verificación a mano. Rama `feature/home`.
 - **K-024** Quitar el padding vertical de Readium (40 dp arriba y abajo en modo paginado) y reservar la barra de estado desde la pantalla. RDR-002. Rama `feat/page-turn-animation`.
 
 ## En curso
 
-- **K-176** Acciones del libro, Tarea 5: cierre de docs y verificación a mano en el teléfono y el simulador. Rama `feature/library-actions`.
+- **K-177** Quitar borra de la cuenta y de todos los dispositivos, Tarea 6: Android (`deletedAt`, borrado en Storage, escucha y limpieza al sincronizar). LIB-020, LIB-008, parte de borrados de K-154. Rama `feature/library-actions`. Plan `2026-10-12-library-actions.md`.
 
 ## Revisión
 

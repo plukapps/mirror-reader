@@ -3,7 +3,7 @@
 **Objetivo:** que mantener presionada una portada abra el menú de la pantalla "05b — Library · Long press" de `design/Margin Ebook App.dc.html` con cuatro acciones: Leer libro, Marcar como terminado (o como no leído), Subir foto de portada y Quitar de la biblioteca.
 
 **Specs que implementa:** LIB-016 a LIB-020 (`specs/product/01-library.md`, nuevos). Toca LIB-008, LIB-010, LIB-011 y LIB-012 (excepciones explícitas en los requisitos nuevos).
-**Rama:** `feature/library-actions` (worktree `.claude/worktrees/library-actions`). **Tarjetas:** K-172 a K-176.
+**Rama:** `feature/library-actions` (worktree `.claude/worktrees/library-actions`). **Tarjetas:** K-172 a K-178.
 **Pedido del usuario (2026-10-12):** "primero siempre en local", Android e iOS. Decisiones tomadas con el usuario en esta sesión:
 - Quitar: borra en este dispositivo y deja una marca local para que la sincronización no lo traiga de nuevo. La nube y los otros dispositivos, con K-154.
 - Terminado: se guarda como posición (100 %) y viaja con la sincronización de posición que ya existe.
@@ -122,6 +122,33 @@
 - [ ] Instalar en el teléfono y en el simulador, y verificar a mano con el usuario: las cuatro acciones en las tres pantallas, que un quitado no vuelva tras sincronizar, y que un terminado se vea terminado en el otro dispositivo.
 
 **Verificación:** el usuario lo ve en el teléfono y en el simulador.
+
+## Ampliación: quitar borra de la cuenta (K-177, K-178)
+
+Pedido del usuario (2026-10-12), después de probar en el iPhone: "Quitar de la biblioteca" borra el libro de la cuenta y de todos los dispositivos (LIB-020 nuevo, cumple LIB-008 y la parte de borrados de K-154). Decisiones tomadas con el usuario: se borran el EPUB y la portada de Storage; los dispositivos activos reciben el borrado al momento; el resto, al sincronizar.
+
+### Decisiones
+
+- **Orden (offline-first, ADR 0002).** El dispositivo que borra quita el libro local al instante y lo anota en `removed_books` como pendiente para la nube (`cloudDeleted = false`). Si hay sesión, envía al momento; si no, la próxima pasada de sincronización lo reintenta.
+- **Envío a la nube:** primero `deletedAt` en `users/{uid}/books/{id}` (desde ahí el libro no existe para la cuenta), después se borran `books/{id}.epub` y `covers/{id}.jpg` de Storage ("no existe" cuenta como hecho). Recién con los tres pasos se marca `cloudDeleted = true`. La función `onBookFileDeleted` descuenta la cuota. Un libro que nunca se subió no tiene nada en la nube: queda hecho al quitarlo.
+- **Backend sin cambios:** las reglas ya permiten poner `deletedAt` (update con `isSoftDeleteMark`) y al dueño borrar en Storage. Las posiciones de la nube no se borran (las reglas no lo permiten): se ignoran.
+- **Otros dispositivos:**
+  - Con la app a la vista, escucha de `books` con `deletedAt != null` (como la escucha de posiciones, SYN-012), solo mientras hay sesión.
+  - Cada pasada de sincronización consulta lo mismo y quita los libros locales que estén en esa lista y ya subidos (`uploadedAt != null`): uno importado aquí y aún no subido es otra copia y no se toca.
+  - Quitar por la nube usa el mismo borrado local, con `cloudDeleted = true` (no hay nada que enviar).
+  - Si ese libro está abierto en el lector, se espera a cerrarlo.
+- **Reimportar:** importar el archivo borra la marca local (ya existía) y la subida vuelve a poner `deletedAt = null` en el documento (`saveBook` lo incluye también al actualizar).
+- **Texto de confirmación:** "Se borra de tu cuenta y de todos tus dispositivos, con su progreso. Podés volver a importarlo."
+- **Base de Android:** la versión 6 todavía no salió de la rama, así que `cloudDeleted` se agrega a la v6 (migración 5→6). Una instalación de prueba de la v6 anterior necesita borrar los datos de la app.
+
+### Tarea 6 (K-177): Android (M)
+- [ ] Dominio: `RemoteLibrary.deleteBook(id)` y `deletedBookIds()`, `BookFileStore.deleteFiles(id)`, `CloudBooksRepository` con quitados pendientes, `markCloudDeleted` y quitar por la nube. Caso de uso `SyncRemovalsUseCase` (enviar pendientes y aplicar los de la nube) con tests JVM sobre `FakeSyncBackend`.
+- [ ] `BookActions.remove` envía al momento. La pasada de `SyncLibraryUseCase` incluye los borrados. Escucha de borrados mientras la app se ve. El lector abierto demora el quitado.
+- [ ] Firebase: `deletedAt` en Firestore, borrado en Storage, `saveBook` reinicia `deletedAt`.
+- [ ] Texto de confirmación.
+
+### Tarea 7 (K-178): Apple (M)
+- [ ] Lo mismo en `ReaderDomain` (`LibrarySync`, `RemoteLibrary`, `BookFileStore`, `CoverStore`), `LibraryStore` (`RemovedBookRecord.isCloudDeleted`), Firebase y escucha. Tests de dominio y de app.
 
 ## Riesgos
 
