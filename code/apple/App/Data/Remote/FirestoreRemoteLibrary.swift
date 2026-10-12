@@ -40,8 +40,12 @@ struct FirestoreRemoteLibrary: RemoteLibrary {
                     return nil
                 }
                 if exists {
+                    // Un libro borrado que se vuelve a importar revive (LIB-020).
                     transaction.updateData(
-                        [Field.title: book.title, Field.authors: book.authors, Field.updatedAt: FieldValue.serverTimestamp()],
+                        [
+                            Field.title: book.title, Field.authors: book.authors, Field.updatedAt: FieldValue.serverTimestamp(),
+                            Field.deletedAt: NSNull(),
+                        ],
                         forDocument: ref
                     )
                 } else {

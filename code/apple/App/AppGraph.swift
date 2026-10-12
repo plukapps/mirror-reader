@@ -24,12 +24,14 @@ enum AppGraph {
         // Los tests corren dentro de la app: nunca tocan el proyecto real.
         let firebase = !isRunningTests && FirebaseSetup.configureIfAvailable()
         let positions = firebase ? positionSync(store: store) : nil
+        // LIB-020: quitar un libro lo borra de la cuenta y de los otros dispositivos.
+        let removals = firebase ? RemovalSync(remote: FirebaseRemovals(), local: store, account: FirebaseAccountRepository()) : nil
         let reader = readerParts(store: store, files: files, firebase: firebase, positions: positions)
 
         // La sincronización vuelve a leer la base en Inicio y en la biblioteca cada vez que la cambia.
         let refs = ScreenRefs()
-        let pass = positions.map { libraryPass(store: store, positions: $0) }
-        let sync = SyncCoordinator(pass: pass, positions: positions) {
+        let pass = positions.map { libraryPass(store: store, positions: $0, removals: removals) }
+        let sync = SyncCoordinator(pass: pass, positions: positions, removals: removals) {
             await refs.home?.reload()
             await refs.library?.load()
         }
@@ -40,7 +42,12 @@ enum AppGraph {
         let search = SearchViewModel(library: store)
         let bookActions = BookActionsViewModel(
             // La posición sale en cuanto se pueda, sin esperar la red (SYN-011).
-            actions: BookActions(positions: store, editor: store, requestFlush: { if let positions { Task { await positions.flush() } } }),
+            actions: BookActions(
+                positions: store,
+                editor: store,
+                requestFlush: { if let positions { Task { await positions.flush() } } },
+                requestRemovalPush: { if let removals { Task { await removals.push() } } }
+            ),
             reload: {
                 await home.reload()
                 await library.load()
@@ -59,7 +66,7 @@ enum AppGraph {
     }
 
     /// Una pasada de sincronización de la biblioteca con Firebase (SYN-001), como `SyncLibraryUseCase` de Android.
-    private static func libraryPass(store: LibraryStore, positions: PositionSync) -> SyncCoordinator.Pass {
+    private static func libraryPass(store: LibraryStore, positions: PositionSync, removals: RemovalSync?) -> SyncCoordinator.Pass {
         let remote = FirestoreRemoteLibrary()
         let books = FirebaseBookStore()
         let covers = FirebaseCoverStore()
@@ -71,7 +78,8 @@ enum AppGraph {
             cloud: store,
             upload: UploadBooks(uploads: store, files: books, covers: covers, library: remote, quota: FirestoreQuotaSource()),
             download: DownloadBook(files: store, store: books),
-            positions: positions
+            positions: positions,
+            removals: removals
         )
         let log = Logger(subsystem: "com.pluk.reader", category: "LibrarySync")
         return { onChange in

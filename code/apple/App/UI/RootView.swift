@@ -48,6 +48,11 @@ struct RootView: View {
                     }
                 }
             }
+            // LIB-020: un libro abierto no se quita aunque lo borren desde otro dispositivo; al cerrarlo, sí.
+            .onChange(of: home.readerBookId) { old, new in
+                if let old { sync.readerClosed(old) }
+                if let new { sync.readerOpened(new) }
+            }
             // LIB-016 a LIB-020: el menú de cada portada usa estas acciones.
             .environment(bookActions)
             .photosPicker(isPresented: $bookActions.isPickingCover, selection: $coverPhoto, matching: .images)
@@ -69,7 +74,7 @@ struct RootView: View {
                 Button("Cancelar", role: .cancel) { bookActions.cancelRemove() }
                 Button("Quitar", role: .destructive) { Task { await bookActions.confirmRemove() } }
             } message: {
-                Text("Se borra de este dispositivo con su progreso. Podés volver a importarlo.")
+                Text("Se borra de tu cuenta y de todos tus dispositivos, con su progreso. Podés volver a importarlo.")
             }
     }
 

@@ -26,12 +26,21 @@ public struct BookActions: Sendable {
     private let positions: ReadingPositionRepository
     private let editor: BookEditor
     private let requestFlush: @Sendable () async -> Void
+    private let requestRemovalPush: @Sendable () async -> Void
 
-    /// - Parameter requestFlush: envía las posiciones pendientes (SYN-011). Sin sesión, no hace nada.
-    public init(positions: ReadingPositionRepository, editor: BookEditor, requestFlush: @escaping @Sendable () async -> Void) {
+    /// - Parameters:
+    ///   - requestFlush: envía las posiciones pendientes (SYN-011). Sin sesión, no hace nada.
+    ///   - requestRemovalPush: borra de la cuenta los libros quitados (LIB-020). Sin sesión, no hace nada.
+    public init(
+        positions: ReadingPositionRepository,
+        editor: BookEditor,
+        requestFlush: @escaping @Sendable () async -> Void,
+        requestRemovalPush: @escaping @Sendable () async -> Void = {}
+    ) {
         self.positions = positions
         self.editor = editor
         self.requestFlush = requestFlush
+        self.requestRemovalPush = requestRemovalPush
     }
 
     /// Deja el libro al 100 % conservando su última posición (LIB-018).
@@ -51,7 +60,9 @@ public struct BookActions: Sendable {
         await editor.replaceCover(bookId: bookId, imageData: imageData)
     }
 
+    /// Lo quita de aquí al instante y lo borra de la cuenta en cuanto haya conexión (LIB-020).
     public func remove(bookId: String) async {
         await editor.remove(bookId: bookId)
+        await requestRemovalPush()
     }
 }

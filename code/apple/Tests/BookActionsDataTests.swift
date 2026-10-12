@@ -89,6 +89,34 @@ struct BookActionsDataTests {
         #expect(try await store.cloudOnlyBookIds() == ["otro"])
     }
 
+    @Test("LIB-020: un libro de la nube queda pendiente de borrar allí; uno nunca subido, no")
+    func onlyUploadedBooksArePending() async throws {
+        let store = try makeStore()
+        try await store.addCloudOnly([remote("subido")])
+        try await imported(store, "local")
+
+        await store.remove(bookId: "subido")
+        await store.remove(bookId: "local")
+
+        #expect(await store.pendingCloudRemovals() == ["subido"])
+        await store.markCloudRemoved(bookId: "subido")
+        #expect(await store.pendingCloudRemovals().isEmpty)
+    }
+
+    @Test("LIB-008: un borrado de otro dispositivo quita aquí solo los libros que ya estaban en la nube")
+    func deletedInCloudRemovesOnlyUploaded() async throws {
+        let store = try makeStore()
+        try await store.addCloudOnly([remote("subido")])
+        try await imported(store, "local")
+
+        await store.removeDeletedInCloud(bookIds: ["subido", "local", "desconocido"])
+
+        #expect(await store.books().map(\.id) == ["local"])
+        #expect(await store.pendingCloudRemovals().isEmpty)
+        try await store.addCloudOnly([remote("subido")])
+        #expect(await store.books().map(\.id) == ["local"])
+    }
+
     @Test("LIB-020: importar el mismo archivo lo devuelve a la biblioteca")
     func importingAgainRestores() async throws {
         let store = try makeStore()

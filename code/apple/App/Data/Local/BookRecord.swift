@@ -57,15 +57,18 @@ final class PositionRecord {
     }
 }
 
-/// Libro que el usuario quitó de este dispositivo (LIB-020). La sincronización no lo vuelve a agregar; importar el
-/// mismo archivo borra la marca. Más adelante sirve para propagar el borrado a la nube (K-154). Como Android.
+/// Libro quitado de la biblioteca (LIB-020). La sincronización no lo vuelve a agregar; importar el mismo archivo
+/// borra la marca. Como `RemovedBookEntity` de Android.
 @Model
 final class RemovedBookRecord {
     @Attribute(.unique) var id: String
     var removedAt: Date
+    /// La nube ya lo tiene borrado (marca y archivos), o nunca estuvo allí. Falso: falta enviarlo.
+    var isCloudDeleted: Bool = false
 
-    init(id: String, removedAt: Date) {
+    init(id: String, removedAt: Date, isCloudDeleted: Bool = false) {
         self.id = id
         self.removedAt = removedAt
+        self.isCloudDeleted = isCloudDeleted
     }
 }

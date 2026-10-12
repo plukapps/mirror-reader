@@ -5,7 +5,7 @@ import SwiftData
 /// Base local de la biblioteca (ADR 0002, ADR 0012): la fuente de verdad de lo que muestra la app.
 /// Es un `ModelActor`: todo acceso a SwiftData pasa por su propio contexto, fuera del hilo principal.
 actor LibraryStore: ModelActor, LibraryRepository, CloudBooksRepository, BookUploadRepository, BookFiles, PositionSyncStore,
-    ReadingPositionRepository, BookEditor {
+    ReadingPositionRepository, BookEditor, BookRemovals {
     nonisolated let modelContainer: ModelContainer
     nonisolated let modelExecutor: any ModelExecutor
     private let files: LibraryFiles
@@ -306,8 +306,37 @@ actor LibraryStore: ModelActor, LibraryRepository, CloudBooksRepository, BookUpl
     }
 
     func remove(bookId: String) async {
+        // Un libro que nunca se subió no tiene nada en la nube: queda hecho al quitarlo.
+        let inCloud = (try? record(bookId))?.uploadedAt != nil
+        removeLocally(bookId: bookId, isCloudDeleted: !inCloud)
+    }
+
+    // MARK: BookRemovals (LIB-020, LIB-008)
+
+    func pendingCloudRemovals() async -> [String] {
+        let pending = try? modelContext.fetch(
+            FetchDescriptor<RemovedBookRecord>(predicate: #Predicate { !$0.isCloudDeleted }, sortBy: [SortDescriptor(\.removedAt)])
+        )
+        return pending?.map(\.id) ?? []
+    }
+
+    func markCloudRemoved(bookId: String) async {
+        let records = try? modelContext.fetch(FetchDescriptor<RemovedBookRecord>(predicate: #Predicate { $0.id == bookId }))
+        records?.forEach { $0.isCloudDeleted = true }
+        try? modelContext.save()
+    }
+
+    func removeDeletedInCloud(bookIds: [String]) async {
+        for bookId in bookIds {
+            guard let book = try? record(bookId), book.uploadedAt != nil else { continue }
+            removeLocally(bookId: bookId, isCloudDeleted: true)
+        }
+    }
+
+    private func removeLocally(bookId: String, isCloudDeleted: Bool) {
         do {
-            modelContext.insert(RemovedBookRecord(id: bookId, removedAt: now()))
+            try modelContext.delete(model: RemovedBookRecord.self, where: #Predicate { $0.id == bookId })
+            modelContext.insert(RemovedBookRecord(id: bookId, removedAt: now(), isCloudDeleted: isCloudDeleted))
             try modelContext.delete(model: BookRecord.self, where: #Predicate { $0.id == bookId })
             try modelContext.delete(model: PositionRecord.self, where: #Predicate { $0.bookId == bookId })
             try modelContext.save()

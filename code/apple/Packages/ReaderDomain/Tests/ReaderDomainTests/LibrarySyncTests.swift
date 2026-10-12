@@ -439,3 +439,40 @@ struct RemoteMappingTests {
         #expect(progressPercent(-0.1) == 0)
     }
 }
+
+/// LIB-020: cada pasada empieza por los borrados.
+private actor CountingRemovals: CloudRemovals {
+    var syncs = 0
+    var error: (any Error)?
+    func sync() async throws {
+        syncs += 1
+        if let error { throw error }
+    }
+    func fail(with error: any Error) { self.error = error }
+}
+
+struct LibrarySyncRemovalTests {
+    @Test("LIB-020: la pasada envía y aplica los borrados antes de tocar los libros; sin conexión, corta")
+    func removalsRunFirst() async {
+        let removals = CountingRemovals()
+        let local = FakeLocal()
+        let sync = LibrarySync(
+            account: FakeAccount(user: signedIn), credentials: noCredentials, remote: FakeCloud(books: [book]), covers: FakeCloud(),
+            cloud: local, upload: UploadBooks(uploads: local, files: FakeCloud(), covers: FakeCloud(), library: FakeCloud(), quota: FakeCloud()),
+            download: DownloadBook(files: local, store: FakeCloud()), positions: FakeFlusher(), removals: removals
+        )
+        _ = await sync.run()
+        #expect(await removals.syncs == 1)
+        #expect(await !local.added.isEmpty)
+
+        await removals.fail(with: offline)
+        let local2 = FakeLocal()
+        let offlineSync = LibrarySync(
+            account: FakeAccount(user: signedIn), credentials: noCredentials, remote: FakeCloud(books: [book]), covers: FakeCloud(),
+            cloud: local2, upload: UploadBooks(uploads: local2, files: FakeCloud(), covers: FakeCloud(), library: FakeCloud(), quota: FakeCloud()),
+            download: DownloadBook(files: local2, store: FakeCloud()), positions: FakeFlusher(), removals: removals
+        )
+        #expect(await offlineSync.run().report?.offline == true)
+        #expect(await local2.added.isEmpty)
+    }
+}

@@ -33,17 +33,17 @@ Plan de referencia: `specs/plans/2026-10-06-android-epub-viewer.md`
 
 ## Listo
 
-- **K-176** Acciones del libro, Tarea 5: cierre de docs y verificación a mano en el teléfono y el simulador. Rama `feature/library-actions`.
 - **K-134** Lector iOS, Tarea 7: cierre de docs y verificación a mano en el simulador. Rama `feature/ios-reader`. Era K-125 hasta el merge con `master`.
 - **K-038** Inicio, Tarea 4: cierre de docs y verificación a mano. Rama `feature/home`.
 - **K-024** Quitar el padding vertical de Readium (40 dp arriba y abajo en modo paginado) y reservar la barra de estado desde la pantalla. RDR-002. Rama `feat/page-turn-animation`.
 
 ## En curso
 
-- **K-178** Quitar borra de la cuenta, Tarea 7: Apple. LIB-020, LIB-008. Rama `feature/library-actions`. Plan `2026-10-12-library-actions.md`.
+- **K-176** Acciones del libro, Tarea 5: cierre de docs y verificación a mano en el teléfono y el simulador. Rama `feature/library-actions`.
 
 ## Revisión
 
+- **K-178** Quitar borra de la cuenta, Tarea 7: Apple. LIB-020, LIB-008. Rama `feature/library-actions`. Plan `2026-10-12-library-actions.md`. Hecho: `RemovalSync` en `ReaderDomain`, `FirebaseRemovals`, `RemovedBookRecord.isCloudDeleted`, escucha en `SyncCoordinator`, lector abierto desde `RootView`. Tests: dominio 164, iPhone 109, Mac 103. Falta probarlo entre dos dispositivos.
 - **K-177** Quitar borra de la cuenta y de todos los dispositivos, Tarea 6: Android (`deletedAt`, borrado en Storage, escucha y limpieza al sincronizar). LIB-020, LIB-008, parte de borrados de K-154. Rama `feature/library-actions`. Plan `2026-10-12-library-actions.md`. Hecho: `RemovalSync` (enviar, aplicar, escuchar, esperar al lector), `FirebaseRemovals`, `removed_books.cloudDeleted`, `saveBook` revive. 341 tests JVM pasan (9 nuevos); `BookEditorTest` suma 2 casos, compila, sin correr.
 - **K-175** Acciones del libro, Tarea 4: Apple, menú contextual, confirmación y selector de fotos. LIB-016 a LIB-020. Rama `feature/library-actions`. Hecho: `BookActionsViewModel`, `.bookContextMenu` (vista previa en iPhone, sección en la Mac) en Inicio, Estantes y Buscar, alerta de confirmación y `photosPicker` en `RootView`. Tests: iPhone 107, Mac 101. Falta probar el menú a mano en el simulador.
 - **K-174** Acciones del libro, Tarea 3: Apple, datos y dominio (regla de "no leído", `BookActions`, `RemovedBookRecord`, `coverVersion`). LIB-018 a LIB-020. Rama `feature/library-actions`. Hecho: `BookActions`/`BookEditor` en `ReaderDomain`, `RemovedBookRecord`, `coverVersion`, `CoverImages` (ImageIO). El centinela de "no leído" pasa a `{"unread":true}` en las dos plataformas (`"{}"` ya lo usa el lector de iOS como relleno). Tests: dominio 155, iPhone 102, Mac 96 (con `ENABLE_HARDENED_RUNTIME=NO`, K-123); Android 332 JVM.

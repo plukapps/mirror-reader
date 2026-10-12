@@ -25,7 +25,9 @@ struct BookActionsTests {
 
     actor Flushes {
         var count = 0
+        var pushes = 0
         func add() { count += 1 }
+        func addPush() { pushes += 1 }
     }
 
     let positions = FakePositions()
@@ -33,7 +35,7 @@ struct BookActionsTests {
     let flushes = Flushes()
     var actions: BookActions {
         let flushes = flushes
-        return BookActions(positions: positions, editor: editor, requestFlush: { await flushes.add() })
+        return BookActions(positions: positions, editor: editor, requestFlush: { await flushes.add() }, requestRemovalPush: { await flushes.addPush() })
     }
 
     @Test("LIB-018: terminado conserva la última posición y queda al 100 %")
@@ -70,6 +72,7 @@ struct BookActionsTests {
         await actions.remove(bookId: "b")
         #expect(await editor.removed == ["b"])
         #expect(await flushes.count == 0)
+        #expect(await flushes.pushes == 1)
     }
 
     @Test("LIB-018: una posición «no leído» cuenta como sin abrir, salvo que esté terminada")

@@ -17,6 +17,8 @@ final class SyncCoordinator {
 
     @ObservationIgnored private var scheduler: SyncScheduler?
     @ObservationIgnored private let positions: PositionSync?
+    @ObservationIgnored private let removals: RemovalSync?
+    @ObservationIgnored private var removalUpdates: Task<Void, Never>?
     @ObservationIgnored private let reload: @MainActor () async -> Void
     @ObservationIgnored private var isActive = true
     @ObservationIgnored private var updates: Task<Void, Never>?
@@ -28,11 +30,13 @@ final class SyncCoordinator {
     init(
         pass: Pass?,
         positions: PositionSync? = nil,
+        removals: RemovalSync? = nil,
         ttl: Duration = SyncScheduler.defaultTTL,
         reload: @escaping @MainActor () async -> Void
     ) {
         self.reload = reload
         self.positions = positions
+        self.removals = removals
         guard let pass else { return }
         state = SyncState()
         let onChange: @Sendable () async -> Void = { [weak self] in await self?.changed() }
@@ -61,11 +65,23 @@ final class SyncCoordinator {
     /// La app dejó de verse: deja de escuchar y envía las posiciones pendientes (SYN-011). Sin trabajo en segundo plano.
     func appWentToBackground() {
         isActive = false
+        if let removals { Task { await removals.stopListening() } }
         guard let positions else { return }
         Task {
             await positions.stopListening()
             await positions.flush()
         }
+    }
+
+    /// LIB-020: un libro abierto en el lector no se quita hasta cerrarlo, aunque se haya borrado en otro dispositivo.
+    func readerOpened(_ bookId: String) {
+        guard let removals else { return }
+        Task { await removals.bookOpened(bookId) }
+    }
+
+    func readerClosed(_ bookId: String) {
+        guard let removals else { return }
+        Task { await removals.bookClosed(bookId) }
     }
 
     /// Espera a que no quede ninguna pasada por correr. Para los tests.
@@ -74,12 +90,25 @@ final class SyncCoordinator {
     }
 
     private func startListening() {
+        startListeningForRemovals()
         guard let positions, isActive else { return }
         Task { await positions.startListening() }
         // SYN-012: lo que llega de otros dispositivos cambia los porcentajes de Inicio y la biblioteca.
         guard updates == nil else { return }
         updates = Task { [weak self] in
             for await _ in await positions.remoteUpdates() {
+                await self?.reload()
+            }
+        }
+    }
+
+    /// LIB-020: con la app a la vista, los libros borrados en otro dispositivo se quitan al llegar.
+    private func startListeningForRemovals() {
+        guard let removals, isActive else { return }
+        Task { await removals.startListening() }
+        guard removalUpdates == nil else { return }
+        removalUpdates = Task { [weak self] in
+            for await _ in await removals.removals() {
                 await self?.reload()
             }
         }

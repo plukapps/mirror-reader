@@ -158,7 +158,17 @@ Pedido del usuario (2026-10-12), después de probar en el iPhone: "Quitar de la 
 - [x] Texto de confirmación nuevo.
 
 ### Tarea 7 (K-178): Apple (M)
-- [ ] Lo mismo en `ReaderDomain` (`LibrarySync`, `RemoteLibrary`, `BookFileStore`, `CoverStore`), `LibraryStore` (`RemovedBookRecord.isCloudDeleted`), Firebase y escucha. Tests de dominio y de app.
+- [x] `ReaderDomain`:
+  - `RemoteRemovals`, `BookRemovals` y `CloudRemovals`.
+  - `RemovalSync` (actor). Además de lo de Android, guarda los libros abiertos (`bookOpened`/`bookClosed`) y avisa con `removals()` para recargar las pantallas.
+  - `LibrarySync` empieza por los borrados (`removals:`, opcional), y `BookActions` lleva `requestRemovalPush`.
+  - Tests: `RemovalSyncTests` (8 casos) y `LibrarySyncRemovalTests`. Dominio 164.
+- [x] App:
+  - `RemovedBookRecord.isCloudDeleted`, con valor por defecto. `LibraryStore` implementa `BookRemovals`.
+  - `FirebaseRemovals`, y `saveBook` revive el libro (`deletedAt = NSNull()`).
+  - `SyncCoordinator` escucha los borrados mientras la app se ve y recarga las pantallas. Recibe `readerOpened`/`readerClosed` desde `RootView`, que mira `home.readerBookId`.
+  - Texto de confirmación nuevo.
+  - Tests de app en `BookActionsDataTests` (pendientes y quitar por la nube): iPhone 109, Mac 103.
 
 ## Riesgos
 
