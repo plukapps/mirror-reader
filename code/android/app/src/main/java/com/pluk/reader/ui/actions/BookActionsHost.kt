@@ -100,7 +100,10 @@ fun BookActionsHost(
                     Text(stringResource(R.string.book_actions_cancel), color = MarginColors.Ink)
                 }
             },
+            // Colores explícitos: el tema de Material no es el de la app y el texto salía casi blanco.
             containerColor = MarginColors.Field,
+            titleContentColor = MarginColors.Ink,
+            textContentColor = MarginColors.Ink,
         )
     }
 }

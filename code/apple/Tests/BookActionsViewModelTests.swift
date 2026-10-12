@@ -35,11 +35,13 @@ struct BookActionsViewModelTests {
     @MainActor final class Reloads { var count = 0 }
     @MainActor final class Messages { var list: [String] = [] }
 
-    @Test("LIB-016, LIB-018: un libro terminado ofrece «no leído» en lugar de «terminado»")
+    @Test("LIB-016, LIB-018: sin empezar, terminado; leyendo, las dos; terminado, no leído")
     func menuDependsOnStatus() {
-        let full: [BookAction] = [.read, .markFinished, .changeCover, .remove]
-        #expect(BookActionsViewModel.menu(for: dracula) == full)
-        #expect(BookActionsViewModel.menu(for: LibraryBook(id: "n", title: "N", author: nil, coverPath: nil, progressPercent: nil)) == full)
+        #expect(BookActionsViewModel.menu(for: dracula) == [.read, .markFinished, .markUnread, .changeCover, .remove])
+        #expect(
+            BookActionsViewModel.menu(for: LibraryBook(id: "n", title: "N", author: nil, coverPath: nil, progressPercent: nil))
+                == [.read, .markFinished, .changeCover, .remove]
+        )
         #expect(
             BookActionsViewModel.menu(for: LibraryBook(id: "t", title: "T", author: nil, coverPath: nil, progressPercent: 100))
                 == [.read, .markUnread, .changeCover, .remove]

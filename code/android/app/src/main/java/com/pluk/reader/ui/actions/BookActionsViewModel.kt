@@ -15,13 +15,14 @@ import kotlinx.coroutines.launch
 /** Opciones del menú de un libro, en el orden del diseño 05b (LIB-016). */
 enum class BookAction { Read, MarkFinished, MarkUnread, ChangeCover, Remove }
 
-/** En un libro terminado, "Marcar como no leído" reemplaza a "Marcar como terminado" (LIB-018). */
-fun menuActions(book: LibraryBook): List<BookAction> = listOf(
-    BookAction.Read,
-    if (book.status == ReadingStatus.Finished) BookAction.MarkUnread else BookAction.MarkFinished,
-    BookAction.ChangeCover,
-    BookAction.Remove,
-)
+/** Sin empezar: terminado. Leyendo: terminado y no leído. Terminado: no leído (LIB-018). */
+fun menuActions(book: LibraryBook): List<BookAction> = buildList {
+    add(BookAction.Read)
+    if (book.status != ReadingStatus.Finished) add(BookAction.MarkFinished)
+    if (book.status != ReadingStatus.New) add(BookAction.MarkUnread)
+    add(BookAction.ChangeCover)
+    add(BookAction.Remove)
+}
 
 sealed interface BookActionMessage {
     data object MarkedFinished : BookActionMessage

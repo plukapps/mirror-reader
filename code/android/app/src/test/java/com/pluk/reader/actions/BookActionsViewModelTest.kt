@@ -56,12 +56,17 @@ class BookActionsViewModelTest {
     @After
     fun tearDown() = Dispatchers.resetMain()
 
-    // LIB-016, LIB-018: un libro terminado ofrece "no leído" en lugar de "terminado"
+    // LIB-016, LIB-018: sin empezar, terminado; leyendo, las dos; terminado, no leído
     @Test
     fun menuActionsDependOnStatus() {
-        val full = listOf(BookAction.Read, BookAction.MarkFinished, BookAction.ChangeCover, BookAction.Remove)
-        assertEquals(full, menuActions(book("n", null)))
-        assertEquals(full, menuActions(book("l", 42)))
+        assertEquals(
+            listOf(BookAction.Read, BookAction.MarkFinished, BookAction.ChangeCover, BookAction.Remove),
+            menuActions(book("n", null)),
+        )
+        assertEquals(
+            listOf(BookAction.Read, BookAction.MarkFinished, BookAction.MarkUnread, BookAction.ChangeCover, BookAction.Remove),
+            menuActions(book("l", 42)),
+        )
         assertEquals(
             listOf(BookAction.Read, BookAction.MarkUnread, BookAction.ChangeCover, BookAction.Remove),
             menuActions(book("t", 100)),

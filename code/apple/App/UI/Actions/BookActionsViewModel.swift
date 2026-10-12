@@ -28,9 +28,12 @@ final class BookActionsViewModel {
         self.notify = notify
     }
 
-    /// En un libro terminado, "Marcar como no leído" reemplaza a "Marcar como terminado" (LIB-018).
+    /// Sin empezar: terminado. Leyendo: terminado y no leído. Terminado: no leído (LIB-018).
     static func menu(for book: LibraryBook) -> [BookAction] {
-        [.read, book.status == .finished ? .markUnread : .markFinished, .changeCover, .remove]
+        var actions: [BookAction] = [.read]
+        if book.status != .finished { actions.append(.markFinished) }
+        if book.status != .new { actions.append(.markUnread) }
+        return actions + [.changeCover, .remove]
     }
 
     /// "Autor · estado" de la cabecera del menú.
