@@ -18,7 +18,7 @@ fun interface LibrarySyncRequester {
 }
 
 /**
- * Con la app a la vista, un libro agregado (o vuelto a importar) en otro dispositivo aparece solo (SYN-014): escucha
+ * Con la app a la vista, un libro agregado (o vuelto a importar) en otro dispositivo aparece solo (SYN-015): escucha
  * los libros cambiados hace poco y, si alguno no está en este dispositivo, pide una pasada, que lo agrega y lo baja.
  * Solo mira los últimos [LOOKBACK_MS]: cubre la app en segundo plano dentro del tope de la pasada (5 minutos); pasado
  * el tope, la pasada al volver ya lo trae.
@@ -67,7 +67,7 @@ class LibraryWatcher internal constructor(
     }
 }
 
-/** Las escuchas de la nube que siguen a la app a la vista: borrados (LIB-020) y libros nuevos (SYN-014). */
+/** Las escuchas de la nube que siguen a la app a la vista: borrados (LIB-020) y libros nuevos (SYN-015). */
 @Singleton
 class CloudListeners @Inject constructor(
     private val removals: RemovalSync,

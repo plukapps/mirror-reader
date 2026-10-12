@@ -3,7 +3,7 @@
 **Objetivo:** que mantener presionada una portada abra el menú de la pantalla "05b — Library · Long press" de `design/Margin Ebook App.dc.html` con cuatro acciones: Leer libro, Marcar como terminado (o como no leído), Subir foto de portada y Quitar de la biblioteca.
 
 **Specs que implementa:** LIB-016 a LIB-020 (`specs/product/01-library.md`, nuevos). Toca LIB-008, LIB-010, LIB-011 y LIB-012 (excepciones explícitas en los requisitos nuevos).
-**Rama:** `feature/library-actions` (worktree `.claude/worktrees/library-actions`). **Tarjetas:** K-172 a K-183.
+**Rama:** `feature/library-actions` (worktree `.claude/worktrees/library-actions`). **Tarjetas:** K-177 a K-188.
 **Pedido del usuario (2026-10-12):** "primero siempre en local", Android e iOS. Decisiones tomadas con el usuario en esta sesión:
 - Quitar: borra en este dispositivo y deja una marca local para que la sincronización no lo traiga de nuevo. La nube y los otros dispositivos, con K-154.
 - Terminado: se guarda como posición (100 %) y viaja con la sincronización de posición que ya existe.
@@ -84,7 +84,7 @@
 
 ## Tareas
 
-### Tarea 1 (K-172): Android, datos y dominio (M)
+### Tarea 1 (K-177): Android, datos y dominio (M)
 - [x] Regla de "no leído" en el estado de lectura (`positionProgression`), con test JVM (LIB-018).
 - [x] `BookActions`, `BookEditor` y `BookEditorImpl`, con Hilt. Base de datos v6 (`removed_books`, `coverVersion`) con `MIGRATION_5_6`.
 - [x] `addCloudOnly` ignora quitados e importar borra la marca (LIB-020). `coverVersion` llega a `LibraryBook`, y `BookCover` lo usa como clave.
@@ -93,7 +93,7 @@
 
 **Verificación:** `./gradlew :app:testDebugUnitTest`, `compileDebugAndroidTestKotlin`.
 
-### Tarea 2 (K-173): Android, menú y acciones en las tres pantallas (M)
+### Tarea 2 (K-178): Android, menú y acciones en las tres pantallas (M)
 - [x] `BookActionsViewModel` con test JVM: opciones según el estado (`menuActions`), cada acción y sus mensajes.
 - [x] `BookActionsMenu` según el diseño, con `placeMenu` y test JVM (arriba, debajo, bordes y área segura).
 - [x] `BookActionsHost` con diálogo de confirmación, Photo Picker (`PickVisualMedia`, solo imágenes) y snackbar. Está en la raíz de `AppNavHost`, solo en Inicio, Estantes y Buscar, y el fondo se desenfoca con `Modifier.blur`.
@@ -101,7 +101,7 @@
 - [x] Test de emulador `BookActionsMenuTest` (LIB-016, LIB-018): tocar abre, mantener presionado muestra el menú y el estado, libro terminado con "no leído", tocar fuera cierra. Compila y no se corrió.
 **Verificación:** compila (`assembleDebug`), tests JVM pasan.
 
-### Tarea 3 (K-174): Apple, datos y dominio (M)
+### Tarea 3 (K-179): Apple, datos y dominio (M)
 - [x] Regla de "no leído" (`unreadLocator`, `positionProgression`) en `ReaderDomain`, y `BookActions` y `BookEditor`, con tests (`swift test`). Una posición sin progreso sigue contando como "nuevo", como antes en Apple.
 - [x] `RemovedBookRecord` y `coverVersion` (valores por defecto, migración automática). `LibraryStore` implementa `BookEditor`, `addCloudOnly` salta los quitados y `addImported` borra la marca. La foto se escala con ImageIO (`CoverImages`), en iPhone y en la Mac, respetando la orientación.
 - [x] Tests de app `BookActionsDataTests` con `inMemoryContainer()`: terminado y no leído, quitar (registro, posición y archivos), sincronización que no lo trae, reimportar, portada de 600 px y datos que no son imagen.
@@ -109,21 +109,21 @@
 
 **Verificación:** `swift test` y `xcodebuild … test` en iPhone y en la Mac.
 
-### Tarea 4 (K-175): Apple, menú contextual y acciones (M)
+### Tarea 4 (K-180): Apple, menú contextual y acciones (M)
 - [x] `BookActionsViewModel` con tests (`menu(for:)`, `subtitle(for:)`, terminado y no leído, confirmación de quitar, portada). Recarga Inicio, la biblioteca y la búsqueda, y avisa con los mensajes de Inicio (`HomeViewModel.show`).
 - [x] `.bookContextMenu` en `BookGrid`, `ContinueCard`, `BookRow` y `Results`. En iPhone lleva una vista previa con la portada, el título y "Autor · estado"; en la Mac lleva una sección con el título. En la raíz están el `.alert` de confirmación y `.photosPicker`, y la foto se carga con `loadTransferable(type: Data.self)`. La posición sale con `PositionSync.flush()` sin esperar.
 - [x] Proyecto regenerado con `xcodegen`.
-- Nota: la app instalada en un simulador propio ("Acciones iPhone 16", sin `GoogleService-Info.plist` para no tocar Firebase) arranca. No se pudo probar mantener presionado desde aquí: falta el permiso de grabación de pantalla. Queda para K-176.
+- Nota: la app instalada en un simulador propio ("Acciones iPhone 16", sin `GoogleService-Info.plist` para no tocar Firebase) arranca. No se pudo probar mantener presionado desde aquí: falta el permiso de grabación de pantalla. Queda para K-181.
 
 **Verificación:** tests en iPhone y en la Mac pasan; se ve en el simulador.
 
-### Tarea 5 (K-176): cierre (S)
+### Tarea 5 (K-181): cierre (S)
 - [x] Notas de las acciones en `specs/platforms/android.md` y `apple.md`.
-- [x] Instalado y verificado a mano por el usuario en el SM-S711B, la SM-X510 y el iPhone 13 (2026-10-12). Se probaron el menú, quitar entre Android e iOS en los dos sentidos, reimportar un libro borrado y un libro nuevo que aparece solo en el otro dispositivo, con su portada. La prueba cruzada encontró K-179, K-180 y K-184, ya arreglados.
+- [x] Instalado y verificado a mano por el usuario en el SM-S711B, la SM-X510 y el iPhone 13 (2026-10-12). Se probaron el menú, quitar entre Android e iOS en los dos sentidos, reimportar un libro borrado y un libro nuevo que aparece solo en el otro dispositivo, con su portada. La prueba cruzada encontró K-184, K-185 y K-189, ya arreglados.
 
 **Verificación:** el usuario lo ve en el teléfono y en el simulador.
 
-## Ampliación: quitar borra de la cuenta (K-177, K-178)
+## Ampliación: quitar borra de la cuenta (K-182, K-183)
 
 Pedido del usuario (2026-10-12), después de probar en el iPhone: "Quitar de la biblioteca" borra el libro de la cuenta y de todos los dispositivos (LIB-020 nuevo, cumple LIB-008 y la parte de borrados de K-154). Decisiones tomadas con el usuario: se borran el EPUB y la portada de Storage; los dispositivos activos reciben el borrado al momento; el resto, al sincronizar.
 
@@ -137,11 +137,11 @@ Pedido del usuario (2026-10-12), después de probar en el iPhone: "Quitar de la 
   - Cada pasada de sincronización consulta lo mismo y quita los libros locales que estén en esa lista y ya subidos (`uploadedAt != null`): uno importado aquí y aún no subido es otra copia y no se toca.
   - Quitar por la nube usa el mismo borrado local, con `cloudDeleted = true` (no hay nada que enviar).
   - Si ese libro está abierto en el lector, se espera a cerrarlo.
-- **Reimportar:** importar el archivo borra la marca local (ya existía) y la subida vuelve a poner `deletedAt = null` en el documento (`saveBook` lo incluye también al actualizar). En los otros dispositivos la marca solo bloquea mientras el borrado de allí está pendiente: si la nube lista vivo un libro cuyo borrado ya se completó, se olvida la marca y el libro vuelve (K-180).
+- **Reimportar:** importar el archivo borra la marca local (ya existía) y la subida vuelve a poner `deletedAt = null` en el documento (`saveBook` lo incluye también al actualizar). En los otros dispositivos la marca solo bloquea mientras el borrado de allí está pendiente: si la nube lista vivo un libro cuyo borrado ya se completó, se olvida la marca y el libro vuelve (K-185).
 - **Texto de confirmación:** "Se borra de tu cuenta y de todos tus dispositivos, con su progreso. Podés volver a importarlo."
-- **Base de Android:** `cloudDeleted` llega en la versión 7 (`MIGRATION_6_7`). La v6 ya estaba instalada en el teléfono de prueba (K-179). Los libros quitados antes quedan como hechos y no se borran de la nube: esa versión prometía quitar solo de este dispositivo.
+- **Base de Android:** `cloudDeleted` llega en la versión 7 (`MIGRATION_6_7`). La v6 ya estaba instalada en el teléfono de prueba (K-184). Los libros quitados antes quedan como hechos y no se borran de la nube: esa versión prometía quitar solo de este dispositivo.
 
-### Tarea 6 (K-177): Android (M)
+### Tarea 6 (K-182): Android (M)
 - [x] Dominio:
   - `RemoteRemovals`: `markDeleted`, `deleteFiles`, `deletedBookIds` y `observeDeleted`. Es aparte de `RemoteLibrary` para no tocar sus fakes.
   - `BookRemovals`: pendientes, `markCloudRemoved` y `removeDeletedInCloud`.
@@ -157,7 +157,7 @@ Pedido del usuario (2026-10-12), después de probar en el iPhone: "Quitar de la 
   - Tests de emulador en `BookEditorTest` (pendientes y quitar por la nube). Compilan y no se corrieron.
 - [x] Texto de confirmación nuevo.
 
-### Tarea 7 (K-178): Apple (M)
+### Tarea 7 (K-183): Apple (M)
 - [x] `ReaderDomain`:
   - `RemoteRemovals`, `BookRemovals` y `CloudRemovals`.
   - `RemovalSync` (actor). Además de lo de Android, guarda los libros abiertos (`bookOpened`/`bookClosed`) y avisa con `removals()` para recargar las pantallas.
@@ -170,9 +170,9 @@ Pedido del usuario (2026-10-12), después de probar en el iPhone: "Quitar de la 
   - Texto de confirmación nuevo.
   - Tests de app en `BookActionsDataTests` (pendientes y quitar por la nube): iPhone 109, Mac 103.
 
-## Ampliación: libros nuevos al instante (K-182, K-183)
+## Ampliación: libros nuevos al instante (K-187, K-188)
 
-Pedido del usuario (2026-10-12), tras la prueba cruzada: borrar llega solo a los otros dispositivos, pero un libro importado no aparece hasta matar la app (con la app en marcha la pasada corre a lo sumo cada 5 minutos, SYN-001, y no hay escucha de libros nuevos). El usuario quiere conservar el tope de 5 minutos y sumar la escucha, como la de borrados y posiciones. Requisito nuevo SYN-014.
+Pedido del usuario (2026-10-12), tras la prueba cruzada: borrar llega solo a los otros dispositivos, pero un libro importado no aparece hasta matar la app (con la app en marcha la pasada corre a lo sumo cada 5 minutos, SYN-001, y no hay escucha de libros nuevos). El usuario quiere conservar el tope de 5 minutos y sumar la escucha, como la de borrados y posiciones. Requisito nuevo SYN-015.
 
 ### Decisiones
 
@@ -181,11 +181,11 @@ Pedido del usuario (2026-10-12), tras la prueba cruzada: borrar llega solo a los
 - **Arranque y parada:** junto con la escucha de borrados (al volver a primer plano y al dejar de verse la app).
 - **Sin backend:** las reglas ya permiten leer `books` al dueño.
 
-### Tarea 8 (K-182): Android (S)
+### Tarea 8 (K-187): Android (S)
 - [x] `RemoteBookChanges` (escucha, en `FirestoreRemoteLibrary`), `KnownBooks` (en `CloudBooksRepositoryImpl`) y `LibraryWatcher` en el dominio, con test JVM `LibraryWatcherTest` (4 casos).
 - [x] `LibrarySync` implementa `LibrarySyncRequester`. `RemovalListener` pasa a llamarse `CloudListener`, y `CloudListeners` arranca y para las dos escuchas (borrados y libros) desde `MainViewModel`.
 
-### Tarea 9 (K-183): Apple (S)
+### Tarea 9 (K-188): Apple (S)
 - [x] `RemoteBookChanges`, `KnownBooks` y `LibraryWatcher` (actor, con `onNewBooks`) en `ReaderDomain`, con `LibraryWatcherTests` (3 casos); dominio 167.
 - [x] La escucha está en `FirestoreRemoteLibrary` y `LibraryStore` implementa `KnownBooks`. `AppGraph` hace que `onNewBooks` llame a `SyncCoordinator.request()` y `SyncCoordinator` arranca y para la escucha junto con la de borrados. iPhone 112, Mac 106.
 
@@ -202,4 +202,4 @@ Pedido del usuario (2026-10-12), tras la prueba cruzada: borrar llega solo a los
 - **Tests de emulador de Android:** `BookActionsMenuTest`, `BookEditorTest` y `MigrationTest` hasta la v7 compilan, pero no se corrieron. No hay emulador y no se corren en los dispositivos del usuario sin preguntar.
 - **Pendiente:**
   - Que la portada propia y los cambios de metadatos lleguen a la nube (K-154).
-  - Listado vacío al arrancar en Android (K-181).
+  - Listado vacío al arrancar en Android (K-186).

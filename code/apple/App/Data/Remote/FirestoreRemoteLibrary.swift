@@ -69,7 +69,7 @@ struct FirestoreRemoteLibrary: RemoteLibrary, RemoteBookChanges {
         }
     }
 
-    /// SYN-014: una sola desigualdad sobre `updatedAt`, sin índice compuesto. `deletedAt` se filtra aquí.
+    /// SYN-015: una sola desigualdad sobre `updatedAt`, sin índice compuesto. `deletedAt` se filtra aquí.
     func observeAlive(since: Int64) -> AsyncThrowingStream<[String], any Error> {
         AsyncThrowingStream { continuation in
             let uid: String

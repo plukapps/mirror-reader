@@ -106,7 +106,7 @@ final class SyncCoordinator {
         }
     }
 
-    /// LIB-020, SYN-014: con la app a la vista, los libros borrados en otro dispositivo se quitan al llegar y los
+    /// LIB-020, SYN-015: con la app a la vista, los libros borrados en otro dispositivo se quitan al llegar y los
     /// agregados piden una pasada.
     private func startListeningForRemovals() {
         if let watcher, isActive { Task { await watcher.startListening() } }

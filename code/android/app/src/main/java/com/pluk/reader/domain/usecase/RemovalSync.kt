@@ -20,7 +20,7 @@ fun interface RemovalPushRequester {
     fun requestPush()
 }
 
-/** Una escucha de la nube que corre mientras la app se ve (LIB-020, SYN-012, SYN-014). */
+/** Una escucha de la nube que corre mientras la app se ve (LIB-020, SYN-012, SYN-015). */
 interface CloudListener {
     fun startListening()
     fun stopListening()

@@ -315,7 +315,7 @@ actor LibraryStore: ModelActor, LibraryRepository, CloudBooksRepository, BookUpl
         removeLocally(bookId: bookId, isCloudDeleted: !inCloud)
     }
 
-    // MARK: KnownBooks (SYN-014)
+    // MARK: KnownBooks (SYN-015)
 
     func knownBookIds() async -> Set<String> {
         Set((try? modelContext.fetch(FetchDescriptor<BookRecord>()))?.map(\.id) ?? [])

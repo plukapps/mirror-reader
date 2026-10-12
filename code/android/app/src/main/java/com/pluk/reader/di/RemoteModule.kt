@@ -53,7 +53,7 @@ abstract class RemoteModule {
     @Binds @Singleton abstract fun bindRemovalPushRequester(impl: RemovalSync): RemovalPushRequester
     @Binds @Singleton abstract fun bindCloudListener(impl: CloudListeners): CloudListener
 
-    // SYN-014: libros nuevos al instante.
+    // SYN-015: libros nuevos al instante.
     @Binds @Singleton abstract fun bindRemoteBookChanges(impl: FirestoreRemoteLibrary): RemoteBookChanges
     @Binds @Singleton abstract fun bindKnownBooks(impl: CloudBooksRepositoryImpl): KnownBooks
     @Binds @Singleton abstract fun bindLibrarySyncRequester(impl: LibrarySync): LibrarySyncRequester

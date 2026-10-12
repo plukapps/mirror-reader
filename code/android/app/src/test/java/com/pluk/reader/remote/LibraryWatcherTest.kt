@@ -14,7 +14,7 @@ import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
 import org.junit.Test
 
-/** SYN-014: con la app a la vista, un libro agregado en otro dispositivo pide una pasada de la biblioteca. */
+/** SYN-015: con la app a la vista, un libro agregado en otro dispositivo pide una pasada de la biblioteca. */
 @OptIn(ExperimentalCoroutinesApi::class)
 class LibraryWatcherTest {
     private val dispatcher = StandardTestDispatcher()

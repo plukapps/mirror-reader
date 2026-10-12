@@ -1,6 +1,6 @@
 import Foundation
 
-/// Libros de la cuenta que cambian en la nube, para enterarse sin esperar a la próxima pasada (SYN-014).
+/// Libros de la cuenta que cambian en la nube, para enterarse sin esperar a la próxima pasada (SYN-015).
 public protocol RemoteBookChanges: Sendable {
     /// Ids de los libros vivos (sin `deletedAt`) cambiados después de `since` (ms desde 1970), cada vez que llega algo
     /// nuevo, mientras se escucha.
@@ -12,7 +12,7 @@ public protocol KnownBooks: Sendable {
     func knownBookIds() async -> Set<String>
 }
 
-/// Con la app a la vista, un libro agregado (o vuelto a importar) en otro dispositivo aparece solo (SYN-014), como
+/// Con la app a la vista, un libro agregado (o vuelto a importar) en otro dispositivo aparece solo (SYN-015), como
 /// `LibraryWatcher` de Android: escucha los libros cambiados hace poco y, si alguno no está aquí, llama a
 /// `onNewBooks` (que pide una pasada). Solo mira los últimos 15 minutos: cubre la app en segundo plano dentro del tope
 /// de la pasada (5 minutos); pasado el tope, la pasada al volver ya lo trae.

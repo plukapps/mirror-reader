@@ -2,7 +2,7 @@ import Foundation
 import Testing
 @testable import ReaderDomain
 
-// Mismos casos que `LibraryWatcherTest` de Android (SYN-014).
+// Mismos casos que `LibraryWatcherTest` de Android (SYN-015).
 struct LibraryWatcherTests {
     actor FakeChanges: RemoteBookChanges {
         var since: [Int64] = []
@@ -51,7 +51,7 @@ struct LibraryWatcherTests {
         for _ in 0..<200 { await Task.yield() }
     }
 
-    @Test("SYN-014: un libro desconocido pide una pasada; uno conocido, no")
+    @Test("SYN-015: un libro desconocido pide una pasada; uno conocido, no")
     func unknownBookRequestsAPass() async {
         let watcher = watcher()
         await watcher.startListening()
@@ -67,7 +67,7 @@ struct LibraryWatcherTests {
         await watcher.stopListening()
     }
 
-    @Test("SYN-014: solo lo cambiado en los últimos 15 minutos")
+    @Test("SYN-015: solo lo cambiado en los últimos 15 minutos")
     func lookback() async {
         let watcher = watcher()
         await watcher.startListening()

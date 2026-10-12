@@ -42,7 +42,7 @@ enum AppGraph {
         // La sincronización vuelve a leer la base en Inicio y en la biblioteca cada vez que la cambia.
         let refs = ScreenRefs()
         let pass = positions.map { libraryPass(store: store, bookFiles: bookFiles, positions: $0, removals: removals) }
-        // SYN-014: un libro agregado en otro dispositivo pide una pasada (la app a la vista).
+        // SYN-015: un libro agregado en otro dispositivo pide una pasada (la app a la vista).
         let watcher = firebase
             ? LibraryWatcher(remote: FirestoreRemoteLibrary(), known: store, account: FirebaseAccountRepository()) {
                 await MainActor.run { refs.sync?.request() }

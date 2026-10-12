@@ -36,7 +36,7 @@ Stack y capas en `specs/adr/0010-apple-stack-and-architecture.md` (provisional):
 
 - Sincronización (plan `2026-10-10-ios-sync.md`, K-145 a K-153; falta la prueba a mano, K-155): la misma pasada que Android (`LibrarySync` en `ReaderDomain`): libros de la nube, subida de los importados (archivo, documento y portada, con cuota, LIB-009), portadas en los dos sentidos, descarga automática de los libros de la nube (comprobando el hash) y posiciones pendientes. La orquesta `SyncScheduler`: al arrancar, al volver a la app con TTL de 5 minutos, al importar y al tocar el aviso de error; una pasada a la vez. Estado visible en la biblioteca (SYN-008). Metadatos como Android: la subida pisa título y autor y la bajada solo agrega libros (cambios y borrados desde la nube, K-154). Posición como Android (ADR 0011, `PositionSync`): se envía al cerrar el libro o pasar a segundo plano, se escucha mientras la app se ve, se consulta al abrir con "¿Continuar desde…?" si el salto pasa del 2 % y se avisa "Seguir desde [dispositivo]" si otro va más de 0,5 % adelante. El nombre del dispositivo es el modelo ("iPhone").
 
-- Acciones del libro (LIB-016 a LIB-020, SYN-014):
+- Acciones del libro (LIB-016 a LIB-020, SYN-015):
   - **Menú:** es el contextual del sistema (`.bookContextMenu`), con vista previa de la portada, el título y "Autor · estado". En el iPhone se abre manteniendo presionado y en la Mac con clic secundario.
   - **Portada propia:** `PhotosPicker`, con la imagen escalada por ImageIO.
   - **Igual que Android:** la regla de no leído, `RemovalSync` y `LibraryWatcher` en `ReaderDomain`, y `SyncCoordinator` para la escucha.
