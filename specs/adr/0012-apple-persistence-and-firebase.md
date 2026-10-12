@@ -22,7 +22,7 @@ Inicio en Apple mostraba una biblioteca falsa. Para mostrar los libros reales de
 - `GoogleService-Info.plist` se descarga de la consola (app de iOS `com.pluk.reader` del proyecto `mirror-reading-staging`) y **no va al repo**, como `google-services.json`. Sin él la app compila y funciona solo en local.
 - En la Mac el sandbox necesita el permiso de cliente de red (`com.apple.security.network.client`).
 
-**Sesión: cuenta de desarrollo, como Android**
+**Sesión: cuenta de desarrollo, como Android** (reemplazado por el onboarding, ADR 0015, 2026-10-12)
 - Mientras no existan las pantallas de cuenta, la app inicia sesión con email y contraseña de una cuenta de desarrollo, solo en builds Debug.
 - Las credenciales van en `Signing.local.xcconfig` (fuera del repo) y llegan a la app por el `Info.plist`. En Release quedan vacías. Sin credenciales, la app funciona solo en local (ADR 0002).
 

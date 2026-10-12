@@ -9,7 +9,7 @@ App en Swift y SwiftUI, un solo target para Mac e iPhone. Por ahora son Inicio, 
 - Para la Mac y el iPhone físico hace falta el equipo de desarrollo en `Signing.local.xcconfig` (el gratuito alcanza, ver `Signing.xcconfig`): en la Mac Firebase Auth guarda la sesión en el llavero y con firma local falla. El simulador usa firma local. Al pasar de firma local a firma con equipo, macOS puede preguntar si la app nueva usa los datos de la anterior: hay que aceptar.
 - Firebase (opcional; sin esto la app funciona solo en local):
   - `App/GoogleService-Info.plist`, que no va al repo. Se baja con `firebase apps:sdkconfig IOS <app id> --project mirror-reading-staging -o App/GoogleService-Info.plist` (app de iOS `com.pluk.reader`, `firebase apps:list`) o desde la consola.
-  - Cuenta de desarrollo en `Signing.local.xcconfig` (solo Debug): `./tools/copy-dev-account.sh` la copia de `code/android/local.properties` sin mostrarla.
+  - Ingreso con Google (ADR 0015): `./tools/copy-google-client.sh` copia el `REVERSED_CLIENT_ID` de `GoogleService-Info.plist` a `Signing.local.xcconfig` (esquema de URL de vuelta); después, `xcodegen`. Sin él, el botón de Google avisa que falló. La sesión se inicia en el onboarding: no hay cuenta de desarrollo.
 - El SDK de Firebase está fijo en 12.14.0: desde la 12.15 exige Xcode 16.3. El primer build lo descarga (varios minutos).
 
 ## Estructura

@@ -1,0 +1,159 @@
+import Observation
+import ReaderDomain
+import SwiftUI
+
+/// Pantallas del onboarding (O1 a O9).
+enum OnboardingRoute: Hashable {
+    case welcome
+    case signUp(name: String, email: String)
+    case verify(justSent: Bool)
+    case interests
+    case goal
+    case allSet
+    case signIn
+    case forgot(email: String)
+    case reset(code: String)
+}
+
+/// Pila del onboarding, como el `NavHost` de Android: `startOver` vacía la pila para que atrás no vuelva a un paso ya
+/// cumplido (ONB-013, ONB-016).
+@MainActor
+@Observable
+final class OnboardingRouter {
+    var root: OnboardingRoute
+    var path: [OnboardingRoute] = []
+
+    init(root: OnboardingRoute = .welcome) {
+        self.root = root
+    }
+
+    func push(_ route: OnboardingRoute) { path.append(route) }
+
+    /// Atrás; si no hay nada detrás (se entró por un enlace), a la bienvenida.
+    func pop() {
+        if path.isEmpty {
+            startOver(.welcome)
+        } else {
+            path.removeLast()
+        }
+    }
+
+    /// Cambia la pantalla de arriba por otra (por ejemplo crear cuenta → verificar).
+    func replaceTop(with route: OnboardingRoute) {
+        if path.isEmpty {
+            root = route
+        } else {
+            path[path.count - 1] = route
+        }
+    }
+
+    /// Empieza de nuevo en `route`, con `then` encima.
+    func startOver(_ route: OnboardingRoute, then: [OnboardingRoute] = []) {
+        root = route
+        path = then
+    }
+}
+
+/// Lo que necesitan las pantallas del onboarding, armado en `AppGraph`.
+struct OnboardingDependencies {
+    let auth: AuthRepository
+    let account: AccountRepository
+    let preferences: OnboardingPreferences
+    let scheduler: ReminderScheduler
+    let google: @MainActor () async -> GoogleSignInResult
+}
+
+/// El onboarding completo. `onFinish` lleva a Inicio; con verdadero, además abre el selector de EPUB (ONB-013).
+struct OnboardingFlow: View {
+    @Bindable var router: OnboardingRouter
+    let dependencies: OnboardingDependencies
+    let onFinish: (_ importBooks: Bool) -> Void
+
+    var body: some View {
+        NavigationStack(path: $router.path) {
+            screen(router.root)
+                // Al empezar de nuevo, la raíz es otra pantalla con su propio estado.
+                .id(router.root)
+                .navigationDestination(for: OnboardingRoute.self, destination: screen)
+        }
+    }
+
+    @ViewBuilder
+    private func screen(_ route: OnboardingRoute) -> some View {
+        let deps = dependencies
+        switch route {
+        case .welcome:
+            WelcomeView(
+                onCreateAccount: { router.push(.signUp(name: "", email: "")) },
+                onSignIn: { router.push(.signIn) }
+            )
+        case let .signUp(name, email):
+            SignUpView(
+                viewModel: SignUpViewModel(auth: deps.auth, name: name, email: email),
+                google: deps.google,
+                onBack: router.pop,
+                onNext: { next in
+                    switch next {
+                    // Con la cuenta creada, crear cuenta ya no está detrás.
+                    case .verifyEmail: router.replaceTop(with: .verify(justSent: true))
+                    case .interests: router.startOver(.interests)
+                    }
+                },
+                onSignIn: { router.replaceTop(with: .signIn) }
+            )
+        case let .verify(justSent):
+            VerifyEmailView(
+                viewModel: VerifyEmailViewModel(auth: deps.auth, account: deps.account, justSent: justSent),
+                onNext: { next in
+                    switch next {
+                    case .interests: router.startOver(.interests)
+                    // ONB-008: de vuelta a crear cuenta, con la bienvenida detrás.
+                    case let .change(name, email): router.startOver(.welcome, then: [.signUp(name: name, email: email)])
+                    }
+                }
+            )
+        case .interests:
+            InterestsView(viewModel: InterestsViewModel(preferences: deps.preferences)) { router.push(.goal) }
+        case .goal:
+            GoalView(
+                viewModel: GoalViewModel(preferences: deps.preferences, scheduler: deps.scheduler),
+                onBack: router.pop,
+                onDone: { router.startOver(.allSet) }
+            )
+        case .allSet:
+            AllSetView(
+                viewModel: AllSetViewModel(account: deps.account, preferences: deps.preferences),
+                onStartReading: { onFinish(false) },
+                onImportBooks: { onFinish(true) }
+            )
+        case .signIn:
+            SignInView(
+                viewModel: SignInViewModel(auth: deps.auth),
+                google: deps.google,
+                onBack: router.pop,
+                onNext: { next, sent in
+                    switch next {
+                    case .home: onFinish(false)
+                    case .verifyEmail: router.startOver(.verify(justSent: sent))
+                    }
+                },
+                onForgot: { email in router.push(.forgot(email: email)) },
+                onCreateAccount: { router.replaceTop(with: .signUp(name: "", email: "")) }
+            )
+        case let .forgot(email):
+            ForgotPasswordView(viewModel: ForgotPasswordViewModel(auth: deps.auth, email: email), onBack: router.pop)
+        case let .reset(code):
+            ResetPasswordView(
+                viewModel: ResetPasswordViewModel(auth: deps.auth, code: code),
+                onClose: router.pop,
+                onNext: { next in
+                    switch next {
+                    case .home: onFinish(false)
+                    case .signIn: router.startOver(.welcome, then: [.signIn])
+                    }
+                },
+                onRequestLink: { email in router.startOver(.welcome, then: [.signIn, .forgot(email: email)]) }
+            )
+        }
+    }
+}
