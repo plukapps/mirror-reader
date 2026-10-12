@@ -118,8 +118,8 @@
 **Verificación:** tests en iPhone y en la Mac pasan; se ve en el simulador.
 
 ### Tarea 5 (K-176): cierre (S)
-- [ ] `specs/platforms/android.md` y `apple.md`: notas de las acciones. `KANBAN.md`: K-154 lee `removed_books` y la portada propia para propagar a la nube.
-- [ ] Instalar en el teléfono y en el simulador, y verificar a mano con el usuario: las cuatro acciones en las tres pantallas, que un quitado no vuelva tras sincronizar, y que un terminado se vea terminado en el otro dispositivo.
+- [x] Notas de las acciones en `specs/platforms/android.md` y `apple.md`.
+- [x] Instalado y verificado a mano por el usuario en el SM-S711B, la SM-X510 y el iPhone 13 (2026-10-12). Se probaron el menú, quitar entre Android e iOS en los dos sentidos, reimportar un libro borrado y un libro nuevo que aparece solo en el otro dispositivo, con su portada. La prueba cruzada encontró K-179, K-180 y K-184, ya arreglados.
 
 **Verificación:** el usuario lo ve en el teléfono y en el simulador.
 
@@ -195,3 +195,11 @@ Pedido del usuario (2026-10-12), tras la prueba cruzada: borrar llega solo a los
 - **Un libro quitado en este dispositivo sigue en la nube y en los otros.** Ocupa cuota y reaparece si se inicia sesión en un dispositivo nuevo. Es esperado hasta K-154 y está documentado en LIB-020.
 - **Portada propia con el libro ya subido.** Los otros dispositivos siguen viendo la anterior. Documentado en LIB-019.
 - **Libro quitado mientras otro dispositivo sigue leyendo.** Las posiciones remotas de un id quitado se ignoran, porque `applyRemote` no encuentra el libro. Se cubre con un test.
+
+## Resultado
+
+- **Tests:** Android, 345 tests JVM. Apple: dominio 167, iPhone 113 y Mac 106 (en la Mac con `ENABLE_HARDENED_RUNTIME=NO`, por K-123).
+- **Tests de emulador de Android:** `BookActionsMenuTest`, `BookEditorTest` y `MigrationTest` hasta la v7 compilan, pero no se corrieron. No hay emulador y no se corren en los dispositivos del usuario sin preguntar.
+- **Pendiente:**
+  - Que la portada propia y los cambios de metadatos lleguen a la nube (K-154).
+  - Listado vacío al arrancar en Android (K-181).
