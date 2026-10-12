@@ -137,7 +137,7 @@ Pedido del usuario (2026-10-12), después de probar en el iPhone: "Quitar de la 
   - Cada pasada de sincronización consulta lo mismo y quita los libros locales que estén en esa lista y ya subidos (`uploadedAt != null`): uno importado aquí y aún no subido es otra copia y no se toca.
   - Quitar por la nube usa el mismo borrado local, con `cloudDeleted = true` (no hay nada que enviar).
   - Si ese libro está abierto en el lector, se espera a cerrarlo.
-- **Reimportar:** importar el archivo borra la marca local (ya existía) y la subida vuelve a poner `deletedAt = null` en el documento (`saveBook` lo incluye también al actualizar).
+- **Reimportar:** importar el archivo borra la marca local (ya existía) y la subida vuelve a poner `deletedAt = null` en el documento (`saveBook` lo incluye también al actualizar). En los otros dispositivos la marca solo bloquea mientras el borrado de allí está pendiente: si la nube lista vivo un libro cuyo borrado ya se completó, se olvida la marca y el libro vuelve (K-180).
 - **Texto de confirmación:** "Se borra de tu cuenta y de todos tus dispositivos, con su progreso. Podés volver a importarlo."
 - **Base de Android:** `cloudDeleted` llega en la versión 7 (`MIGRATION_6_7`). La v6 ya estaba instalada en el teléfono de prueba (K-179). Los libros quitados antes quedan como hechos y no se borran de la nube: esa versión prometía quitar solo de este dispositivo.
 

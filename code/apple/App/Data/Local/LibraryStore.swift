@@ -60,9 +60,13 @@ actor LibraryStore: ModelActor, LibraryRepository, CloudBooksRepository, BookUpl
     // MARK: CloudBooksRepository
 
     func addCloudOnly(_ books: [RemoteBook]) async throws {
-        // Un libro que el usuario quitó de este dispositivo no vuelve (LIB-020).
+        // LIB-020: un libro quitado aquí que la nube todavía no tiene borrado no vuelve. Si el borrado ya se completó y
+        // la nube lo lista vivo, alguien lo volvió a importar: se olvida la marca y vuelve.
+        let removed = try modelContext.fetch(FetchDescriptor<RemovedBookRecord>())
+        let alive = Set(books.map(\.id))
+        for record in removed where record.isCloudDeleted && alive.contains(record.id) { modelContext.delete(record) }
         let existing = Set(try modelContext.fetch(FetchDescriptor<BookRecord>()).map(\.id))
-            .union(try modelContext.fetch(FetchDescriptor<RemovedBookRecord>()).map(\.id))
+            .union(removed.filter { !$0.isCloudDeleted }.map(\.id))
         let seenAt = now()
         for book in books where !existing.contains(book.id) {
             modelContext.insert(

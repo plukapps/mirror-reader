@@ -21,8 +21,10 @@ class CloudBooksRepositoryImpl @Inject constructor(
 
     override suspend fun addCloudOnly(books: List<RemoteBook>) {
         val now = System.currentTimeMillis()
-        // Un libro que el usuario quitó de este dispositivo no vuelve (LIB-020).
-        val removed = dao.getRemovedIds().toSet()
+        // LIB-020: un libro quitado aquí que la nube todavía no tiene borrado no vuelve. Si el borrado ya se completó y
+        // la nube lo lista vivo, alguien lo volvió a importar: se olvida la marca y vuelve.
+        dao.deleteCompletedRemovals(books.map { it.id })
+        val removed = dao.getPendingCloudRemovals().toSet()
         // El orden de la nube se conserva: el primero de la lista queda como el más reciente.
         dao.insertAll(
             books.mapIndexedNotNull { index, book -> book.takeIf { it.id !in removed }?.toCloudOnlyEntity(now - index) },

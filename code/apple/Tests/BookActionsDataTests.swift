@@ -113,8 +113,31 @@ struct BookActionsDataTests {
 
         #expect(await store.books().map(\.id) == ["local"])
         #expect(await store.pendingCloudRemovals().isEmpty)
-        try await store.addCloudOnly([remote("subido")])
-        #expect(await store.books().map(\.id) == ["local"])
+    }
+
+    @Test("LIB-020: un libro borrado que otro dispositivo vuelve a subir aparece de nuevo")
+    func revivedInCloudComesBack() async throws {
+        let store = try makeStore()
+        try await store.addCloudOnly([remote("revive")])
+        await store.removeDeletedInCloud(bookIds: ["revive"])
+        #expect(await store.books().isEmpty)
+
+        // Otro dispositivo lo reimportó: la nube lo lista vivo otra vez.
+        try await store.addCloudOnly([remote("revive")])
+
+        #expect(await store.books().map(\.id) == ["revive"])
+    }
+
+    @Test("LIB-020: un libro quitado aquí que todavía no se borró de la nube no vuelve")
+    func pendingRemovalStillBlocks() async throws {
+        let store = try makeStore()
+        try await store.addCloudOnly([remote("pendiente")])
+        await store.remove(bookId: "pendiente")
+
+        try await store.addCloudOnly([remote("pendiente")])
+
+        #expect(await store.books().isEmpty)
+        #expect(await store.pendingCloudRemovals() == ["pendiente"])
     }
 
     @Test("LIB-020: importar el mismo archivo lo devuelve a la biblioteca")

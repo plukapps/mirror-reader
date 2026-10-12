@@ -71,6 +71,10 @@ interface BookDao {
     @Query("UPDATE removed_books SET cloudDeleted = 1 WHERE id = :id")
     suspend fun markCloudRemoved(id: String)
 
+    /** Olvida los borrados ya completos de estos libros: la nube los volvió a listar vivos (LIB-020). */
+    @Query("DELETE FROM removed_books WHERE cloudDeleted = 1 AND id IN (:ids)")
+    suspend fun deleteCompletedRemovals(ids: List<String>)
+
     /** El archivo del libro ya está en este dispositivo (descargado o importado de nuevo). */
     @Query("UPDATE books SET isDownloaded = 1, hasCover = :hasCover WHERE id = :id")
     suspend fun markDownloaded(id: String, hasCover: Boolean)
