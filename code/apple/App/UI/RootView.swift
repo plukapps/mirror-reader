@@ -69,11 +69,12 @@ struct RootView: View {
             }
             .alert(
                 removeTitle,
-                isPresented: Binding(get: { bookActions.removing != nil }, set: { if !$0 { bookActions.cancelRemove() } })
-            ) {
+                isPresented: Binding(get: { bookActions.removing != nil }, set: { if !$0 { bookActions.cancelRemove() } }),
+                presenting: bookActions.removing
+            ) { book in
                 Button("Cancelar", role: .cancel) { bookActions.cancelRemove() }
-                Button("Quitar", role: .destructive) { Task { await bookActions.confirmRemove() } }
-            } message: {
+                Button("Quitar", role: .destructive) { Task { await bookActions.confirmRemove(book) } }
+            } message: { _ in
                 Text("Se borra de tu cuenta y de todos tus dispositivos, con su progreso. Podés volver a importarlo.")
             }
     }

@@ -2,7 +2,7 @@
   "formatVersion": 1,
   "database": {
     "version": 6,
-    "identityHash": "b19b3b34f836576ae17aaeafec67456a",
+    "identityHash": "492dd13a2a88b6946932475b5f58c488",
     "entities": [
       {
         "tableName": "reading_positions",
@@ -122,7 +122,7 @@
       },
       {
         "tableName": "removed_books",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` TEXT NOT NULL, `removedAt` INTEGER NOT NULL, `cloudDeleted` INTEGER NOT NULL DEFAULT 0, PRIMARY KEY(`id`))",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` TEXT NOT NULL, `removedAt` INTEGER NOT NULL, PRIMARY KEY(`id`))",
         "fields": [
           {
             "fieldPath": "id",
@@ -135,13 +135,6 @@
             "columnName": "removedAt",
             "affinity": "INTEGER",
             "notNull": true
-          },
-          {
-            "fieldPath": "cloudDeleted",
-            "columnName": "cloudDeleted",
-            "affinity": "INTEGER",
-            "notNull": true,
-            "defaultValue": "0"
           }
         ],
         "primaryKey": {
@@ -154,7 +147,7 @@
     ],
     "setupQueries": [
       "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
-      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, 'b19b3b34f836576ae17aaeafec67456a')"
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '492dd13a2a88b6946932475b5f58c488')"
     ]
   }
 }

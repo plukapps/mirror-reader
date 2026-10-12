@@ -5,7 +5,7 @@ import androidx.room.RoomDatabase
 
 @Database(
     entities = [ReadingPositionEntity::class, BookEntity::class, RemovedBookEntity::class],
-    version = 6, exportSchema = true,
+    version = 7, exportSchema = true,
 )
 abstract class ReaderDatabase : RoomDatabase() {
     abstract fun readingPositionDao(): ReadingPositionDao

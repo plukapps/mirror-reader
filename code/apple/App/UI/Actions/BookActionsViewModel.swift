@@ -66,8 +66,9 @@ final class BookActionsViewModel {
         removing = nil
     }
 
-    func confirmRemove() async {
-        guard let book = removing else { return }
+    /// Recibe el libro en lugar de leer `removing`: al tocar el botón, SwiftUI cierra la alerta (y la limpia) antes de
+    /// que corra esta tarea.
+    func confirmRemove(_ book: LibraryBook) async {
         removing = nil
         await actions.remove(bookId: book.id)
         await reload()

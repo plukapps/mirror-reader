@@ -139,7 +139,7 @@ Pedido del usuario (2026-10-12), después de probar en el iPhone: "Quitar de la 
   - Si ese libro está abierto en el lector, se espera a cerrarlo.
 - **Reimportar:** importar el archivo borra la marca local (ya existía) y la subida vuelve a poner `deletedAt = null` en el documento (`saveBook` lo incluye también al actualizar).
 - **Texto de confirmación:** "Se borra de tu cuenta y de todos tus dispositivos, con su progreso. Podés volver a importarlo."
-- **Base de Android:** la versión 6 todavía no salió de la rama, así que `cloudDeleted` se agrega a la v6 (migración 5→6). Una instalación de prueba de la v6 anterior necesita borrar los datos de la app.
+- **Base de Android:** `cloudDeleted` llega en la versión 7 (`MIGRATION_6_7`). La v6 ya estaba instalada en el teléfono de prueba (K-179). Los libros quitados antes quedan como hechos y no se borran de la nube: esa versión prometía quitar solo de este dispositivo.
 
 ### Tarea 6 (K-177): Android (M)
 - [x] Dominio:

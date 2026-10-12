@@ -54,9 +54,19 @@ val MIGRATION_4_5 = object : Migration(4, 5) {
 val MIGRATION_5_6 = object : Migration(5, 6) {
     override fun migrate(db: SupportSQLiteDatabase) {
         db.execSQL(
-            "CREATE TABLE IF NOT EXISTS `removed_books` (`id` TEXT NOT NULL, `removedAt` INTEGER NOT NULL, " +
-                "`cloudDeleted` INTEGER NOT NULL DEFAULT 0, PRIMARY KEY(`id`))",
+            "CREATE TABLE IF NOT EXISTS `removed_books` (`id` TEXT NOT NULL, `removedAt` INTEGER NOT NULL, PRIMARY KEY(`id`))",
         )
         db.execSQL("ALTER TABLE `books` ADD COLUMN `coverVersion` INTEGER NOT NULL DEFAULT 0")
+    }
+}
+
+/**
+ * Quitar borra de la cuenta (LIB-020): cada libro quitado recuerda si la nube ya lo tiene borrado. Los quitados antes
+ * de esta versión se quitaron solo de este dispositivo: quedan como hechos y no se borran de la nube.
+ */
+val MIGRATION_6_7 = object : Migration(6, 7) {
+    override fun migrate(db: SupportSQLiteDatabase) {
+        db.execSQL("ALTER TABLE `removed_books` ADD COLUMN `cloudDeleted` INTEGER NOT NULL DEFAULT 0")
+        db.execSQL("UPDATE `removed_books` SET `cloudDeleted` = 1")
     }
 }

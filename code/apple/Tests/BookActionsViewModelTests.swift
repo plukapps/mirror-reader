@@ -85,11 +85,21 @@ struct BookActionsViewModelTests {
         #expect(await editor.removed.isEmpty)
 
         viewModel.askRemove(dracula)
-        await viewModel.confirmRemove()
+        await viewModel.confirmRemove(dracula)
         #expect(await editor.removed == ["d"])
         #expect(viewModel.removing == nil)
         #expect(reloads.count == 1)
         #expect(messages.list == ["Se quitó «Drácula» de la biblioteca."])
+    }
+
+    @Test("LIB-020: confirmar quita el libro aunque la alerta ya se haya cerrado (el cierre limpia la confirmación)")
+    func confirmAfterAlertDismissed() async {
+        let viewModel = makeViewModel()
+        viewModel.askRemove(dracula)
+        // Lo que hace SwiftUI al tocar un botón: cierra la alerta antes de que corra la tarea del botón.
+        viewModel.cancelRemove()
+        await viewModel.confirmRemove(dracula)
+        #expect(await editor.removed == ["d"])
     }
 
     @Test("LIB-019: elegir foto abre el selector para ese libro; si no sirve, se avisa")
