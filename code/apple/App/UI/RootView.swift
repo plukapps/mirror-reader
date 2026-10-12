@@ -11,6 +11,9 @@ struct RootView: View {
     let library: LibraryViewModel
     let sync: SyncCoordinator
     let makeReader: ((String) -> ReaderViewModel)?
+    /// ONB-013: al llegar desde "Importar mis libros" abre el selector de Archivos.
+    var importOnAppear = false
+    var onImportOpened: () -> Void = {}
     @Environment(\.scenePhase) private var scenePhase
     @State private var tabs = TabBarModel()
     /// LIB-001: selector de Archivos, desde Inicio o desde la biblioteca.
@@ -24,8 +27,14 @@ struct RootView: View {
             // La sincronización arranca con la app, sin importar qué pantalla se ve primero (SYN-001).
             // Cada pantalla vuelve a leer la base al aparecer y cuando la sincronización la cambia.
             .task {
+                if importOnAppear {
+                    onImportOpened()
+                    importAction?()
+                }
                 await home.load()
                 sync.request()
+                // Al llegar desde el onboarding la app ya estaba activa: la posición empieza a escucharse ahora (SYN-012).
+                sync.appBecameActive()
             }
             // SYN-001: al volver a la app, sincroniza si la última pasada buena tiene más de 5 minutos.
             // SYN-011, SYN-012: la posición se escucha mientras la app se ve y lo pendiente sale al dejar de verse.

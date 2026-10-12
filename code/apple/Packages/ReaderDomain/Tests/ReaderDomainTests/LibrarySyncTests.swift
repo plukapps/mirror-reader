@@ -2,28 +2,16 @@ import Foundation
 import Testing
 @testable import ReaderDomain
 
-// Mismos casos que `SyncLibraryUseCaseTest` y `SyncCoversUseCaseTest` de Android, más el inicio de sesión con la
-// cuenta de desarrollo, propio de Apple.
+// Mismos casos que `SyncLibraryUseCaseTest` y `SyncCoversUseCaseTest` de Android.
 
 private actor FakeAccount: AccountRepository {
     var user: AccountUser?
-    var failSignIn = false
-    private(set) var signIns = 0
 
-    init(user: AccountUser? = nil, failSignIn: Bool = false) {
+    init(user: AccountUser? = nil) {
         self.user = user
-        self.failSignIn = failSignIn
     }
 
     func currentUser() async -> AccountUser? { user }
-
-    func signIn(email: String, password: String) async throws -> AccountUser {
-        signIns += 1
-        if failSignIn { throw RemoteUnavailableError("sin red") }
-        let signedIn = AccountUser(id: "uid", email: email)
-        user = signedIn
-        return signedIn
-    }
 }
 
 /// La nube: metadatos, archivos y portadas, con errores inyectables.
@@ -157,7 +145,6 @@ private actor FakeFlusher: PositionFlusher {
 
 private let book = RemoteBook(id: "a", title: "Walden", authors: ["H. D. Thoreau"], sizeBytes: 10)
 private let signedIn = AccountUser(id: "uid", email: nil)
-private let noCredentials = DevCredentials(email: "", password: "")
 private let offline = RemoteUnavailableError("sin red")
 private struct Boom: Error {}
 
@@ -167,14 +154,12 @@ private func pendingUpload(_ id: String) -> PendingUpload {
 
 private func makeSync(
     account: FakeAccount = FakeAccount(user: signedIn),
-    credentials: DevCredentials = noCredentials,
     cloud: FakeCloud = FakeCloud(),
     local: FakeLocal = FakeLocal(),
     flusher: FakeFlusher = FakeFlusher()
 ) -> LibrarySync {
     LibrarySync(
         account: account,
-        credentials: credentials,
         remote: cloud,
         covers: cloud,
         cloud: local,
@@ -192,41 +177,10 @@ private extension LibrarySyncOutcome {
 }
 
 struct LibrarySyncSessionTests {
-    @Test("ADR 0002: sin sesión ni cuenta de desarrollo no se toca la nube ni la base")
+    @Test("ADR 0002, ONB-019: sin sesión no se toca la nube ni la base")
     func noSessionDoesNothing() async {
         let local = FakeLocal()
         let sync = makeSync(account: FakeAccount(), cloud: FakeCloud(books: [book]), local: local)
-        #expect(await sync.run() == .noSession)
-        #expect(await local.added.isEmpty)
-    }
-
-    @Test("K-052: sin sesión, inicia sesión con la cuenta de desarrollo y sincroniza")
-    func signsInWithDevAccount() async {
-        let account = FakeAccount()
-        let local = FakeLocal()
-        let sync = makeSync(
-            account: account, credentials: DevCredentials(email: "dev@x", password: "secreta"),
-            cloud: FakeCloud(books: [book]), local: local
-        )
-        #expect(await sync.run().report != nil)
-        #expect(await account.signIns == 1)
-        #expect(await local.added == [book])
-    }
-
-    @Test("K-052: con sesión no vuelve a iniciarla")
-    func keepsExistingSession() async {
-        let account = FakeAccount(user: signedIn)
-        _ = await makeSync(account: account, credentials: DevCredentials(email: "dev@x", password: "secreta")).run()
-        #expect(await account.signIns == 0)
-    }
-
-    @Test("ADR 0002: si el inicio de sesión falla, queda sin sesión y no cambia nada")
-    func failedSignIn() async {
-        let local = FakeLocal()
-        let sync = makeSync(
-            account: FakeAccount(failSignIn: true), credentials: DevCredentials(email: "dev@x", password: "secreta"),
-            cloud: FakeCloud(books: [book]), local: local
-        )
         #expect(await sync.run() == .noSession)
         #expect(await local.added.isEmpty)
     }
@@ -322,7 +276,7 @@ struct LibrarySyncTests {
         let local = FakeLocal(pendingUploads: [pendingUpload("b")])
         let flusher = FakeFlusher()
         let sync = LibrarySync(
-            account: FakeAccount(user: signedIn), credentials: noCredentials, remote: cloud, covers: cloud, cloud: local,
+            account: FakeAccount(user: signedIn), remote: cloud, covers: cloud, cloud: local,
             upload: UploadBooks(uploads: local, files: cloud, covers: cloud, library: cloud, quota: OfflineQuota()),
             download: DownloadBook(files: local, store: cloud), positions: flusher
         )

@@ -43,7 +43,7 @@ Recorridos:
 - **ONB-019** Al abrir la app: sin sesión, bienvenida (O1); con sesión de email sin verificar, verificar (O3); si no, Inicio. Reemplaza la regla de WEL-003.
 - **ONB-020** Con Google, si el usuario cancela la elección de cuenta no se muestra error; si falla, se avisa en la pantalla.
 - **ONB-021** Mientras una acción espera al servidor, su botón muestra que está trabajando y no se puede tocar de nuevo.
-- **ONB-022** Todas las pantallas funcionan en teléfono y tablet, vertical y apaisado (se desplazan si no entran, columna de ancho máximo en tablet), con el teclado abierto sin tapar el botón principal, y con TalkBack (cada control con su nombre, los chips y opciones con su estado).
+- **ONB-022** Todas las pantallas funcionan en teléfono y tablet, vertical y apaisado (se desplazan si no entran, columna de ancho máximo en tablet), con el teclado abierto sin tapar el botón principal, y con el lector de pantalla (TalkBack, VoiceOver: cada control con su nombre, los chips y opciones con su estado).
 
 ## Escenarios
 

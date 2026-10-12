@@ -1,7 +1,6 @@
 import FirebaseCore
 import FirebaseFirestore
 import Foundation
-import ReaderDomain
 
 /// Arranque de Firebase (ADR 0012). Sin `GoogleService-Info.plist` la app funciona solo en local (ADR 0002).
 enum FirebaseSetup {
@@ -16,13 +15,8 @@ enum FirebaseSetup {
         return true
     }
 
-    /// Cuenta de desarrollo del `Info.plist` (vacía en Release o si no se configuró, ver `Signing.xcconfig`).
-    static func devCredentials(bundle: Bundle = .main) -> DevCredentials {
-        func value(_ key: String) -> String {
-            let raw = (bundle.object(forInfoDictionaryKey: key) as? String) ?? ""
-            // Una variable sin definir puede quedar literal: "$(DEV_ACCOUNT_EMAIL)".
-            return raw.hasPrefix("$(") ? "" : raw.trimmingCharacters(in: .whitespaces)
-        }
-        return DevCredentials(email: value("DevAccountEmail"), password: value("DevAccountPassword"))
+    /// Dominio de las páginas de acción de Firebase Auth, al que apuntan los enlaces de los emails (ADR 0015).
+    static func authDomain() -> String? {
+        FirebaseApp.app()?.options.projectID.map { "\($0).firebaseapp.com" }
     }
 }
