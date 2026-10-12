@@ -20,8 +20,8 @@ fun interface RemovalPushRequester {
     fun requestPush()
 }
 
-/** Escucha de borrados de otros dispositivos mientras la app se ve (LIB-020). */
-interface RemovalListener {
+/** Una escucha de la nube que corre mientras la app se ve (LIB-020, SYN-012, SYN-014). */
+interface CloudListener {
     fun startListening()
     fun stopListening()
 }
@@ -47,7 +47,7 @@ class RemovalSync @Inject constructor(
     private val session: ReadingSession,
     private val account: AccountRepository,
     @ApplicationScope private val scope: CoroutineScope,
-) : CloudRemovals, RemovalPushRequester, RemovalListener {
+) : CloudRemovals, RemovalPushRequester, CloudListener {
     private val pushLock = Mutex()
     private val applyLock = Mutex()
     private val waitingForClose = mutableSetOf<String>()

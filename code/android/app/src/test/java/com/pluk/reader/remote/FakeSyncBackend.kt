@@ -133,7 +133,7 @@ class FakeSyncBackend : BookUploadRepository, BookFileStore, RemoteLibrary, Quot
 }
 
 /** Sin escucha de borrados (pruebas que no la usan). */
-object NoRemovals : com.pluk.reader.domain.usecase.RemovalListener {
+object NoRemovals : com.pluk.reader.domain.usecase.CloudListener {
     override fun startListening() = Unit
     override fun stopListening() = Unit
 }

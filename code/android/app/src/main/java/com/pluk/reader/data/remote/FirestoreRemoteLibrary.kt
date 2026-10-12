@@ -6,7 +6,13 @@ import com.google.firebase.firestore.DocumentReference
 import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
 import com.pluk.reader.domain.remote.RemoteBook
+import com.pluk.reader.domain.remote.RemoteBookChanges
 import com.pluk.reader.domain.remote.RemoteLibrary
+import com.google.firebase.Timestamp
+import java.util.Date
+import kotlinx.coroutines.channels.awaitClose
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.callbackFlow
 import com.pluk.reader.domain.remote.RemoteUnavailableException
 import kotlinx.coroutines.tasks.await
 import javax.inject.Inject
@@ -18,7 +24,7 @@ import javax.inject.Inject
 class FirestoreRemoteLibrary @Inject constructor(
     private val db: FirebaseFirestore,
     private val auth: FirebaseAuth,
-) : RemoteLibrary {
+) : RemoteLibrary, RemoteBookChanges {
     override suspend fun listBooks(): Result<List<RemoteBook>> = remoteCall("listBooks") {
         val uid = uid()
         db.collection("users/$uid/books").whereEqualTo(DELETED_AT, null).get().await().documents.mapNotNull { doc ->
@@ -58,6 +64,26 @@ class FirestoreRemoteLibrary @Inject constructor(
             null
         }.await()
         Unit
+    }
+
+    override fun observeAliveSince(sinceMillis: Long): Flow<Result<List<String>>> = callbackFlow {
+        val uid = auth.currentUser?.uid
+        if (uid == null) {
+            trySend(Result.failure(RemoteUnavailableException("No hay sesión iniciada.")))
+            close()
+            return@callbackFlow
+        }
+        // Una sola desigualdad sobre updatedAt: no hace falta índice compuesto. deletedAt se filtra aquí.
+        val registration = db.collection("users/$uid/books").whereGreaterThan(UPDATED_AT, Timestamp(Date(sinceMillis)))
+            .addSnapshotListener { snapshot, error ->
+                if (error != null || snapshot == null) {
+                    trySend(Result.failure(error?.toRemoteError() ?: RemoteUnavailableException("Sin datos de la nube.")))
+                    close()
+                    return@addSnapshotListener
+                }
+                trySend(Result.success(snapshot.documents.filter { it.get(DELETED_AT) == null }.map { it.id }))
+            }
+        awaitClose { registration.remove() }
     }
 
     private fun uid(): String = auth.currentUser?.uid ?: throw RemoteUnavailableException("No hay sesión iniciada.")

@@ -182,7 +182,8 @@ Pedido del usuario (2026-10-12), tras la prueba cruzada: borrar llega solo a los
 - **Sin backend:** las reglas ya permiten leer `books` al dueño.
 
 ### Tarea 8 (K-182): Android (S)
-- [ ] `RemoteBookChanges` (escucha), `KnownBooks` (ids locales) y `LibraryWatcher` en el dominio, con tests JVM. Firestore. Arranque y parada con la escucha de borrados.
+- [x] `RemoteBookChanges` (escucha, en `FirestoreRemoteLibrary`), `KnownBooks` (en `CloudBooksRepositoryImpl`) y `LibraryWatcher` en el dominio, con test JVM `LibraryWatcherTest` (4 casos).
+- [x] `LibrarySync` implementa `LibrarySyncRequester`. `RemovalListener` pasa a llamarse `CloudListener`, y `CloudListeners` arranca y para las dos escuchas (borrados y libros) desde `MainViewModel`.
 
 ### Tarea 9 (K-183): Apple (S)
 - [ ] Lo mismo en `ReaderDomain` y la app (`SyncCoordinator`), con tests.

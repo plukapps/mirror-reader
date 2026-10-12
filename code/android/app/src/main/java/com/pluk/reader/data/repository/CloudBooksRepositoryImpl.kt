@@ -10,6 +10,7 @@ import com.pluk.reader.domain.model.ImportOutcome
 import com.pluk.reader.domain.remote.RemoteBook
 import com.pluk.reader.domain.repository.CloudBooksRepository
 import com.pluk.reader.domain.repository.CoverFile
+import com.pluk.reader.domain.repository.KnownBooks
 import java.io.File
 import javax.inject.Inject
 
@@ -17,7 +18,7 @@ class CloudBooksRepositoryImpl @Inject constructor(
     private val dao: BookDao,
     private val files: LibraryFiles,
     private val importer: EpubImporter,
-) : CloudBooksRepository {
+) : CloudBooksRepository, KnownBooks {
 
     override suspend fun addCloudOnly(books: List<RemoteBook>) {
         val now = System.currentTimeMillis()
@@ -46,6 +47,8 @@ class CloudBooksRepositoryImpl @Inject constructor(
     }
 
     override suspend fun cloudOnlyBookIds(): List<String> = dao.getCloudOnlyIds()
+
+    override suspend fun knownBookIds(): Set<String> = dao.getAllIds().toSet()
 
     override suspend fun isDownloaded(bookId: String) = dao.get(bookId)?.isDownloaded == true
 

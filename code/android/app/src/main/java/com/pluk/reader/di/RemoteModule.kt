@@ -15,7 +15,12 @@ import com.pluk.reader.domain.remote.RemotePositions
 import com.pluk.reader.domain.remote.RemoteRemovals
 import com.pluk.reader.domain.repository.BookRemovals
 import com.pluk.reader.domain.usecase.CloudRemovals
-import com.pluk.reader.domain.usecase.RemovalListener
+import com.pluk.reader.domain.usecase.CloudListener
+import com.pluk.reader.domain.usecase.CloudListeners
+import com.pluk.reader.domain.usecase.LibrarySync
+import com.pluk.reader.domain.usecase.LibrarySyncRequester
+import com.pluk.reader.domain.remote.RemoteBookChanges
+import com.pluk.reader.domain.repository.KnownBooks
 import com.pluk.reader.domain.usecase.RemovalPushRequester
 import com.pluk.reader.domain.usecase.RemovalSync
 import com.pluk.reader.domain.repository.BookUploadRepository
@@ -46,5 +51,10 @@ abstract class RemoteModule {
     @Binds @Singleton abstract fun bindBookRemovals(impl: BookEditorImpl): BookRemovals
     @Binds @Singleton abstract fun bindCloudRemovals(impl: RemovalSync): CloudRemovals
     @Binds @Singleton abstract fun bindRemovalPushRequester(impl: RemovalSync): RemovalPushRequester
-    @Binds @Singleton abstract fun bindRemovalListener(impl: RemovalSync): RemovalListener
+    @Binds @Singleton abstract fun bindCloudListener(impl: CloudListeners): CloudListener
+
+    // SYN-014: libros nuevos al instante.
+    @Binds @Singleton abstract fun bindRemoteBookChanges(impl: FirestoreRemoteLibrary): RemoteBookChanges
+    @Binds @Singleton abstract fun bindKnownBooks(impl: CloudBooksRepositoryImpl): KnownBooks
+    @Binds @Singleton abstract fun bindLibrarySyncRequester(impl: LibrarySync): LibrarySyncRequester
 }
