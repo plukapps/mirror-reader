@@ -26,7 +26,8 @@ Stack y capas en `specs/adr/0010-apple-stack-and-architecture.md` (provisional):
 
 - Versión mínima: macOS 14 e iOS 17. Un solo target con los dos destinos.
 - Interfaz con Host Grotesk y la paleta del diseño, como Android.
-- Inicio con datos reales (K-107 a K-111): sesión con la cuenta de desarrollo (solo Debug), libros, posiciones y portadas bajados de Firebase a la base local. Desde K-145 a K-153 también sube (ver Sincronización).
+- Onboarding (plan `2026-10-12-ios-onboarding.md`, ADR 0015, K-160 a K-166): el de Android, O1 a O9, en iPhone y Mac. Alta con email o Google (GoogleSignIn), verificación por enlace, intereses, meta y recordatorio diario (notificación local), ingreso y recuperación de contraseña. O9 abre en la app solo con Associated Domains (K-167); "Iniciar sesión con Apple" falta antes de publicar (K-168). Sin Firebase, la app abre en Inicio y funciona en local.
+- Inicio con datos reales (K-107 a K-111): sesión iniciada en el onboarding (antes, cuenta de desarrollo), libros, posiciones y portadas bajados de Firebase a la base local. Desde K-145 a K-153 también sube (ver Sincronización).
 - Inicio (prueba, K-076): mismo contenido que en Android, centrado con un ancho máximo de 640 pt.
 - Barra inferior (HOM-005, K-096): en iPhone, la misma que Android (píldora flotante, el contenido pasa por debajo). Inicio, Buscar y Estantes navegan; Perfil muestra el aviso de HOM-006. En la Mac no hay barra: su navegación (probablemente barra lateral) espera un diseño (K-078), y hasta entonces la búsqueda no se alcanza desde la Mac.
 - Búsqueda local (LIB-006, LIB-013 a LIB-015, K-119 a K-122): misma regla que Android (`searchBooks` en `ReaderDomain`, mismos casos de test) y la pantalla 03 del diseño. Tocar un resultado abre el libro en el lector (iPhone).

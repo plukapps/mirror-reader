@@ -67,10 +67,9 @@ public protocol PositionFlusher: Sendable {
 /// sincroniza las portadas (LIB-012), baja los archivos que aún no están aquí y envía las posiciones de lectura
 /// pendientes. Cada paso se puede repetir sin duplicar nada. Sin conexión corta la pasada.
 ///
-/// Sin sesión, inicia la de la cuenta de desarrollo si está configurada (K-052).
+/// Sin sesión no hace nada: la sesión se inicia en el onboarding (ONB, ADR 0015).
 public struct LibrarySync: Sendable {
     private let account: AccountRepository
-    private let credentials: DevCredentials
     private let remote: RemoteLibrary
     private let covers: CoverStore
     private let cloud: CloudBooksRepository
@@ -81,7 +80,6 @@ public struct LibrarySync: Sendable {
 
     public init(
         account: AccountRepository,
-        credentials: DevCredentials,
         remote: RemoteLibrary,
         covers: CoverStore,
         cloud: CloudBooksRepository,
@@ -92,7 +90,6 @@ public struct LibrarySync: Sendable {
     ) {
         self.removals = removals
         self.account = account
-        self.credentials = credentials
         self.remote = remote
         self.covers = covers
         self.cloud = cloud
@@ -104,7 +101,7 @@ public struct LibrarySync: Sendable {
     /// - Parameter onChange: se llama cada vez que la base local cambió (libros de la nube, subidas, portadas y cada
     ///   descarga), para que la pantalla no espere al final de la pasada.
     public func run(onChange: @Sendable () async -> Void = {}) async -> LibrarySyncOutcome {
-        guard await ensureSession() else { return .noSession }
+        guard await account.currentUser() != nil else { return .noSession }
         // LIB-020, LIB-008: primero los borrados, así no se baja un libro que ya no existe en la cuenta.
         do {
             try await removals?.sync()
@@ -146,12 +143,6 @@ public struct LibrarySync: Sendable {
         // Los libros recién subidos ya existen en la nube: ahora puede salir la posición que los esperaba (SYN-011).
         await positions.flush()
         return .done(report)
-    }
-
-    private func ensureSession() async -> Bool {
-        if await account.currentUser() != nil { return true }
-        guard credentials.isConfigured else { return false }
-        return (try? await account.signIn(email: credentials.email, password: credentials.password)) != nil
     }
 
     /// Sube las portadas locales que aún no están en la nube y baja las que faltan aquí (LIB-012). Es secundario: un

@@ -19,6 +19,10 @@ packages:
   Firebase:
     url: https://github.com/firebase/firebase-ios-sdk
     exactVersion: 12.14.0
+  # Ingreso con Google (ADR 0015). Desde la 9.1 el paquete pide Swift 6.0, que alcanza con Xcode 16.2.
+  GoogleSignIn:
+    url: https://github.com/google/GoogleSignIn-iOS
+    exactVersion: 9.1.0
   # Motor de EPUB (ADR 0004, ADR 0013). Solo soporta iOS: en la Mac no se enlaza.
   Readium:
     url: https://github.com/readium/swift-toolkit
@@ -40,6 +44,8 @@ targets:
         product: FirebaseFirestore
       - package: Firebase
         product: FirebaseStorage
+      - package: GoogleSignIn
+        product: GoogleSignIn
       - package: Readium
         product: ReadiumShared
         destinationFilters: [iOS]
@@ -64,7 +70,7 @@ targets:
         "CODE_SIGN_IDENTITY[sdk=macosx*]": Apple Development
         PRODUCT_NAME: Reader
         GENERATE_INFOPLIST_FILE: YES
-        # Se combina con lo generado: lleva la cuenta de desarrollo (ver Signing.xcconfig).
+        # Se combina con lo generado: lleva el esquema de URL de Google (ver Signing.xcconfig).
         INFOPLIST_FILE: App/Info.plist
         # En iOS, además, el tipo de documento EPUB para "Abrir con" (LIB-001).
         "INFOPLIST_FILE[sdk=iphone*]": App/Info-iOS.plist
@@ -81,11 +87,6 @@ targets:
         # Firma local ("Sign to Run Locally"): no requiere cuenta de Apple Developer.
         CODE_SIGN_STYLE: Manual
         CODE_SIGN_IDENTITY: "-"
-      configs:
-        # La cuenta de desarrollo nunca viaja en un build Release.
-        Release:
-          DEV_ACCOUNT_EMAIL: ""
-          DEV_ACCOUNT_PASSWORD: ""
     scheme:
       testTargets: [ReaderTests]
   ReaderTests:

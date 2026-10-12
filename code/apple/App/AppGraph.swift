@@ -16,6 +16,12 @@ enum AppGraph {
         let bookActions: BookActionsViewModel
         /// nil en la Mac: Readium Swift solo soporta iOS (ADR 0013).
         let makeReader: ((_ bookId: String) -> ReaderViewModel)?
+        /// Pantalla de arranque (ONB-019).
+        let start: AppStartViewModel
+        /// nil sin Firebase: no hay cuenta que crear (ADR 0015).
+        let onboarding: OnboardingDependencies?
+        /// Dominio de los enlaces de los emails de la cuenta (`<proyecto>.firebaseapp.com`), o nil sin Firebase.
+        let authLinkHost: String?
     }
 
     static func makeScreens() -> Screens {
@@ -73,13 +79,25 @@ enum AppGraph {
             },
             notify: { [weak home] in home?.show($0) }
         )
+        let account = firebase ? FirebaseAccountRepository() : nil
         return Screens(
             home: home,
             search: search,
             library: library,
             sync: sync,
             bookActions: bookActions,
-            makeReader: reader?.makeReader
+            makeReader: reader?.makeReader,
+            start: AppStartViewModel(account: account),
+            onboarding: account.map { account in
+                OnboardingDependencies(
+                    auth: account,
+                    account: account,
+                    preferences: UserDefaultsOnboardingPreferences(),
+                    scheduler: NotificationReminderScheduler(),
+                    google: GoogleSignInClient.signIn
+                )
+            },
+            authLinkHost: firebase ? FirebaseSetup.authDomain() : nil
         )
     }
 
@@ -92,7 +110,6 @@ enum AppGraph {
         let covers = FirebaseCoverStore()
         let sync = LibrarySync(
             account: FirebaseAccountRepository(),
-            credentials: FirebaseSetup.devCredentials(),
             remote: remote,
             covers: covers,
             cloud: store,
