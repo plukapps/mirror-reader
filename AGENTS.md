@@ -84,7 +84,7 @@ Arquitectura MVVM en capas, un solo módulo Gradle, paquetes `com.pluk.reader.{u
 - Si hay más de un dispositivo conectado, `connectedDebugAndroidTest` corre en todos (también en un teléfono físico). Para limitarlo al emulador: `ANDROID_SERIAL=emulator-5554 ./gradlew ...`.
 - Fixture de pruebas: `code/android/tools/make_fixture_epub.py`.
 - Pruebas con adb: los enlaces web del libro abren el navegador al tocarlos. En builds de depuración se bloquean con `adb shell run-as com.pluk.reader touch files/block_external_links` y se vuelven a permitir con `rm files/block_external_links`.
-- Cuenta (ADR 0014): Firebase Auth con email y Google (Credential Manager). Sin cuenta de desarrollo: se entra por el onboarding. Google exige el SHA-1 de la máquina registrado en Firebase. Para volver a ver el onboarding hay que borrar los datos de la app (todavía no hay "Cerrar sesión").
+- Cuenta (ADR 0014): Firebase Auth con email y Google (Credential Manager). Sin cuenta de desarrollo: se entra por el onboarding. Google exige el SHA-1 de la máquina registrado en Firebase. Para volver a ver el onboarding: Perfil → Cerrar sesión (PRF-009); borra los libros de este dispositivo y los que no se subieron se pierden.
 - Firebase (ADR 0005, ADR 0007): `code/android/app/google-services.json` se descarga de la consola (Configuración del proyecto → app `com.pluk.reader`) y NO va al repo (está en `.gitignore`). Sin él, el build falla. Revisar `git status` antes de commitear: nunca `git add -A` a ciegas.
 
 ## Apple (Mac e iOS)
@@ -98,7 +98,7 @@ Raíz: `code/apple`. Detalle y comandos: `code/apple/README.md`. Plataforma: `sp
 - Un solo target `Reader` con destinos Mac e iOS (`supportedDestinations`); lo que es solo de Mac va en `project.yml` con `[sdk=macosx*]`.
 - Firma local, sin cuenta de Apple Developer. Sandbox activado.
 - Base local con SwiftData y SDK de Firebase 12.14.0 (fijo: la 12.15 exige Xcode 16.3), ADR 0012. `App/GoogleService-Info.plist` y `Signing.local.xcconfig` no van al repo; sin `GoogleService-Info.plist` la app funciona solo en local y abre en Inicio. Los tests nunca tocan Firebase.
-- Cuenta (ADR 0015): onboarding con Firebase Auth, email y Google (GoogleSignIn 9.1.0, fijo por Xcode 16.2). Sin cuenta de desarrollo. Para Google, después de bajar `GoogleService-Info.plist`: `./tools/copy-google-client.sh` y `xcodegen`. Para volver a ver el onboarding hay que borrar la app (no hay "Cerrar sesión"); para no perder los datos de un simulador, usar otro.
+- Cuenta (ADR 0015): onboarding con Firebase Auth, email y Google (GoogleSignIn 9.1.0, fijo por Xcode 16.2). Sin cuenta de desarrollo. Para Google, después de bajar `GoogleService-Info.plist`: `./tools/copy-google-client.sh` y `xcodegen`. Para volver a ver el onboarding: Perfil → Cerrar sesión (PRF-009), que borra los libros del dispositivo; para no perder los datos de un simulador, usar otro. Readium 3.9.0 ya no tiene etiqueta en GitHub: un clon nuevo no resuelve los paquetes hasta resolver K-202.
 - Motor de EPUB: Readium Swift Toolkit 3.9.0, solo en iOS (`destinationFilters: [iOS]` en `project.yml`, código con `#if os(iOS)`), ADR 0013. 3.10 y posteriores exigen Xcode 16.3. La API se verifica en el código fuente de la versión fija (`docs/Guides` del repo de Readium).
 
 ## Backend (Firebase)

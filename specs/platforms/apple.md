@@ -29,7 +29,7 @@ Stack y capas en `specs/adr/0010-apple-stack-and-architecture.md` (provisional):
 - Onboarding (plan `2026-10-12-ios-onboarding.md`, ADR 0015, K-160 a K-166): el de Android, O1 a O9, en iPhone y Mac. Alta con email o Google (GoogleSignIn), verificación por enlace, intereses, meta y recordatorio diario (notificación local), ingreso y recuperación de contraseña. O9 abre en la app solo con Associated Domains (K-167); "Iniciar sesión con Apple" falta antes de publicar (K-168). Sin Firebase, la app abre en Inicio y funciona en local.
 - Inicio con datos reales (K-107 a K-111): sesión iniciada en el onboarding (antes, cuenta de desarrollo), libros, posiciones y portadas bajados de Firebase a la base local. Desde K-145 a K-153 también sube (ver Sincronización).
 - Inicio (prueba, K-076): mismo contenido que en Android, centrado con un ancho máximo de 640 pt.
-- Barra inferior (HOM-005, K-096): en iPhone, la misma que Android (píldora flotante, el contenido pasa por debajo). Inicio, Buscar y Estantes navegan; Perfil muestra el aviso de HOM-006. En la Mac no hay barra: su navegación (probablemente barra lateral) espera un diseño (K-078), y hasta entonces la búsqueda no se alcanza desde la Mac.
+- Barra inferior (HOM-005, K-096): en iPhone, la misma que Android (píldora flotante, el contenido pasa por debajo). Inicio, Buscar, Estantes y Perfil navegan. En la Mac no hay barra: su navegación (probablemente barra lateral) espera un diseño (K-078), y hasta entonces la búsqueda no se alcanza desde la Mac.
 - Búsqueda local (LIB-006, LIB-013 a LIB-015, K-119 a K-122): misma regla que Android (`searchBooks` en `ReaderDomain`, mismos casos de test) y la pantalla 03 del diseño. Tocar un resultado abre el libro en el lector (iPhone).
 - Biblioteca (K-124 a K-127): la de Android según el diseño 05 (pestañas Todos, Leyendo y Terminados, grilla con progreso y "En la nube"). En iPhone es el destino Estantes; en la Mac se abre desde "Ver todo" de Inicio, con volver. "Ver todo" abre la biblioteca con el filtro de la sección (HOM-011). "Importar" abre el selector de Archivos en iPhone (plan `2026-10-09-ios-reader.md`) y no aparece en la Mac. Tocar un libro lo abre en el lector; en la Mac avisa que todavía no hay. Bajo el título, la línea de estado de la sincronización (SYN-008), como Android.
 
@@ -43,6 +43,15 @@ Stack y capas en `specs/adr/0010-apple-stack-and-architecture.md` (provisional):
   - **Igual que Android:** la regla de no leído, `RemovalSync` y `LibraryWatcher` en `ReaderDomain`, y `SyncCoordinator` para la escucha.
   - **Portada de un libro bajado:** un libro bajado de la nube sin portada la saca del EPUB (`CoverExtractingBookFiles`), como Android.
   - Plan `specs/plans/2026-10-12-library-actions.md`.
+
+- Perfil (PRF-001 a PRF-019, diseño 09, K-195 a K-198): la pantalla de Android en iPhone (`App/UI/Profile`); en la Mac compila pero no se alcanza (sin barra, K-078).
+  - **Reglas comunes:** el formato de tamaños, el tamaño de letra en puntos y las preguntas frecuentes están en `ReaderDomain`, con los mismos casos que Android.
+  - **Espacio:** caché en `UserDefaults` (`UserDefaultsQuotaCache`).
+  - **Ajustes de lectura:** los mismos de `UserDefaultsReaderSettings`.
+  - **Cerrar sesión:** `SignOut` (dominio) usa `SyncScheduler.whileIdle` mediante `CoordinatorSyncControl`. `LocalAccountWiper` borra SwiftData, los archivos y las claves de la cuenta en `UserDefaults` (se listan las que se borran: el dominio también guarda claves del sistema). Sale de Firebase y de `GIDSignIn`.
+  - **Ayuda:** las preguntas se abren en un `NavigationStack` propio del tab.
+  - **Tests de la Mac:** no arrancan por la firma del framework del paquete (K-201).
+  - Plan `specs/plans/2026-10-12-profile.md`.
 
 ## Criterio de terminado
 

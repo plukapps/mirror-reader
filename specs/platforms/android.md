@@ -36,6 +36,13 @@ Stack y capas definidos en `specs/adr/0005-android-stack-and-architecture.md`: C
   - **Quitar:** borra de la cuenta. `RemovalSync` pone `deletedAt` y borra los archivos de Storage, quita los borrados de otros dispositivos al sincronizar y, con la app a la vista, al llegar. Un libro abierto en el lector se quita al cerrarlo. Usa la tabla `removed_books`, de la base v7.
   - **Libros nuevos al instante:** `LibraryWatcher` escucha los libros cambiados en los últimos 15 minutos y pide una pasada si aparece uno desconocido.
   - Plan `specs/plans/2026-10-12-library-actions.md`.
+- Perfil (PRF-001 a PRF-019, diseño 09, K-190 a K-194):
+  - **Pantalla:** ruta `profile` de la barra (`ui/profile`). Lo que todavía no existe avisa "Llega más adelante.". Colores nuevos en `MarginColors`; íconos de Material Symbols en `ProfileIcons`.
+  - **Espacio:** `QuotaSource` con `plan` y una caché en DataStore (`QuotaCacheImpl`) para mostrarlo sin conexión. Los tamaños usan la unidad del total.
+  - **Ajustes de lectura:** los mismos de `SettingsRepository` que usa el lector. El panel de letra reutiliza `FontChips` y `SizeButtons` con una paleta clara.
+  - **Cerrar sesión:** `SignOut` deja de escuchar la nube, espera la pasada en curso (`LibrarySync.whileIdle`), borra con `LocalDataWiper` (la base, los archivos y el DataStore, salvo los ajustes del lector y `sync_device_id`), cancela el recordatorio, sale de Firebase y de Credential Manager y vuelve a la bienvenida.
+  - **Ayuda:** `domain/help/Faq.kt` con las respuestas en `strings.xml`.
+  - Plan `specs/plans/2026-10-12-profile.md`.
 
 ## Criterio de terminado
 
