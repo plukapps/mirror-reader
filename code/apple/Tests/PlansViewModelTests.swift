@@ -87,4 +87,43 @@ struct PlansViewModelTests {
         presenter.sheetDismissed()
         #expect(!presenter.plansOpen)
     }
+
+    @Test("PLN-010: Desde este dispositivo cierra la hoja y abre el selector de archivos")
+    func importFromDevice() {
+        let presenter = PlansPresenter(cache: PlansMemoryQuotaCache())
+        presenter.showImportSources()
+        #expect(presenter.importSheetOpen)
+        presenter.choose(.device)
+        #expect(!presenter.importSheetOpen)
+        #expect(presenter.importSheetDismissed())
+        #expect(!presenter.plansOpen)
+        presenter.showImportSources()
+        presenter.importSheetOpen = false
+        #expect(!presenter.importSheetDismissed())
+    }
+
+    @Test("PLN-010: Drive y Calibre muestran la función paga; Ahora no vuelve a la lista")
+    func paidFeature() {
+        let presenter = PlansPresenter(cache: PlansMemoryQuotaCache())
+        presenter.showImportSources()
+        presenter.choose(.drive)
+        #expect(presenter.paidFeature == .drive)
+        #expect(presenter.importSheetOpen)
+        presenter.backToSources()
+        #expect(presenter.paidFeature == nil)
+        presenter.choose(.calibre)
+        #expect(presenter.paidFeature == .calibre)
+    }
+
+    @Test("PLN-010: Ver planes desde la función paga cierra la hoja y abre Planes, sin selector")
+    func paidFeatureSeePlans() {
+        let presenter = PlansPresenter(cache: PlansMemoryQuotaCache())
+        presenter.showImportSources()
+        presenter.choose(.drive)
+        presenter.seePlansFromFeature()
+        #expect(!presenter.importSheetOpen)
+        #expect(!presenter.importSheetDismissed())
+        #expect(presenter.plansOpen)
+        #expect(presenter.paidFeature == nil)
+    }
 }

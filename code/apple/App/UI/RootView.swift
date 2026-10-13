@@ -54,6 +54,12 @@ struct RootView: View {
                 default: break
                 }
             }
+            // P03 (PLN-010): "Importar" de Inicio y de la biblioteca abre primero los orígenes.
+            .sheet(isPresented: $plans.importSheetOpen, onDismiss: {
+                if plans.importSheetDismissed() { picking = true }
+            }) {
+                ImportSourcesSheet(presenter: plans)
+            }
             .fileImporter(isPresented: $picking, allowedContentTypes: [.epub], allowsMultipleSelection: true) { result in
                 if case let .success(urls) = result {
                     Task {
@@ -183,7 +189,7 @@ struct RootView: View {
     private var destination: some View {
         switch tabs.selected {
         case .search: SearchView(viewModel: search, onOpen: home.open(bookId:))
-        case .shelves: LibraryView(viewModel: library, onImport: importAction ?? tabs.showComingSoon, onOpen: home.open(bookId:))
+        case .shelves: LibraryView(viewModel: library, onImport: importSourcesAction ?? tabs.showComingSoon, onOpen: home.open(bookId:))
         case .profile:
             ProfileView(
                 viewModel: profile,
@@ -195,7 +201,7 @@ struct RootView: View {
                 ),
                 onSignedOut: onSignedOut
             )
-        default: HomeView(viewModel: home, onOpenLibrary: openLibrary, onImport: importAction)
+        default: HomeView(viewModel: home, onOpenLibrary: openLibrary, onImport: importSourcesAction)
         }
     }
     #endif
@@ -203,6 +209,12 @@ struct RootView: View {
     /// Abre el selector de Archivos, o nil donde no se importa (la Mac, ADR 0013).
     private var importAction: (() -> Void)? {
         home.canImport ? { picking = true } : nil
+    }
+
+    /// PLN-010: la hoja "Importar libros", o nil donde no se importa (la Mac). El onboarding va directo al selector.
+    private var importSourcesAction: (() -> Void)? {
+        guard home.canImport else { return nil }
+        return { plans.showImportSources() }
     }
 
     /// HOM-011: la biblioteca abre con el filtro de la sección de Inicio.
