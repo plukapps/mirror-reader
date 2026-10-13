@@ -110,10 +110,12 @@ public struct UploadBooks: Sendable {
         guard let current = try? await quota.current() else { return UploadReport(unreachable: true) }
         cache?.save(current)
         var free = current.freeBytes
+        // PLN-014: por ahora el tope por archivo lo controla solo la app.
+        let maxFile = PlanCatalog.plan(PlanCatalog.planOf(current)).maxFileBytes
 
         var report = UploadReport()
         for item in pending {
-            if item.book.sizeBytes > free {
+            if item.book.sizeBytes > maxFile || item.book.sizeBytes > free {
                 report.notEnoughSpace += 1
                 continue
             }

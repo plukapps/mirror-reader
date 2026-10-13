@@ -6,10 +6,14 @@ public enum QuotaBlock: Equatable, Sendable {
     case full
     /// P02b: queda espacio, pero este libro no entra.
     case doesNotFit(bookBytes: Int64, freeBytes: Int64)
+    /// PLN-014: el archivo supera el tamaño máximo del plan.
+    case tooLarge(bookBytes: Int64, maxBytes: Int64)
 }
 
-/// PLN-007, PLN-008: con el espacio libre que queda (ya descontados los otros pendientes), ¿entra este libro?
-public func quotaBlock(freeBytes: Int64, bookBytes: Int64) -> QuotaBlock? {
+/// PLN-014, PLN-007, PLN-008: ¿el archivo entra en el plan y en el espacio libre que queda (ya descontados los otros
+/// pendientes)? El tamaño máximo se comprueba primero.
+public func quotaBlock(freeBytes: Int64, bookBytes: Int64, maxFileBytes: Int64 = .max) -> QuotaBlock? {
+    if bookBytes > maxFileBytes { return .tooLarge(bookBytes: bookBytes, maxBytes: maxFileBytes) }
     if freeBytes <= 0 { return .full }
     if bookBytes > freeBytes { return .doesNotFit(bookBytes: bookBytes, freeBytes: freeBytes) }
     return nil
@@ -47,13 +51,16 @@ public struct ImportQuotaCheck: Sendable {
     public func callAsFunction(imported: [String]) async -> QuotaBlockNotice? {
         guard !imported.isEmpty, let quota = cache.last(), let pending = try? await uploads.pending() else { return nil }
         let newBooks = Set(imported)
+        let maxFile = PlanCatalog.plan(PlanCatalog.planOf(quota)).maxFileBytes
         var free = quota.freeBytes
         for item in pending {
             let size = item.book.sizeBytes
-            if newBooks.contains(item.book.id), let block = quotaBlock(freeBytes: free, bookBytes: size) {
+            if newBooks.contains(item.book.id),
+               let block = quotaBlock(freeBytes: free, bookBytes: size, maxFileBytes: maxFile) {
                 return QuotaBlockNotice(block: block, bookId: item.book.id, title: item.book.title, quota: quota)
             }
-            if size <= free { free -= size }
+            // Como en `UploadBooks`: lo que supera el máximo o no entra no se sube y no ocupa lugar.
+            if size <= maxFile, size <= free { free -= size }
         }
         return nil
     }

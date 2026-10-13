@@ -21,8 +21,8 @@ private func item(_ id: String, _ size: Int64) -> PendingUpload {
     PendingUpload(book: RemoteBook(id: id, title: "Libro \(id)", authors: [], sizeBytes: size), file: URL(filePath: "/\(id).epub"))
 }
 
-private func check(used: Int64, _ items: [PendingUpload], quota: Int64 = 15 * mib) -> ImportQuotaCheck {
-    ImportQuotaCheck(uploads: Pending(items: items), cache: Cache(StorageQuota(usedBytes: used, quotaBytes: quota)))
+private func check(used: Int64, _ items: [PendingUpload], quota: Int64 = 15 * mib, plan: String = "free") -> ImportQuotaCheck {
+    ImportQuotaCheck(uploads: Pending(items: items), cache: Cache(StorageQuota(usedBytes: used, quotaBytes: quota, plan: plan)))
 }
 
 @Test("PLN-007, PLN-008: lleno, no entra o entra justo")
@@ -34,7 +34,7 @@ func blockRule() {
 
 @Test("PLN-008: quedan 3 MB y el libro pesa 8 MB")
 func doesNotFit() async {
-    let notice = await check(used: 12 * mib, [item("a", 8 * mib)])(imported: ["a"])
+    let notice = await check(used: 12 * mib, [item("a", 8 * mib)], plan: "library")(imported: ["a"])
     #expect(notice?.block == .doesNotFit(bookBytes: 8 * mib, freeBytes: 3 * mib))
     #expect(notice?.title == "Libro a")
 }
@@ -46,13 +46,13 @@ func full() async {
 
 @Test("PLN-009: se descuentan los pendientes que esperan subirse")
 func pendingCount() async {
-    let notice = await check(used: 5 * mib, [item("viejo", 8 * mib), item("a", 4 * mib)])(imported: ["a"])
+    let notice = await check(used: 5 * mib, [item("viejo", 8 * mib), item("a", 4 * mib)], plan: "library")(imported: ["a"])
     #expect(notice?.block == .doesNotFit(bookBytes: 4 * mib, freeBytes: 2 * mib))
 }
 
 @Test("PLN-009: varios a la vez, una sola hoja con el primero que no entra")
 func firstThatDoesNotFit() async {
-    let notice = await check(used: 0, [item("a", 10 * mib), item("b", 4 * mib), item("c", 9 * mib)])(imported: ["a", "b", "c"])
+    let notice = await check(used: 0, [item("a", 10 * mib), item("b", 4 * mib), item("c", 9 * mib)], plan: "library")(imported: ["a", "b", "c"])
     #expect(notice?.bookId == "c")
     #expect(notice?.block == .doesNotFit(bookBytes: 9 * mib, freeBytes: mib))
 }
@@ -75,4 +75,33 @@ func usageNoticeRule() {
     #expect(!shouldShowUsageNotice(at(13), dismissed: true))
     #expect(!shouldShowUsageNotice(nil, dismissed: false))
     #expect(!shouldShowUsageNotice(StorageQuota(usedBytes: 0, quotaBytes: 0), dismissed: false))
+}
+
+@Test("PLN-014: el tamaño máximo se comprueba antes que el espacio")
+func tooLargeFirst() {
+    #expect(quotaBlock(freeBytes: 0, bookBytes: 3 * mib, maxFileBytes: 2 * mib) == .tooLarge(bookBytes: 3 * mib, maxBytes: 2 * mib))
+    #expect(quotaBlock(freeBytes: 10 * mib, bookBytes: 2 * mib, maxFileBytes: 2 * mib) == nil)
+}
+
+@Test("PLN-014: en Gratis un libro de 3 MB es muy grande; en Lector entra")
+func tooLargeByPlan() async {
+    #expect(await check(used: 0, [item("a", 3 * mib)])(imported: ["a"])?.block == .tooLarge(bookBytes: 3 * mib, maxBytes: 2 * mib))
+    #expect(await check(used: 0, [item("a", 3 * mib)], plan: "reader")(imported: ["a"]) == nil)
+    #expect(await check(used: 0, [item("a", 51 * mib)], quota: 5 * 1024 * mib, plan: "reader")(imported: ["a"])?.block
+        == .tooLarge(bookBytes: 51 * mib, maxBytes: 50 * mib))
+}
+
+@Test("PLN-014: un plan desconocido vale como Gratis; justo 2 MB entra")
+func unknownPlanIsFree() async {
+    #expect(PlanCatalog.planOf(StorageQuota(usedBytes: 0, quotaBytes: 1, plan: "premium")) == .free)
+    #expect(PlanCatalog.planOf(nil) == .free)
+    #expect(PlanCatalog.planOf(StorageQuota(usedBytes: 0, quotaBytes: 1, plan: "library")) == .library)
+    #expect(await check(used: 0, [item("a", 3 * mib)], plan: "premium")(imported: ["a"])?.block == .tooLarge(bookBytes: 3 * mib, maxBytes: 2 * mib))
+    #expect(await check(used: 0, [item("a", 2 * mib)])(imported: ["a"]) == nil)
+}
+
+@Test("PLN-014: un pendiente que supera el máximo no ocupa lugar")
+func oversizePendingTakesNoSpace() async {
+    let notice = await check(used: 10 * mib, [item("grande", 4 * mib), item("a", 2 * mib)])(imported: ["a"])
+    #expect(notice == nil)
 }

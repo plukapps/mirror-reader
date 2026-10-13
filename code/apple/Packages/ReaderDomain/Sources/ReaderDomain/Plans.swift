@@ -149,6 +149,16 @@ public enum PlanCatalog {
         return formatStorage(bytes, unit: StorageUnit.forTotal(bytes))
     }
 
+    /// PLN-014: el plan de la cuenta sale de la cuota; si no se conoce o no es uno de los tres, Gratis.
+    public static func planOf(_ quota: StorageQuota?) -> PlanId {
+        quota.flatMap { PlanId(rawValue: $0.plan) } ?? .free
+    }
+
+    /// PLN-014: el plan que se ofrece para pasar de este ("Con Lector…", "Con Biblioteca…").
+    public static func nextPlan(after id: PlanId) -> PlanId {
+        id == .free ? .reader : .library
+    }
+
     /// "2 MB", "50 MB": el tamaño máximo por archivo del plan (PLN-014).
     public static func maxFileText(_ id: PlanId) -> String {
         let bytes = plan(id).maxFileBytes

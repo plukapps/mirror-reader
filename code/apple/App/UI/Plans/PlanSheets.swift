@@ -68,7 +68,7 @@ struct SheetButtons: View {
     }
 }
 
-/// P02a y P02b: el libro importado no entra en la nube (PLN-007, PLN-008). El libro ya está en el dispositivo.
+/// P02a y P02b: el libro importado no entra en la nube (PLN-007, PLN-008, PLN-014). El libro ya está en el dispositivo.
 struct QuotaBlockSheet: View {
     let notice: QuotaBlockNotice
     let onSeePlans: () -> Void
@@ -92,6 +92,7 @@ struct QuotaBlockContent: View {
             switch notice.block {
             case .full: full
             case let .doesNotFit(bookBytes, freeBytes): doesNotFit(bookBytes: bookBytes, freeBytes: freeBytes)
+            case let .tooLarge(bookBytes, maxBytes): tooLarge(bookBytes: bookBytes, maxBytes: maxBytes)
             }
             SheetButtons(onSeePlans: onSeePlans, onNotNow: onNotNow)
         }
@@ -139,12 +140,39 @@ struct QuotaBlockContent: View {
     private func doesNotFit(bookBytes: Int64, freeBytes: Int64) -> some View {
         let size = formatted(bookBytes)
         let free = formatted(freeBytes)
-        return VStack(alignment: .leading, spacing: 0) {
+        return bookSheet(
+            detail: "\(size) · te quedan \(free)",
+            size: size,
+            body: String(localized: "Te quedan \(free) en la nube. No se subió, pero podés leerlo en este dispositivo."),
+            upsell: String(localized: "Con Lector: \(readerStorage) en la nube")
+        )
+    }
+
+    // MARK: P02b, archivo muy grande (PLN-014)
+
+    private func tooLarge(bookBytes: Int64, maxBytes: Int64) -> some View {
+        let size = formatted(bookBytes)
+        let max = formatted(maxBytes)
+        let next = PlanCatalog.nextPlan(after: PlanCatalog.planOf(notice.quota))
+        let nextName = PlanCatalog.plan(next).name
+        return bookSheet(
+            detail: "\(size) · límite \(max)",
+            size: size,
+            body: String(localized: "Tu plan admite archivos de hasta \(max). No se subió a la nube, pero podés leerlo en este dispositivo."),
+            upsell: String(localized: """
+                Con \(nextName): archivos de hasta \(PlanCatalog.maxFileText(next)) y \(PlanCatalog.storageText(next, quota: notice.quota)) en la nube
+                """)
+        )
+    }
+
+    /// P02b: la fila del libro, el título con su tamaño, la explicación y la tarjeta amarilla del plan siguiente.
+    private func bookSheet(detail: String, size: String, body: String, upsell: String) -> some View {
+        VStack(alignment: .leading, spacing: 0) {
             HStack(spacing: 12) {
                 EpubPlaceholder()
                 VStack(alignment: .leading, spacing: 2) {
                     Text(notice.title).font(.app(14, .bold)).foregroundStyle(MarginColors.ink).lineLimit(2)
-                    Text("\(size) · te quedan \(free)").font(.mono(12)).foregroundStyle(MarginColors.warn)
+                    Text(detail).font(.mono(12)).foregroundStyle(MarginColors.warn)
                 }
                 .frame(maxWidth: .infinity, alignment: .leading)
             }
@@ -152,18 +180,21 @@ struct QuotaBlockContent: View {
             .background(MarginColors.paper, in: RoundedRectangle(cornerRadius: 16))
             .accessibilityElement(children: .combine)
             SheetTitle(text: String(localized: "Este libro pesa \(size)")).padding(.top, 18)
-            Text("Te quedan \(free) en la nube. No se subió, pero podés leerlo en este dispositivo.").sheetBody()
+            Text(body).sheetBody()
             HStack(spacing: 10) {
                 PlanIcon(name: "UploadFile", size: 22, color: MarginColors.onYellow)
-                Text("Con Lector: \(readerStorage) en la nube")
+                Text(upsell)
                     .font(.app(14, .semibold))
+                    .lineSpacing(14 * 0.35 - 3)
                     .foregroundStyle(MarginColors.onYellow)
+                    .fixedSize(horizontal: false, vertical: true)
                     .frame(maxWidth: .infinity, alignment: .leading)
             }
             .padding(.horizontal, 16)
             .padding(.vertical, 14)
             .background(MarginColors.yellow, in: RoundedRectangle(cornerRadius: 18))
             .padding(.top, 18)
+            .accessibilityElement(children: .combine)
         }
     }
 
