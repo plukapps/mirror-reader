@@ -1,6 +1,9 @@
 package com.pluk.reader.profile
 
 import com.pluk.reader.domain.account.AccountUser
+import com.pluk.reader.domain.appearance.Appearance
+import com.pluk.reader.domain.appearance.AppearancePreferences
+import kotlinx.coroutines.flow.MutableStateFlow
 import com.pluk.reader.domain.account.QuotaSource
 import com.pluk.reader.domain.account.SignInMethod
 import com.pluk.reader.domain.account.StorageQuota
@@ -65,6 +68,15 @@ class ProfileViewModelTest {
         override suspend fun setLastPositionsSeenAt(value: Long) = Unit
     }
 
+    private class FakeAppearance : AppearancePreferences {
+        override val appearance = MutableStateFlow(Appearance.SYSTEM)
+        override suspend fun setAppearance(appearance: Appearance) {
+            this.appearance.value = appearance
+        }
+    }
+
+    private val appearancePrefs = FakeAppearance()
+
     private class FakeSettings(initial: ReaderSettings = ReaderSettings()) : SettingsRepository {
         override val settings = kotlinx.coroutines.flow.MutableStateFlow(initial)
         override suspend fun update(transform: (ReaderSettings) -> ReaderSettings) {
@@ -104,7 +116,7 @@ class ProfileViewModelTest {
         cache: FakeCache = FakeCache(),
     ): ProfileUiState {
         val auth = FakeAuth().apply { this.user.value = user }
-        val vm = ProfileViewModel(auth, quota, cache, FakeDevice(), FakeSettings(), signOutOf(auth))
+        val vm = ProfileViewModel(auth, quota, cache, FakeDevice(), FakeSettings(), signOutOf(auth), appearancePrefs)
         backgroundScope.launch { vm.uiState.collect {} }
         advanceUntilIdle()
         return vm.uiState.value
@@ -199,7 +211,7 @@ class ProfileViewModelTest {
             }
         }
         val auth = FakeAuth().apply { user.value = AccountUser("u1", "a@mail.com") }
-        val vm = ProfileViewModel(auth, slow, FakeCache(StorageQuota(gib / 2, 2 * gib)), FakeDevice(), FakeSettings(), signOutOf(auth))
+        val vm = ProfileViewModel(auth, slow, FakeCache(StorageQuota(gib / 2, 2 * gib)), FakeDevice(), FakeSettings(), signOutOf(auth), appearancePrefs)
         backgroundScope.launch { vm.uiState.collect {} }
         advanceUntilIdle()
         assertEquals("0,5 GB", vm.uiState.value.storage?.used)
@@ -216,7 +228,7 @@ class ProfileViewModelTest {
 
     private fun TestScope.readingViewModel(settings: FakeSettings): ProfileViewModel {
         val auth = FakeAuth().apply { user.value = AccountUser("u1", "a@mail.com") }
-        val vm = ProfileViewModel(auth, FakeQuota(Result.success(StorageQuota(0, gib))), FakeCache(), FakeDevice(), settings, signOutOf(auth))
+        val vm = ProfileViewModel(auth, FakeQuota(Result.success(StorageQuota(0, gib))), FakeCache(), FakeDevice(), settings, signOutOf(auth), appearancePrefs)
         backgroundScope.launch { vm.uiState.collect {} }
         advanceUntilIdle()
         return vm
@@ -243,6 +255,17 @@ class ProfileViewModelTest {
         assertEquals(ReadingTheme.DARK, vm.uiState.value.reading.theme)
     }
 
+    // PRF-021: la fila muestra la apariencia guardada (por defecto, Sistema) y al elegir otra la guarda.
+    @Test
+    fun appearanceIsShownAndSaved() = runTest(dispatcher) {
+        val vm = readingViewModel(FakeSettings())
+        assertEquals(Appearance.SYSTEM, vm.uiState.value.appearance)
+        vm.onAppearance(Appearance.DARK)
+        advanceUntilIdle()
+        assertEquals(Appearance.DARK, appearancePrefs.appearance.value)
+        assertEquals(Appearance.DARK, vm.uiState.value.appearance)
+    }
+
     // PRF-013: letra y tamaño, con los mismos pasos del lector
     @Test
     fun fontAndSizeAreSaved() = runTest(dispatcher) {
@@ -267,7 +290,7 @@ class ProfileViewModelTest {
 
     private fun TestScope.signOutViewModel(auth: FakeAuth, signOut: SignOut): ProfileViewModel {
         auth.user.value = AccountUser("u1", "a@mail.com")
-        val vm = ProfileViewModel(auth, FakeQuota(Result.success(StorageQuota(0, gib))), FakeCache(), FakeDevice(), FakeSettings(), signOut)
+        val vm = ProfileViewModel(auth, FakeQuota(Result.success(StorageQuota(0, gib))), FakeCache(), FakeDevice(), FakeSettings(), signOut, appearancePrefs)
         backgroundScope.launch { vm.uiState.collect {} }
         advanceUntilIdle()
         return vm

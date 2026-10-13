@@ -27,6 +27,10 @@ fun checkPassword(password: String) = PasswordCheck(
     hasUppercase = password.any { it.isUpperCase() },
 )
 
+/** PRF-020: "Guardar" con la actual escrita, la nueva válida (ONB-005), distinta de la actual y confirmada. */
+fun canSaveNewPassword(current: String, new: String, confirm: String): Boolean =
+    current.isNotEmpty() && checkPassword(new).isValid && new != current && new == confirm
+
 private val EMAIL = Regex("^[^@\\s]+@[^@\\s]+\\.[^@\\s]+$")
 
 /** Formato mínimo: algo@algo.algo, sin espacios (ONB-004). La existencia la decide el servidor. */

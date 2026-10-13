@@ -135,10 +135,10 @@ private fun Header(importing: Boolean, onImport: () -> Unit) {
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(4.dp),
         ) {
-            Icon(LibraryIcons.Add, contentDescription = null, tint = MarginColors.Ink)
+            Icon(LibraryIcons.Add, contentDescription = null, tint = MarginColors.OnYellow)
             Text(
                 text = stringResource(if (importing) R.string.library_importing else R.string.library_import),
-                color = MarginColors.Ink,
+                color = MarginColors.OnYellow,
                 fontSize = 13.sp,
                 fontWeight = FontWeight.Bold,
             )
@@ -295,7 +295,7 @@ private fun EmptyLibrary(onImport: () -> Unit, modifier: Modifier = Modifier) {
             Modifier
                 .height(44.dp)
                 .clip(RoundedCornerShape(22.dp))
-                .background(MarginColors.Ink)
+                .background(MarginColors.InkFill)
                 .clickable(role = Role.Button, onClick = onImport)
                 .padding(horizontal = 20.dp),
             verticalAlignment = Alignment.CenterVertically,

@@ -96,6 +96,7 @@ enum AppGraph {
                 cache: UserDefaultsQuotaCache(),
                 deviceName: UserDefaultsSyncPreferences.model,
                 settings: UserDefaultsReaderSettings(),
+                passwords: account,
                 appearance: appearance,
                 signOut: account.map { account in
                     SignOut(

@@ -5,7 +5,9 @@ import com.pluk.reader.data.repository.BookRepositoryImpl
 import com.pluk.reader.data.repository.LibraryRepositoryImpl
 import com.pluk.reader.data.repository.PositionRepositoryImpl
 import com.pluk.reader.data.repository.QuotaCacheImpl
+import com.pluk.reader.data.repository.AppearancePreferencesImpl
 import com.pluk.reader.data.repository.SettingsRepositoryImpl
+import com.pluk.reader.domain.appearance.AppearancePreferences
 import com.pluk.reader.data.repository.SyncPreferencesImpl
 import com.pluk.reader.data.repository.OnboardingPreferencesImpl
 import com.pluk.reader.data.reminder.AlarmReminderScheduler
@@ -31,6 +33,10 @@ abstract class RepositoryModule {
     @Binds
     @Singleton
     abstract fun bindQuotaCache(impl: QuotaCacheImpl): QuotaCache
+
+    @Binds
+    @Singleton
+    abstract fun bindAppearancePreferences(impl: AppearancePreferencesImpl): AppearancePreferences
 
     @Binds
     @Singleton
