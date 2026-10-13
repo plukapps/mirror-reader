@@ -6,7 +6,7 @@ import ReaderDomain
 
 /// Sesión y cuenta con Firebase Auth: email y contraseña, y Google (ADR 0012, ADR 0015), como
 /// `FirebaseAccountRepository` de Android. Firebase guarda la sesión entre arranques.
-struct FirebaseAccountRepository: AccountRepository, AuthRepository, SessionRepository {
+struct FirebaseAccountRepository: AccountRepository, AuthRepository, SessionRepository, PasswordRepository {
     private var auth: Auth { Auth.auth() }
 
     func currentUser() async -> AccountUser? {
@@ -83,6 +83,18 @@ struct FirebaseAccountRepository: AccountRepository, AuthRepository, SessionRepo
                 try await user.reload()
                 _ = try await user.getIDToken(forcingRefresh: true)
             }
+        }
+    }
+
+    /// PRF-020: Firebase pide un ingreso reciente para cambiar la contraseña; se reautentica con la actual y después se
+    /// cambia. Una actual incorrecta llega como `.wrongPassword` o `.invalidCredential` y se traduce a
+    /// `.invalidCredentials`. La sesión de este dispositivo sigue abierta.
+    func changePassword(current: String, new: String) async throws {
+        try await run("cambiar la contraseña desde Perfil") {
+            let user = try requiredUser()
+            guard let email = user.email else { throw AuthFailure(.unknown) }
+            _ = try await user.reauthenticate(with: EmailAuthProvider.credential(withEmail: email, password: current))
+            try await user.updatePassword(to: new)
         }
     }
 

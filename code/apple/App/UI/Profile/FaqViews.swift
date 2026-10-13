@@ -26,10 +26,12 @@ extension FaqId {
     }
 }
 
-/// Pantallas de ayuda dentro del tab Perfil.
+/// Pantallas dentro del tab Perfil: ayuda y cambiar contraseña.
 enum ProfileRoute: Hashable {
     case faq(FaqId)
     case allFaq
+    /// PRF-020.
+    case changePassword
 }
 
 /// Filas de preguntas sobre la tarjeta tinta de ayuda (PRF-017): 52 de alto, separador, flecha.
