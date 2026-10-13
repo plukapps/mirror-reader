@@ -87,3 +87,16 @@ Rama `feature/subscription-plans-android`, K-218 a K-222.
   - "Importar libros" es una hoja inferior (como dice PLN-010), no la pantalla con cruz del diseño.
   - P02b muestra un recuadro "EPUB" en lugar de la portada, como el diseño.
 - **Tests:** 454 JVM (39 nuevos). Compose, sin correr (no hay emulador): `PlansScreenTest`, `PlanSheetsTest`, `ImportSheetTest`, `MyPlanScreenTest`, casos nuevos en `ProfileScreenTest` y `LibraryScreenTest`.
+## Segunda parte: funciones por plan (2026-10-13)
+
+**Pedido del usuario:** una tabla de funciones por plan (prueba gratis no por ahora, tamaño máximo por archivo 2 MB / 50 MB / 100 MB, temas y fuentes y exportar notas en Lector y Biblioteca; estadísticas, Drive/Calibre/email, lector web y familia en definición). Decisiones: (1) en Gratis el lector usa solo Clásico y serifa, el resto abre la hoja de función paga; (2) el tope por archivo primero solo en las apps; (3) no mostrar funciones en definición.
+
+**Specs:** PLN-001, PLN-006 y PLN-012 cambian; PLN-010 se retira; nuevos PLN-014 (tamaño por archivo), PLN-015 (temas y fuentes), PLN-016 (ocultar lo que está en definición). Cambian RDR-014, PRF-013 y PRF-014. Va en los mismos PR (#34 Android, #35 iOS).
+
+| Android | iOS | Qué |
+|---|---|---|
+| K-250 | K-253 | Catálogo: tamaño por archivo en `Plan`, sin prueba gratis (`ctaFor` siempre "Elegir…"), tarjetas y tabla de PLN-001, Mi plan con "Archivos de hasta 2 MB" y su tarjeta, quitar la hoja "Importar libros" (Importar abre el selector) y los textos de Drive, Calibre, familia, estadísticas y lector web. La hoja de función paga queda para PLN-015. |
+| K-251 | K-254 | PLN-014: `PlanCatalog.maxFileBytes(plan)` y `planOf(quota)` (desconocido → Gratis); `quotaBlock` gana `TooLarge(bookBytes, maxBytes)`, comprobado antes que el espacio; hoja P02b de archivo muy grande; `UploadBooks` saltea los que superan el máximo y los cuenta como `notEnoughSpace`; texto de la línea de sincronización "N libros no entran en tu plan". Tests de los bordes (justo 2 MB, plan desconocido, Lector). |
+| K-252 | K-255 | PLN-015: `effectiveReaderSettings(saved, plan)` pura (Gratis → Clásico y serifa, sin tocar lo guardado); el lector aplica la efectiva; en el panel del lector y en Ajustes de lectura de Perfil, las opciones pagas llevan la marca "Lector" y abren la hoja "Leé con tus temas y fuentes" (con "Ver planes" a P01, también desde el lector). Tests: función pura, ViewModel del lector y de Perfil (tocar Sepia en Gratis no cambia la preferencia y pide la hoja). |
+
+Riesgo: el plan de la cuenta sale de la caché de cuota; sin dato, todo se comporta como Gratis (el caso real de hoy: no hay planes pagos).

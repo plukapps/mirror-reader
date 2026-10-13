@@ -4,10 +4,14 @@
 
 Mostrar qué ofrece cada plan y avisar a tiempo cuando el plan gratuito no alcanza, sin bloquear nunca la lectura ni borrar nada. Es la base visual del modelo de suscripción (open-questions #1): esta rebanada no cobra.
 
-Diseño: `design/Margin Planes.dc.html` (P01 a P07, borrador 2026-10-13). Se construye fiel al diseño, con dos diferencias decididas con el usuario (2026-10-13):
+Diseño: `design/Margin Planes.dc.html` (P01 a P07, borrador 2026-10-13). Se construye fiel al diseño, con estas diferencias decididas con el usuario (2026-10-13):
 
-- **La cuota sigue en bytes** (ACC-002, ADR 0008), no en libros. Donde el diseño dice "10 libros" va el espacio ("15 MB"), y el aviso de "archivo muy grande" pasa a ser "este libro no entra en el espacio que te queda". No hay tope por archivo además del de 100 MB del servidor.
-- **Sin compras.** Los precios son de ejemplo y fijos en la app. "Probar…", "Elegir…" y "Restaurar compras" muestran el aviso "Llega más adelante." (PRF-003). La compra con la tienda, la confirmación (P05), el plan vencido (P06) y los estados de la tienda (P07) llegan en su propia rebanada.
+- **La cuota sigue en bytes** (ACC-002, ADR 0008), no en libros. Donde el diseño dice "10 libros" va el espacio ("15 MB").
+- **Tamaño máximo por archivo según el plan** (PLN-014). Por ahora lo controla solo la app; el servidor sigue aceptando hasta 100 MB para todos hasta que una rebanada de backend lo haga cumplir.
+- **Sin prueba gratis por ahora.** El botón de compra siempre dice "Elegir…".
+- **Solo se muestran las funciones hechas o en camino** (PLN-016): espacio, tamaño por archivo, lectura y sincronización, temas y fuentes, exportar notas. Estadísticas, importar desde Drive, Calibre o email, lector web y familia están en definición y no aparecen.
+- **Temas y fuentes son de Lector** (PLN-015): en Gratis el lector usa el tema Clásico y la letra con serifa.
+- **Sin compras.** Los precios son de ejemplo y fijos en la app. "Elegir…" y "Restaurar compras" muestran el aviso "Llega más adelante." (PRF-003). La compra con la tienda, la confirmación (P05), el plan vencido (P06) y los estados de la tienda (P07) llegan en su propia rebanada.
 
 Primera rebanada: Android (teléfono y tablet) e iPhone. La Mac queda afuera hasta que tenga su barra lateral (K-078).
 
@@ -15,16 +19,25 @@ Primera rebanada: Android (teléfono y tablet) e iPhone. La Mac queda afuera has
 
 ### Catálogo
 
-- **PLN-001** Hay tres planes: Gratis, Lector y Biblioteca. Cada uno tiene nombre, bajada, espacio en la nube, lista de lo que incluye y precio mensual y anual. Gratis usa la cuota real de la cuenta (ACC-002). El espacio de Lector y Biblioteca lo confirmó el usuario por ahora (2026-10-13); los precios son de ejemplo hasta definirlos (open-questions #1):
+- **PLN-001** Hay tres planes: Gratis, Lector y Biblioteca. Cada uno tiene nombre, bajada, espacio en la nube, tamaño máximo por archivo, lista de lo que incluye y precio mensual y anual. Gratis usa la cuota real de la cuenta (ACC-002). El espacio de Lector y Biblioteca lo confirmó el usuario por ahora (2026-10-13); los precios son de ejemplo hasta definirlos (open-questions #1):
 
   | | Gratis | Lector | Biblioteca |
   |---|---|---|---|
   | Bajada | Para leer de vez en cuando | Para quien lee siempre | Para quien tiene una biblioteca |
   | Espacio | cuota de la cuenta (hoy 15 MB) | 5 GB | 50 GB |
+  | Tamaño máximo por archivo | 2 MB | 50 MB | 100 MB |
   | Mensual | $0 | $2.99 | $5.99 |
   | Anual | $0 | $24.99 ($2.08 por mes) | $49.99 ($4.17 por mes) |
 
-  Lo que incluye cada tarjeta y las filas de la tabla comparativa son las del diseño, salvo "Libros en la nube" (pasa a "Espacio en la nube") y "Tamaño por archivo" y "Archivos de hasta…" (se quitan). Las funciones que todavía no existen (exportar, estadísticas avanzadas, temas propios, Drive, familia) se listan igual: describen el plan, no la app de hoy.
+  Lo que incluye cada tarjeta (decisión del usuario, 2026-10-13):
+
+  - Gratis: "Lectura y notas sin tope", "Sincroniza en todos tus dispositivos", "Archivos de hasta 2 MB".
+  - Lector: "Temas y fuentes", "Exportá notas a Markdown, Obsidian y Notion", "Archivos de hasta 50 MB".
+  - Biblioteca: "Todo lo de Lector", "Archivos de hasta 100 MB".
+
+  Filas de la tabla comparativa: "Espacio en la nube" (15 MB, 5 GB, 50 GB), "Tamaño por archivo" (2 MB, 50 MB, 100 MB), "Lectura, ajustes y anotaciones" (Sin tope en los tres), "Sincronización en todos tus dispositivos" (✓ en los tres), "Temas y fuentes" (—, ✓, ✓), "Exportar notas (Markdown, Obsidian, Notion)" (—, ✓, ✓).
+
+- **PLN-016** La pantalla de planes, Mi plan y las hojas no muestran funciones en definición: estadísticas y metas, importar desde Drive, Calibre/OPDS o email, lector web y familia. Se agregan cuando estén definidas.
 
 ### P01 — Planes
 
@@ -32,17 +45,19 @@ Primera rebanada: Android (teléfono y tablet) e iPhone. La Mac queda afuera has
 - **PLN-003** Arriba, el uso de la cuenta: "Usás X de Y" con la misma unidad y formato de PRF-006, la proporción a la derecha en letra monoespaciada y una barra. Sin dato (nunca se leyó la cuota), se oculta la fila. Debajo, el título "Tu biblioteca entera, en todos lados."
 - **PLN-004** Un selector Mensual / Anual, con "Ahorrás 30 %" en Anual. Arranca en Anual. Cambia los precios de las tarjetas, la equivalencia por mes ("Equivale a $2.08 por mes" en anual, "Pagás mes a mes" en mensual) y el botón de abajo.
 - **PLN-005** Una tarjeta por plan, apiladas en teléfono y en tres columnas en tablet (ancho de 600 dp/pt o más). Gratis lleva la marca "Tu plan" si es el plan de la cuenta. Lector va en amarillo con "Más elegido". Lector y Biblioteca se eligen tocando la tarjeta (radio); arranca elegido Lector. Gratis no se elige.
-- **PLN-006** "Ver todo lo que incluye" despliega y repliega la tabla comparativa (Gratis, Lector, Biblio.). Debajo: "Si cancelás, no perdés nada: tus libros y notas quedan." y "Restaurar compras · Términos · Privacidad" (todos avisan, PRF-003). Al pie, fija, la barra de compra: en anual "Probar {plan} 14 días gratis" con "Después {precio} por año. Cancelás cuando quieras."; en mensual "Elegir {plan} · {precio} por mes" con "Se renueva cada mes. Cancelás cuando quieras." El botón avisa (PRF-003).
+- **PLN-006** "Ver todo lo que incluye" despliega y repliega la tabla comparativa (Gratis, Lector, Biblio.). Debajo: "Si cancelás, no perdés nada: tus libros y notas quedan." y "Restaurar compras · Términos · Privacidad" (todos avisan, PRF-003). Al pie, fija, la barra de compra: "Elegir {plan} · {precio} por {año|mes}" con "Se renueva cada {año|mes}. Cancelás cuando quieras." No hay prueba gratis por ahora. El botón avisa (PRF-003).
 
 ### P02 — Bloqueos de cuota
 
 - **PLN-007** Al importar un libro que no entra en el espacio libre, el libro se importa igual en este dispositivo (se puede leer) y se muestra una hoja inferior. Si el espacio ya está lleno: "Llegaste a tu espacio", "{Título} no se subió a la nube, pero podés leerlo en este dispositivo. Tus otros libros siguen intactos.", la comparación "Gratis {cuota}" / "Lector 5 GB", "Ver planes" y "Ahora no". Reemplaza la explicación de LIB-009 en el momento de importar.
 - **PLN-008** Si queda espacio pero este libro no entra: "Este libro pesa {tamaño}", "Te quedan {libre} en la nube. No se subió, pero podés leerlo en este dispositivo.", la fila del libro con "{tamaño} · te quedan {libre}", "Con Lector: 5 GB en la nube", "Ver planes" y "Ahora no".
+- **PLN-014** Cada plan tiene un tamaño máximo por archivo (PLN-001). Al importar un libro más grande que el del plan de la cuenta, el libro se importa igual en este dispositivo y se muestra la hoja "archivo muy grande" del diseño (P02b): la fila del libro con "{tamaño} · límite {máximo}", "Este libro pesa {tamaño}", "Tu plan admite archivos de hasta {máximo}. No se subió a la nube, pero podés leerlo en este dispositivo.", "Con Lector: archivos de hasta 50 MB y 5 GB en la nube" (en Lector: "Con Biblioteca: archivos de hasta 100 MB y 50 GB en la nube"), "Ver planes" y "Ahora no". Esta comprobación va antes que la de espacio. La sincronización no sube los libros que superan el máximo; la línea de estado de la Biblioteca los cuenta con los que no entran ("N libros no entran en tu plan. Podés seguir leyendo."). El plan de la cuenta sale de la cuota (`plan`); si no se conoce o no es uno de los tres, vale Gratis. Por ahora lo controla solo la app (decisión del usuario, 2026-10-13); el servidor lo hará cumplir en otra rebanada.
 - **PLN-009** La comprobación usa la última cuota conocida (la de PRF-006, que también se actualiza en cada sincronización) y descuenta los libros de este dispositivo que todavía esperan subirse. Si nunca se leyó, no se muestra la hoja y vale el aviso de sincronización de hoy (LIB-009). Si se importan varios libros a la vez, una sola hoja, con el primero que no entra. "Ahora no" cierra la hoja; el libro queda en el dispositivo, sin subir, y se vuelve a intentar en la próxima sincronización.
 
 ### P03 — Funciones pagas
 
-- **PLN-010** "Importar" abre la hoja "Importar libros" con "Desde este dispositivo" (hace lo de hoy), "Google Drive" y "Calibre / OPDS", estas dos con la marca "Biblioteca". Tocar una de las dos abre la hoja de función paga: ícono, "Traé tus libros desde Drive" (o "…desde Calibre"), la bajada del diseño, "Incluido en Biblioteca", "Ver planes" y "Ahora no". La hoja de exportar notas (P03a) llega con las anotaciones (ANN).
+- **PLN-010** *Retirado (2026-10-13).* Era la hoja "Importar libros" con Drive y Calibre; esas funciones están en definición (PLN-016). "Importar" vuelve a abrir el selector de archivos directamente.
+- **PLN-015** Temas y fuentes son de Lector y Biblioteca. En Gratis, en el panel del lector (RDR-014) y en "Ajustes de lectura" de Perfil (PRF-013, PRF-014), Clásico y la letra con serifa se eligen como siempre; Sepia, Noche, sin serifa y monoespaciada se ven con una marca "Lector" y, al tocarlos, abren la hoja de función paga (P03): ícono, "Leé con tus temas y fuentes", "Sepia, Noche y todas las letras del lector, en todos tus libros.", "Incluido en Lector", "Ver planes" y "Ahora no". Tamaño e interlineado siguen libres. Si una cuenta Gratis tenía guardado otro tema o letra, el lector usa Clásico y serifa; la preferencia guardada no se borra y vuelve si la cuenta pasa a un plan pago. Sin dato de plan, vale Gratis. La hoja de exportar notas (P03a) llega con las anotaciones (ANN).
 
 ### Aviso suave
 
@@ -50,7 +65,7 @@ Primera rebanada: Android (teléfono y tablet) e iPhone. La Mac queda afuera has
 
 ### P04 — Mi plan
 
-- **PLN-012** Tocar el bloque "Espacio" de Perfil abre "Mi plan" (sin barra inferior, con "Perfil" para volver): el plan con la marca "Tu plan", "Espacio en la nube {usado} de {cuota}" con barra, "Dispositivos: Todos, sin límite", la tarjeta amarilla "Con Lector: 5 GB en la nube" / "Y exportás tus notas a Obsidian o Notion.", "Cambiar de plan" (abre P01) y "Restaurar compras" (avisa, PRF-003). En esta rebanada solo existe la variante Gratis.
+- **PLN-012** Tocar el bloque "Espacio" de Perfil abre "Mi plan" (sin barra inferior, con "Perfil" para volver): el plan con la marca "Tu plan", "Espacio en la nube {usado} de {cuota}" con barra, "Dispositivos: Todos, sin límite", "Archivos de hasta 2 MB", la tarjeta amarilla "Con Lector: 5 GB en la nube" / "Archivos de hasta 50 MB, temas y fuentes.", "Cambiar de plan" (abre P01) y "Restaurar compras" (avisa, PRF-003). En esta rebanada solo existe la variante Gratis.
 
 ### Accesibilidad
 
@@ -61,9 +76,11 @@ Primera rebanada: Android (teléfono y tablet) e iPhone. La Mac queda afuera has
 - Dado que uso 12 MB de 15 MB, cuando abro la Biblioteca por primera vez, entonces veo "Usás 12 MB de 15 MB" y "Te quedan 3 MB en la nube"; si lo cierro, no vuelve a aparecer.
 - Dado que me quedan 3 MB, cuando importo un libro de 8 MB, entonces el libro aparece en la biblioteca, puedo abrirlo, y veo "Este libro pesa 8 MB" con "Ver planes" y "Ahora no".
 - Dado que mi espacio está lleno, cuando importo cualquier libro, entonces veo "Llegaste a tu espacio" y el libro queda solo en este dispositivo.
-- Dado que abro Planes en anual con Lector elegido, cuando paso a Mensual, entonces el botón dice "Elegir Lector · $2.99 por mes", y al tocarlo veo "Llega más adelante."
+- Dado que abro Planes en anual con Lector elegido, entonces el botón dice "Elegir Lector · $24.99 por año"; cuando paso a Mensual, dice "Elegir Lector · $2.99 por mes", y al tocarlo veo "Llega más adelante."
+- Dado que estoy en Gratis, cuando importo un libro de 3 MB, entonces se importa, puedo leerlo, y veo "Este libro pesa 3 MB" con "Tu plan admite archivos de hasta 2 MB".
+- Dado que estoy en Gratis, cuando abro el panel del lector y toco Sepia, entonces el tema no cambia y se abre la hoja "Leé con tus temas y fuentes".
 - Dado que estoy en Perfil en el plan gratuito, cuando toco "Mejorar plan", entonces se abre Planes; cuando toco "Espacio", se abre Mi plan.
 
 ## Fuera de alcance en esta rebanada
 
-Compras y restauración con Google Play y App Store, prueba gratis real, P05 (compra confirmada), P06 (plan vencido), P07 (estados de la tienda), Mi plan de planes pagos y familia, cambiar la cuota a libros, P03a (exportar notas), Mac.
+Compras y restauración con Google Play y App Store, prueba gratis real, P05 (compra confirmada), P06 (plan vencido), P07 (estados de la tienda), Mi plan de planes pagos y familia, cambiar la cuota a libros, tope por archivo en el servidor, P03a (exportar notas), funciones en definición (PLN-016), Mac.
