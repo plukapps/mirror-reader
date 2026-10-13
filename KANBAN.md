@@ -50,11 +50,11 @@ Plan de referencia: `specs/plans/2026-10-06-android-epub-viewer.md`
 
 ## En curso
 
-- **K-204** Perfil: cambiar contraseña en iOS. PRF-020. Rama `feature/profile-password-ios`.
 - **K-176** Posición exacta, Tarea 5: verificación a mano entre el teléfono y el iPhone, cierre de docs. SYN-014.
 
 ## Revisión
 
+- **K-204** Perfil: cambiar contraseña en iOS. PRF-020. Rama `feature/profile-password-ios`. Hecho: `PasswordRepository` y `canSaveNewPassword` en `ReaderDomain`; `ChangePasswordViewModel` y `ChangePasswordView` (destino `ProfileRoute.changePassword`, sin barra inferior, campos del onboarding); `FirebaseAccountRepository.changePassword` (reautentica y `updatePassword`); aviso "Contraseña actualizada." al volver. Tests: dominio 197 (+5), iPhone 173 (+6). Mac compila. Render de la pantalla (vacía, completa, actual incorrecta). Instalada en el iPhone; falta probar a mano con una cuenta real.
 - **K-199** Perfil, Tarea 10: cierre de docs (plataformas, AGENTS.md), capturas junto al diseño y verificación a mano en el teléfono y el iPhone. Hecho: notas de Perfil en `android.md` y `apple.md`, `AGENTS.md` (cerrar sesión para volver al onboarding; aviso de K-202), resultado en el plan. Falta la prueba a mano de cerrar sesión en el teléfono y el simulador.
 - **K-198** Perfil, Tarea 9: iOS, ayuda. PRF-017, PRF-018. Hecho: `Faq` y `FaqId` en `ReaderDomain` (mismos ids y orden que Android), `FaqViews.swift` con los mismos textos que `strings.xml`, navegación dentro del tab (`ProfileRoute`). Tests: dominio 192, iPhone 167; compila para la Mac. Revisado con render.
 - **K-197** Perfil, Tarea 8: iOS, cerrar sesión. PRF-009, ACC-006. Reemplaza a K-158 en iOS. Hecho: `SignOut`, `SessionRepository`, `LocalAccountData` y `SyncControl` en `ReaderDomain`; `SyncScheduler.whileIdle` (espera la pasada, bloquea nuevas y olvida la última); `signOut()` en `FirebaseAccountRepository` (Firebase y Google); `LocalAccountWiper` (SwiftData, archivos y claves de la cuenta en `UserDefaults`); confirmación con aviso de pendientes y vuelta a la bienvenida. Tests: dominio 189, iPhone 167; compila para la Mac. Falta la prueba a mano en el simulador (sin acceso de control de pantalla).
