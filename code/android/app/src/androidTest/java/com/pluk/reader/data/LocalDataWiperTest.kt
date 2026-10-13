@@ -4,6 +4,7 @@ import android.content.Context
 import android.content.ContextWrapper
 import androidx.datastore.preferences.core.PreferenceDataStoreFactory
 import androidx.datastore.preferences.core.edit
+import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.longPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.room.Room
@@ -61,6 +62,7 @@ class LocalDataWiperTest {
             it[stringPreferencesKey("theme")] = "SEPIA"
             it[stringPreferencesKey("sync_device_id")] = "d1"
             it[stringPreferencesKey("appearance")] = "DARK" // PRF-021: es del dispositivo
+            it[booleanPreferencesKey("sync_wifi_only")] = true // PRF-023: es del dispositivo
             it[longPreferencesKey("sync_last_positions_seen_at")] = 5
             it[longPreferencesKey("profile_used_bytes")] = 10
         }
@@ -74,6 +76,7 @@ class LocalDataWiperTest {
         assertEquals("SEPIA", prefs[stringPreferencesKey("theme")])
         assertEquals("d1", prefs[stringPreferencesKey("sync_device_id")])
         assertEquals("DARK", prefs[stringPreferencesKey("appearance")])
+        assertEquals(true, prefs[booleanPreferencesKey("sync_wifi_only")])
         assertNull(prefs[longPreferencesKey("sync_last_positions_seen_at")])
         assertNull(prefs[longPreferencesKey("profile_used_bytes")])
     }

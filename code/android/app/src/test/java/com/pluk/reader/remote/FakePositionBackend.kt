@@ -10,6 +10,7 @@ import com.pluk.reader.domain.remote.RemotePositions
 import com.pluk.reader.domain.remote.RemoteUnavailableException
 import com.pluk.reader.domain.repository.PositionSyncStore
 import com.pluk.reader.domain.repository.SyncPreferences
+import com.pluk.reader.domain.sync.SyncGate
 import com.pluk.reader.domain.usecase.PositionSync
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
@@ -61,7 +62,8 @@ class FakePositionBackend : RemotePositions, PositionSyncStore, SyncPreferences 
     fun remotePosition(bookId: String, readAt: Long, device: String = "otro-dispositivo", locator: String = "{}") =
         RemotePosition(position(bookId, readAt, locator), device, "SM-X510")
 
-    fun sync(account: AccountRepository, scope: CoroutineScope) = PositionSync(this, this, this, account, scope)
+    fun sync(account: AccountRepository, scope: CoroutineScope, gate: SyncGate = SyncGate.ALWAYS_OPEN) =
+        PositionSync(this, this, this, account, scope, gate)
 
     // RemotePositions
     override suspend fun push(position: ReadingPosition, deviceId: String, deviceName: String): Result<Unit> {

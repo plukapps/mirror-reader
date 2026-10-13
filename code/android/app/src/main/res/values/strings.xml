@@ -169,6 +169,7 @@
     </plurals>
     <string name="library_syncing">Sincronizando…</string>
     <string name="library_sync_offline">Sin conexión con la nube. Tus libros siguen aquí y se sincronizarán más tarde.</string>
+    <string name="library_sync_waiting_wifi">Esperando Wi-Fi para sincronizar.</string>
     <string name="library_sync_retry">%1$s Tocá para reintentar.</string>
 
     <string name="nav_home">Inicio</string>

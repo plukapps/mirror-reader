@@ -2,6 +2,8 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
     <uses-permission android:name="android.permission.INTERNET" />
+    <!-- PRF-023: saber si la red es Wi-Fi para "Sincronizar solo con Wi-Fi". -->
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <!-- Recordatorio diario (ONB-011, ONB-012) -->
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />

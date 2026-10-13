@@ -155,11 +155,13 @@ private fun SyncStatus(state: LibraryUiState, onRetry: () -> Unit) {
     val text = when {
         state.sync.running -> stringResource(R.string.library_syncing)
         issue is SyncIssue.Offline -> stringResource(R.string.library_sync_offline)
+        issue is SyncIssue.WaitingForWifi -> stringResource(R.string.library_sync_waiting_wifi)
         issue is SyncIssue.NotEnoughSpace -> pluralStringResource(R.plurals.library_no_space, issue.count, issue.count)
         issue is SyncIssue.Failed -> pluralStringResource(R.plurals.library_sync_failed, issue.count, issue.count)
         else -> pluralStringResource(R.plurals.library_pending_upload, state.pendingUploadCount, state.pendingUploadCount)
     }
-    val retry = !state.sync.running && issue != null
+    // PRF-023: esperar el Wi-Fi no es un error: no se ofrece reintentar.
+    val retry = !state.sync.running && issue != null && issue != SyncIssue.WaitingForWifi
     Text(
         text = if (retry) stringResource(R.string.library_sync_retry, text) else text,
         color = MarginColors.Muted,

@@ -57,7 +57,7 @@ Primera rebanada: Android (teléfono y tablet) e iPhone. La Mac queda afuera has
 
 - **PRF-023** Con "Sincronizar solo con Wi-Fi" encendido, este dispositivo no sincroniza nada (biblioteca, archivos, portadas, posición de lectura, libros quitados ni libros nuevos de otros dispositivos) mientras no esté conectado a Wi-Fi o por cable. Todo lo local sigue funcionando y lo pendiente se guarda. Apagado por defecto. La elección es de este dispositivo.
   - Al conectarse a Wi-Fi con la app a la vista, sincroniza solo; al volver a la app con Wi-Fi, también (SYN-001).
-  - Mientras espera, la línea de estado de la biblioteca (SYN-008) dice "Esperando Wi-Fi para sincronizar.".
+  - Mientras espera, la línea de estado de la biblioteca (SYN-008) dice "Esperando Wi-Fi para sincronizar.", también si no hay ninguna red. No es un error: no ofrece reintentar.
   - Abrir un libro que está solo en la nube sin Wi-Fi avisa "Este libro se descarga con Wi-Fi. Podés cambiarlo en Perfil." y no lo baja.
   - Apagarlo sincroniza en el momento si hay conexión.
 

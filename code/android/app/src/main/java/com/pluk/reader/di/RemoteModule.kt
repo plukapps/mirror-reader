@@ -28,6 +28,12 @@ import com.pluk.reader.domain.repository.CloudBooksRepository
 import com.pluk.reader.domain.usecase.PositionFlusher
 import com.pluk.reader.domain.usecase.PositionFlushRequester
 import com.pluk.reader.domain.usecase.PositionSync
+import com.pluk.reader.data.repository.WifiOnlyPreferenceImpl
+import com.pluk.reader.data.sync.ConnectivityNetworkMonitor
+import com.pluk.reader.domain.sync.NetworkMonitor
+import com.pluk.reader.domain.sync.NetworkSyncGate
+import com.pluk.reader.domain.sync.SyncGate
+import com.pluk.reader.domain.sync.WifiOnlyPreference
 import dagger.Binds
 import dagger.Module
 import dagger.hilt.InstallIn
@@ -57,4 +63,9 @@ abstract class RemoteModule {
     @Binds @Singleton abstract fun bindRemoteBookChanges(impl: FirestoreRemoteLibrary): RemoteBookChanges
     @Binds @Singleton abstract fun bindKnownBooks(impl: CloudBooksRepositoryImpl): KnownBooks
     @Binds @Singleton abstract fun bindLibrarySyncRequester(impl: LibrarySync): LibrarySyncRequester
+
+    // PRF-023: sincronizar solo con Wi-Fi.
+    @Binds @Singleton abstract fun bindSyncGate(impl: NetworkSyncGate): SyncGate
+    @Binds @Singleton abstract fun bindNetworkMonitor(impl: ConnectivityNetworkMonitor): NetworkMonitor
+    @Binds @Singleton abstract fun bindWifiOnlyPreference(impl: WifiOnlyPreferenceImpl): WifiOnlyPreference
 }

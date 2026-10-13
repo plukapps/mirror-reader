@@ -19,6 +19,7 @@ import com.pluk.reader.domain.profile.formatStorage
 import com.pluk.reader.domain.profile.storageUnitFor
 import com.pluk.reader.domain.repository.SettingsRepository
 import com.pluk.reader.domain.repository.SyncPreferences
+import com.pluk.reader.domain.sync.WifiOnlyPreference
 import com.pluk.reader.domain.usecase.SignOut
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
@@ -54,6 +55,8 @@ data class ProfileUiState(
     val reading: ReaderSettings = ReaderSettings(),
     /** Apariencia de la app en este dispositivo (PRF-021). */
     val appearance: Appearance = DEFAULT_APPEARANCE,
+    /** "Sincronizar solo con Wi-Fi" de este dispositivo (PRF-023). */
+    val wifiOnly: Boolean = false,
     /** Confirmación de cerrar sesión a la vista, o null (PRF-009). */
     val signOutDialog: SignOutDialog? = null,
     val signingOut: Boolean = false,
@@ -87,6 +90,7 @@ class ProfileViewModel @Inject constructor(
     private val settings: SettingsRepository,
     private val signOut: SignOut,
     private val appearancePreferences: AppearancePreferences,
+    private val wifiOnlyPreference: WifiOnlyPreference,
 ) : ViewModel() {
     private val signOutState = MutableStateFlow(SignOutState())
     private val quota = MutableStateFlow<StorageQuota?>(null)
@@ -94,8 +98,9 @@ class ProfileViewModel @Inject constructor(
     private val deviceName = syncPreferences.deviceName()
 
     val uiState: StateFlow<ProfileUiState> = combine(
-        account.user, quota, quotaFailed, combine(settings.settings, appearancePreferences.appearance, ::Pair), signOutState,
-    ) { user, quota, failed, (reading, appearance), signingOut ->
+        account.user, quota, quotaFailed,
+        combine(settings.settings, appearancePreferences.appearance, wifiOnlyPreference.wifiOnly, ::Triple), signOutState,
+    ) { user, quota, failed, (reading, appearance, wifiOnly), signingOut ->
         ProfileUiState(
             name = user?.displayName,
             email = user?.email,
@@ -106,6 +111,7 @@ class ProfileViewModel @Inject constructor(
             deviceName = deviceName,
             reading = reading,
             appearance = appearance,
+            wifiOnly = wifiOnly,
             signOutDialog = signingOut.dialog,
             signingOut = signingOut.running,
             signedOut = signingOut.done,
@@ -141,6 +147,11 @@ class ProfileViewModel @Inject constructor(
     /** PRF-021: se aplica en el momento a toda la app (la raíz observa la misma preferencia). */
     fun onAppearance(appearance: Appearance) {
         viewModelScope.launch { appearancePreferences.setAppearance(appearance) }
+    }
+
+    /** PRF-023: encendido, este dispositivo solo sincroniza por Wi-Fi; apagarlo sincroniza en el momento. */
+    fun onWifiOnly(enabled: Boolean) {
+        viewModelScope.launch { wifiOnlyPreference.setWifiOnly(enabled) }
     }
 
     /** PRF-009: muestra la confirmación, con aviso si hay cambios sin subir. */
