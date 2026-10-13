@@ -356,7 +356,7 @@ private fun PlanCard(plan: PlanId, state: PlansUiState, onSelect: (PlanId) -> Un
             planIncludes(plan).forEach { item ->
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     Icon(PlanIcons.Check, null, tint = colors.ink, modifier = Modifier.size(if (tablet) 19.dp else 18.dp))
-                    Text(stringResource(item), style = planText(if (tablet) 15 else 14, FontWeight.Medium, colors.ink).copy(lineHeight = 1.35.em))
+                    Text(item, style = planText(if (tablet) 15 else 14, FontWeight.Medium, colors.ink).copy(lineHeight = 1.35.em))
                 }
             }
         }
@@ -535,14 +535,13 @@ private fun LegalLinks(onComingSoon: () -> Unit, linkHeight: Dp, modifier: Modif
 
 @Composable
 private fun ctaLabel(cta: PlanCta): String {
-    val name = planName(cta.plan.id)
-    return if (cta.isTrial) stringResource(R.string.plans_cta_trial, name, cta.trialDays)
-    else stringResource(R.string.plans_cta_choose, name, cta.price)
+    val period = stringResource(if (cta.billing == Billing.ANNUAL) R.string.plans_per_year else R.string.plans_per_month)
+    return stringResource(R.string.plans_cta_choose, planName(cta.plan.id), cta.price, period)
 }
 
 @Composable
 private fun ctaNote(cta: PlanCta): String =
-    if (cta.isTrial) stringResource(R.string.plans_cta_trial_note, cta.price) else stringResource(R.string.plans_cta_choose_note)
+    stringResource(if (cta.billing == Billing.ANNUAL) R.string.plans_cta_note_year else R.string.plans_cta_note_month)
 
 /** PLN-006: barra de compra fija al pie. Avisa (PRF-003). */
 @Composable
@@ -617,14 +616,15 @@ private fun planTagline(plan: PlanId): Int = when (plan) {
     PlanId.LIBRARY -> R.string.plans_library_tagline
 }
 
-/** Lo que incluye cada tarjeta (PLN-001): las del diseño sin "Archivos de hasta…". */
-private fun planIncludes(plan: PlanId): List<Int> = when (plan) {
-    PlanId.FREE -> listOf(R.string.plans_free_includes_1, R.string.plans_free_includes_2, R.string.plans_free_includes_3)
-    PlanId.READER -> listOf(R.string.plans_reader_includes_1, R.string.plans_reader_includes_2, R.string.plans_reader_includes_3)
-    PlanId.LIBRARY -> listOf(
-        R.string.plans_library_includes_1, R.string.plans_library_includes_2,
-        R.string.plans_library_includes_3, R.string.plans_library_includes_4,
-    )
+/** Lo que incluye cada tarjeta (PLN-001). Solo funciones hechas o en camino (PLN-016). */
+@Composable
+private fun planIncludes(plan: PlanId): List<String> {
+    val maxFile = stringResource(R.string.plans_includes_max_file, formatCloud(PlanCatalog.of(plan).maxFileBytes))
+    return when (plan) {
+        PlanId.FREE -> listOf(stringResource(R.string.plans_free_includes_1), stringResource(R.string.plans_free_includes_2), maxFile)
+        PlanId.READER -> listOf(stringResource(R.string.plans_reader_includes_1), stringResource(R.string.plans_reader_includes_2), maxFile)
+        PlanId.LIBRARY -> listOf(stringResource(R.string.plans_library_includes_1), maxFile)
+    }
 }
 
 /** Valor de una celda de la tabla. */
@@ -652,23 +652,18 @@ private fun Cell.spoken(): String = when (this) {
 
 private data class ComparisonRow(val feature: Int, val values: List<Cell>)
 
-/** Filas de la tabla (PLN-001): las del diseño con "Espacio en la nube" y sin "Tamaño por archivo". */
+/** Filas de la tabla (PLN-001); sin funciones en definición (PLN-016). */
 private fun comparisonRows(freeCloud: String): List<ComparisonRow> {
     val unlimited = Cell.Res(R.string.plans_value_unlimited)
-    val advanced = Cell.Res(R.string.plans_value_advanced)
+    fun cloud(plan: com.pluk.reader.domain.plans.Plan) = Cell.Plain(formatCloud(plan.cloudBytes ?: 0))
+    fun file(plan: com.pluk.reader.domain.plans.Plan) = Cell.Plain(formatCloud(plan.maxFileBytes))
     return listOf(
-        ComparisonRow(
-            R.string.plans_row_cloud,
-            listOf(Cell.Plain(freeCloud), Cell.Plain(formatCloud(PlanCatalog.reader.cloudBytes ?: 0)), Cell.Plain(formatCloud(PlanCatalog.library.cloudBytes ?: 0))),
-        ),
+        ComparisonRow(R.string.plans_row_cloud, listOf(Cell.Plain(freeCloud), cloud(PlanCatalog.reader), cloud(PlanCatalog.library))),
+        ComparisonRow(R.string.plans_row_file_size, listOf(file(PlanCatalog.free), file(PlanCatalog.reader), file(PlanCatalog.library))),
         ComparisonRow(R.string.plans_row_reading, listOf(unlimited, unlimited, unlimited)),
         ComparisonRow(R.string.plans_row_sync, listOf(Cell.Yes, Cell.Yes, Cell.Yes)),
-        ComparisonRow(R.string.plans_row_export, listOf(Cell.No, Cell.Yes, Cell.Yes)),
-        ComparisonRow(R.string.plans_row_stats, listOf(Cell.Res(R.string.plans_value_basic), advanced, advanced)),
         ComparisonRow(R.string.plans_row_themes, listOf(Cell.No, Cell.Yes, Cell.Yes)),
-        ComparisonRow(R.string.plans_row_import, listOf(Cell.No, Cell.No, Cell.Yes)),
-        ComparisonRow(R.string.plans_row_web, listOf(Cell.No, Cell.No, Cell.Yes)),
-        ComparisonRow(R.string.plans_row_family, listOf(Cell.No, Cell.No, Cell.Yes)),
+        ComparisonRow(R.string.plans_row_export, listOf(Cell.No, Cell.Yes, Cell.Yes)),
     )
 }
 

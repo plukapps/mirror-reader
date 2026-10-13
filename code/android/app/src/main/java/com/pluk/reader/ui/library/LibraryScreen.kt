@@ -29,12 +29,6 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.runtime.setValue
-import com.pluk.reader.domain.plans.ImportSource
-import com.pluk.reader.ui.plans.ImportSheet
 import com.pluk.reader.ui.plans.PlanIcons
 import com.pluk.reader.domain.profile.StorageUsage
 import androidx.compose.foundation.border
@@ -96,7 +90,6 @@ fun LibraryScreen(
         onImport = viewModel::onImport,
         onBookClick = onBookClick,
         onRetrySync = viewModel::onRetrySync,
-        onImportSource = viewModel::onImportSource,
         onDismissUsageNotice = viewModel::onDismissUsageNotice,
         onSeePlans = {
             viewModel.onDismissUsageNotice()
@@ -114,7 +107,6 @@ fun LibraryContent(
     onImport: (List<String>) -> Unit,
     onBookClick: (String) -> Unit,
     onRetrySync: () -> Unit = {},
-    onImportSource: (ImportSource) -> Boolean = { true },
     onDismissUsageNotice: () -> Unit = {},
     onSeePlans: () -> Unit = {},
 ) {
@@ -122,18 +114,7 @@ fun LibraryContent(
     val picker = rememberLauncherForActivityResult(ActivityResultContracts.OpenMultipleDocuments()) { uris ->
         onImport(uris.map { it.toString() })
     }
-    // PLN-010: "Importar" abre la hoja de orígenes; "Desde este dispositivo" abre el selector de siempre.
-    var importSheetOpen by rememberSaveable { mutableStateOf(false) }
-    val launchPicker = { importSheetOpen = true }
-    if (importSheetOpen) {
-        ImportSheet(
-            onSource = { source ->
-                importSheetOpen = false
-                if (onImportSource(source)) picker.launch(arrayOf(EPUB_MIME_TYPE))
-            },
-            onDismiss = { importSheetOpen = false },
-        )
-    }
+    val launchPicker = { picker.launch(arrayOf(EPUB_MIME_TYPE)) }
 
     val bottomBarPadding = LocalBottomBarPadding.current
     Box(Modifier.fillMaxSize().background(MarginColors.Paper)) {

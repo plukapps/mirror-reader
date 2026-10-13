@@ -271,14 +271,20 @@ private fun DoesNotFitContent(title: String, block: QuotaBlock.DoesNotFit, onSee
 }
 
 /**
- * PLN-010 (P03b): función de un plan pago. Componente reutilizable (ícono, título, bajada, "Incluido en {plan}"),
+ * PLN-015 (P03): función de un plan pago. Componente reutilizable (ícono, título, bajada, "Incluido en {plan}"),
  * listo para exportar notas (P03a) cuando existan las anotaciones.
  */
 @Composable
 private fun PaidFeatureContent(feature: PaidFeature, onSeePlans: () -> Unit, onNotNow: () -> Unit) {
     when (feature) {
-        PaidFeature.DRIVE -> PaidContent(PlanIcons.AddToDrive, R.string.plans_paid_drive_title, R.string.plans_paid_drive_body, onSeePlans, onNotNow)
-        PaidFeature.CALIBRE -> PaidContent(PlanIcons.Dns, R.string.plans_paid_calibre_title, R.string.plans_paid_calibre_body, onSeePlans, onNotNow)
+        PaidFeature.THEMES_FONTS -> PaidContent(
+            PlanIcons.Palette,
+            R.string.plans_paid_themes_title,
+            R.string.plans_paid_themes_body,
+            onSeePlans,
+            onNotNow,
+            plan = com.pluk.reader.domain.plans.PlanId.READER,
+        )
     }
 }
 

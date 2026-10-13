@@ -46,12 +46,6 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.runtime.setValue
-import com.pluk.reader.domain.plans.ImportSource
-import com.pluk.reader.ui.plans.ImportSheet
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -108,7 +102,6 @@ fun HomeScreen(
         onSeeAll = onSeeAll,
         openImportPicker = openImportPicker,
         onImportPickerOpened = onImportPickerOpened,
-        onImportSource = viewModel::onImportSource,
     )
 }
 
@@ -124,23 +117,11 @@ fun HomeContentView(
     onSeeAll: (LibraryFilter?) -> Unit,
     openImportPicker: Boolean = false,
     onImportPickerOpened: () -> Unit = {},
-    onImportSource: (ImportSource) -> Boolean = { true },
 ) {
     val picker = rememberLauncherForActivityResult(ActivityResultContracts.OpenMultipleDocuments()) { uris ->
         onImport(uris.map { it.toString() })
     }
-    // PLN-010: "Importar" abre la hoja de orígenes; "Desde este dispositivo" abre el selector de siempre.
-    var importSheetOpen by rememberSaveable { mutableStateOf(false) }
-    if (importSheetOpen) {
-        ImportSheet(
-            onSource = { source ->
-                importSheetOpen = false
-                if (onImportSource(source)) picker.launch(arrayOf(EPUB_MIME_TYPE))
-            },
-            onDismiss = { importSheetOpen = false },
-        )
-    }
-    // ONB-013: llegando desde "Importar mis libros", directo al selector.
+    // ONB-013: llegando desde "Importar mis libros".
     LaunchedEffect(openImportPicker) {
         if (openImportPicker) {
             onImportPickerOpened()
@@ -177,7 +158,7 @@ fun HomeContentView(
                     NothingReading(
                         libraryEmpty = content.libraryEmpty,
                         onAction = if (content.libraryEmpty) {
-                            { importSheetOpen = true }
+                            { picker.launch(arrayOf(EPUB_MIME_TYPE)) }
                         } else {
                             { onSeeAll(null) }
                         },

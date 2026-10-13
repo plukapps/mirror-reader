@@ -15,6 +15,8 @@ enum class Billing { MONTHLY, ANNUAL }
 data class Plan(
     val id: PlanId,
     val cloudBytes: Long?,
+    /** Tamaño máximo por archivo (PLN-014). Por ahora lo controla solo la app. */
+    val maxFileBytes: Long,
     val monthlyPrice: String,
     val annualPrice: String,
     /** Equivalencia por mes del precio anual ("$2.08"). */
@@ -29,12 +31,11 @@ object PlanCatalog {
 
     /** Cuota de Gratis de hoy (backend `FREE_PLAN`), para cuando nunca se leyó la de la cuenta. */
     const val FREE_QUOTA_BYTES = 15 * MIB
-    const val TRIAL_DAYS = 14
     const val ANNUAL_SAVING_PERCENT = 30
 
-    val free = Plan(PlanId.FREE, null, "$0", "$0", "$0")
-    val reader = Plan(PlanId.READER, 5 * GIB, "$2.99", "$24.99", "$2.08")
-    val library = Plan(PlanId.LIBRARY, 50 * GIB, "$5.99", "$49.99", "$4.17")
+    val free = Plan(PlanId.FREE, null, 2 * MIB, "$0", "$0", "$0")
+    val reader = Plan(PlanId.READER, 5 * GIB, 50 * MIB, "$2.99", "$24.99", "$2.08")
+    val library = Plan(PlanId.LIBRARY, 50 * GIB, 100 * MIB, "$5.99", "$49.99", "$4.17")
 
     val all: List<Plan> = listOf(free, reader, library)
 
@@ -44,11 +45,9 @@ object PlanCatalog {
     fun cloudBytes(plan: Plan, quota: StorageQuota?): Long = plan.cloudBytes ?: quota?.quotaBytes ?: FREE_QUOTA_BYTES
 }
 
-/** Botón de compra de P01 (PLN-006): prueba gratis en anual, elegir en mensual. */
+/** Botón de compra de P01 (PLN-006): "Elegir {plan} · {precio} por {año|mes}". Sin prueba gratis por ahora. */
 data class PlanCta(val plan: Plan, val billing: Billing) {
-    val isTrial: Boolean get() = billing == Billing.ANNUAL
     val price: String get() = plan.price(billing)
-    val trialDays: Int get() = PlanCatalog.TRIAL_DAYS
 }
 
 fun ctaFor(plan: PlanId, billing: Billing): PlanCta = PlanCta(PlanCatalog.of(plan), billing)

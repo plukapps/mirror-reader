@@ -51,4 +51,15 @@ class PlanSheetsTest {
         compose.onNodeWithText("8 MB · te quedan 3 MB").assertExists()
         compose.onNodeWithText("Con Lector: 5 GB en la nube").assertExists()
     }
+
+    // PLN-015: hoja de función paga de temas y fuentes
+    @Test
+    fun paidSheetForThemes() {
+        show(PlanPrompt.Paid(com.pluk.reader.domain.plans.PaidFeature.THEMES_FONTS))
+        compose.onNodeWithText("Leé con tus temas y fuentes").assertExists()
+        compose.onNodeWithText("Sepia, Noche y todas las letras del lector, en todos tus libros.").assertExists()
+        compose.onNodeWithText("Incluido en Lector").assertExists()
+        compose.onNodeWithText("Ver planes").performClick()
+        assertEquals(1, seePlans)
+    }
 }

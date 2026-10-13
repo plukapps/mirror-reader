@@ -33,15 +33,18 @@ fun quotaBlock(quota: StorageQuota?, pendingBytes: Long, bookBytes: Long): Quota
     }
 }
 
-/** Funciones pagas que se anuncian al importar (PLN-010). */
-enum class PaidFeature { DRIVE, CALIBRE }
+/** Funciones pagas con su hoja (P03). Exportar notas (P03a) llega con las anotaciones. */
+enum class PaidFeature {
+    /** PLN-015: temas y fuentes, de Lector. */
+    THEMES_FONTS,
+}
 
 /** Hoja de planes a mostrar encima de todo (P02, P03). */
 sealed interface PlanPrompt {
     /** PLN-007, PLN-008: [title] se importó pero no entra en la nube. [quotaBytes]: la cuota de la cuenta. */
     data class Quota(val title: String, val block: QuotaBlock, val quotaBytes: Long) : PlanPrompt
 
-    /** PLN-010: una función de un plan pago. */
+    /** PLN-015: una función de un plan pago. */
     data class Paid(val feature: PaidFeature) : PlanPrompt
 }
 

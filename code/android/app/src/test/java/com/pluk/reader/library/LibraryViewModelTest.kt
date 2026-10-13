@@ -8,8 +8,6 @@ import com.pluk.reader.domain.repository.LibraryRepository
 import com.pluk.reader.domain.usecase.ImportBooksUseCase
 import com.pluk.reader.domain.account.StorageQuota
 import com.pluk.reader.domain.plans.ImportQuotaCheck
-import com.pluk.reader.domain.plans.ImportSource
-import com.pluk.reader.domain.plans.PaidFeature
 import com.pluk.reader.domain.plans.PlanPrompt
 import com.pluk.reader.domain.plans.PlanPrompts
 import com.pluk.reader.domain.plans.UsageNoticePreference
@@ -96,7 +94,6 @@ class LibraryViewModelTest {
         account,
         SavedStateHandle(listOfNotNull(filter?.let { LibraryViewModel.ARG_FILTER to it }).toMap()),
         ImportQuotaCheck(quotaCache, pendingUploads, prompts),
-        prompts,
         quotaCache,
         noticePreference,
     )
@@ -266,18 +263,6 @@ class LibraryViewModelTest {
         vm.onImport(listOf("a"))
         advanceUntilIdle()
         assertEquals(PlanPrompt.Quota("Dune", QuotaBlock.Full, 15 * mib), prompts.current.value)
-    }
-
-    // PLN-010: "Desde este dispositivo" abre el selector; Drive y Calibre, la hoja de función paga
-    @Test
-    fun importSourcesOpenThePickerOrThePaidSheet() = runTest(dispatcher) {
-        val vm = viewModel(FakeLibrary())
-        assertTrue(vm.onImportSource(ImportSource.DEVICE))
-        assertEquals(null, prompts.current.value)
-        assertFalse(vm.onImportSource(ImportSource.DRIVE))
-        assertEquals(PlanPrompt.Paid(PaidFeature.DRIVE), prompts.current.value)
-        assertFalse(vm.onImportSource(ImportSource.CALIBRE))
-        assertEquals(PlanPrompt.Paid(PaidFeature.CALIBRE), prompts.current.value)
     }
 
     // PLN-011: al 80 % aparece el aviso; cerrarlo lo descarta y no vuelve

@@ -321,43 +321,33 @@
     <string name="plans_your_plan">Tu plan</string>
     <string name="plans_most_chosen">Más elegido</string>
     <string name="plans_in_cloud">%1$s en la nube</string>
-    <string name="plans_free_includes_1">Lectura y notas sin tope</string>
-    <string name="plans_free_includes_2">Sincroniza en todos tus dispositivos</string>
-    <string name="plans_free_includes_3">Estadísticas básicas</string>
-    <string name="plans_reader_includes_1">Exportá notas a Markdown, Obsidian y Notion</string>
-    <string name="plans_reader_includes_2">Estadísticas y metas avanzadas</string>
-    <string name="plans_reader_includes_3">Temas y fuentes propias</string>
-    <string name="plans_library_includes_1">Todo lo de Lector</string>
-    <string name="plans_library_includes_2">Importá desde Drive, Calibre o por email</string>
-    <string name="plans_library_includes_3">Familia: hasta 5 cuentas</string>
-    <string name="plans_library_includes_4">Lector web (próximamente)</string>
     <string name="plans_per_year">por año</string>
     <string name="plans_per_month">por mes</string>
     <string name="plans_annual_equivalent">Equivale a %1$s por mes</string>
     <string name="plans_monthly_note">Pagás mes a mes</string>
     <string name="plans_see_all">Ver todo lo que incluye</string>
+    <string name="plans_free_includes_1">Lectura y notas sin tope</string>
+    <string name="plans_free_includes_2">Sincroniza en todos tus dispositivos</string>
+    <string name="plans_reader_includes_1">Temas y fuentes</string>
+    <string name="plans_reader_includes_2">Exportá notas a Markdown, Obsidian y Notion</string>
+    <string name="plans_library_includes_1">Todo lo de Lector</string>
+    <string name="plans_includes_max_file">Archivos de hasta %1$s</string>
     <string name="plans_row_cloud">Espacio en la nube</string>
+    <string name="plans_row_file_size">Tamaño por archivo</string>
+    <string name="plans_row_themes">Temas y fuentes</string>
     <string name="plans_row_reading">Lectura, ajustes y anotaciones</string>
     <string name="plans_row_sync">Sincronización en todos tus dispositivos</string>
     <string name="plans_row_export">Exportar notas (Markdown, Obsidian, Notion)</string>
-    <string name="plans_row_stats">Estadísticas y metas</string>
-    <string name="plans_row_themes">Temas y fuentes propias</string>
-    <string name="plans_row_import">Importar desde Drive, Calibre/OPDS o email</string>
-    <string name="plans_row_web">Lector web (próximamente)</string>
-    <string name="plans_row_family">Familia (hasta 5 cuentas)</string>
     <string name="plans_value_unlimited">Sin tope</string>
-    <string name="plans_value_basic">Básicas</string>
-    <string name="plans_value_advanced">Avanzadas</string>
     <string name="plans_value_yes">Sí</string>
     <string name="plans_value_no">No</string>
     <string name="plans_row_description">%1$s: Gratis, %2$s; Lector, %3$s; Biblioteca, %4$s</string>
     <string name="plans_card_description">%1$s, %2$s en la nube, %3$s %4$s</string>
     <string name="plans_reassurance">Si cancelás, no perdés nada: tus libros y notas quedan.</string>
     <string name="plans_restore">Restaurar compras</string>
-    <string name="plans_cta_trial">Probar %1$s %2$d días gratis</string>
-    <string name="plans_cta_trial_note">Después %1$s por año. Cancelás cuando quieras.</string>
-    <string name="plans_cta_choose">Elegir %1$s · %2$s por mes</string>
-    <string name="plans_cta_choose_note">Se renueva cada mes. Cancelás cuando quieras.</string>
+    <string name="plans_cta_choose">Elegir %1$s · %2$s %3$s</string>
+    <string name="plans_cta_note_year">Se renueva cada año. Cancelás cuando quieras.</string>
+    <string name="plans_cta_note_month">Se renueva cada mes. Cancelás cuando quieras.</string>
     <!-- P02, bloqueos de cuota al importar (PLN-007 a PLN-009). -->
     <string name="plans_see_plans">Ver planes</string>
     <string name="plans_not_now">Ahora no</string>
@@ -367,16 +357,9 @@
     <string name="plans_sheet_too_big_title">Este libro pesa %1$s</string>
     <string name="plans_sheet_too_big_body">Te quedan %1$s en la nube. No se subió, pero podés leerlo en este dispositivo.</string>
     <string name="plans_sheet_book_size">%1$s · te quedan %2$s</string>
-    <!-- P03, importar con funciones pagas (PLN-010). -->
-    <string name="plans_import_title">Importar libros</string>
-    <string name="plans_import_device">Desde este dispositivo</string>
-    <string name="plans_import_drive">Google Drive</string>
-    <string name="plans_import_calibre">Calibre / OPDS</string>
-    <string name="plans_import_badge_description">%1$s, incluido en %2$s</string>
-    <string name="plans_paid_drive_title">Traé tus libros desde Drive</string>
-    <string name="plans_paid_drive_body">Elegí una carpeta y los EPUB nuevos se suman solos a tu biblioteca.</string>
-    <string name="plans_paid_calibre_title">Traé tus libros desde Calibre</string>
-    <string name="plans_paid_calibre_body">Conectá tu biblioteca de Calibre o un catálogo OPDS y tus libros se suman solos a tu biblioteca.</string>
+    <!-- P03, funciones pagas (PLN-015). -->
+    <string name="plans_paid_themes_title">Leé con tus temas y fuentes</string>
+    <string name="plans_paid_themes_body">Sepia, Noche y todas las letras del lector, en todos tus libros.</string>
     <string name="plans_paid_included">Incluido en %1$s</string>
     <!-- Aviso suave del 80 % (PLN-011). -->
     <string name="plans_notice_free">Te quedan %1$s en la nube.</string>
@@ -387,6 +370,6 @@
     <string name="plans_my_plan_usage">%1$s de %2$s</string>
     <string name="plans_devices">Dispositivos</string>
     <string name="plans_devices_value">Todos, sin límite</string>
-    <string name="plans_my_plan_upsell">Y exportás tus notas a Obsidian o Notion.</string>
     <string name="plans_change_plan">Cambiar de plan</string>
+    <string name="plans_my_plan_upsell">Archivos de hasta %1$s, temas y fuentes.</string>
 </resources>

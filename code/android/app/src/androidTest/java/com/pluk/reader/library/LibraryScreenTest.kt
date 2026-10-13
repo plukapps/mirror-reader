@@ -95,12 +95,4 @@ class LibraryScreenTest {
         compose.onNodeWithTag("usage-notice-close").performClick()
         assertEquals(1, dismissed)
     }
-
-    // PLN-010: "Importar" abre la hoja de orígenes
-    @Test
-    fun importOpensTheSourcesSheet() {
-        show(LibraryUiState(loading = false))
-        compose.onNodeWithTag("import-button").performClick()
-        compose.onNodeWithText("Importar libros").assertIsDisplayed()
-    }
 }

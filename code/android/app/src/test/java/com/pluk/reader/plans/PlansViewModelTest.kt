@@ -47,7 +47,7 @@ class PlansViewModelTest {
         assertEquals(Billing.ANNUAL, state().billing)
         assertEquals(PlanId.READER, state().selected)
         assertFalse(state().tableOpen)
-        assertTrue(state().cta.isTrial)
+        assertEquals("$24.99", state().cta.price)
     }
 
     // PLN-004, PLN-006: el selector cambia la forma de pago y el botón
@@ -57,7 +57,6 @@ class PlansViewModelTest {
         vm.onBilling(Billing.MONTHLY)
         advanceUntilIdle()
         assertEquals(Billing.MONTHLY, state().billing)
-        assertFalse(state().cta.isTrial)
         assertEquals("$2.99", state().cta.price)
     }
 

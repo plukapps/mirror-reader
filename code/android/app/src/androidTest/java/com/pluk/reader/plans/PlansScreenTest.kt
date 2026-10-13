@@ -63,14 +63,14 @@ class PlansScreenTest {
         compose.onNodeWithTag("plans-usage").assertDoesNotExist()
     }
 
-    // PLN-004, PLN-006: arranca en anual con la prueba de Lector; en mensual cambia el botón
+    // PLN-004, PLN-006: arranca en anual, sin prueba gratis; en mensual cambia el botón
     @Test
     fun billingChangesTheButton() {
         show()
         compose.onNodeWithTag("billing-ANNUAL").assertIsSelected()
         compose.onNodeWithTag("plans-cta").assertExists()
-        compose.onNodeWithText("Probar Lector 14 días gratis").assertExists()
-        compose.onNodeWithText("Después $24.99 por año. Cancelás cuando quieras.").assertExists()
+        compose.onNodeWithText("Elegir Lector · $24.99 por año").assertExists()
+        compose.onNodeWithText("Se renueva cada año. Cancelás cuando quieras.").assertExists()
 
         compose.onNodeWithTag("billing-MONTHLY").performClick()
         compose.onNodeWithText("Elegir Lector · $2.99 por mes").assertExists()
@@ -85,7 +85,7 @@ class PlansScreenTest {
         compose.onNodeWithTag("plan-LIBRARY").performScrollTo().performClick()
         compose.onNodeWithTag("plan-LIBRARY").assertIsSelected()
         compose.onNodeWithTag("plan-READER").assertIsNotSelected()
-        compose.onNodeWithText("Probar Biblioteca 14 días gratis").assertExists()
+        compose.onNodeWithText("Elegir Biblioteca · $49.99 por año").assertExists()
     }
 
     // PLN-006: la tabla se despliega y se lee por fila
@@ -96,6 +96,10 @@ class PlansScreenTest {
         compose.onNodeWithTag("plans-see-all").performScrollTo().performClick()
         compose.onNodeWithContentDescription("Espacio en la nube: Gratis, 15 MB; Lector, 5 GB; Biblioteca, 50 GB")
             .performScrollTo().assertExists()
+        compose.onNodeWithContentDescription("Tamaño por archivo: Gratis, 2 MB; Lector, 50 MB; Biblioteca, 100 MB")
+            .performScrollTo().assertExists()
+        // PLN-016: sin funciones en definición
+        compose.onNodeWithText("Familia (hasta 5 cuentas)").assertDoesNotExist()
     }
 
     // PLN-006, PRF-003: comprar y "Restaurar compras" avisan

@@ -38,6 +38,8 @@ class MyPlanScreenTest {
         compose.onNodeWithContentDescription("Espacio en la nube, 12 MB de 15 MB").assertExists()
         compose.onNodeWithText("Todos, sin límite").assertExists()
         compose.onNodeWithText("Con Lector: 5 GB en la nube").assertExists()
+        compose.onNodeWithText("Archivos de hasta 2 MB").assertExists()
+        compose.onNodeWithText("Archivos de hasta 50 MB, temas y fuentes.").assertExists()
         compose.onNodeWithTag("my-plan-back").performClick()
         compose.onNodeWithTag("my-plan-change").performClick()
         compose.onNodeWithText("Restaurar compras").performClick()

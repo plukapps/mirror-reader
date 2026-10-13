@@ -99,7 +99,7 @@ fun MyPlanContent(state: MyPlanUiState, onBack: () -> Unit, onChangePlan: () -> 
                 ) {
                     Text(stringResource(R.string.plans_with_reader, reader), style = planText(15, FontWeight.Bold, MarginColors.OnYellow))
                     Text(
-                        stringResource(R.string.plans_my_plan_upsell),
+                        stringResource(R.string.plans_my_plan_upsell, formatCloud(PlanCatalog.reader.maxFileBytes)),
                         style = planText(13, FontWeight.Medium, MarginColors.OnYellowMuted).copy(lineHeight = 1.4.em),
                     )
                 }
@@ -185,6 +185,11 @@ private fun PlanCard(state: MyPlanUiState) {
             Text(stringResource(R.string.plans_devices), style = planText(14, FontWeight.Medium, MarginColors.Ink2))
             Text(stringResource(R.string.plans_devices_value), style = planText(14, FontWeight.Medium, MarginColors.Ink2))
         }
+        // PLN-012, PLN-014: tamaño máximo por archivo del plan.
+        Text(
+            stringResource(R.string.plans_includes_max_file, formatCloud(PlanCatalog.free.maxFileBytes)),
+            style = planText(14, FontWeight.Medium, MarginColors.Ink2),
+        )
     }
 }
 

@@ -7,8 +7,6 @@ import com.pluk.reader.domain.plans.PlanId
 import com.pluk.reader.domain.plans.ctaFor
 import com.pluk.reader.domain.profile.storageUsage
 import org.junit.Assert.assertEquals
-import org.junit.Assert.assertFalse
-import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class PlanCatalogTest {
@@ -37,18 +35,24 @@ class PlanCatalogTest {
         assertEquals(5 * gib, PlanCatalog.cloudBytes(PlanCatalog.reader, StorageQuota(0, 20 * mib)))
     }
 
-    // PLN-006: en anual, prueba de 14 días con el precio por año; en mensual, elegir con el precio por mes
+    // PLN-006: sin prueba gratis; el botón lleva el precio del período elegido
     @Test
-    fun ctaDependsOnBilling() {
+    fun ctaUsesThePriceOfTheBilling() {
         val annual = ctaFor(PlanId.READER, Billing.ANNUAL)
-        assertTrue(annual.isTrial)
         assertEquals("$24.99", annual.price)
-        assertEquals(14, annual.trialDays)
+        assertEquals(Billing.ANNUAL, annual.billing)
 
         val monthly = ctaFor(PlanId.LIBRARY, Billing.MONTHLY)
-        assertFalse(monthly.isTrial)
         assertEquals("$5.99", monthly.price)
         assertEquals(PlanId.LIBRARY, monthly.plan.id)
+    }
+
+    // PLN-001, PLN-014: tamaño máximo por archivo de cada plan
+    @Test
+    fun maxFileSizePerPlan() {
+        assertEquals(2 * mib, PlanCatalog.free.maxFileBytes)
+        assertEquals(50 * mib, PlanCatalog.reader.maxFileBytes)
+        assertEquals(100 * mib, PlanCatalog.library.maxFileBytes)
     }
 
     // PLN-003: "Usás X de Y" con la unidad y el formato de PRF-006, y la proporción
