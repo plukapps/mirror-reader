@@ -10,6 +10,7 @@ import com.pluk.reader.domain.model.filterBy
 import com.pluk.reader.domain.repository.LibraryRepository
 import com.pluk.reader.domain.account.AccountRepository
 import com.pluk.reader.domain.usecase.ImportBooksUseCase
+import com.pluk.reader.domain.plans.ImportQuotaCheck
 import com.pluk.reader.domain.usecase.LibrarySync
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
@@ -30,6 +31,7 @@ class LibraryViewModel @Inject constructor(
     private val librarySync: LibrarySync,
     account: AccountRepository,
     savedState: SavedStateHandle,
+    private val importQuotaCheck: ImportQuotaCheck,
 ) : ViewModel() {
     /** HOM-011: Inicio abre la biblioteca con el filtro de la sección elegida. */
     private val filter = MutableStateFlow(
@@ -76,6 +78,8 @@ class LibraryViewModel @Inject constructor(
                 importing.value = false
             }
             outcomes.toMessages().forEach { _messages.tryEmit(it) }
+            // PLN-007 a PLN-009: si lo importado no entra en la nube, la hoja de planes (antes de la pasada).
+            importQuotaCheck(outcomes)
             // SYN-001: lo importado se sube solo.
             if (outcomes.any { it is ImportOutcome.Imported }) librarySync.request()
         }

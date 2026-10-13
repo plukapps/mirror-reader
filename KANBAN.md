@@ -40,7 +40,6 @@ Plan de referencia: `specs/plans/2026-10-06-android-epub-viewer.md`
 
 ## Listo
 
-- **K-219** Planes, Android: P02 hojas de cuota al importar (lleno, no entra), caché de cuota en cada pasada, pasada tras importar desde Inicio. PLN-007 a PLN-009. Rama `feature/subscription-plans-android`.
 - **K-220** Planes, Android: P03 hoja "Importar libros" con Drive y Calibre como funciones pagas. PLN-010. Rama `feature/subscription-plans-android`.
 - **K-221** Planes, Android: aviso del 80 % en la Biblioteca. PLN-011. Rama `feature/subscription-plans-android`.
 - **K-222** Planes, Android: P04 Mi plan y accesos desde Perfil. PLN-012, PRF-006. Rama `feature/subscription-plans-android`.
@@ -59,6 +58,7 @@ Plan de referencia: `specs/plans/2026-10-06-android-epub-viewer.md`
 
 ## Revisión
 
+- **K-219** Planes, Android: P02 hojas de cuota al importar (lleno, no entra), caché de cuota en cada pasada, pasada tras importar desde Inicio. PLN-007 a PLN-009. Rama `feature/subscription-plans-android`. Hecho: `quotaBlock` (lleno / no entra, descontando los pendientes), `ImportQuotaCheck` y `PlanPrompts` (una hoja a la vez), `UploadBooksUseCase` guarda la cuota de cada pasada (y la suma de lo subido) en `QuotaCache`; la Biblioteca, Inicio y "Abrir con" comprueban después de importar; Inicio pide la pasada tras importar; `PlanPromptHost` en la raíz con P02a y P02b ("Ver planes" abre P01). 443 tests JVM pasan (16 nuevos); `PlanSheetsTest` (2 casos) compila, sin correr.
 - **K-218** Planes, Android: catálogo y P01 Planes. PLN-001 a PLN-006, PLN-013. Rama `feature/subscription-plans-android`. Plan `2026-10-13-subscription-plans.md`. Hecho: `PlanCatalog` (`PlanId`, `Billing`, precios de ejemplo, `ctaFor`), `storageUsage` (PRF-006 reutilizado por Perfil), `QuotaCache.quota` como `Flow`, `PlansViewModel` y P01 en teléfono y tablet (ruta `plans`, sin barra inferior), íconos de Material Symbols, Newsreader itálica y JetBrains Mono desde los assets; "Mejorar plan" de Perfil abre Planes. La proporción de uso se muestra en por ciento ("80 %"). 427 tests JVM pasan (12 nuevos); `PlansScreenTest` (6 casos) y `ProfileScreenTest` (1 caso nuevo) compilan, sin correr.
 - **K-217** Planes de suscripción: diseño importado (`Margin Planes.dc.html`), spec `12-plans.md` (PLN-001 a PLN-013, cambia PRF-006) y Plan `2026-10-13-subscription-plans.md`. Rama `feature/subscription-plans`. Decisiones del usuario (2026-10-13): sin compras, cuota en bytes, entran P02, P03 (importar), aviso del 80 % y P04 Gratis. A confirmar: Lector 5 GB y Biblioteca 50 GB.
 - **K-216** Volver a importar, iOS: `saveBook` escribe `addedAt` y el listado lo usa como fecha de entrada. LIB-021. Rama `feature/library-order`. Hecho: `listBooks` lee `addedAt ?? createdAt`; `saveBook` escribe `addedAt` al crear y al revivir. Tests: dominio 205, iPhone 189 (+1). Falta desplegar las reglas y probar a mano.

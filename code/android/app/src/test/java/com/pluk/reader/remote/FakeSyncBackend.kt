@@ -56,7 +56,7 @@ class FakeSyncBackend : BookUploadRepository, BookFileStore, RemoteLibrary, Quot
 
     fun useCase(gate: SyncGate = SyncGate.ALWAYS_OPEN) = SyncLibraryUseCase(
         SyncRemoteBooksUseCase(this, this),
-        UploadBooksUseCase(this, this, this, this),
+        UploadBooksUseCase(this, this, this, this, com.pluk.reader.plans.FakeQuotaCache()),
         SyncCoversUseCase(this, this),
         DownloadBookUseCase(this, this, gate),
         this,

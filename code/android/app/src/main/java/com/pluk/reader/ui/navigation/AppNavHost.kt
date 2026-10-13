@@ -49,6 +49,7 @@ import com.pluk.reader.ui.profile.FaqAnswerScreen
 import com.pluk.reader.ui.profile.FaqListScreen
 import com.pluk.reader.ui.profile.ProfileScreen
 import com.pluk.reader.ui.plans.PlansScreen
+import com.pluk.reader.ui.plans.PlanPromptHost
 import com.pluk.reader.ui.search.SearchScreen
 import com.pluk.reader.ui.welcome.WelcomeScreen
 import android.net.Uri
@@ -293,6 +294,10 @@ fun AppNavHost(
         }
         if (selected != null) {
             BookActionsHost(bookActions, onRead = { navController.navigate(Routes.reader(it)) }, bottomPadding = bottomPadding)
+        }
+        // P02, P03: hojas de planes pedidas por cualquier pantalla (también tras "Abrir con", sobre el lector).
+        if (routeName != null && routeName !in LightOnlyRoutes) {
+            PlanPromptHost(onSeePlans = { navController.navigate(Routes.PLANS) { launchSingleTop = true } })
         }
     }
 }

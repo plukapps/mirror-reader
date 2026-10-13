@@ -1,6 +1,8 @@
 package com.pluk.reader.domain.usecase
 
 import com.pluk.reader.domain.account.QuotaSource
+import com.pluk.reader.domain.account.StorageQuota
+import com.pluk.reader.domain.profile.QuotaCache
 import com.pluk.reader.domain.remote.BookFileStore
 import com.pluk.reader.domain.remote.QuotaExceededException
 import com.pluk.reader.domain.remote.RemoteLibrary
@@ -34,6 +36,7 @@ class UploadBooksUseCase @Inject constructor(
     private val files: BookFileStore,
     private val library: RemoteLibrary,
     private val quota: QuotaSource,
+    private val quotaCache: QuotaCache,
 ) {
     private enum class Step { Uploaded, NoSpace, Failed, Unreachable }
 
@@ -41,7 +44,11 @@ class UploadBooksUseCase @Inject constructor(
         val pending = uploads.pending()
         if (pending.isEmpty()) return UploadReport()
         // El servidor suma el uso unos segundos después de cada subida: el espacio libre se lleva aquí.
-        var free = quota.current().getOrElse { return UploadReport(unreachable = true) }.freeBytes
+        val read = quota.current().getOrElse { return UploadReport(unreachable = true) }
+        // PLN-009: la última cuota conocida se refresca en cada pasada (y al final con lo subido, que el servidor suma después).
+        quotaCache.save(read)
+        var free = read.freeBytes
+        var uploadedBytes = 0L
 
         var uploaded = 0
         var noSpace = 0
@@ -55,13 +62,22 @@ class UploadBooksUseCase @Inject constructor(
                 Step.Uploaded -> {
                     uploaded++
                     free -= item.book.sizeBytes
+                    uploadedBytes += item.book.sizeBytes
                 }
                 Step.NoSpace -> noSpace++
                 Step.Failed -> failed++
-                Step.Unreachable -> return UploadReport(uploaded, noSpace, failed, unreachable = true)
+                Step.Unreachable -> {
+                    saveUsage(read, uploadedBytes)
+                    return UploadReport(uploaded, noSpace, failed, unreachable = true)
+                }
             }
         }
+        saveUsage(read, uploadedBytes)
         return UploadReport(uploaded, noSpace, failed)
+    }
+
+    private suspend fun saveUsage(read: StorageQuota, uploadedBytes: Long) {
+        if (uploadedBytes > 0) quotaCache.save(read.copy(usedBytes = read.usedBytes + uploadedBytes))
     }
 
     private suspend fun upload(item: PendingUpload): Step {

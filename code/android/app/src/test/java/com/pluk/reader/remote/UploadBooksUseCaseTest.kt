@@ -11,6 +11,7 @@ import com.pluk.reader.domain.repository.BookUploadRepository
 import com.pluk.reader.domain.repository.PendingUpload
 import com.pluk.reader.domain.usecase.UploadBooksUseCase
 import com.pluk.reader.domain.usecase.UploadReport
+import com.pluk.reader.plans.FakeQuotaCache
 import java.io.File
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
@@ -74,7 +75,8 @@ class UploadBooksUseCaseTest {
         files: FakeFiles = FakeFiles(),
         remote: FakeRemote = FakeRemote(),
         quota: QuotaSource = quota(),
-    ) = UploadBooksUseCase(uploads, files, remote, quota)
+        cache: FakeQuotaCache = FakeQuotaCache(),
+    ) = UploadBooksUseCase(uploads, files, remote, quota, cache)
 
     // SYN-001: el archivo va primero (la regla valida tipo, tamaño y cuota) y los metadatos después
     @Test
@@ -208,5 +210,22 @@ class UploadBooksUseCaseTest {
         val files = FakeFiles(mapOf("a" to Result.failure(QuotaExceededException())))
         val report = useCase(uploads, files).invoke()
         assertEquals(UploadReport(uploaded = 1, notEnoughSpace = 1), report)
+    }
+
+    // PLN-009: cada pasada guarda la cuota leída, con lo que subió, para la comprobación al importar y el aviso
+    @Test
+    fun savesTheQuotaReadInThePass() = runTest {
+        val cache = FakeQuotaCache()
+        val uploads = FakeUploads(listOf(pending("a", 2 * MIB), pending("b", 20 * MIB)))
+        useCase(uploads, quota = quota(used = 5 * MIB), cache = cache).invoke()
+        assertEquals(StorageQuota(7 * MIB, 15 * MIB), cache.quota.value)
+    }
+
+    @Test
+    fun anUnreadableQuotaKeepsTheCachedOne() = runTest {
+        val cached = StorageQuota(1 * MIB, 15 * MIB)
+        val cache = FakeQuotaCache(cached)
+        useCase(FakeUploads(listOf(pending("a", MIB))), quota = FakeQuota(Result.failure(RemoteUnavailableException("x"))), cache = cache).invoke()
+        assertEquals(cached, cache.quota.value)
     }
 }

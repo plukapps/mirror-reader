@@ -358,4 +358,13 @@
     <string name="plans_cta_trial_note">Después %1$s por año. Cancelás cuando quieras.</string>
     <string name="plans_cta_choose">Elegir %1$s · %2$s por mes</string>
     <string name="plans_cta_choose_note">Se renueva cada mes. Cancelás cuando quieras.</string>
+    <!-- P02, bloqueos de cuota al importar (PLN-007 a PLN-009). -->
+    <string name="plans_see_plans">Ver planes</string>
+    <string name="plans_not_now">Ahora no</string>
+    <string name="plans_with_reader">Con Lector: %1$s en la nube</string>
+    <string name="plans_sheet_full_title">Llegaste a tu espacio</string>
+    <string name="plans_sheet_full_body">%1$s no se subió a la nube, pero podés leerlo en este dispositivo. Tus otros libros siguen intactos.</string>
+    <string name="plans_sheet_too_big_title">Este libro pesa %1$s</string>
+    <string name="plans_sheet_too_big_body">Te quedan %1$s en la nube. No se subió, pero podés leerlo en este dispositivo.</string>
+    <string name="plans_sheet_book_size">%1$s · te quedan %2$s</string>
 </resources>

@@ -61,6 +61,11 @@ class StartTest {
             NoRemovals,
             FakeAccount(user),
             FakeAuth(),
+            com.pluk.reader.domain.plans.ImportQuotaCheck(
+                com.pluk.reader.plans.FakeQuotaCache(),
+                com.pluk.reader.plans.FakePendingUploads(),
+                com.pluk.reader.domain.plans.PlanPrompts(),
+            ),
         )
 
     @Test
