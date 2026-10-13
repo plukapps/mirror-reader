@@ -70,3 +70,20 @@ Cada PR: tests en verde (Android `:app:testDebugUnitTest` y compilación de los 
 | P03 agrega un paso a importar | Es lo que pide el diseño; "Desde este dispositivo" queda primero |
 | Los precios fijos no coinciden con la tienda | Son de ejemplo; la rebanada de compras los toma de la tienda |
 | Dos PR tocan `KANBAN.md` | Cambios acotados; conflictos menores al fusionar |
+
+## Notas de implementación (Android)
+
+Rama `feature/subscription-plans-android`, K-218 a K-222.
+
+- **Dominio** (`domain/plans`): `PlanCatalog` (ids, espacio y precios de ejemplo; los textos viven en `strings.xml`, como las preguntas frecuentes), `ctaFor`, `quotaBlock`, `ImportQuotaCheck`, `PlanPrompts` (una hoja a la vez, `@Singleton`), `ImportSource`, `shouldShowUsageNotice` y `UsageNoticePreference`. `storageUsage` (en `domain/profile/StorageFormat.kt`) lo comparten Perfil, Planes, el aviso y Mi plan.
+- **Cuota fresca:** `QuotaCache.quota` es un `Flow`. `UploadBooksUseCase` guarda la cuota que lee en cada pasada con libros pendientes, y al final la misma con lo que subió sumado (el servidor la actualiza unos segundos después). Sin libros pendientes la pasada no lee la cuota: la refrescan Perfil y Mi plan.
+- **Hojas:** `PlanPromptHost` en la raíz (`AppNavHost`), fuera del onboarding. Tras "Abrir con" el lector se abre igual y la hoja aparece encima. "Ver planes" cierra la hoja y abre P01.
+- **P03:** la hoja "Importar libros" se abre desde "Importar" de la Biblioteca (cabecera y biblioteca vacía) y desde Inicio con la biblioteca vacía. "Importar mis libros" del onboarding (ONB-013) sigue yendo directo al selector.
+- **Desvíos del diseño:**
+  - La proporción de uso de P01 es un porcentaje en monoespaciada ("80 %"); el diseño muestra "8/10" porque contaba libros.
+  - Tabla del teléfono: columnas de 54, 70 y 62 dp (el diseño usa 50, 50 y 56 px, donde "Avanzadas" no entra).
+  - Biblioteca lista lo mismo en teléfono y tablet: "Lector web (próximamente)" reemplaza a "Archivos de hasta 500 MB".
+  - La bajada de Calibre no está en el diseño: "Conectá tu biblioteca de Calibre o un catálogo OPDS y tus libros se suman solos a tu biblioteca."
+  - "Importar libros" es una hoja inferior (como dice PLN-010), no la pantalla con cruz del diseño.
+  - P02b muestra un recuadro "EPUB" en lugar de la portada, como el diseño.
+- **Tests:** 454 JVM (39 nuevos). Compose, sin correr (no hay emulador): `PlansScreenTest`, `PlanSheetsTest`, `ImportSheetTest`, `MyPlanScreenTest`, casos nuevos en `ProfileScreenTest` y `LibraryScreenTest`.
