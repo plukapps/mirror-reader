@@ -25,7 +25,7 @@ Primera rebanada: Android (teléfono y tablet) e iPhone. La Mac queda afuera has
 
 - **PRF-006** Sección "Cuenta". Primero el espacio (ACC-003): "Espacio", la etiqueta del plan ("GRATIS"), una barra con la proporción usada, "X GB de Y GB usados" y "Z GB libres". Los tres tamaños usan la unidad del total (GB si el total es de 1 GB o más; si no, MB), con un decimal como máximo y coma decimal ("2 GB", "1,2 GB", "3,4 MB"). "Mejorar plan" aparece solo en el plan gratuito y avisa (PRF-003). Sin conexión o si no se puede leer, muestra el último valor conocido; si nunca se leyó, la barra vacía y "No se pudo cargar el espacio".
 - **PRF-007** "Dispositivos vinculados" (ACC-006): por ahora lista solo este dispositivo, con su ícono (teléfono o tablet), su nombre y "· este dispositivo". La lista de los otros dispositivos y "Desvincular" llegan con el registro de dispositivos.
-- **PRF-008** "Cambiar contraseña" se muestra solo si la cuenta entra con email y contraseña; con Google (o Apple) no aparece. Tocarla: aviso (PRF-003).
+- **PRF-008** "Cambiar contraseña" se muestra solo si la cuenta entra con email y contraseña; con Google (o Apple) no aparece. Tocarla abre la pantalla de PRF-020.
 - **PRF-009** "Cerrar sesión" pide confirmación. Si hay cambios de este dispositivo que todavía no se subieron (libros importados sin subir, progreso o libros quitados), la confirmación lo dice y avisa que se pierden. Al confirmar: se cierra la sesión, se borran de este dispositivo los libros, portadas, progreso y preferencias de esta cuenta (siguen en la nube), y la app vuelve a la bienvenida (ONB-001). Al volver a entrar con la misma cuenta, la biblioteca vuelve desde la nube (escenario de ACC).
 - **PRF-010** "Eliminar cuenta", debajo de "Cerrar sesión", en rojo (CMP-001). En esta rebanada avisa (PRF-003); el borrado real llega en su propia rebanada, antes de publicar.
 
@@ -39,7 +39,27 @@ Primera rebanada: Android (teléfono y tablet) e iPhone. La Mac queda afuera has
 
 ### App
 
-- **PRF-016** Sección "App": "Apariencia" (Claro, Oscuro, Sistema), "Sincronizar solo con Wi-Fi" ("Ahorra datos móviles") y "Descargar libros automáticamente" ("Libros nuevos de tus otros dispositivos"). En esta rebanada muestran el comportamiento real de hoy (apariencia Claro, los dos interruptores apagados) y avisan al tocarlos (PRF-003). La fila "Idioma" no se muestra hasta que haya un segundo idioma.
+- **PRF-016** Sección "App": "Apariencia" (Claro, Oscuro, Sistema; PRF-021), "Sincronizar solo con Wi-Fi" ("Ahorra datos móviles"; PRF-023) y "Descargar libros automáticamente" ("Libros nuevos de tus otros dispositivos"). "Descargar libros automáticamente" todavía muestra el comportamiento de hoy (apagado) y avisa al tocarlo (PRF-003). La fila "Idioma" no se muestra hasta que haya un segundo idioma.
+
+### Cambiar contraseña
+
+- **PRF-020** "Cambiar contraseña" abre una pantalla con flecha atrás, el título "Cambiar contraseña", y tres campos con ver u ocultar: "Contraseña actual", "Contraseña nueva" (con las reglas de ONB-005 marcadas a medida que se cumplen y su medidor) y "Confirmar contraseña". "Guardar" se habilita con la actual no vacía, la nueva válida (ONB-005), distinta de la actual e igual a la confirmación. Mientras espera al servidor muestra que está trabajando (ONB-021).
+  - Si la actual es incorrecta, lo dice en rojo bajo ese campo ("La contraseña actual no es correcta."). Demasiados intentos y sin conexión se avisan igual que en ONB-015.
+  - Al guardar bien, vuelve a Perfil con el aviso "Contraseña actualizada.". La sesión de este dispositivo sigue abierta; los otros dispositivos pueden pedir volver a entrar.
+  - Atrás descarta sin cambiar nada.
+
+### Apariencia
+
+- **PRF-021** "Apariencia" elige entre Claro, Oscuro y Sistema (sigue el modo del dispositivo y cambia con él). Por defecto, Sistema. El cambio se aplica en el momento a toda la app salvo el lector (que tiene su propio tema, RDR-003) y el onboarding (O1 a O9, siempre como su diseño). La barra de estado y la de navegación del sistema usan íconos que se leen sobre el fondo de cada modo. La elección es de este dispositivo: no se sincroniza.
+- **PRF-022** El modo oscuro usa la paleta oscura derivada del diseño (los colores del panel de ajustes y de la tarjeta de ayuda), con el mismo contraste que el modo claro. La cabecera amarilla, el amarillo de lo elegido y el rojo de lo destructivo se mantienen.
+
+### Sincronizar solo con Wi-Fi
+
+- **PRF-023** Con "Sincronizar solo con Wi-Fi" encendido, este dispositivo no sincroniza nada (biblioteca, archivos, portadas, posición de lectura, libros quitados ni libros nuevos de otros dispositivos) mientras no esté conectado a Wi-Fi o por cable. Todo lo local sigue funcionando y lo pendiente se guarda. Apagado por defecto. La elección es de este dispositivo.
+  - Al conectarse a Wi-Fi con la app a la vista, sincroniza solo; al volver a la app con Wi-Fi, también (SYN-001).
+  - Mientras espera, la línea de estado de la biblioteca (SYN-008) dice "Esperando Wi-Fi para sincronizar.".
+  - Abrir un libro que está solo en la nube sin Wi-Fi avisa "Este libro se descarga con Wi-Fi. Podés cambiarlo en Perfil." y no lo baja.
+  - Apagarlo sincroniza en el momento si hay conexión.
 
 ### Ayuda y pie
 
@@ -58,7 +78,11 @@ Primera rebanada: Android (teléfono y tablet) e iPhone. La Mac queda afuera has
 - Dado que hay progreso sin subir, cuando toco "Cerrar sesión", entonces la confirmación avisa que se pierde.
 - Dado que cierro sesión, entonces veo la bienvenida; y si entro con otra cuenta, no veo los libros de la anterior.
 - Dado que estoy sin conexión, cuando toco "¿Por qué no abre este EPUB?", entonces leo la respuesta.
+- Dado que escribo mal la contraseña actual, cuando toco "Guardar", entonces veo "La contraseña actual no es correcta." y la contraseña no cambia.
+- Dado que elijo Oscuro, entonces Inicio, Estantes, Buscar y Perfil se ven oscuros y el lector conserva su tema.
+- Dado que elijo Sistema y el teléfono pasa a modo oscuro, entonces la app pasa a oscuro sin reiniciarla.
+- Dado que activo "Sincronizar solo con Wi-Fi" y estoy con datos móviles, cuando importo un libro, entonces queda en este dispositivo, la biblioteca dice "Esperando Wi-Fi para sincronizar." y se sube al conectarme a Wi-Fi.
 
 ## Fuera de alcance en esta rebanada
 
-Pantalla de cuenta (editar nombre), planes pagos y "Mejorar plan", registro de dispositivos y "Desvincular", cambiar contraseña, borrado real de la cuenta (CMP-001, rebanada propia antes de publicar), tema oscuro de la app, sincronizar solo con Wi-Fi, descarga automática, idioma, ajustes de lectura por libro, exportar datos (CMP-008), páginas de Términos y Privacidad (CMP-002, CMP-003), contacto (CMP-004), meta diaria e intereses del onboarding, Mac.
+Pantalla de cuenta (editar nombre), planes pagos y "Mejorar plan", registro de dispositivos y "Desvincular", borrado real de la cuenta (CMP-001, rebanada propia antes de publicar), descarga automática, tema oscuro del onboarding, idioma, ajustes de lectura por libro, exportar datos (CMP-008), páginas de Términos y Privacidad (CMP-002, CMP-003), contacto (CMP-004), meta diaria e intereses del onboarding, Mac.

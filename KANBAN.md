@@ -7,7 +7,7 @@ Plan de referencia: `specs/plans/2026-10-06-android-epub-viewer.md`
 
 - **K-202** Apple: la etiqueta 3.9.0 de Readium Swift ya no existe en GitHub (`git ls-remote` pasa de 3.8.0 a 3.10.0), y `project.yml` fija `exactVersion: 3.9.0`. Un clon o worktree nuevo no resuelve los paquetes ("no versions of 'swift-toolkit' match 3.9.0"). Hoy solo compila con una caché de Xcode que ya la tenía (`DerivedData/Reader-gbvs…`, commit `de07026e9`). Decidir: fijar por `revision: de07026e9…` en `project.yml` o pasar a 3.10 (exige Xcode 16.3, ADR 0013). Visto el 2026-10-12.
 - **K-201** Apple: los tests de la Mac no arrancan (`Early unexpected exit`): con `Signing.local.xcconfig` la app se firma con el equipo y el framework `ReaderDomain` del paquete queda firmado ad hoc, y dyld lo rechaza al cargarlo. Pasa también en `library-actions`, sin cambios de Perfil. Revisar la firma de los productos de paquete en Mac (o `disable-library-validation` solo en Debug). Visto el 2026-10-12.
-- **K-200** Bug Android: con el teléfono en modo oscuro, los íconos de la barra de estado salen blancos sobre el fondo claro de la app (Inicio, Buscar, Estantes, Perfil). `enableEdgeToEdge()` elige el estilo según el tema del sistema y la app es solo clara. Pasar `SystemBarStyle.light(...)` en `MainActivity` (y revisar el lector, que maneja sus propias barras, RDR-015). Visto en el SM-S711B el 2026-10-12.
+- **K-200** (lo resuelve K-205) Bug Android: con el teléfono en modo oscuro, los íconos de la barra de estado salen blancos sobre el fondo claro de la app (Inicio, Buscar, Estantes, Perfil). `enableEdgeToEdge()` elige el estilo según el tema del sistema y la app es solo clara. Pasar `SystemBarStyle.light(...)` en `MainActivity` (y revisar el lector, que maneja sus propias barras, RDR-015). Visto en el SM-S711B el 2026-10-12.
 - **K-186** Android: `FirestoreRemoteLibrary.listBooks` usa `get()` sin fuente, y con la caché de Firestore desactivada puede devolver 0 libros "con éxito" si el servidor tarda al arrancar (visto en la SM-X510 el 2026-10-12: una pasada con 0 y la siguiente con 25). Inofensivo pero retrasa la sincronización. Pedir `Source.SERVER` (como iOS, `.server`) en `listBooks` y `deletedBookIds`. SYN-001.
 - **K-167** Apple: Associated Domains y `apple-app-site-association` en Firebase Hosting para abrir O9 y la verificación del email en la app (como K-157 en Android). Requiere cuenta paga de Apple Developer (K-080). ONB-018, ADR 0015.
 - **K-168** Apple: "Iniciar sesión con Apple" en O2 y O7. La App Store lo exige cuando hay ingreso con Google (guía 4.8). Requiere cuenta paga (K-080). ACC, ADR 0015.
@@ -39,6 +39,12 @@ Plan de referencia: `specs/plans/2026-10-06-android-epub-viewer.md`
 
 ## Listo
 
+- **K-203** Perfil: cambiar contraseña en Android. PRF-020. Rama `feature/profile-password-android`, PR contra `claude/tabbar-menu-design-e09011`. Plan `2026-10-13-profile-settings.md`.
+- **K-204** Perfil: cambiar contraseña en iOS. PRF-020. Rama `feature/profile-password-ios`.
+- **K-205** Perfil: apariencia (claro, oscuro, sistema) y tema oscuro en Android. PRF-021, PRF-022. Resuelve K-200. Rama `feature/profile-appearance-android`.
+- **K-206** Perfil: apariencia y tema oscuro en iOS. PRF-021, PRF-022. Rama `feature/profile-appearance-ios`.
+- **K-207** Perfil: sincronizar solo con Wi-Fi en Android. PRF-023. Rama `feature/profile-wifi-android`.
+- **K-208** Perfil: sincronizar solo con Wi-Fi en iOS. PRF-023. Rama `feature/profile-wifi-ios`.
 - **K-134** Lector iOS, Tarea 7: cierre de docs y verificación a mano en el simulador. Rama `feature/ios-reader`. Era K-125 hasta el merge con `master`.
 - **K-038** Inicio, Tarea 4: cierre de docs y verificación a mano. Rama `feature/home`.
 - **K-024** Quitar el padding vertical de Readium (40 dp arriba y abajo en modo paginado) y reservar la barra de estado desde la pantalla. RDR-002. Rama `feat/page-turn-animation`.
