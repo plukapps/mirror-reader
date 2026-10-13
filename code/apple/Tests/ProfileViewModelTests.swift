@@ -29,6 +29,10 @@ private final class MemorySettings: ReaderSettingsRepository, @unchecked Sendabl
     func save(_ settings: ReaderSettings) { stored = settings }
 }
 
+private struct NoPasswords: PasswordRepository {
+    func changePassword(current: String, new: String) async throws {}
+}
+
 private struct IdleSync: SyncControl {
     func stopListening() async {}
     func whileIdle<T: Sendable>(_ body: @Sendable () async -> T) async -> T { await body() }
@@ -98,6 +102,16 @@ struct ProfileViewModelTests {
         #expect(await loaded(AccountUser(id: "u", email: "a@mail.com", signInMethod: .password)).canChangePassword)
         #expect(await !loaded(AccountUser(id: "u", email: "a@gmail.com", signInMethod: .google)).canChangePassword)
         #expect(await !loaded(AccountUser(id: "u", email: "a@icloud.com", signInMethod: .other)).canChangePassword)
+    }
+
+    @Test("PRF-020: la pantalla de cambiar la contraseña existe solo con cuenta")
+    func changePasswordScreen() async {
+        #expect(await loaded(ana).makeChangePassword() == nil)
+        let viewModel = ProfileViewModel(
+            account: StubAccount(user: ana), quota: used, cache: MemoryQuotaCache(), deviceName: "iPhone",
+            settings: MemorySettings(), passwords: NoPasswords()
+        )
+        #expect(viewModel.makeChangePassword() != nil)
     }
 
     @Test("PRF-006: espacio en la unidad del total, con la proporción usada")
