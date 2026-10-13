@@ -64,3 +64,15 @@ func noNotice() async {
     #expect(await unknown(imported: ["a"]) == nil)
     #expect(await check(used: 15 * mib, [item("a", mib)])(imported: []) == nil)
 }
+
+@Test("PLN-011: el aviso va del 80 % al lleno, sin incluirlo, y no vuelve si se descartó")
+func usageNoticeRule() {
+    let at = { (used: Int64) in StorageQuota(usedBytes: used * mib, quotaBytes: 15 * mib) }
+    #expect(shouldShowUsageNotice(at(12), dismissed: false))
+    #expect(shouldShowUsageNotice(at(14), dismissed: false))
+    #expect(!shouldShowUsageNotice(StorageQuota(usedBytes: 12 * mib - 1, quotaBytes: 15 * mib), dismissed: false))
+    #expect(!shouldShowUsageNotice(at(15), dismissed: false))
+    #expect(!shouldShowUsageNotice(at(13), dismissed: true))
+    #expect(!shouldShowUsageNotice(nil, dismissed: false))
+    #expect(!shouldShowUsageNotice(StorageQuota(usedBytes: 0, quotaBytes: 0), dismissed: false))
+}

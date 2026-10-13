@@ -336,3 +336,41 @@ private extension PaidFeature {
         }
     }
 }
+
+/// PLN-011: el aviso suave del 80 %, arriba de la lista de la Biblioteca. Diseño: "Aviso 80 por ciento".
+struct UsageNoticeCard: View {
+    let usage: PlanUsage
+    var onSeePlans: () -> Void = {}
+    var onClose: () -> Void = {}
+
+    var body: some View {
+        HStack(alignment: .top, spacing: 10) {
+            VStack(alignment: .leading, spacing: 10) {
+                Text(usage.text).font(.app(14, .semibold)).foregroundStyle(MarginColors.ink)
+                PlanUsageBar(fraction: usage.fraction)
+                Button(action: onSeePlans) {
+                    (Text("Te quedan \(usage.free) en la nube. ").foregroundStyle(MarginColors.ink2)
+                        + Text("Ver planes").fontWeight(.bold).underline().foregroundStyle(MarginColors.ink))
+                        .font(.app(13, .medium))
+                        .lineSpacing(13 * 0.4 - 4)
+                        .multilineTextAlignment(.leading)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
+                .buttonStyle(.plain)
+                .accessibilityLabel(Text("Te quedan \(usage.free) en la nube. Ver planes"))
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+            Button(action: onClose) {
+                PlanIcon(name: "Close", size: 22, color: MarginColors.muted)
+                    .frame(width: 44, height: 44)
+                    .contentShape(Rectangle())
+            }
+            .buttonStyle(.plain)
+            .padding(.top, -10)
+            .accessibilityLabel(Text("Cerrar aviso"))
+        }
+        .padding(EdgeInsets(top: 14, leading: 16, bottom: 12, trailing: 6))
+        .background(MarginColors.field, in: RoundedRectangle(cornerRadius: 20))
+        .overlay(RoundedRectangle(cornerRadius: 20).strokeBorder(MarginColors.off, lineWidth: 1.5))
+    }
+}

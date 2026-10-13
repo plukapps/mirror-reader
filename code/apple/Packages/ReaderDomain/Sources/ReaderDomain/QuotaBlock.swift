@@ -58,3 +58,15 @@ public struct ImportQuotaCheck: Sendable {
         return nil
     }
 }
+
+/// PLN-011: el aviso suave aparece con el uso en el 80 % o más de la cuota, sin llenarla, y si no se descartó.
+public func shouldShowUsageNotice(_ quota: StorageQuota?, dismissed: Bool) -> Bool {
+    guard !dismissed, let quota, quota.quotaBytes > 0 else { return false }
+    return quota.usedBytes * 10 >= quota.quotaBytes * 8 && quota.usedBytes < quota.quotaBytes
+}
+
+/// PLN-011: el aviso del 80 % se descarta una vez por cuenta y dispositivo. La implementación vive en la app.
+public protocol UsageNoticePreference: Sendable {
+    func isDismissed() -> Bool
+    func dismiss()
+}

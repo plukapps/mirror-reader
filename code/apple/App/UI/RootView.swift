@@ -189,7 +189,10 @@ struct RootView: View {
     private var destination: some View {
         switch tabs.selected {
         case .search: SearchView(viewModel: search, onOpen: home.open(bookId:))
-        case .shelves: LibraryView(viewModel: library, onImport: importSourcesAction ?? tabs.showComingSoon, onOpen: home.open(bookId:))
+        case .shelves: LibraryView(
+            viewModel: library, onImport: importSourcesAction ?? tabs.showComingSoon, onOpen: home.open(bookId:),
+            onSeePlans: plans.openPlans
+        )
         case .profile:
             ProfileView(
                 viewModel: profile,

@@ -76,7 +76,7 @@ enum AppGraph {
             await refs.home?.reload()
             await refs.library?.load()
         }
-        let library = LibraryViewModel(library: store, sync: sync)
+        let library = LibraryViewModel(library: store, sync: sync, quotaCache: quotaCache, usageNotice: UserDefaultsUsageNotice())
         let home = HomeViewModel(
             library: store, importer: reader?.importer, quotaCheck: ImportQuotaCheck(uploads: store, cache: quotaCache)
         ) { sync.request() }

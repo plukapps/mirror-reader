@@ -21,6 +21,7 @@ struct LocalAccountWiperTests {
         defaults.set(5, forKey: "sync.lastPositionsSeenAt")
         defaults.set(20, forKey: "readingGoalMinutes")
         UserDefaultsQuotaCache(defaults: defaults).save(StorageQuota(usedBytes: 1, quotaBytes: 2))
+        UserDefaultsUsageNotice(defaults: defaults).dismiss()
 
         try await LocalAccountWiper(store: store, files: files, defaults: defaults).wipe()
 
@@ -31,6 +32,7 @@ struct LocalAccountWiperTests {
         #expect(defaults.object(forKey: "sync.lastPositionsSeenAt") == nil)
         #expect(defaults.object(forKey: "readingGoalMinutes") == nil)
         #expect(UserDefaultsQuotaCache(defaults: defaults).last() == nil)
+        #expect(!UserDefaultsUsageNotice(defaults: defaults).isDismissed())
     }
 
     @Test("PRF-009: sin nada guardado, borrar no falla")
