@@ -47,6 +47,10 @@ enum MarginColors {
     static let off = Color(light: 0xDAD6CA, dark: 0x4A4840)
     /// Separadores sobre `inkFill`: la tarjeta de ayuda (09).
     static let inkLine = Color(light: 0x33322D, dark: 0x3D3530)
+    /// Pista del selector Mensual / Anual y separadores de la tabla de planes (Margin Planes).
+    static let track = Color(light: 0xE4E1D8, dark: 0x33322D)
+    /// Borde de la tarjeta amarilla y su separador: tinta al 20 % sobre el amarillo, no cambia con el modo.
+    static let onYellowLine = Color(hex: 0x130000).opacity(0.2)
 
     /// Fondos de las portadas generadas cuando el EPUB no trae una.
     static let covers: [(color: Color, isLight: Bool)] = [

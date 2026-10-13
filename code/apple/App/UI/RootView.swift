@@ -14,6 +14,8 @@ struct RootView: View {
     let profile: ProfileViewModel
     @Bindable var bookActions: BookActionsViewModel
     let makeReader: ((String) -> ReaderViewModel)?
+    /// P01 Planes (PLN-002), a pantalla completa sobre todo lo demás.
+    @Bindable var plans: PlansPresenter
     /// ONB-013: al llegar desde "Importar mis libros" abre el selector de Archivos.
     var importOnAppear = false
     var onImportOpened: () -> Void = {}
@@ -130,6 +132,12 @@ struct RootView: View {
             .onChange(of: tabs.showsComingSoon) { _, shows in
                 if shows { AccessibilityNotification.Announcement(String(localized: "Llega más adelante.")).post() }
             }
+            .background {
+                // Va en su propia vista: dos presentaciones a pantalla completa no comparten la misma.
+                Color.clear.fullScreenCover(isPresented: $plans.plansOpen) {
+                    PlansScreen(presenter: plans, tabs: tabs)
+                }
+            }
             .fullScreenCover(item: readerBinding) { opened in
                 if let makeReader {
                     ReaderView(viewModel: makeReader(opened.id)) {
@@ -167,6 +175,7 @@ struct RootView: View {
                 viewModel: profile,
                 actions: ProfileActions(
                     comingSoon: tabs.showComingSoon,
+                    openPlans: plans.openPlans,
                     notify: { home.show($0) },
                     setTabBarHidden: { tabs.barHidden = $0 }
                 ),
@@ -197,6 +206,28 @@ struct RootView: View {
             get: { home.readerBookId.map(OpenBook.init) },
             set: { if $0 == nil { home.closeReader() } }
         )
+    }
+}
+
+/// P01 con su propio ViewModel (arranca de cero cada vez que se abre) y el aviso de lo que todavía no existe.
+private struct PlansScreen: View {
+    let presenter: PlansPresenter
+    let tabs: TabBarModel
+    @State private var viewModel: PlansViewModel?
+
+    var body: some View {
+        Group {
+            if let viewModel {
+                PlansView(
+                    viewModel: viewModel,
+                    actions: PlansActions(close: presenter.closePlans, comingSoon: tabs.showComingSoon),
+                    showsComingSoon: tabs.showsComingSoon
+                )
+            } else {
+                MarginColors.paper.ignoresSafeArea()
+            }
+        }
+        .onAppear { if viewModel == nil { viewModel = presenter.makePlans() } }
     }
 }
 

@@ -7,6 +7,8 @@ import UIKit
 /// Lo que se puede tocar en Perfil. Lo que todavía no existe va a `comingSoon` (PRF-003).
 struct ProfileActions {
     var comingSoon: () -> Void = {}
+    /// PLN-002: "Mejorar plan" abre Planes.
+    var openPlans: (() -> Void)?
     var signOut: (() -> Void)?
     var openFaq: ((FaqId) -> Void)?
     var openAllFaq: (() -> Void)?
@@ -211,7 +213,7 @@ struct ProfileContent: View {
                 }
                 Spacer(minLength: 0)
                 if summary?.isFreePlan == true {
-                    Button(action: actions.comingSoon) {
+                    Button(action: actions.openPlans ?? actions.comingSoon) {
                         Text("Mejorar plan").font(.app(13, .semibold)).underline().foregroundStyle(MarginColors.ink)
                     }
                     .buttonStyle(.plain)

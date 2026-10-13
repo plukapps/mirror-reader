@@ -18,6 +18,8 @@ enum AppGraph {
         let bookActions: BookActionsViewModel
         /// nil en la Mac: Readium Swift solo soporta iOS (ADR 0013).
         let makeReader: ((_ bookId: String) -> ReaderViewModel)?
+        /// Planes (PLN-002): quién lo abre y su estado.
+        let plans: PlansPresenter
         /// Apariencia de la app (PRF-021).
         let appearance: AppearanceSettings
         /// La red del dispositivo para "Sincronizar solo con Wi-Fi" (PRF-023). Se guarda para que siga avisando.
@@ -92,6 +94,7 @@ enum AppGraph {
             notify: { [weak home] in home?.show($0) }
         )
         let account = firebase ? FirebaseAccountRepository() : nil
+        let quotaCache = UserDefaultsQuotaCache()
         let appearance = AppearanceSettings(repository: UserDefaultsAppearance())
         return Screens(
             home: home,
@@ -101,7 +104,7 @@ enum AppGraph {
             profile: ProfileViewModel(
                 account: account,
                 quota: firebase ? FirestoreQuotaSource() : nil,
-                cache: UserDefaultsQuotaCache(),
+                cache: quotaCache,
                 deviceName: UserDefaultsSyncPreferences.model,
                 settings: UserDefaultsReaderSettings(),
                 passwords: account,
@@ -124,6 +127,7 @@ enum AppGraph {
             ),
             bookActions: bookActions,
             makeReader: reader?.makeReader,
+            plans: PlansPresenter(cache: quotaCache),
             appearance: appearance,
             network: network,
             start: AppStartViewModel(account: account),
