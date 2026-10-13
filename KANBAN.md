@@ -5,12 +5,22 @@ Plan de referencia: `specs/plans/2026-10-06-android-epub-viewer.md`
 
 ## Backlog
 
+- **K-190** Perfil, Tarea 1: Android, datos del perfil (`signInMethod`, caché del espacio, `formatStorage`, `ProfileViewModel`). PRF-005 a PRF-008, PRF-019. Plan `2026-10-12-profile.md`. Rama `claude/tabbar-menu-design-e09011`.
+- **K-191** Perfil, Tarea 2: Android, pantalla Perfil pixel perfect (ruta, barra marcada, cabecera, Cuenta, App, Ayuda, pie, avisos). PRF-001 a PRF-008, PRF-010, PRF-016, PRF-017, PRF-019.
+- **K-192** Perfil, Tarea 3: Android, ajustes de lectura en Perfil (vista previa, Letra, Tema, Interlineado). PRF-011 a PRF-015.
+- **K-193** Perfil, Tarea 4: Android, cerrar sesión (detener sincronización, borrar datos locales, salir de Firebase y Google, volver a la bienvenida). PRF-009, ACC-006. Reemplaza a K-158 en Android.
+- **K-194** Perfil, Tarea 5: Android, ayuda (preguntas frecuentes en la app, respuesta, lista completa). PRF-017, PRF-018.
+- **K-195** Perfil, Tarea 6: iOS, datos y pantalla Perfil pixel perfect. PRF-001 a PRF-008, PRF-010, PRF-016, PRF-017, PRF-019.
+- **K-196** Perfil, Tarea 7: iOS, ajustes de lectura en Perfil. PRF-011 a PRF-015.
+- **K-197** Perfil, Tarea 8: iOS, cerrar sesión. PRF-009, ACC-006. Reemplaza a K-158 en iOS.
+- **K-198** Perfil, Tarea 9: iOS, ayuda. PRF-017, PRF-018.
+- **K-199** Perfil, Tarea 10: cierre de docs (plataformas, AGENTS.md), capturas junto al diseño y verificación a mano en el teléfono y el iPhone.
 - **K-186** Android: `FirestoreRemoteLibrary.listBooks` usa `get()` sin fuente, y con la caché de Firestore desactivada puede devolver 0 libros "con éxito" si el servidor tarda al arrancar (visto en la SM-X510 el 2026-10-12: una pasada con 0 y la siguiente con 25). Inofensivo pero retrasa la sincronización. Pedir `Source.SERVER` (como iOS, `.server`) en `listBooks` y `deletedBookIds`. SYN-001.
 - **K-167** Apple: Associated Domains y `apple-app-site-association` en Firebase Hosting para abrir O9 y la verificación del email en la app (como K-157 en Android). Requiere cuenta paga de Apple Developer (K-080). ONB-018, ADR 0015.
 - **K-168** Apple: "Iniciar sesión con Apple" en O2 y O7. La App Store lo exige cuando hay ingreso con Google (guía 4.8). Requiere cuenta paga (K-080). ACC, ADR 0015.
 - **K-156** Términos de uso y política de privacidad públicos (CMP-002, CMP-003). Cargar sus URL en `onb_terms_url` y `onb_privacy_url` (`strings.xml`): hoy el onboarding los muestra subrayados pero sin enlace. ONB-001, ONB-004.
 - **K-157** Publicar `/.well-known/assetlinks.json` en Firebase Hosting de `mirror-reading-staging` (paquete `com.pluk.reader` y SHA-256 de las firmas de debug y release) para que los enlaces de verificación y de contraseña nueva abran la app (O9) en lugar de la página de Firebase. Despliegue al proyecto real: pedirlo al usuario. ONB-018, ADR 0014.
-- **K-158** Cerrar sesión y perfil (ACC-006): hoy la única forma de volver a ver el onboarding es borrar los datos de la app. Definir qué pasa con la biblioteca local de la cuenta anterior.
+- **K-158** Cerrar sesión y perfil (ACC-006): hoy la única forma de volver a ver el onboarding es borrar los datos de la app. Definir qué pasa con la biblioteca local de la cuenta anterior. Definido en `specs/product/11-profile.md` (PRF-009): se borran. Lo cubren K-193 y K-197.
 - **K-123** Bug: los tests de la app en la Mac no arrancan ("Library not loaded: ReaderDomain_…PackageProduct", Team ID distinto). Desde K-113 la app de Mac se firma con el equipo y con hardened runtime, pero el framework del paquete `ReaderDomain` que el runner carga desde `Build/Products/Debug/PackageFrameworks` queda firmado ad hoc y la validación de bibliotecas lo rechaza. Visto el 2026-10-09 en `feature/ios-search`; con `ENABLE_HARDENED_RUNTIME=NO` por línea de comandos pasan. Opciones: hardened runtime solo en Release, o `disable-library-validation` solo en Debug. MAC-004.
 - **K-135** Apple: animación de paso de página propia en el iPhone (RDR-009). Hoy el lector usa la de Readium (decisión del usuario, 2026-10-09, plan `2026-10-09-ios-reader.md`). Era K-126 hasta el merge con `master`.
 - **K-155** Sincronización iOS: verificación a mano entre iPhone y Android, cierre de docs.
