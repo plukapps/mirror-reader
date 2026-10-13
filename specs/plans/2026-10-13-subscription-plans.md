@@ -9,7 +9,7 @@
 - La cuota sigue en bytes (ADR 0008). No hay cambios de backend.
 - Entran P02 (cupo lleno y libro que no entra), el aviso del 80 %, P04 Mi plan (Gratis) y P03 (funciones pagas; solo la variante de importar, porque exportar notas no existe todavía).
 
-**Valores provisionales a confirmar** (open-questions #1): Lector 5 GB, Biblioteca 50 GB, precios del diseño.
+**Espacio de los planes pagos:** Lector 5 GB y Biblioteca 50 GB, confirmados por el usuario "por ahora" (2026-10-13). Los precios siguen siendo los de ejemplo del diseño (open-questions #1).
 
 ## Ramas y PR
 
