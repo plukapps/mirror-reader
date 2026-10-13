@@ -58,7 +58,7 @@ struct FontControlsPalette {
     let onAccent: Color
     let border: Color
 
-    static let dark = FontControlsPalette(ink: SheetColors.ink, accent: SheetColors.accent, onAccent: MarginColors.ink, border: SheetColors.border)
+    static let dark = FontControlsPalette(ink: SheetColors.ink, accent: SheetColors.accent, onAccent: MarginColors.onYellow, border: SheetColors.border)
 }
 
 /// Tres opciones, cada una con su propia tipografía; la elegida en amarillo.

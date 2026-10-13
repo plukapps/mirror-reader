@@ -43,19 +43,23 @@ import com.pluk.reader.ui.reader.FontChips
 import com.pluk.reader.ui.reader.FontControlsPalette
 import com.pluk.reader.ui.reader.SizeButtons
 import com.pluk.reader.ui.reader.labelFamily
+import com.pluk.reader.ui.theme.LightMarginPalette
 import com.pluk.reader.ui.theme.MarginColors
 
-/** Colores de cada tema en la vista previa y en su círculo (los del diseño, pantallas 07 y 09). */
+/**
+ * Colores de cada tema en la vista previa y en su círculo (los del diseño, pantallas 07 y 09). Son los del lector:
+ * no cambian con la apariencia de la app (PRF-021).
+ */
 private fun ReadingTheme.background() = when (this) {
-    ReadingTheme.LIGHT -> MarginColors.Field
+    ReadingTheme.LIGHT -> LightMarginPalette.field
     ReadingTheme.SEPIA -> Color(0xFFF3E9D4)
     ReadingTheme.DARK -> Color(0xFF000000)
 }
 
 private fun ReadingTheme.text() = when (this) {
-    ReadingTheme.LIGHT -> MarginColors.Ink
+    ReadingTheme.LIGHT -> LightMarginPalette.ink
     ReadingTheme.SEPIA -> Color(0xFF3B2F1E)
-    ReadingTheme.DARK -> MarginColors.Field
+    ReadingTheme.DARK -> LightMarginPalette.field
 }
 
 private val ReadingTheme.label
@@ -65,13 +69,14 @@ private val ReadingTheme.label
         ReadingTheme.DARK -> R.string.profile_theme_dark
     }
 
-/** Paleta clara de los controles de letra en Perfil: lo elegido en tinta con texto amarillo. */
-private val LightFontControls = FontControlsPalette(
-    ink = MarginColors.Ink,
-    accent = MarginColors.Ink,
-    onAccent = MarginColors.Yellow,
-    line = MarginColors.Off,
-)
+/** Controles de letra en Perfil: lo elegido en relleno tinta con texto amarillo; sigue la apariencia (PRF-022). */
+private val ProfileFontControls: FontControlsPalette
+    @Composable get() = FontControlsPalette(
+        ink = MarginColors.Ink,
+        accent = MarginColors.InkFill,
+        onAccent = MarginColors.Yellow,
+        line = MarginColors.Off,
+    )
 
 /** PRF-011 a PRF-015: vista previa, letra, tema e interlineado. */
 @Composable
@@ -132,14 +137,17 @@ private fun Preview(reading: ReaderSettings) {
 @Composable
 private fun ThemeSwatch(theme: ReadingTheme, selected: Boolean, onClick: () -> Unit) {
     val name = stringResource(theme.label)
+    // Se leen antes: la lambda de dibujo no es composable.
+    val ring = MarginColors.Ink
+    val gap = MarginColors.Field
     Box(
         Modifier
             .size(28.dp)
             .drawBehind {
                 if (selected) {
                     val radius = size.minDimension / 2
-                    drawCircle(MarginColors.Ink, radius + 4.dp.toPx())
-                    drawCircle(MarginColors.Field, radius + 2.dp.toPx())
+                    drawCircle(ring, radius + 4.dp.toPx())
+                    drawCircle(gap, radius + 2.dp.toPx())
                 }
             }
             .clip(CircleShape)
@@ -160,7 +168,7 @@ private fun SpacingOption(spacing: LineSpacing, selected: LineSpacing, onSelect:
         Modifier
             .size(36.dp)
             .clip(RoundedCornerShape(10.dp))
-            .background(if (isSelected) MarginColors.Ink else Color.Transparent)
+            .background(if (isSelected) MarginColors.InkFill else Color.Transparent)
             .selectable(selected = isSelected, role = Role.RadioButton) { onSelect(spacing) }
             .semantics { contentDescription = name }
             .testTag("profile-spacing-${spacing.name}"),
@@ -194,8 +202,8 @@ internal fun FontSheet(reading: ReaderSettings, actions: ProfileActions, onDismi
             verticalArrangement = Arrangement.spacedBy(18.dp),
         ) {
             Text(stringResource(R.string.profile_font), style = profileText(15, FontWeight.SemiBold))
-            FontChips(reading.font, actions.onFont, LightFontControls)
-            SizeButtons(actions.onSmallerFont, actions.onBiggerFont, LightFontControls)
+            FontChips(reading.font, actions.onFont, ProfileFontControls)
+            SizeButtons(actions.onSmallerFont, actions.onBiggerFont, ProfileFontControls)
         }
     }
 }

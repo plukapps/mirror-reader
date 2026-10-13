@@ -73,7 +73,7 @@ private struct ContinueCard: View {
                     .lineLimit(2)
                     .padding(.top, 4)
                 if let author = book.author {
-                    Text(author).font(.app(13)).foregroundStyle(MarginColors.line).lineLimit(1)
+                    Text(author).font(.app(13)).foregroundStyle(MarginColors.onInkMuted).lineLimit(1)
                 }
                 Spacer(minLength: 12)
                 VStack(alignment: .leading, spacing: 6) {
@@ -84,7 +84,7 @@ private struct ContinueCard: View {
             .frame(minHeight: 144)
         }
         .padding(16)
-        .background(MarginColors.ink, in: RoundedRectangle(cornerRadius: 20))
+        .background(MarginColors.inkFill, in: RoundedRectangle(cornerRadius: 20))
         .padding(.horizontal, WindowLayout.horizontalPadding)
         .padding(.top, 24)
         .accessibilityElement(children: .ignore)
@@ -107,14 +107,14 @@ private struct NothingReading: View {
                     .foregroundStyle(MarginColors.yellow)
                     .padding(.horizontal, WindowLayout.horizontalPadding)
                     .frame(height: 44)
-                    .background(MarginColors.ink, in: Capsule())
+                    .background(MarginColors.inkFill, in: Capsule())
             }
             .buttonStyle(.plain)
             .padding(.top, 8)
         }
         .padding(20)
         .frame(maxWidth: .infinity, alignment: .leading)
-        .background(.white, in: RoundedRectangle(cornerRadius: 20))
+        .background(MarginColors.field, in: RoundedRectangle(cornerRadius: 20))
         .padding(.horizontal, WindowLayout.horizontalPadding)
         .padding(.top, 24)
     }
@@ -214,7 +214,7 @@ private struct FinishedBadge: View {
     var body: some View {
         Image(systemName: "checkmark")
             .font(.system(size: 10, weight: .heavy))
-            .foregroundStyle(MarginColors.ink)
+            .foregroundStyle(MarginColors.onYellow)
             .frame(width: 22, height: 22)
             .background(MarginColors.yellow, in: Circle())
             .padding(6)

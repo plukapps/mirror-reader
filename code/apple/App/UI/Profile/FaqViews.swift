@@ -26,10 +26,12 @@ extension FaqId {
     }
 }
 
-/// Pantallas de ayuda dentro del tab Perfil.
+/// Pantallas dentro del tab Perfil: ayuda y cambiar contraseña.
 enum ProfileRoute: Hashable {
     case faq(FaqId)
     case allFaq
+    /// PRF-020.
+    case changePassword
 }
 
 /// Filas de preguntas sobre la tarjeta tinta de ayuda (PRF-017): 52 de alto, separador, flecha.
@@ -41,7 +43,7 @@ struct FaqRows: View {
         ForEach(Array(questions.enumerated()), id: \.element) { index, id in
             if index > 0 { CardDivider(color: MarginColors.inkLine) }
             ProfileRow(minHeight: 52, action: { onOpen(id) }) {
-                Text(id.question).font(.app(15, .medium)).foregroundStyle(MarginColors.field)
+                Text(id.question).font(.app(15, .medium)).foregroundStyle(MarginColors.onInk)
                 Spacer(minLength: 0)
                 ProfileIcon(name: "ChevronRight", color: MarginColors.inkMuted)
             }
@@ -56,7 +58,7 @@ struct FaqListView: View {
 
     var body: some View {
         FaqPage(title: "Preguntas frecuentes", onBack: onBack) {
-            ProfileCard(background: MarginColors.ink) {
+            ProfileCard(background: MarginColors.inkFill) {
                 FaqRows(questions: Faq.all, onOpen: onOpen)
             }
         }

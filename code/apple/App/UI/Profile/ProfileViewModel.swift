@@ -43,15 +43,20 @@ final class ProfileViewModel {
     private let cache: QuotaCache
     private let settings: ReaderSettingsRepository
     private let signOut: SignOut?
+    private let passwords: PasswordRepository?
+    private let appearanceSettings: AppearanceSettings?
     private let wifiOnlyGate: SyncNetworkGate?
 
     /// `account` y `quota` son nil sin Firebase (ADR 0015).
     init(
         account: AccountRepository?, quota: QuotaSource?, cache: QuotaCache, deviceName: String,
-        settings: ReaderSettingsRepository, wifiOnly: SyncNetworkGate? = nil, signOut: SignOut? = nil
+        settings: ReaderSettingsRepository, passwords: PasswordRepository? = nil, appearance: AppearanceSettings? = nil,
+        wifiOnly: SyncNetworkGate? = nil, signOut: SignOut? = nil
     ) {
+        appearanceSettings = appearance
         wifiOnlyGate = wifiOnly
         self.signOut = signOut
+        self.passwords = passwords
         self.account = account
         self.quota = quota
         self.cache = cache
@@ -82,6 +87,21 @@ final class ProfileViewModel {
         } catch {
             storageFailed = storage == nil
         }
+    }
+
+    /// Hay con qué cambiar la contraseña (con Firebase).
+    var hasChangePassword: Bool { passwords != nil }
+
+    /// PRF-020: la pantalla de cambiar la contraseña; nil sin cuenta (sin Firebase).
+    func makeChangePassword() -> ChangePasswordViewModel? {
+        passwords.map { ChangePasswordViewModel(passwords: $0) }
+    }
+
+    /// PRF-021: la apariencia elegida; nil si la app no la maneja (avisa que llega más adelante).
+    var appearance: Appearance? { appearanceSettings?.appearance }
+
+    func setAppearance(_ appearance: Appearance) {
+        appearanceSettings?.select(appearance)
     }
 
     /// PRF-023: "Sincronizar solo con Wi-Fi", o nil si la app no lo maneja (avisa que llega más adelante).

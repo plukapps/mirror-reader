@@ -13,8 +13,8 @@ struct ReaderApp: App {
         WindowGroup {
             AppRootView(screens: screens)
                 .windowMinimumSize()
-                #if os(iOS)
-                // La paleta del diseño es clara y no hay tema oscuro: la barra de estado va oscura (IOS-002).
+                #if os(macOS)
+                // La Mac todavía no llega a Perfil (K-078): sigue clara, como su diseño.
                 .preferredColorScheme(.light)
                 #endif
         }

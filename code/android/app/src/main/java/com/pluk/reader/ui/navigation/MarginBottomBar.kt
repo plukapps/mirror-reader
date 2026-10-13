@@ -64,7 +64,7 @@ fun MarginBottomBar(
                 .fillMaxWidth()
                 .height(60.dp)
                 .clip(RoundedCornerShape(30.dp))
-                .background(MarginColors.Ink)
+                .background(MarginColors.InkFill)
                 .padding(horizontal = 8.dp)
                 .selectableGroup(),
             horizontalArrangement = Arrangement.SpaceAround,
@@ -91,7 +91,7 @@ private fun BarItem(destination: MainDestination, selected: Boolean, onClick: ()
         Icon(
             if (selected) destination.selectedIcon else destination.icon,
             contentDescription = stringResource(destination.label),
-            tint = if (selected) MarginColors.Ink else MarginColors.InkMuted,
+            tint = if (selected) MarginColors.OnYellow else MarginColors.InkMuted,
         )
     }
 }

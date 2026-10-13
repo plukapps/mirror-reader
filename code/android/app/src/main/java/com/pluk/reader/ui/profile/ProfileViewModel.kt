@@ -7,6 +7,9 @@ import com.pluk.reader.domain.account.AccountUser
 import com.pluk.reader.domain.account.QuotaSource
 import com.pluk.reader.domain.account.SignInMethod
 import com.pluk.reader.domain.account.StorageQuota
+import com.pluk.reader.domain.appearance.Appearance
+import com.pluk.reader.domain.appearance.AppearancePreferences
+import com.pluk.reader.domain.appearance.DEFAULT_APPEARANCE
 import com.pluk.reader.domain.model.LineSpacing
 import com.pluk.reader.domain.model.ReaderFont
 import com.pluk.reader.domain.model.ReaderSettings
@@ -49,6 +52,8 @@ data class ProfileUiState(
     val deviceName: String = "",
     /** Ajustes del lector: los mismos que cambia el panel "Aa" (PRF-011). */
     val reading: ReaderSettings = ReaderSettings(),
+    /** Apariencia de la app en este dispositivo (PRF-021). */
+    val appearance: Appearance = DEFAULT_APPEARANCE,
     /** Confirmación de cerrar sesión a la vista, o null (PRF-009). */
     val signOutDialog: SignOutDialog? = null,
     val signingOut: Boolean = false,
@@ -81,6 +86,7 @@ class ProfileViewModel @Inject constructor(
     syncPreferences: SyncPreferences,
     private val settings: SettingsRepository,
     private val signOut: SignOut,
+    private val appearancePreferences: AppearancePreferences,
 ) : ViewModel() {
     private val signOutState = MutableStateFlow(SignOutState())
     private val quota = MutableStateFlow<StorageQuota?>(null)
@@ -88,8 +94,8 @@ class ProfileViewModel @Inject constructor(
     private val deviceName = syncPreferences.deviceName()
 
     val uiState: StateFlow<ProfileUiState> = combine(
-        account.user, quota, quotaFailed, settings.settings, signOutState,
-    ) { user, quota, failed, reading, signingOut ->
+        account.user, quota, quotaFailed, combine(settings.settings, appearancePreferences.appearance, ::Pair), signOutState,
+    ) { user, quota, failed, (reading, appearance), signingOut ->
         ProfileUiState(
             name = user?.displayName,
             email = user?.email,
@@ -99,6 +105,7 @@ class ProfileViewModel @Inject constructor(
             storageFailed = failed && quota == null,
             deviceName = deviceName,
             reading = reading,
+            appearance = appearance,
             signOutDialog = signingOut.dialog,
             signingOut = signingOut.running,
             signedOut = signingOut.done,
@@ -130,6 +137,11 @@ class ProfileViewModel @Inject constructor(
     fun onBiggerFont() = updateReading { it.biggerFont() }
     fun onTheme(theme: ReadingTheme) = updateReading { it.withTheme(theme) }
     fun onLineSpacing(spacing: LineSpacing) = updateReading { it.withLineSpacing(spacing) }
+
+    /** PRF-021: se aplica en el momento a toda la app (la raíz observa la misma preferencia). */
+    fun onAppearance(appearance: Appearance) {
+        viewModelScope.launch { appearancePreferences.setAppearance(appearance) }
+    }
 
     /** PRF-009: muestra la confirmación, con aviso si hay cambios sin subir. */
     fun onSignOutRequested() {

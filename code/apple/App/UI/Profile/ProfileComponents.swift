@@ -89,7 +89,7 @@ struct PlanChip: View {
             .foregroundStyle(MarginColors.yellow)
             .padding(.horizontal, 9)
             .frame(height: 22)
-            .background(MarginColors.ink, in: Capsule())
+            .background(MarginColors.inkFill, in: Capsule())
     }
 }
 
@@ -117,7 +117,7 @@ struct ProfileSwitch: View {
 
     var body: some View {
         Capsule()
-            .fill(isOn ? MarginColors.ink : MarginColors.off)
+            .fill(isOn ? MarginColors.inkFill : MarginColors.off)
             .frame(width: 46, height: 28)
             .overlay(alignment: isOn ? .trailing : .leading) {
                 Circle()
@@ -137,7 +137,7 @@ struct ProfileAvatar: View {
             .font(.app(22, .bold))
             .foregroundStyle(MarginColors.yellow)
             .frame(width: 56, height: 56)
-            .background(MarginColors.ink, in: Circle())
+            .background(MarginColors.onYellow, in: Circle())
     }
 }
 
@@ -165,7 +165,7 @@ struct ProfileSegmentedControl: View {
                         Text(segment.label).font(.app(13, isSelected ? .semibold : .medium)).foregroundStyle(color)
                     }
                     .frame(maxWidth: .infinity, minHeight: 36)
-                    .background(isSelected ? MarginColors.ink : .clear, in: RoundedRectangle(cornerRadius: 18))
+                    .background(isSelected ? MarginColors.inkFill : .clear, in: RoundedRectangle(cornerRadius: 18))
                     .contentShape(Rectangle())
                 }
                 .buttonStyle(.plain)

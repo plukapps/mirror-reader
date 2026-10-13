@@ -65,7 +65,7 @@ internal fun FaqRows(questions: List<FaqId>, onOpen: (FaqId) -> Unit) {
         ProfileRow(onClick = { onOpen(id) }, minHeight = 52.dp, modifier = Modifier.testTag("faq-${id.key}")) {
             Text(
                 stringResource(id.question),
-                style = profileText(15, FontWeight.Medium, MarginColors.Field),
+                style = profileText(15, FontWeight.Medium, MarginColors.OnInkFill),
                 modifier = Modifier.weight(1f),
             )
             RowIcon(ProfileIcons.ChevronRight, MarginColors.InkMuted)
@@ -77,7 +77,7 @@ internal fun FaqRows(questions: List<FaqId>, onOpen: (FaqId) -> Unit) {
 @Composable
 fun FaqListScreen(onBack: () -> Unit, onOpen: (FaqId) -> Unit) {
     FaqPage(stringResource(R.string.profile_faq), onBack) {
-        ProfileCard(background = MarginColors.Ink) {
+        ProfileCard(background = MarginColors.InkFill) {
             FaqRows(Faq.all, onOpen)
         }
     }

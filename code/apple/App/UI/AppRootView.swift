@@ -19,6 +19,11 @@ struct AppRootView: View {
                 if start.start == .verifyEmail { router.startOver(.verify(justSent: false)) }
             }
             .onOpenURL(perform: open)
+            #if os(iOS)
+            // PRF-021: la apariencia elegida (nil sigue al dispositivo), salvo en el onboarding, que va siempre claro
+            // con su barra de estado oscura. El lector elige la suya según su tema.
+            .preferredColorScheme(start.start == .home ? screens.appearance.colorScheme : .light)
+            #endif
             .overlay(alignment: .bottom) {
                 if let notice {
                     Text(notice)
@@ -26,7 +31,7 @@ struct AppRootView: View {
                         .foregroundStyle(.white)
                         .padding(.horizontal, 16)
                         .padding(.vertical, 10)
-                        .background(MarginColors.ink, in: RoundedRectangle(cornerRadius: 14))
+                        .background(MarginColors.inkFill, in: RoundedRectangle(cornerRadius: 14))
                         .padding(.bottom, 24)
                         .task {
                             AccessibilityNotification.Announcement(notice).post()
@@ -48,6 +53,8 @@ struct AppRootView: View {
                 OnboardingFlow(router: router, dependencies: onboarding) { importBooks in
                     start.enterHome(importBooks: importBooks)
                 }
+                // PRF-021: el onboarding se ve siempre como su diseño (O1 a O9).
+                .environment(\.colorScheme, .light)
             }
         case .home:
             RootView(
@@ -70,6 +77,7 @@ struct AppRootView: View {
                             backToOnboarding(.welcome, then: [.signIn, .forgot(email: email)])
                         }
                     )
+                    .environment(\.colorScheme, .light)
                 }
             }
         }

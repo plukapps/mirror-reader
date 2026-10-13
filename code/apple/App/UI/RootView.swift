@@ -101,7 +101,13 @@ struct RootView: View {
         destination
             // La barra va en el área segura de abajo: el scroll pasa por debajo y deja su alto al final.
             .safeAreaInset(edge: .bottom, spacing: 0) {
-                MarginTabBar(selected: tabs.selected, onSelect: tabs.select)
+                Group {
+                    if tabs.barHidden {
+                        Color.clear.frame(height: 0)
+                    } else {
+                        MarginTabBar(selected: tabs.selected, onSelect: tabs.select)
+                    }
+                }
                     // Los avisos cuelgan hacia arriba desde el borde de la barra, sin cambiar el alto del área segura.
                     .overlay(alignment: .top) {
                         Color.clear.frame(height: 0).overlay(alignment: .bottom) {
@@ -157,7 +163,15 @@ struct RootView: View {
         case .search: SearchView(viewModel: search, onOpen: home.open(bookId:))
         case .shelves: LibraryView(viewModel: library, onImport: importAction ?? tabs.showComingSoon, onOpen: home.open(bookId:))
         case .profile:
-            ProfileView(viewModel: profile, actions: ProfileActions(comingSoon: tabs.showComingSoon), onSignedOut: onSignedOut)
+            ProfileView(
+                viewModel: profile,
+                actions: ProfileActions(
+                    comingSoon: tabs.showComingSoon,
+                    notify: { home.show($0) },
+                    setTabBarHidden: { tabs.barHidden = $0 }
+                ),
+                onSignedOut: onSignedOut
+            )
         default: HomeView(viewModel: home, onOpenLibrary: openLibrary, onImport: importAction)
         }
     }
@@ -202,7 +216,7 @@ private struct HomeMessage: View {
             .multilineTextAlignment(.center)
             .padding(.horizontal, 16)
             .padding(.vertical, 10)
-            .background(MarginColors.ink, in: RoundedRectangle(cornerRadius: 14))
+            .background(MarginColors.inkFill, in: RoundedRectangle(cornerRadius: 14))
             .padding(.horizontal, 16)
             .task {
                 AccessibilityNotification.Announcement(text).post()

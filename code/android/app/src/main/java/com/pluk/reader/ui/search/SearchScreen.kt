@@ -216,7 +216,7 @@ private fun ScopeChips(current: SearchScope, onScopeChange: (SearchScope) -> Uni
                     .height(34.dp)
                     .clip(ChipShape)
                     .then(
-                        if (selected) Modifier.background(MarginColors.Ink)
+                        if (selected) Modifier.background(MarginColors.InkFill)
                         else Modifier.border(1.5.dp, MarginColors.Ink, ChipShape),
                     )
                     .clickable(role = Role.Tab) { onScopeChange(scope) }
@@ -349,7 +349,8 @@ private fun statusText(book: LibraryBook): String {
 private val MAX_CONTENT_WIDTH = 640.dp
 private val FieldShape = RoundedCornerShape(28.dp)
 private val ChipShape = RoundedCornerShape(17.dp)
-private val FieldText = TextStyle(fontFamily = HostGrotesk, fontSize = 16.sp, fontWeight = FontWeight.Medium, color = MarginColors.Ink)
+private val FieldText: TextStyle
+    @Composable get() = TextStyle(fontFamily = HostGrotesk, fontSize = 16.sp, fontWeight = FontWeight.Medium, color = MarginColors.Ink)
 
 @Preview(showBackground = true,
 //    widthDp = 360, heightDp = 780
