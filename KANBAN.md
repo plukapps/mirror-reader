@@ -5,6 +5,7 @@ Plan de referencia: `specs/plans/2026-10-06-android-epub-viewer.md`
 
 ## Backlog
 
+- **K-214** Biblioteca: un libro quitado y vuelto a importar (LIB-020) revive con su `createdAt` original y, tras sincronizar, vuelve a su lugar viejo en el orden (LIB-021). Decidir si debe contar como entrada nueva (exige cambiar la regla de Firestore que impide tocar `createdAt`). Visto el 2026-10-13 al planear `2026-10-13-library-order.md`.
 - **K-209** Android, modo oscuro: en "Cambiar contraseña" (PRF-020) los campos conservan el borde claro del onboarding y "Guardar" deshabilitado se ve gris claro sobre el fondo oscuro. Se lee, pero desentona con el resto. Pasar `OnbTextField` y `PrimaryButton` a los tokens de la paleta fuera del onboarding (PRF-022). Visto en el SM-S711B el 2026-10-13.
 - **K-202** Apple: la etiqueta 3.9.0 de Readium Swift ya no existe en GitHub (`git ls-remote` pasa de 3.8.0 a 3.10.0), y `project.yml` fija `exactVersion: 3.9.0`. Un clon o worktree nuevo no resuelve los paquetes ("no versions of 'swift-toolkit' match 3.9.0"). Hoy solo compila con una caché de Xcode que ya la tenía (`DerivedData/Reader-gbvs…`, commit `de07026e9`). Decidir: fijar por `revision: de07026e9…` en `project.yml` o pasar a 3.10 (exige Xcode 16.3, ADR 0013). Visto el 2026-10-12.
 - **K-201** Apple: los tests de la Mac no arrancan (`Early unexpected exit`): con `Signing.local.xcconfig` la app se firma con el equipo y el framework `ReaderDomain` del paquete queda firmado ad hoc, y dyld lo rechaza al cargarlo. Pasa también en `library-actions`, sin cambios de Perfil. Revisar la firma de los productos de paquete en Mac (o `disable-library-validation` solo en Debug). Visto el 2026-10-12.
@@ -40,12 +41,15 @@ Plan de referencia: `specs/plans/2026-10-06-android-epub-viewer.md`
 
 ## Listo
 
+- **K-212** Orden de la biblioteca, iOS: la fecha de la nube reemplaza también la de libros ya guardados. LIB-021. Rama `feature/library-order`.
+- **K-213** Orden de la biblioteca, cierre: docs, verificación a mano en el teléfono y el iPhone, PR único contra `develop`. Rama `feature/library-order`.
 - **K-134** Lector iOS, Tarea 7: cierre de docs y verificación a mano en el simulador. Rama `feature/ios-reader`. Era K-125 hasta el merge con `master`.
 - **K-038** Inicio, Tarea 4: cierre de docs y verificación a mano. Rama `feature/home`.
 - **K-024** Quitar el padding vertical de Readium (40 dp arriba y abajo en modo paginado) y reservar la barra de estado desde la pantalla. RDR-002. Rama `feat/page-turn-animation`.
 
 ## En curso
 
+- **K-211** Orden de la biblioteca, Android: `createdAt` de la nube como fecha de entrada, también para libros ya guardados. LIB-021. Rama `feature/library-order`. Plan `2026-10-13-library-order.md`.
 - **K-176** Posición exacta, Tarea 5: verificación a mano entre el teléfono y el iPhone, cierre de docs. SYN-014.
 
 ## Revisión
@@ -191,6 +195,7 @@ Plan de referencia: `specs/plans/2026-10-06-android-epub-viewer.md`
 
 ## Hecho
 
+- **K-210** Orden de la biblioteca: spec LIB-021 y plan `2026-10-13-library-order.md`. Rama `feature/library-order`. Aprobado por el usuario (2026-10-13).
 - **K-171** Ajustes visuales a mano del usuario en la Biblioteca: esquinas de la portada de 8 dp, grilla con columnas de 104 dp como mínimo y vista previa del tamaño de un Galaxy S25. Rama `feature/android-search-ui`. Aprobado por el usuario (2026-10-12).
 - **K-170** Ajustes visuales a mano del usuario: encabezados de sección de Inicio más chicos y con más aire arriba, separación de 2 dp en los resultados de la búsqueda, saludos de Inicio sin el texto de prueba. Rama `feature/android-search-ui`. Aprobado por el usuario (2026-10-12).
 - **K-169** Interlineado de la interfaz Android desde el tema: los `Text` con `fontSize` suelto heredaban el `lineHeight` fijo de 24 sp de `bodyLarge` (un texto de 11 sp quedaba con líneas de 24 sp). Pasar el interlineado de `Typography` a `em` y recortar el espacio de la fuente con `LineHeightStyle`. No toca el lector (Readium). Rama `feature/android-search-ui`. Hecho: `Type.kt` con interlineado en `em` (1.0 en todos los roles: lo más apretado posible; excepciones con su propio `ratio`) y `LineHeightStyle` con `Trim.Both`. 317 tests JVM pasan. Aprobado por el usuario (2026-10-12).
