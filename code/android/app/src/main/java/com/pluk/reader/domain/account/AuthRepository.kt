@@ -53,6 +53,12 @@ interface AuthRepository {
 
     suspend fun confirmPasswordReset(code: String, newPassword: String): Result<Unit>
 
+    /**
+     * Cambia la contraseña de la cuenta actual (PRF-020): vuelve a verificar [current] y guarda [newPassword].
+     * Si [current] no es la contraseña, falla con [AuthError.InvalidCredentials]. La sesión sigue abierta.
+     */
+    suspend fun changePassword(current: String, newPassword: String): Result<Unit>
+
     /** Aplica el enlace de verificación cuando lo abre la app en lugar del navegador (ONB-007). */
     suspend fun applyEmailVerification(code: String): Result<Unit>
 }
