@@ -73,20 +73,22 @@ Cada PR: tests en verde (Android `:app:testDebugUnitTest` y compilación de los 
 
 ## Notas de implementación (Android)
 
-Rama `feature/subscription-plans-android`, K-218 a K-222.
+Rama `feature/subscription-plans-android`, K-218 a K-222 y, en la segunda parte, K-250 a K-252.
 
-- **Dominio** (`domain/plans`): `PlanCatalog` (ids, espacio y precios de ejemplo; los textos viven en `strings.xml`, como las preguntas frecuentes), `ctaFor`, `quotaBlock`, `ImportQuotaCheck`, `PlanPrompts` (una hoja a la vez, `@Singleton`), `ImportSource`, `shouldShowUsageNotice` y `UsageNoticePreference`. `storageUsage` (en `domain/profile/StorageFormat.kt`) lo comparten Perfil, Planes, el aviso y Mi plan.
+- **Dominio** (`domain/plans`): `PlanCatalog` (ids, espacio, tamaño por archivo y precios de ejemplo; los textos viven en `strings.xml`, como las preguntas frecuentes; `maxFileBytes`, `planOf`), `ctaFor` (siempre "Elegir…"), `quotaBlock` (`TooLarge`, `Full`, `DoesNotFit`), `ImportQuotaCheck`, `PlanPrompts` (una hoja a la vez, `@Singleton`), `shouldShowUsageNotice`, `UsageNoticePreference`, `effectiveReaderSettings` y `allowReadingOption` (`ReadingFeatures.kt`). `storageUsage` (en `domain/profile/StorageFormat.kt`) lo comparten Perfil, Planes, el aviso y Mi plan.
 - **Cuota fresca:** `QuotaCache.quota` es un `Flow`. `UploadBooksUseCase` guarda la cuota que lee en cada pasada con libros pendientes, y al final la misma con lo que subió sumado (el servidor la actualiza unos segundos después). Sin libros pendientes la pasada no lee la cuota: la refrescan Perfil y Mi plan.
 - **Hojas:** `PlanPromptHost` en la raíz (`AppNavHost`), fuera del onboarding. Tras "Abrir con" el lector se abre igual y la hoja aparece encima. "Ver planes" cierra la hoja y abre P01.
-- **P03:** la hoja "Importar libros" se abre desde "Importar" de la Biblioteca (cabecera y biblioteca vacía) y desde Inicio con la biblioteca vacía. "Importar mis libros" del onboarding (ONB-013) sigue yendo directo al selector.
+- **P03:** la hoja "Importar libros" (PLN-010) se quitó en la segunda parte: "Importar" abre el selector de archivos. Queda la hoja de función paga (`PaidContent`), hoy solo para temas y fuentes (PLN-015).
+- **Plan de la cuenta (segunda parte):** `PlanCatalog.planOf` lee `quota.plan` de la caché (`free`, `reader`, `library`; los dos últimos todavía no los escribe el backend). Sin cuota o con otro valor, Gratis.
+- **Tamaño por archivo (PLN-014):** se comprueba al importar antes que el espacio, también sin cuota leída (con el máximo de Gratis), y la pasada de subida no sube los libros que lo superan: cuentan en `notEnoughSpace` ("N libros no entran en tu plan"). En Biblioteca, que no tiene plan siguiente, la hoja no muestra la tarjeta amarilla.
+- **Temas y fuentes (PLN-015):** `ReaderViewModel` y `ProfileViewModel` muestran los ajustes efectivos y exponen `readingOptionsLocked`. El navegador se instala con los efectivos. Las opciones pagas llevan `LectorMark` (en el panel del lector, dentro del botón de letra y arriba a la derecha del círculo; en Perfil, debajo del círculo) y TalkBack las anuncia con "Incluido en Lector". La hoja de función paga sale de la raíz, encima del panel del lector.
 - **Desvíos del diseño:**
   - La proporción de uso de P01 es un porcentaje en monoespaciada ("80 %"); el diseño muestra "8/10" porque contaba libros.
-  - Tabla del teléfono: columnas de 54, 70 y 62 dp (el diseño usa 50, 50 y 56 px, donde "Avanzadas" no entra).
-  - Biblioteca lista lo mismo en teléfono y tablet: "Lector web (próximamente)" reemplaza a "Archivos de hasta 500 MB".
-  - La bajada de Calibre no está en el diseño: "Conectá tu biblioteca de Calibre o un catálogo OPDS y tus libros se suman solos a tu biblioteca."
-  - "Importar libros" es una hoja inferior (como dice PLN-010), no la pantalla con cruz del diseño.
+  - Tabla del teléfono: columnas de 54, 70 y 62 dp (el diseño usa 50, 50 y 56 px; más anchas para que "Sin tope" y "100 MB" entren en una línea).
+  - La marca "Lector" de las opciones pagas y el ícono de la hoja de temas y fuentes (`palette`) no están en el diseño.
   - P02b muestra un recuadro "EPUB" en lugar de la portada, como el diseño.
-- **Tests:** 454 JVM (39 nuevos). Compose, sin correr (no hay emulador): `PlansScreenTest`, `PlanSheetsTest`, `ImportSheetTest`, `MyPlanScreenTest`, casos nuevos en `ProfileScreenTest` y `LibraryScreenTest`.
+- **Tests:** 466 JVM (51 nuevos en total). Compose, sin correr (no hay emulador): `PlansScreenTest`, `PlanSheetsTest`, `MyPlanScreenTest`, casos nuevos en `ProfileScreenTest` y `LibraryScreenTest`. `ImportSheetTest` se quitó con la hoja.
+
 ## Segunda parte: funciones por plan (2026-10-13)
 
 **Pedido del usuario:** una tabla de funciones por plan (prueba gratis no por ahora, tamaño máximo por archivo 2 MB / 50 MB / 100 MB, temas y fuentes y exportar notas en Lector y Biblioteca; estadísticas, Drive/Calibre/email, lector web y familia en definición). Decisiones: (1) en Gratis el lector usa solo Clásico y serifa, el resto abre la hoja de función paga; (2) el tope por archivo primero solo en las apps; (3) no mostrar funciones en definición.
