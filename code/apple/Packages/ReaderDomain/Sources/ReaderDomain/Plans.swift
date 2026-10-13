@@ -32,6 +32,8 @@ public struct Plan: Equatable, Sendable {
     public let name: String
     public let tagline: String
     public let storageBytes: Int64?
+    /// PLN-014: tamaño máximo de cada archivo que se sube a la nube.
+    public let maxFileBytes: Int64
     public let includes: [String]
     public let monthlyPrice: String
     public let annualPrice: String
@@ -107,22 +109,22 @@ public enum PlanCatalog {
 
     /// Cuota de Gratis de hoy (backend `FREE_PLAN`), para cuando nunca se leyó la de la cuenta.
     public static let freeQuotaBytes: Int64 = 15 * mib
-    public static let trialDays = 14
     public static let annualSavingPercent = 30
 
     public static let free = Plan(
-        id: .free, name: "Gratis", tagline: "Para leer de vez en cuando", storageBytes: nil,
-        includes: ["Lectura y notas sin tope", "Sincroniza en todos tus dispositivos", "Estadísticas básicas"],
+        id: .free, name: "Gratis", tagline: "Para leer de vez en cuando", storageBytes: nil, maxFileBytes: 2 * mib,
+        includes: ["Lectura y notas sin tope", "Sincroniza en todos tus dispositivos", "Archivos de hasta 2 MB"],
         monthlyPrice: "$0", annualPrice: "$0", annualPerMonth: nil
     )
     public static let reader = Plan(
-        id: .reader, name: "Lector", tagline: "Para quien lee siempre", storageBytes: 5 * gib,
-        includes: ["Exportá notas a Markdown, Obsidian y Notion", "Estadísticas y metas avanzadas", "Temas y fuentes propias"],
+        id: .reader, name: "Lector", tagline: "Para quien lee siempre", storageBytes: 5 * gib, maxFileBytes: 50 * mib,
+        includes: ["Temas y fuentes", "Exportá notas a Markdown, Obsidian y Notion", "Archivos de hasta 50 MB"],
         monthlyPrice: "$2.99", annualPrice: "$24.99", annualPerMonth: "$2.08"
     )
     public static let library = Plan(
         id: .library, name: "Biblioteca", tagline: "Para quien tiene una biblioteca", storageBytes: 50 * gib,
-        includes: ["Todo lo de Lector", "Importá desde Drive, Calibre o por email", "Familia: hasta 5 cuentas", "Lector web (próximamente)"],
+        maxFileBytes: 100 * mib,
+        includes: ["Todo lo de Lector", "Archivos de hasta 100 MB"],
         monthlyPrice: "$5.99", annualPrice: "$49.99", annualPerMonth: "$4.17"
     )
 
@@ -147,23 +149,22 @@ public enum PlanCatalog {
         return formatStorage(bytes, unit: StorageUnit.forTotal(bytes))
     }
 
-    /// PLN-006: en anual se prueba gratis; en mensual se elige con el precio por mes.
-    public static func cta(_ id: PlanId, _ billing: Billing) -> PlanCta {
-        let plan = plan(id)
-        let price = plan.price(billing)
-        return switch billing {
-        case .annual: PlanCta(
-                title: "Probar \(plan.name) \(trialDays) días gratis",
-                subtitle: "Después \(price) por \(billing.period). Cancelás cuando quieras."
-            )
-        case .monthly: PlanCta(
-                title: "Elegir \(plan.name) · \(price) por \(billing.period)",
-                subtitle: "Se renueva cada \(billing.period). Cancelás cuando quieras."
-            )
-        }
+    /// "2 MB", "50 MB": el tamaño máximo por archivo del plan (PLN-014).
+    public static func maxFileText(_ id: PlanId) -> String {
+        let bytes = plan(id).maxFileBytes
+        return formatStorage(bytes, unit: StorageUnit.forTotal(bytes))
     }
 
-    /// PLN-006: filas de la tabla del diseño, con el espacio en lugar de libros y sin tope por archivo (PLN-001).
+    /// PLN-006: sin prueba gratis por ahora, se elige con el precio del período.
+    public static func cta(_ id: PlanId, _ billing: Billing) -> PlanCta {
+        let plan = plan(id)
+        return PlanCta(
+            title: "Elegir \(plan.name) · \(plan.price(billing)) por \(billing.period)",
+            subtitle: "Se renueva cada \(billing.period). Cancelás cuando quieras."
+        )
+    }
+
+    /// PLN-001, PLN-006: filas de la tabla comparativa. Sin funciones en definición (PLN-016).
     public static func comparison(quota: StorageQuota?) -> [PlanComparisonRow] {
         let yes = "✓", no = "—"
         return [
@@ -171,14 +172,13 @@ public enum PlanCatalog {
                 feature: "Espacio en la nube", free: storageText(.free, quota: quota),
                 reader: storageText(.reader, quota: quota), library: storageText(.library, quota: quota)
             ),
+            PlanComparisonRow(
+                feature: "Tamaño por archivo", free: maxFileText(.free), reader: maxFileText(.reader), library: maxFileText(.library)
+            ),
             PlanComparisonRow(feature: "Lectura, ajustes y anotaciones", free: "Sin tope", reader: "Sin tope", library: "Sin tope"),
             PlanComparisonRow(feature: "Sincronización en todos tus dispositivos", free: yes, reader: yes, library: yes),
+            PlanComparisonRow(feature: "Temas y fuentes", free: no, reader: yes, library: yes),
             PlanComparisonRow(feature: "Exportar notas (Markdown, Obsidian, Notion)", free: no, reader: yes, library: yes),
-            PlanComparisonRow(feature: "Estadísticas y metas", free: "Básicas", reader: "Avanzadas", library: "Avanzadas"),
-            PlanComparisonRow(feature: "Temas y fuentes propias", free: no, reader: yes, library: yes),
-            PlanComparisonRow(feature: "Importar desde Drive, Calibre/OPDS o email", free: no, reader: no, library: yes),
-            PlanComparisonRow(feature: "Lector web (próximamente)", free: no, reader: no, library: yes),
-            PlanComparisonRow(feature: "Familia (hasta 5 cuentas)", free: no, reader: no, library: yes),
         ]
     }
 }

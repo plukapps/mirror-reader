@@ -83,61 +83,13 @@ final class PlansPresenter {
         plansOpen = true
     }
 
-    // MARK: P03 Importar libros (PLN-010)
-
-    /// La hoja "Importar libros" a la vista.
-    var importSheetOpen = false
-    /// La función paga que se está mostrando en la hoja, o nil (la lista de orígenes).
-    private(set) var paidFeature: PaidFeature?
-    private var pickerAfterSheet = false
-
-    func showImportSources() {
-        paidFeature = nil
-        importSheetOpen = true
-    }
-
-    /// "Desde este dispositivo" cierra la hoja y abre el selector de hoy; Drive y Calibre muestran la función paga.
-    func choose(_ source: ImportSource) {
-        switch source {
-        case .device:
-            pickerAfterSheet = true
-            importSheetOpen = false
-        case .drive: paidFeature = .drive
-        case .calibre: paidFeature = .calibre
-        }
-    }
-
-    /// "Ahora no" en la función paga: vuelve a la lista.
-    func backToSources() {
-        paidFeature = nil
-    }
-
-    /// "Ver planes" en la función paga: cierra la hoja y abre Planes.
-    func seePlansFromFeature() {
-        plansAfterSheet = true
-        importSheetOpen = false
-    }
-
-    /// La hoja de importar se cerró. Devuelve si hay que abrir el selector de archivos.
-    func importSheetDismissed() -> Bool {
-        paidFeature = nil
-        sheetDismissed()
-        defer { pickerAfterSheet = false }
-        return pickerAfterSheet
-    }
-
     /// Un ViewModel nuevo cada vez que se abre: vuelve a arrancar en anual con Lector elegido.
     func makePlans() -> PlansViewModel {
         PlansViewModel(cache: cache)
     }
 }
 
-/// Orígenes de "Importar libros" (PLN-010).
-enum ImportSource: CaseIterable {
-    case device, drive, calibre
-}
-
-/// Funciones pagas que se muestran en una hoja (PLN-010). Exportar notas (P03a) llega con las anotaciones.
+/// Funciones pagas que se muestran en la hoja de P03 (PLN-015). Exportar notas (P03a) llega con las anotaciones.
 enum PaidFeature: Equatable {
-    case drive, calibre
+    case themesAndFonts
 }

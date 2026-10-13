@@ -34,6 +34,9 @@ final class MyPlanViewModel {
 
     var readerStorage: String { PlanCatalog.storageText(.reader, quota: quota) }
 
+    /// PLN-012: "2 MB", el tamaño máximo por archivo de Gratis.
+    var maxFile: String { PlanCatalog.maxFileText(.free) }
+
     private func show(_ quota: StorageQuota) {
         self.quota = quota
         usage = PlanUsage(quota)
@@ -109,24 +112,29 @@ struct MyPlanContent: View {
                 PlanUsageBar(fraction: viewModel.usage?.fraction ?? 0)
             }
             .accessibilityElement(children: .combine)
-            HStack {
-                Text("Dispositivos")
-                Spacer(minLength: 8)
-                Text("Todos, sin límite")
-            }
-            .font(.app(14, .medium))
-            .foregroundStyle(MarginColors.ink2)
-            .accessibilityElement(children: .combine)
+            detail("Dispositivos", "Todos, sin límite")
+            detail("Archivos de hasta", viewModel.maxFile)
         }
         .padding(18)
         .background(MarginColors.field, in: RoundedRectangle(cornerRadius: 24))
         .padding(EdgeInsets(top: 18, leading: 20, bottom: 0, trailing: 20))
     }
 
+    private func detail(_ label: LocalizedStringKey, _ value: String) -> some View {
+        HStack {
+            Text(label)
+            Spacer(minLength: 8)
+            Text(value)
+        }
+        .font(.app(14, .medium))
+        .foregroundStyle(MarginColors.ink2)
+        .accessibilityElement(children: .combine)
+    }
+
     private var upsell: some View {
         VStack(alignment: .leading, spacing: 4) {
             Text("Con Lector: \(viewModel.readerStorage) en la nube").font(.app(15, .bold)).foregroundStyle(MarginColors.onYellow)
-            Text("Y exportás tus notas a Obsidian o Notion.")
+            Text("Archivos de hasta \(PlanCatalog.maxFileText(.reader)), temas y fuentes.")
                 .font(.app(13, .medium))
                 .foregroundStyle(MarginColors.onYellowMuted)
         }

@@ -200,94 +200,8 @@ extension Text {
     }
 }
 
-/// P03: "Importar libros" (PLN-010). Drive y Calibre, de Biblioteca, muestran su función paga en la misma hoja.
-struct ImportSourcesSheet: View {
-    let presenter: PlansPresenter
-
-    var body: some View {
-        MeasuredSheet {
-            Group {
-                if let feature = presenter.paidFeature {
-                    PaidFeatureContent(feature: feature, onSeePlans: presenter.seePlansFromFeature, onNotNow: presenter.backToSources)
-                } else {
-                    ImportSourcesContent(onChoose: presenter.choose)
-                }
-            }
-            .animation(.easeOut(duration: 0.2), value: presenter.paidFeature)
-        }
-    }
-}
-
-/// La lista de orígenes, sin la hoja.
-struct ImportSourcesContent: View {
-    let onChoose: (ImportSource) -> Void
-
-    var body: some View {
-        VStack(alignment: .leading, spacing: 0) {
-            Text("Importar libros")
-                .font(.app(34))
-                .tracking(-0.04 * 34)
-                .foregroundStyle(MarginColors.ink)
-                .accessibilityAddTraits(.isHeader)
-            VStack(spacing: 0) {
-                ForEach(Array(ImportSource.allCases.enumerated()), id: \.element) { index, source in
-                    if index > 0 { MarginColors.track.frame(height: 1) }
-                    Button { onChoose(source) } label: { row(source) }.buttonStyle(.plain)
-                }
-            }
-            .background(MarginColors.paper, in: RoundedRectangle(cornerRadius: 20))
-            .clipShape(RoundedRectangle(cornerRadius: 20))
-            .padding(.top, 18)
-            .padding(.bottom, 12)
-        }
-    }
-
-    private func row(_ source: ImportSource) -> some View {
-        HStack(spacing: 12) {
-            if source == .device {
-                ProfileIcon(name: "Smartphone", size: 22)
-            } else {
-                PlanIcon(name: source.icon, size: 22)
-            }
-            Text(source.label).font(.app(15, .semibold)).foregroundStyle(MarginColors.ink)
-            Spacer(minLength: 0)
-            if source != .device {
-                Text("Biblioteca")
-                    .font(.app(10, .bold))
-                    .foregroundStyle(MarginColors.ink)
-                    .padding(.horizontal, 6)
-                    .padding(.vertical, 3)
-                    .overlay(Capsule().strokeBorder(MarginColors.ink, lineWidth: 1.5))
-                    .accessibilityLabel(Text("Incluido en Biblioteca"))
-            }
-        }
-        .padding(.horizontal, 16)
-        .frame(maxWidth: .infinity, minHeight: 60)
-        .contentShape(Rectangle())
-        .accessibilityElement(children: .combine)
-    }
-}
-
-private extension ImportSource {
-    var icon: String {
-        switch self {
-        case .device: "Smartphone"
-        case .drive: "AddToDrive"
-        case .calibre: "Dns"
-        }
-    }
-
-    var label: LocalizedStringKey {
-        switch self {
-        case .device: "Desde este dispositivo"
-        case .drive: "Google Drive"
-        case .calibre: "Calibre / OPDS"
-        }
-    }
-}
-
-/// Hoja de función paga (P03): ícono, título, bajada, "Incluido en {plan}", "Ver planes" y "Ahora no". Lista para
-/// exportar notas (P03a) cuando existan.
+/// Hoja de función paga (P03): ícono, título, bajada, "Incluido en {plan}", "Ver planes" y "Ahora no" (PLN-015). Lista
+/// para exportar notas (P03a) cuando existan.
 struct PaidFeatureContent: View {
     let feature: PaidFeature
     var onSeePlans: () -> Void = {}
@@ -313,28 +227,13 @@ struct PaidFeatureContent: View {
 }
 
 private extension PaidFeature {
-    var plan: PlanId { .library }
+    var plan: PlanId { .reader }
 
-    var icon: String {
-        switch self {
-        case .drive: "AddToDrive"
-        case .calibre: "Dns"
-        }
-    }
+    var icon: String { "Palette" }
 
-    var title: String {
-        switch self {
-        case .drive: String(localized: "Traé tus libros desde Drive")
-        case .calibre: String(localized: "Traé tus libros desde Calibre")
-        }
-    }
+    var title: String { String(localized: "Leé con tus temas y fuentes") }
 
-    var body: LocalizedStringKey {
-        switch self {
-        case .drive: "Elegí una carpeta y los EPUB nuevos se suman solos a tu biblioteca."
-        case .calibre: "Conectá tu biblioteca de Calibre o un catálogo OPDS y tus libros se suman solos a tu biblioteca."
-        }
-    }
+    var body: LocalizedStringKey { "Sepia, Noche y todas las letras del lector, en todos tus libros." }
 }
 
 /// PLN-011: el aviso suave del 80 %, arriba de la lista de la Biblioteca. Diseño: "Aviso 80 por ciento".

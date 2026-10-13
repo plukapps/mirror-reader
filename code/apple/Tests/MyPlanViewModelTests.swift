@@ -26,6 +26,7 @@ struct MyPlanViewModelTests {
         #expect(viewModel.usage?.fraction == 0.8)
         #expect(cache.saved?.usedBytes == 12 * mib)
         #expect(viewModel.readerStorage == "5 GB")
+        #expect(viewModel.maxFile == "2 MB")
     }
 
     @Test("PLN-012: sin conexión queda lo guardado; sin nada, no hay espacio que mostrar")

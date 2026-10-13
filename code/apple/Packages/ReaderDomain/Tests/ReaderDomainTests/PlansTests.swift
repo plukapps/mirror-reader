@@ -32,16 +32,32 @@ func prices() {
     #expect(Billing.monthly.perLabel == "por mes")
 }
 
-@Test("PLN-006: en anual, prueba de 14 días; en mensual, elegir con el precio por mes")
+@Test("PLN-006: sin prueba gratis, siempre Elegir con el precio del período")
 func cta() {
     #expect(PlanCatalog.cta(.reader, .annual) == PlanCta(
-        title: "Probar Lector 14 días gratis", subtitle: "Después $24.99 por año. Cancelás cuando quieras."
+        title: "Elegir Lector · $24.99 por año", subtitle: "Se renueva cada año. Cancelás cuando quieras."
     ))
     #expect(PlanCatalog.cta(.reader, .monthly) == PlanCta(
         title: "Elegir Lector · $2.99 por mes", subtitle: "Se renueva cada mes. Cancelás cuando quieras."
     ))
-    #expect(PlanCatalog.cta(.library, .annual).title == "Probar Biblioteca 14 días gratis")
+    #expect(PlanCatalog.cta(.library, .annual).title == "Elegir Biblioteca · $49.99 por año")
     #expect(PlanCatalog.cta(.library, .monthly).title == "Elegir Biblioteca · $5.99 por mes")
+}
+
+@Test("PLN-001, PLN-014: tamaño máximo por archivo de cada plan")
+func maxFile() {
+    #expect(PlanCatalog.plan(.free).maxFileBytes == 2 * mib)
+    #expect(PlanCatalog.plan(.reader).maxFileBytes == 50 * mib)
+    #expect(PlanCatalog.plan(.library).maxFileBytes == 100 * mib)
+    #expect(PlanCatalog.maxFileText(.free) == "2 MB")
+    #expect(PlanCatalog.maxFileText(.library) == "100 MB")
+}
+
+@Test("PLN-001, PLN-016: lo que incluye cada tarjeta, sin funciones en definición")
+func includes() {
+    #expect(PlanCatalog.free.includes == ["Lectura y notas sin tope", "Sincroniza en todos tus dispositivos", "Archivos de hasta 2 MB"])
+    #expect(PlanCatalog.reader.includes == ["Temas y fuentes", "Exportá notas a Markdown, Obsidian y Notion", "Archivos de hasta 50 MB"])
+    #expect(PlanCatalog.library.includes == ["Todo lo de Lector", "Archivos de hasta 100 MB"])
 }
 
 @Test("PLN-003: uso con la unidad del total, proporción y barra; sin cuota no hay fila")
@@ -56,10 +72,17 @@ func usage() {
     #expect(PlanUsage(nil) == nil)
 }
 
-@Test("PLN-001: la tabla comparativa usa el espacio en lugar de libros y no tiene tope por archivo")
+@Test("PLN-001, PLN-016: la tabla comparativa tiene las seis filas de la tabla de funciones")
 func comparison() {
     let rows = PlanCatalog.comparison(quota: StorageQuota(usedBytes: 0, quotaBytes: 15 * mib))
-    #expect(rows.first == PlanComparisonRow(feature: "Espacio en la nube", free: "15 MB", reader: "5 GB", library: "50 GB"))
-    #expect(rows.count == 9)
-    #expect(!rows.contains { $0.feature.contains("archivo") || $0.feature.contains("Libros") })
+    #expect(rows.map(\.feature) == [
+        "Espacio en la nube", "Tamaño por archivo", "Lectura, ajustes y anotaciones",
+        "Sincronización en todos tus dispositivos", "Temas y fuentes", "Exportar notas (Markdown, Obsidian, Notion)",
+    ])
+    #expect(rows[0] == PlanComparisonRow(feature: "Espacio en la nube", free: "15 MB", reader: "5 GB", library: "50 GB"))
+    #expect(rows[1] == PlanComparisonRow(feature: "Tamaño por archivo", free: "2 MB", reader: "50 MB", library: "100 MB"))
+    #expect(rows[4] == PlanComparisonRow(feature: "Temas y fuentes", free: "—", reader: "✓", library: "✓"))
+    let hidden = ["Estadísticas", "Drive", "Calibre", "web", "Familia"]
+    let texts = rows.map(\.feature) + PlanCatalog.all.flatMap(\.includes)
+    #expect(!texts.contains { text in hidden.contains { text.contains($0) } })
 }

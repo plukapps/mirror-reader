@@ -20,10 +20,10 @@ struct PlansViewModelTests {
         #expect(viewModel.billing == .annual)
         #expect(viewModel.selected == .reader)
         #expect(!viewModel.tableOpen)
-        #expect(viewModel.cta.title == "Probar Lector 14 días gratis")
+        #expect(viewModel.cta.title == "Elegir Lector · $24.99 por año")
     }
 
-    @Test("PLN-004: pasar a mensual cambia el botón; al tocarlo se avisa (PRF-003)")
+    @Test("PLN-004, PLN-006: pasar a mensual cambia el botón; al tocarlo se avisa (PRF-003)")
     func monthlyChangesCta() {
         let viewModel = PlansViewModel(cache: PlansMemoryQuotaCache())
         viewModel.billing = .monthly
@@ -38,7 +38,7 @@ struct PlansViewModelTests {
         #expect(viewModel.selected == .library)
         viewModel.select(.free)
         #expect(viewModel.selected == .library)
-        #expect(viewModel.cta.title == "Probar Biblioteca 14 días gratis")
+        #expect(viewModel.cta.title == "Elegir Biblioteca · $49.99 por año")
     }
 
     @Test("PLN-006: la tabla se despliega y se repliega")
@@ -88,42 +88,4 @@ struct PlansViewModelTests {
         #expect(!presenter.plansOpen)
     }
 
-    @Test("PLN-010: Desde este dispositivo cierra la hoja y abre el selector de archivos")
-    func importFromDevice() {
-        let presenter = PlansPresenter(cache: PlansMemoryQuotaCache())
-        presenter.showImportSources()
-        #expect(presenter.importSheetOpen)
-        presenter.choose(.device)
-        #expect(!presenter.importSheetOpen)
-        #expect(presenter.importSheetDismissed())
-        #expect(!presenter.plansOpen)
-        presenter.showImportSources()
-        presenter.importSheetOpen = false
-        #expect(!presenter.importSheetDismissed())
-    }
-
-    @Test("PLN-010: Drive y Calibre muestran la función paga; Ahora no vuelve a la lista")
-    func paidFeature() {
-        let presenter = PlansPresenter(cache: PlansMemoryQuotaCache())
-        presenter.showImportSources()
-        presenter.choose(.drive)
-        #expect(presenter.paidFeature == .drive)
-        #expect(presenter.importSheetOpen)
-        presenter.backToSources()
-        #expect(presenter.paidFeature == nil)
-        presenter.choose(.calibre)
-        #expect(presenter.paidFeature == .calibre)
-    }
-
-    @Test("PLN-010: Ver planes desde la función paga cierra la hoja y abre Planes, sin selector")
-    func paidFeatureSeePlans() {
-        let presenter = PlansPresenter(cache: PlansMemoryQuotaCache())
-        presenter.showImportSources()
-        presenter.choose(.drive)
-        presenter.seePlansFromFeature()
-        #expect(!presenter.importSheetOpen)
-        #expect(!presenter.importSheetDismissed())
-        #expect(presenter.plansOpen)
-        #expect(presenter.paidFeature == nil)
-    }
 }
