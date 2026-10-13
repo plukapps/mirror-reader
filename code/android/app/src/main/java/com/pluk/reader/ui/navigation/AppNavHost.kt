@@ -43,6 +43,9 @@ import com.pluk.reader.ui.onboarding.SignUpScreen
 import com.pluk.reader.ui.onboarding.SignUpViewModel
 import com.pluk.reader.ui.onboarding.VerifyEmailScreen
 import com.pluk.reader.ui.onboarding.VerifyEmailViewModel
+import com.pluk.reader.domain.help.Faq
+import com.pluk.reader.ui.profile.FaqAnswerScreen
+import com.pluk.reader.ui.profile.FaqListScreen
 import com.pluk.reader.ui.profile.ProfileScreen
 import com.pluk.reader.ui.search.SearchScreen
 import com.pluk.reader.ui.welcome.WelcomeScreen
@@ -66,6 +69,9 @@ object Routes {
     const val READER = "reader/{${ReaderViewModel.ARG_BOOK_ID}}"
     const val SEARCH = "search"
     const val PROFILE = "profile"
+    const val FAQ_LIST = "profile/faq"
+    const val FAQ_ANSWER = "profile/faq/{key}"
+    fun faqAnswer(key: String): String = "profile/faq/$key"
 
     fun reader(bookId: String): String = "reader/$bookId"
 
@@ -218,7 +224,22 @@ fun AppNavHost(
                     }
                     composable(Routes.PROFILE) {
                         // PRF-009: con la sesión cerrada, a la bienvenida sin poder volver atrás.
-                        ProfileScreen(onSignedOut = { navController.startOver(Routes.WELCOME) })
+                        ProfileScreen(
+                            onSignedOut = { navController.startOver(Routes.WELCOME) },
+                            onFaq = { navController.navigate(Routes.faqAnswer(it.key)) },
+                            onAllFaq = { navController.navigate(Routes.FAQ_LIST) },
+                        )
+                    }
+                    // PRF-017, PRF-018: preguntas frecuentes, sin barra inferior.
+                    composable(Routes.FAQ_LIST) {
+                        FaqListScreen(
+                            onBack = { navController.popBackStack() },
+                            onOpen = { navController.navigate(Routes.faqAnswer(it.key)) },
+                        )
+                    }
+                    composable(Routes.FAQ_ANSWER, arguments = listOf(navArgument("key") { type = NavType.StringType })) { entry ->
+                        val id = Faq.byKey(entry.arguments?.getString("key").orEmpty())
+                        if (id != null) FaqAnswerScreen(id, onBack = { navController.popBackStack() })
                     }
                     composable(
                         route = Routes.READER,

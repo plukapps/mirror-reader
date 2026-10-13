@@ -49,6 +49,8 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.pluk.reader.BuildConfig
 import com.pluk.reader.R
+import com.pluk.reader.domain.help.Faq
+import com.pluk.reader.domain.help.FaqId
 import com.pluk.reader.domain.model.LineSpacing
 import com.pluk.reader.domain.model.ReaderFont
 import com.pluk.reader.domain.model.ReadingTheme
@@ -59,7 +61,7 @@ import com.pluk.reader.ui.theme.MarginColors
 data class ProfileActions(
     val onComingSoon: () -> Unit = {},
     val onSignOut: () -> Unit = onComingSoon,
-    val onFaq: (FaqTopic) -> Unit = { onComingSoon() },
+    val onFaq: (FaqId) -> Unit = { onComingSoon() },
     val onAllFaq: () -> Unit = onComingSoon,
     val onFont: (ReaderFont) -> Unit = {},
     val onSmallerFont: () -> Unit = {},
@@ -68,16 +70,13 @@ data class ProfileActions(
     val onLineSpacing: (LineSpacing) -> Unit = {},
 )
 
-/** Preguntas de la tarjeta de ayuda (PRF-017). */
-enum class FaqTopic(val question: Int) {
-    Epub(R.string.faq_epub_question),
-    Books(R.string.faq_books_question),
-    Space(R.string.faq_space_question),
-}
-
 /** Perfil: cuenta, espacio, ajustes y ayuda (PRF-001 a PRF-019). Diseño: "09 — Profile". */
 @Composable
-fun ProfileScreen(onSignedOut: () -> Unit, viewModel: ProfileViewModel = hiltViewModel()) {
+fun ProfileScreen(
+    onSignedOut: () -> Unit,
+    onFaq: (FaqId) -> Unit,
+    onAllFaq: () -> Unit,
+    viewModel: ProfileViewModel = hiltViewModel()) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     val context = LocalContext.current
     // PRF-009: con la sesión cerrada, a la bienvenida.
@@ -96,6 +95,8 @@ fun ProfileScreen(onSignedOut: () -> Unit, viewModel: ProfileViewModel = hiltVie
         actions = ProfileActions(
             onComingSoon = { Toast.makeText(context, R.string.nav_coming_soon, Toast.LENGTH_SHORT).show() },
             onSignOut = viewModel::onSignOutRequested,
+            onFaq = onFaq,
+            onAllFaq = onAllFaq,
             onFont = viewModel::onFont,
             onSmallerFont = viewModel::onSmallerFont,
             onBiggerFont = viewModel::onBiggerFont,
@@ -358,17 +359,7 @@ private fun HelpCard(actions: ProfileActions) {
             style = profileText(11, FontWeight.SemiBold, MarginColors.Yellow, 0.08.em),
             modifier = Modifier.padding(start = 16.dp, end = 16.dp, top = 16.dp, bottom = 6.dp),
         )
-        FaqTopic.entries.forEachIndexed { index, topic ->
-            if (index > 0) CardDivider(MarginColors.InkLine)
-            ProfileRow(onClick = { actions.onFaq(topic) }, minHeight = 52.dp) {
-                Text(
-                    stringResource(topic.question),
-                    style = profileText(15, FontWeight.Medium, MarginColors.Field),
-                    modifier = Modifier.weight(1f),
-                )
-                RowIcon(ProfileIcons.ChevronRight, MarginColors.InkMuted)
-            }
-        }
+        FaqRows(Faq.card, actions.onFaq)
         CardDivider(MarginColors.InkLine)
         ProfileRow(onClick = actions.onAllFaq, minHeight = 52.dp) {
             Text(

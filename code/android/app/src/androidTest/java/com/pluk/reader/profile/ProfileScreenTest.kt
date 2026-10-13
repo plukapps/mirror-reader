@@ -8,6 +8,7 @@ import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performScrollTo
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.compose.ui.test.onNodeWithTag
+import com.pluk.reader.domain.help.FaqId
 import com.pluk.reader.domain.model.LineSpacing
 import com.pluk.reader.domain.model.ReaderSettings
 import com.pluk.reader.domain.model.ReadingTheme
@@ -100,5 +101,17 @@ class ProfileScreenTest {
         compose.onNodeWithTag("profile-spacing-WIDE").performScrollTo().performClick()
         assertEquals(ReadingTheme.SEPIA, theme)
         assertEquals(LineSpacing.WIDE, spacing)
+    }
+
+    // PRF-017: tocar una pregunta o "Todas las preguntas" las abre
+    @Test
+    fun helpRowsOpenQuestions() {
+        var opened: FaqId? = null
+        var all = false
+        show(actions = ProfileActions(onFaq = { opened = it }, onAllFaq = { all = true }))
+        compose.onNodeWithText("¿Cuánto espacio tengo?").performScrollTo().performClick()
+        compose.onNodeWithText("Todas las preguntas").performScrollTo().performClick()
+        assertEquals(FaqId.SPACE, opened)
+        assertEquals(true, all)
     }
 }
