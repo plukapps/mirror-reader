@@ -3,7 +3,7 @@
 **Objetivo:** que la biblioteca (y la fila "Agregados recientemente" de Inicio) muestre primero el último libro que entró a la biblioteca del usuario, con el mismo orden en todos sus dispositivos.
 
 **Specs que implementa:** LIB-021 (`specs/product/01-library.md`, nuevo). Afecta a HOM-009, que ordena por la misma fecha.
-**Rama:** `feature/library-order` (worktree `.claude/worktrees/book-order-android-ios-6d6c3a`), desde `develop`. **PR:** uno solo contra `develop`, con las dos plataformas. **Tarjetas:** K-210 a K-213.
+**Rama:** `feature/library-order` (worktree `.claude/worktrees/book-order-android-ios-6d6c3a`), desde `develop`. **PR:** uno solo contra `develop`, con las dos plataformas. **Tarjetas:** K-210 a K-213; K-214 a K-216 (volver a importar).
 **Pedido del usuario (2026-10-13):** opción 1, "el último que se agregó a la biblioteca primero", entendido como el momento en que el libro entró a la cuenta.
 
 ## Situación actual
@@ -20,7 +20,7 @@ Las dos plataformas ordenan por `addedAt` descendente (`BookDao.observeAll`, `Li
   - los libros que Android ya bajó con la fecha equivocada se corrigen solos en la próxima pasada, sin migración;
   - un libro importado aquí toma la fecha de la nube después de subirse. Normalmente son segundos de diferencia; si se importó sin conexión, sube de lugar al subirse (lo dice LIB-021).
 - **Sin cambios en el backend.** Se descartó que la nube guarde la hora de importación del cliente: exige cambiar las reglas y `saveBook` en las dos plataformas, y la diferencia solo se nota en importaciones sin conexión.
-- **Quitar y volver a importar** (LIB-020): el documento revive con su `createdAt` original (la regla no deja cambiarlo), así que el libro vuelve primero en este dispositivo y, tras la pasada, a su lugar original. Se acepta por ahora y queda en Backlog (K-214) por si se quiere que cuente como entrada nueva.
+- **Quitar y volver a importar** (LIB-020): ver "Segunda parte". Al principio se aceptó que el libro volviera a su lugar original; el usuario lo probó y pidió que cuente como entrada nueva (2026-10-13).
 - Si un documento viejo no trae `createdAt`, se conserva lo que haya: la hora local de importación o la hora en que se vio.
 
 ## Tareas
@@ -42,6 +42,30 @@ Las dos plataformas ordenan por `addedAt` descendente (`BookDao.observeAll`, `Li
 ### K-213 — Cierre
 - Notas en `specs/platforms/android.md` y `apple.md` si corresponde. Verificación a mano: teléfono y iPhone con la misma cuenta muestran el mismo orden.
 - PR único contra `develop`.
+
+## Segunda parte: volver a importar (K-214 a K-216)
+
+**Problema:** al quitar un libro el documento de la nube solo se marca con `deletedAt`. Al volver a importarlo, `saveBook` lo revive sin tocar `createdAt` (la regla lo prohíbe), y la pasada siguiente le devuelve la fecha vieja. Lo mismo pasa si se vuelve a importar antes de que el borrado llegue a la nube: el documento nunca se marcó.
+
+**Decisión (aprobada por el usuario, 2026-10-13):** campo nuevo `addedAt` en `users/{uid}/books/{bookId}`.
+- Hora del servidor. Opcional: los documentos viejos y las versiones de la app ya instaladas no lo mandan.
+- Cada subida de un libro importado en el dispositivo (`saveBook`) lo escribe, también al revivir. Si importo en un dispositivo un libro que ya está en mi biblioteca no se sube (la app avisa que ya existe), así que no hay renovaciones de más.
+- La fecha de entrada es `addedAt` y, si falta, `createdAt`. `createdAt` sigue sin cambiar.
+- Se descartó renovar `createdAt` al revivir: dejaría de significar "cuándo se creó el documento".
+- **Orden de despliegue:** primero las reglas, después las apps. Con las reglas de hoy un `saveBook` con `addedAt` falla y no se sube nada. Desplegar a `mirror-reading-staging` se pide al usuario.
+
+### K-214 — Spec y backend
+- LIB-021: volver a importar cuenta como entrada nueva, con escenario. `backend.md`: campo `addedAt`.
+- `firestore.rules`: `addedAt` en `hasOnly`; al estar presente, hora del servidor o el valor que ya tenía.
+- Tests de reglas (emuladores): crear con y sin `addedAt`, renovarlo al revivir, rechazar una fecha del cliente, editar el título conservándolo.
+
+### K-215 — Android
+- `RemoteBook.createdAt` pasa a ser la fecha de entrada: `FirestoreRemoteLibrary.listBooks` lee `addedAt ?: createdAt`. `saveBook` escribe `addedAt` (servidor) al crear y al actualizar.
+- Test JVM con LIB-021 de que un libro conocido toma la fecha nueva más reciente (ya cubierto por `cloudAddedAt`, se agrega el caso de "vuelve a entrar").
+
+### K-216 — iOS
+- Igual: `listBooks` lee `addedAt ?? createdAt`; `saveBook` escribe `addedAt` al crear y al actualizar.
+- Test en `LibraryStoreTests`: un libro que vuelve a entrar con fecha más nueva sube al primer lugar.
 
 ## Verificación
 
