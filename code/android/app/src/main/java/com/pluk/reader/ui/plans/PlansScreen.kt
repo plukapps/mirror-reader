@@ -326,7 +326,7 @@ private fun PlanCard(plan: PlanId, state: PlansUiState, onSelect: (PlanId) -> Un
     val cloud = if (plan == PlanId.FREE) state.freeCloud else formatCloud(info.cloudBytes ?: 0)
     val period = stringResource(if (state.billing == Billing.ANNUAL) R.string.plans_per_year else R.string.plans_per_month)
     val price = info.price(state.billing)
-    val description = stringResource(R.string.plans_card_description, name, cloud, price, if (plan == PlanId.FREE) "" else period).trim()
+    val description = stringResource(R.string.plans_card_description, name, cloud, price, period)
     val selectable = plan != PlanId.FREE
     val selected = selectable && plan == state.selected
     Column(
@@ -361,29 +361,25 @@ private fun PlanCard(plan: PlanId, state: PlansUiState, onSelect: (PlanId) -> Un
             }
         }
         if (tablet) Spacer(Modifier.weight(1f))
-        if (plan == PlanId.FREE) {
-            if (tablet) HorizontalDivider(thickness = 1.dp, color = colors.rule)
-            Text(
-                info.price(state.billing),
-                style = planText(if (tablet) 28 else 18, FontWeight.Bold, colors.ink),
-            )
-        } else {
-            Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
-                HorizontalDivider(thickness = 1.dp, color = colors.rule)
-                Row(
-                    Modifier.padding(top = if (tablet) 10.dp else 6.dp),
-                    verticalAlignment = Alignment.Bottom,
-                    horizontalArrangement = Arrangement.spacedBy(6.dp),
-                ) {
-                    Text(price, style = planText(if (tablet) 28 else 26, FontWeight.Bold, colors.ink, (-0.02).em))
-                    Text(period, style = planText(if (tablet) 15 else 14, FontWeight.SemiBold, colors.ink), modifier = Modifier.padding(bottom = 3.dp))
-                }
-                Text(
-                    if (state.billing == Billing.ANNUAL) stringResource(R.string.plans_annual_equivalent, info.annualPerMonth)
-                    else stringResource(R.string.plans_monthly_note),
-                    style = planText(if (tablet) 13 else 12, FontWeight.Medium, if (plan == PlanId.READER) colors.muted else MarginColors.Muted),
-                )
+        // PLN-005: las tres tarjetas cierran igual: separador, precio grande con el período y una línea más chica.
+        Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+            HorizontalDivider(thickness = 1.dp, color = colors.rule)
+            Row(
+                Modifier.padding(top = if (tablet) 10.dp else 6.dp),
+                verticalAlignment = Alignment.Bottom,
+                horizontalArrangement = Arrangement.spacedBy(6.dp),
+            ) {
+                Text(price, style = planText(if (tablet) 28 else 26, FontWeight.Bold, colors.ink, (-0.02).em))
+                Text(period, style = planText(if (tablet) 15 else 14, FontWeight.SemiBold, colors.ink), modifier = Modifier.padding(bottom = 3.dp))
             }
+            Text(
+                when {
+                    plan == PlanId.FREE -> stringResource(R.string.plans_free_forever)
+                    state.billing == Billing.ANNUAL -> stringResource(R.string.plans_annual_equivalent, info.annualPerMonth)
+                    else -> stringResource(R.string.plans_monthly_note)
+                },
+                style = planText(if (tablet) 13 else 12, FontWeight.Medium, if (plan == PlanId.READER) colors.muted else MarginColors.Muted),
+            )
         }
     }
 }

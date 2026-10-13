@@ -72,7 +72,10 @@ class PlansScreenTest {
         compose.onNodeWithText("Elegir Lector · $24.99 por año").assertExists()
         compose.onNodeWithText("Se renueva cada año. Cancelás cuando quieras.").assertExists()
 
+        // PLN-005: Gratis con la misma estructura de precio
+        compose.onNodeWithContentDescription("Gratis, 15 MB en la nube, $0 por año").assertExists()
         compose.onNodeWithTag("billing-MONTHLY").performClick()
+        compose.onNodeWithContentDescription("Gratis, 15 MB en la nube, $0 por mes").assertExists()
         compose.onNodeWithText("Elegir Lector · $2.99 por mes").assertExists()
         compose.onNodeWithText("Se renueva cada mes. Cancelás cuando quieras.").assertExists()
     }

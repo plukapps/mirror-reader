@@ -324,6 +324,7 @@
     <string name="plans_per_year">por año</string>
     <string name="plans_per_month">por mes</string>
     <string name="plans_annual_equivalent">Equivale a %1$s por mes</string>
+    <string name="plans_free_forever">Sin costo, para siempre</string>
     <string name="plans_monthly_note">Pagás mes a mes</string>
     <string name="plans_see_all">Ver todo lo que incluye</string>
     <string name="plans_free_includes_1">Lectura y notas sin tope</string>
