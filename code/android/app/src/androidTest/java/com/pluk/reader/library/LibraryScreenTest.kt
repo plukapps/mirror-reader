@@ -75,4 +75,32 @@ class LibraryScreenTest {
         compose.onNodeWithTag("empty-library").assertIsDisplayed()
         compose.onNodeWithTag("import-button").assertIsDisplayed()
     }
+
+    // PLN-011: aviso del 80 % con su cruz
+    @Test
+    fun usageNoticeShowsAndCloses() {
+        var dismissed = 0
+        val usage = com.pluk.reader.domain.profile.StorageUsage("12 MB", "15 MB", "3 MB", 0.8f, 80)
+        compose.setContent {
+            LibraryContent(
+                LibraryUiState(loading = false, books = books, allCount = 3, usageNotice = usage),
+                SnackbarHostState(),
+                {},
+                onImport = {},
+                onBookClick = {},
+                onDismissUsageNotice = { dismissed++ },
+            )
+        }
+        compose.onNodeWithText("Usás 12 MB de 15 MB").assertIsDisplayed()
+        compose.onNodeWithTag("usage-notice-close").performClick()
+        assertEquals(1, dismissed)
+    }
+
+    // PLN-010: "Importar" abre la hoja de orígenes
+    @Test
+    fun importOpensTheSourcesSheet() {
+        show(LibraryUiState(loading = false))
+        compose.onNodeWithTag("import-button").performClick()
+        compose.onNodeWithText("Importar libros").assertIsDisplayed()
+    }
 }

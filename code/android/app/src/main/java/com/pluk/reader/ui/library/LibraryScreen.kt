@@ -35,6 +35,17 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import com.pluk.reader.domain.plans.ImportSource
 import com.pluk.reader.ui.plans.ImportSheet
+import com.pluk.reader.ui.plans.PlanIcons
+import com.pluk.reader.domain.profile.StorageUsage
+import androidx.compose.foundation.border
+import androidx.compose.foundation.layout.offset
+import androidx.compose.foundation.layout.size
+import androidx.compose.ui.text.LinkAnnotation
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.TextLinkStyles
+import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.style.TextDecoration
+import androidx.compose.ui.text.withLink
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -67,7 +78,11 @@ import com.pluk.reader.ui.theme.MarginColors
 
 /** Pantalla de inicio: la biblioteca del usuario (LIB-001, LIB-010, LIB-011). */
 @Composable
-fun LibraryScreen(onBookClick: (bookId: String) -> Unit, viewModel: LibraryViewModel = hiltViewModel()) {
+fun LibraryScreen(
+    onBookClick: (bookId: String) -> Unit,
+    onSeePlans: () -> Unit = {},
+    viewModel: LibraryViewModel = hiltViewModel(),
+) {
     val state = viewModel.uiState.collectAsStateWithLifecycle().value
     val snackbar = remember { SnackbarHostState() }
     val context = LocalContext.current
@@ -82,6 +97,11 @@ fun LibraryScreen(onBookClick: (bookId: String) -> Unit, viewModel: LibraryViewM
         onBookClick = onBookClick,
         onRetrySync = viewModel::onRetrySync,
         onImportSource = viewModel::onImportSource,
+        onDismissUsageNotice = viewModel::onDismissUsageNotice,
+        onSeePlans = {
+            viewModel.onDismissUsageNotice()
+            onSeePlans()
+        },
     )
 }
 
@@ -95,6 +115,8 @@ fun LibraryContent(
     onBookClick: (String) -> Unit,
     onRetrySync: () -> Unit = {},
     onImportSource: (ImportSource) -> Boolean = { true },
+    onDismissUsageNotice: () -> Unit = {},
+    onSeePlans: () -> Unit = {},
 ) {
     // El libro se copia a la app (ADR 0006), así que no hace falta permiso persistente.
     val picker = rememberLauncherForActivityResult(ActivityResultContracts.OpenMultipleDocuments()) { uris ->
@@ -118,6 +140,7 @@ fun LibraryContent(
         Column(Modifier.fillMaxSize().statusBarsPadding()) {
             Header(importing = state.importing, onImport = launchPicker)
             if (state.showSyncStatus) SyncStatus(state, onRetrySync)
+            state.usageNotice?.let { UsageNotice(it, onSeePlans, onDismissUsageNotice) }
             Tabs(state, onFilterSelected)
             when {
                 state.loading -> Unit
@@ -191,6 +214,64 @@ private fun SyncStatus(state: LibraryUiState, onRetry: () -> Unit) {
             .padding(start = 20.dp, end = 20.dp, top = 14.dp)
             .testTag("sync-status"),
     )
+}
+
+/** PLN-011: aviso suave del 80 %, una sola vez por cuenta. */
+@Composable
+private fun UsageNotice(usage: StorageUsage, onSeePlans: () -> Unit, onDismiss: () -> Unit) {
+    val seePlans = stringResource(R.string.plans_see_plans)
+    Row(
+        Modifier
+            .padding(start = 20.dp, end = 20.dp, top = 16.dp)
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(20.dp))
+            .background(MarginColors.Field)
+            .border(1.5.dp, MarginColors.Off, RoundedCornerShape(20.dp))
+            .padding(start = 16.dp, end = 6.dp, top = 14.dp, bottom = 12.dp)
+            .testTag("usage-notice"),
+        horizontalArrangement = Arrangement.spacedBy(10.dp),
+    ) {
+        Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+            Text(
+                stringResource(R.string.plans_usage, usage.used, usage.total),
+                color = MarginColors.Ink,
+                fontSize = 14.sp,
+                fontWeight = FontWeight.SemiBold,
+            )
+            Box(Modifier.fillMaxWidth().height(6.dp).clip(RoundedCornerShape(3.dp)).background(MarginColors.Off)) {
+                Box(Modifier.fillMaxWidth(usage.fraction).height(6.dp).clip(RoundedCornerShape(3.dp)).background(MarginColors.Ink))
+            }
+            Text(
+                buildAnnotatedString {
+                    append(stringResource(R.string.plans_notice_free, usage.free))
+                    append(' ')
+                    withLink(
+                        LinkAnnotation.Clickable(
+                            "plans",
+                            TextLinkStyles(SpanStyle(color = MarginColors.Ink, fontWeight = FontWeight.Bold, textDecoration = TextDecoration.Underline)),
+                        ) { onSeePlans() },
+                    ) { append(seePlans) }
+                },
+                color = MarginColors.Ink2,
+                fontSize = 13.sp,
+                fontWeight = FontWeight.Medium,
+                lineHeight = 1.4.em,
+            )
+        }
+        val close = stringResource(R.string.plans_notice_close)
+        Box(
+            Modifier
+                .offset(y = (-10).dp)
+                .size(44.dp)
+                .clip(RoundedCornerShape(22.dp))
+                .clickable(role = Role.Button, onClick = onDismiss)
+                .semantics { contentDescription = close }
+                .testTag("usage-notice-close"),
+            contentAlignment = Alignment.Center,
+        ) {
+            Icon(PlanIcons.Close, null, tint = MarginColors.Muted, modifier = Modifier.size(22.dp))
+        }
+    }
 }
 
 @Composable

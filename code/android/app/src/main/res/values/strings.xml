@@ -378,4 +378,7 @@
     <string name="plans_paid_calibre_title">Traé tus libros desde Calibre</string>
     <string name="plans_paid_calibre_body">Conectá tu biblioteca de Calibre o un catálogo OPDS y tus libros se suman solos a tu biblioteca.</string>
     <string name="plans_paid_included">Incluido en %1$s</string>
+    <!-- Aviso suave del 80 % (PLN-011). -->
+    <string name="plans_notice_free">Te quedan %1$s en la nube.</string>
+    <string name="plans_notice_close">Cerrar aviso</string>
 </resources>

@@ -12,6 +12,7 @@ import com.pluk.reader.domain.plans.ImportSource
 import com.pluk.reader.domain.plans.PaidFeature
 import com.pluk.reader.domain.plans.PlanPrompt
 import com.pluk.reader.domain.plans.PlanPrompts
+import com.pluk.reader.domain.plans.UsageNoticePreference
 import com.pluk.reader.domain.plans.QuotaBlock
 import com.pluk.reader.plans.FakePendingUploads
 import com.pluk.reader.plans.FakeQuotaCache
@@ -75,6 +76,15 @@ class LibraryViewModelTest {
     private val quotaCache = FakeQuotaCache()
     private val pendingUploads = FakePendingUploads()
 
+    private class FakeNoticePreference : UsageNoticePreference {
+        override val dismissed = MutableStateFlow(false)
+        override suspend fun dismiss() {
+            dismissed.value = true
+        }
+    }
+
+    private val noticePreference = FakeNoticePreference()
+
     private fun viewModel(
         library: FakeLibrary,
         filter: String? = null,
@@ -87,6 +97,8 @@ class LibraryViewModelTest {
         SavedStateHandle(listOfNotNull(filter?.let { LibraryViewModel.ARG_FILTER to it }).toMap()),
         ImportQuotaCheck(quotaCache, pendingUploads, prompts),
         prompts,
+        quotaCache,
+        noticePreference,
     )
 
     private fun local(id: String, uploaded: Boolean = false, downloaded: Boolean = true) =
@@ -266,5 +278,35 @@ class LibraryViewModelTest {
         assertEquals(PlanPrompt.Paid(PaidFeature.DRIVE), prompts.current.value)
         assertFalse(vm.onImportSource(ImportSource.CALIBRE))
         assertEquals(PlanPrompt.Paid(PaidFeature.CALIBRE), prompts.current.value)
+    }
+
+    // PLN-011: al 80 % aparece el aviso; cerrarlo lo descarta y no vuelve
+    @Test
+    fun usageNoticeAppearsAtEightyPercentUntilDismissed() = runTest(dispatcher) {
+        val mib = 1024L * 1024
+        quotaCache.quota.value = StorageQuota(12 * mib, 15 * mib)
+        val vm = viewModel(FakeLibrary())
+        backgroundScope.launch { vm.uiState.collect {} }
+        advanceUntilIdle()
+        assertEquals("12 MB", vm.uiState.value.usageNotice?.used)
+        assertEquals("3 MB", vm.uiState.value.usageNotice?.free)
+
+        vm.onDismissUsageNotice()
+        advanceUntilIdle()
+        assertEquals(null, vm.uiState.value.usageNotice)
+
+        quotaCache.quota.value = StorageQuota(13 * mib, 15 * mib)
+        advanceUntilIdle()
+        assertEquals(null, vm.uiState.value.usageNotice)
+    }
+
+    @Test
+    fun noUsageNoticeBelowEightyPercent() = runTest(dispatcher) {
+        val mib = 1024L * 1024
+        quotaCache.quota.value = StorageQuota(11 * mib, 15 * mib)
+        val vm = viewModel(FakeLibrary())
+        backgroundScope.launch { vm.uiState.collect {} }
+        advanceUntilIdle()
+        assertEquals(null, vm.uiState.value.usageNotice)
     }
 }

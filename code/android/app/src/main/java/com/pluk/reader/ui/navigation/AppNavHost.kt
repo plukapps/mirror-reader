@@ -239,7 +239,10 @@ fun AppNavHost(
                             navArgument(LibraryViewModel.ARG_FILTER) { type = NavType.StringType; nullable = true; defaultValue = null },
                         ),
                     ) {
-                        LibraryScreen(onBookClick = { bookId -> navController.navigate(Routes.reader(bookId)) })
+                        LibraryScreen(
+                            onBookClick = { bookId -> navController.navigate(Routes.reader(bookId)) },
+                            onSeePlans = { navController.navigate(Routes.PLANS) },
+                        )
                     }
                     composable(Routes.SEARCH) {
                         SearchScreen(onBookClick = { bookId -> navController.navigate(Routes.reader(bookId)) })
