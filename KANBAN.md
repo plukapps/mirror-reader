@@ -40,6 +40,16 @@ Plan de referencia: `specs/plans/2026-10-06-android-epub-viewer.md`
 
 ## Listo
 
+- **K-218** Planes, Android: catálogo y P01 Planes. PLN-001 a PLN-006, PLN-013. Rama `feature/subscription-plans-android`. Plan `2026-10-13-subscription-plans.md`.
+- **K-219** Planes, Android: P02 hojas de cuota al importar (lleno, no entra), caché de cuota en cada pasada, pasada tras importar desde Inicio. PLN-007 a PLN-009. Rama `feature/subscription-plans-android`.
+- **K-220** Planes, Android: P03 hoja "Importar libros" con Drive y Calibre como funciones pagas. PLN-010. Rama `feature/subscription-plans-android`.
+- **K-221** Planes, Android: aviso del 80 % en la Biblioteca. PLN-011. Rama `feature/subscription-plans-android`.
+- **K-222** Planes, Android: P04 Mi plan y accesos desde Perfil. PLN-012, PRF-006. Rama `feature/subscription-plans-android`.
+- **K-223** Planes, iOS: catálogo y P01 Planes. PLN-001 a PLN-006, PLN-013. Rama `feature/subscription-plans-ios`. Plan `2026-10-13-subscription-plans.md`.
+- **K-224** Planes, iOS: P02 hojas de cuota al importar, caché de cuota en cada pasada. PLN-007 a PLN-009. Rama `feature/subscription-plans-ios`.
+- **K-225** Planes, iOS: P03 hoja "Importar libros" con Drive y Calibre como funciones pagas. PLN-010. Rama `feature/subscription-plans-ios`.
+- **K-226** Planes, iOS: aviso del 80 % en la Biblioteca. PLN-011. Rama `feature/subscription-plans-ios`.
+- **K-227** Planes, iOS: P04 Mi plan y accesos desde Perfil. PLN-012, PRF-006. Rama `feature/subscription-plans-ios`.
 - **K-134** Lector iOS, Tarea 7: cierre de docs y verificación a mano en el simulador. Rama `feature/ios-reader`. Era K-125 hasta el merge con `master`.
 - **K-038** Inicio, Tarea 4: cierre de docs y verificación a mano. Rama `feature/home`.
 - **K-024** Quitar el padding vertical de Readium (40 dp arriba y abajo en modo paginado) y reservar la barra de estado desde la pantalla. RDR-002. Rama `feat/page-turn-animation`.
@@ -50,6 +60,7 @@ Plan de referencia: `specs/plans/2026-10-06-android-epub-viewer.md`
 
 ## Revisión
 
+- **K-217** Planes de suscripción: diseño importado (`Margin Planes.dc.html`), spec `12-plans.md` (PLN-001 a PLN-013, cambia PRF-006) y Plan `2026-10-13-subscription-plans.md`. Rama `feature/subscription-plans`. Decisiones del usuario (2026-10-13): sin compras, cuota en bytes, entran P02, P03 (importar), aviso del 80 % y P04 Gratis. A confirmar: Lector 5 GB y Biblioteca 50 GB.
 - **K-216** Volver a importar, iOS: `saveBook` escribe `addedAt` y el listado lo usa como fecha de entrada. LIB-021. Rama `feature/library-order`. Hecho: `listBooks` lee `addedAt ?? createdAt`; `saveBook` escribe `addedAt` al crear y al revivir. Tests: dominio 205, iPhone 189 (+1). Falta desplegar las reglas y probar a mano.
 - **K-215** Volver a importar, Android: `saveBook` escribe `addedAt` y el listado lo usa como fecha de entrada. LIB-021. Rama `feature/library-order`. Hecho: `listBooks` lee `addedAt ?: createdAt`; `saveBook` escribe `addedAt` al crear y al revivir. 415 tests JVM pasan (1 nuevo); los de emulador compilan.
 - **K-214** Volver a importar un libro quitado cuenta como entrada nueva (LIB-021): spec, campo `addedAt` en `backend.md` y reglas de Firestore con tests. Rama `feature/library-order`. Plan `2026-10-13-library-order.md`, segunda parte. Aprobado por el usuario (2026-10-13). Hecho: `addedAt` en `backend.md`, regla `isAddedAt`, 5 tests nuevos (97 pasan). Falta desplegar las reglas, antes que las apps.
