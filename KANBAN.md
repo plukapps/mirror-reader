@@ -40,6 +40,12 @@ Plan de referencia: `specs/plans/2026-10-06-android-epub-viewer.md`
 
 ## Listo
 
+- **K-250** Planes, Android: catálogo según la tabla de funciones: tamaño por archivo, sin prueba gratis, tarjetas, tabla y Mi plan; se quita la hoja "Importar libros". PLN-001, PLN-006, PLN-010 (retirado), PLN-012, PLN-016. Rama `feature/subscription-plans-android`. Plan `2026-10-13-subscription-plans.md`, segunda parte.
+- **K-251** Planes, Android: tamaño máximo por archivo según el plan, hoja de archivo muy grande y subida que lo respeta. PLN-014. Rama `feature/subscription-plans-android`. Plan `2026-10-13-subscription-plans.md`, segunda parte.
+- **K-252** Planes, Android: temas y fuentes solo en Lector: lector con Clásico y serifa en Gratis, marcas y hoja de función paga en el panel y en Perfil. PLN-015, RDR-014, PRF-013, PRF-014. Rama `feature/subscription-plans-android`. Plan `2026-10-13-subscription-plans.md`, segunda parte.
+- **K-253** Planes, iOS: catálogo según la tabla de funciones: tamaño por archivo, sin prueba gratis, tarjetas, tabla y Mi plan; se quita la hoja "Importar libros". PLN-001, PLN-006, PLN-010 (retirado), PLN-012, PLN-016. Rama `feature/subscription-plans-ios`. Plan `2026-10-13-subscription-plans.md`, segunda parte.
+- **K-254** Planes, iOS: tamaño máximo por archivo según el plan, hoja de archivo muy grande y subida que lo respeta. PLN-014. Rama `feature/subscription-plans-ios`. Plan `2026-10-13-subscription-plans.md`, segunda parte.
+- **K-255** Planes, iOS: temas y fuentes solo en Lector: lector con Clásico y serifa en Gratis, marcas y hoja de función paga en el panel y en Perfil. PLN-015, RDR-014, PRF-013, PRF-014. Rama `feature/subscription-plans-ios`. Plan `2026-10-13-subscription-plans.md`, segunda parte.
 - **K-218** Planes, Android: catálogo y P01 Planes. PLN-001 a PLN-006, PLN-013. Rama `feature/subscription-plans-android`. Plan `2026-10-13-subscription-plans.md`.
 - **K-219** Planes, Android: P02 hojas de cuota al importar (lleno, no entra), caché de cuota en cada pasada, pasada tras importar desde Inicio. PLN-007 a PLN-009. Rama `feature/subscription-plans-android`.
 - **K-220** Planes, Android: P03 hoja "Importar libros" con Drive y Calibre como funciones pagas. PLN-010. Rama `feature/subscription-plans-android`.
@@ -60,7 +66,7 @@ Plan de referencia: `specs/plans/2026-10-06-android-epub-viewer.md`
 
 ## Revisión
 
-- **K-217** Planes de suscripción: diseño importado (`Margin Planes.dc.html`), spec `12-plans.md` (PLN-001 a PLN-013, cambia PRF-006) y Plan `2026-10-13-subscription-plans.md`. Rama `feature/subscription-plans`. Decisiones del usuario (2026-10-13): sin compras, cuota en bytes, entran P02, P03 (importar), aviso del 80 % y P04 Gratis. Lector 5 GB y Biblioteca 50 GB confirmados por el usuario (por ahora).
+- **K-217** Planes de suscripción: diseño importado (`Margin Planes.dc.html`), spec `12-plans.md` (PLN-001 a PLN-013, cambia PRF-006) y Plan `2026-10-13-subscription-plans.md`. Rama `feature/subscription-plans`. Decisiones del usuario (2026-10-13): sin compras, cuota en bytes, entran P02, P03 (importar), aviso del 80 % y P04 Gratis. Lector 5 GB y Biblioteca 50 GB confirmados por el usuario (por ahora). Segunda parte (2026-10-13): tabla de funciones por plan, PLN-014 a PLN-016, PLN-010 retirado.
 - **K-216** Volver a importar, iOS: `saveBook` escribe `addedAt` y el listado lo usa como fecha de entrada. LIB-021. Rama `feature/library-order`. Hecho: `listBooks` lee `addedAt ?? createdAt`; `saveBook` escribe `addedAt` al crear y al revivir. Tests: dominio 205, iPhone 189 (+1). Falta desplegar las reglas y probar a mano.
 - **K-215** Volver a importar, Android: `saveBook` escribe `addedAt` y el listado lo usa como fecha de entrada. LIB-021. Rama `feature/library-order`. Hecho: `listBooks` lee `addedAt ?: createdAt`; `saveBook` escribe `addedAt` al crear y al revivir. 415 tests JVM pasan (1 nuevo); los de emulador compilan.
 - **K-214** Volver a importar un libro quitado cuenta como entrada nueva (LIB-021): spec, campo `addedAt` en `backend.md` y reglas de Firestore con tests. Rama `feature/library-order`. Plan `2026-10-13-library-order.md`, segunda parte. Aprobado por el usuario (2026-10-13). Hecho: `addedAt` en `backend.md`, regla `isAddedAt`, 5 tests nuevos (97 pasan). Falta desplegar las reglas, antes que las apps.
