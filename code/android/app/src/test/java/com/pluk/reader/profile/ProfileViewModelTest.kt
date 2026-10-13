@@ -55,10 +55,12 @@ class ProfileViewModelTest {
         override suspend fun current(): Result<StorageQuota> = result
     }
 
-    private class FakeCache(var saved: StorageQuota? = null) : QuotaCache {
-        override suspend fun last(): StorageQuota? = saved
+    private class FakeCache(initial: StorageQuota? = null) : QuotaCache {
+        override val quota = kotlinx.coroutines.flow.MutableStateFlow(initial)
+        val saved: StorageQuota? get() = quota.value
+        override suspend fun last(): StorageQuota? = quota.value
         override suspend fun save(quota: StorageQuota) {
-            saved = quota
+            this.quota.value = quota
         }
     }
 

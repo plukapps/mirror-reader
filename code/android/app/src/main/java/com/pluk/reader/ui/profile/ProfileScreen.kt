@@ -63,6 +63,8 @@ data class ProfileActions(
     val onComingSoon: () -> Unit = {},
     val onSignOut: () -> Unit = onComingSoon,
     val onChangePassword: () -> Unit = onComingSoon,
+    /** "Mejorar plan": abre Planes (PRF-006, PLN-002). */
+    val onUpgrade: () -> Unit = onComingSoon,
     val onFaq: (FaqId) -> Unit = { onComingSoon() },
     val onAllFaq: () -> Unit = onComingSoon,
     val onFont: (ReaderFont) -> Unit = {},
@@ -81,6 +83,7 @@ fun ProfileScreen(
     onFaq: (FaqId) -> Unit,
     onAllFaq: () -> Unit,
     onChangePassword: () -> Unit,
+    onUpgrade: () -> Unit,
     viewModel: ProfileViewModel = hiltViewModel()) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     val context = LocalContext.current
@@ -101,6 +104,7 @@ fun ProfileScreen(
             onComingSoon = { Toast.makeText(context, R.string.nav_coming_soon, Toast.LENGTH_SHORT).show() },
             onSignOut = viewModel::onSignOutRequested,
             onChangePassword = onChangePassword,
+            onUpgrade = onUpgrade,
             onFaq = onFaq,
             onAllFaq = onAllFaq,
             onFont = viewModel::onFont,
@@ -234,7 +238,7 @@ private fun Header(state: ProfileUiState, onClick: () -> Unit) {
 @Composable
 private fun AccountCard(state: ProfileUiState, isTablet: Boolean, actions: ProfileActions) {
     ProfileCard {
-        Storage(state, actions.onComingSoon)
+        Storage(state, actions.onUpgrade)
         CardDivider()
         Text(
             stringResource(R.string.profile_devices),

@@ -48,6 +48,7 @@ import com.pluk.reader.ui.profile.ChangePasswordScreen
 import com.pluk.reader.ui.profile.FaqAnswerScreen
 import com.pluk.reader.ui.profile.FaqListScreen
 import com.pluk.reader.ui.profile.ProfileScreen
+import com.pluk.reader.ui.plans.PlansScreen
 import com.pluk.reader.ui.search.SearchScreen
 import com.pluk.reader.ui.welcome.WelcomeScreen
 import android.net.Uri
@@ -82,6 +83,9 @@ object Routes {
     const val FAQ_LIST = "profile/faq"
     const val FAQ_ANSWER = "profile/faq/{key}"
     const val CHANGE_PASSWORD = "profile/password"
+
+    /** P01 Planes (PLN-002): pantalla completa, sin barra inferior. */
+    const val PLANS = "plans"
     fun faqAnswer(key: String): String = "profile/faq/$key"
 
     fun reader(bookId: String): String = "reader/$bookId"
@@ -246,7 +250,12 @@ fun AppNavHost(
                             onFaq = { navController.navigate(Routes.faqAnswer(it.key)) },
                             onAllFaq = { navController.navigate(Routes.FAQ_LIST) },
                             onChangePassword = { navController.navigate(Routes.CHANGE_PASSWORD) },
+                            onUpgrade = { navController.navigate(Routes.PLANS) },
                         )
+                    }
+                    // PLN-002: Planes, sin barra inferior; la cruz vuelve a donde estaba.
+                    composable(Routes.PLANS) {
+                        PlansScreen(onClose = { navController.popBackStack() })
                     }
                     // PRF-020: cambiar contraseña, sin barra inferior.
                     composable(Routes.CHANGE_PASSWORD) {

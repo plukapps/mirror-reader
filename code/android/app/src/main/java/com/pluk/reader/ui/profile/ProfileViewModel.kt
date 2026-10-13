@@ -15,8 +15,7 @@ import com.pluk.reader.domain.model.ReaderFont
 import com.pluk.reader.domain.model.ReaderSettings
 import com.pluk.reader.domain.model.ReadingTheme
 import com.pluk.reader.domain.profile.QuotaCache
-import com.pluk.reader.domain.profile.formatStorage
-import com.pluk.reader.domain.profile.storageUnitFor
+import com.pluk.reader.domain.profile.storageUsage
 import com.pluk.reader.domain.repository.SettingsRepository
 import com.pluk.reader.domain.repository.SyncPreferences
 import com.pluk.reader.domain.sync.WifiOnlyPreference
@@ -189,14 +188,8 @@ class ProfileViewModel @Inject constructor(
         (this?.displayName ?: this?.email)?.trim()?.firstOrNull()?.uppercase() ?: ""
 
     private fun StorageQuota.toUi(): StorageUi {
-        val unit = storageUnitFor(quotaBytes)
-        return StorageUi(
-            used = formatStorage(usedBytes, unit),
-            total = formatStorage(quotaBytes, unit),
-            free = formatStorage(freeBytes, unit),
-            fraction = if (quotaBytes <= 0) 0f else (usedBytes.toFloat() / quotaBytes).coerceIn(0f, 1f),
-            isFreePlan = isFreePlan,
-        )
+        val usage = storageUsage(this)
+        return StorageUi(usage.used, usage.total, usage.free, usage.fraction, isFreePlan)
     }
 
     private companion object {

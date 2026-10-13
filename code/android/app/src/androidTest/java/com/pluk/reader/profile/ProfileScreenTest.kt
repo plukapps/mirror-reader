@@ -85,10 +85,20 @@ class ProfileScreenTest {
     fun pendingFeaturesShowComingSoon() {
         var notices = 0
         show(actions = ProfileActions(onComingSoon = { notices++ }))
-        compose.onNodeWithText("Mejorar plan").performClick()
         compose.onNodeWithText("Eliminar cuenta").performScrollTo().performClick()
         compose.onNodeWithText("Descargar libros automáticamente").performScrollTo().performClick()
-        assertEquals(3, notices)
+        assertEquals(2, notices)
+    }
+
+    // PRF-006, PLN-002: "Mejorar plan" abre Planes, no el aviso
+    @Test
+    fun upgradeOpensPlans() {
+        var opened = 0
+        var notices = 0
+        show(actions = ProfileActions(onComingSoon = { notices++ }, onUpgrade = { opened++ }))
+        compose.onNodeWithText("Mejorar plan").performClick()
+        assertEquals(1, opened)
+        assertEquals(0, notices)
     }
 
     // PRF-023: "Sincronizar solo con Wi-Fi" muestra su estado y tocarlo lo cambia, sin aviso
