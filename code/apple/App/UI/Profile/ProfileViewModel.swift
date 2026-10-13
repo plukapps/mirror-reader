@@ -45,14 +45,16 @@ final class ProfileViewModel {
     private let signOut: SignOut?
     private let passwords: PasswordRepository?
     private let appearanceSettings: AppearanceSettings?
+    private let wifiOnlyGate: SyncNetworkGate?
 
     /// `account` y `quota` son nil sin Firebase (ADR 0015).
     init(
         account: AccountRepository?, quota: QuotaSource?, cache: QuotaCache, deviceName: String,
         settings: ReaderSettingsRepository, passwords: PasswordRepository? = nil, appearance: AppearanceSettings? = nil,
-        signOut: SignOut? = nil
+        wifiOnly: SyncNetworkGate? = nil, signOut: SignOut? = nil
     ) {
         appearanceSettings = appearance
+        wifiOnlyGate = wifiOnly
         self.signOut = signOut
         self.passwords = passwords
         self.account = account
@@ -100,6 +102,13 @@ final class ProfileViewModel {
 
     func setAppearance(_ appearance: Appearance) {
         appearanceSettings?.select(appearance)
+    }
+
+    /// PRF-023: "Sincronizar solo con Wi-Fi", o nil si la app no lo maneja (avisa que llega más adelante).
+    var wifiOnly: Bool? { wifiOnlyGate?.wifiOnly }
+
+    func setWifiOnly(_ on: Bool) {
+        wifiOnlyGate?.setWifiOnly(on)
     }
 
     /// Sin cuenta (sin Firebase) no hay sesión que cerrar.

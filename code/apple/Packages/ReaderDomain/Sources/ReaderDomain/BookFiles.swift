@@ -44,13 +44,20 @@ public protocol BookFileStore: Sendable {
 public struct DownloadBook: Sendable {
     private let files: BookFiles
     private let store: BookFileStore
+    private let allowed: @Sendable () async -> Bool
 
-    public init(files: BookFiles, store: BookFileStore) {
+    /// - Parameter allowed: si la red permite bajar libros (PRF-023, "Sincronizar solo con Wi-Fi").
+    public init(files: BookFiles, store: BookFileStore, allowed: @escaping @Sendable () async -> Bool = { true }) {
         self.files = files
         self.store = store
+        self.allowed = allowed
     }
 
     public func callAsFunction(bookId: String) async throws {
+        // PRF-023: un libro solo en la nube no se baja sin Wi-Fi si así se eligió.
+        if await !files.isDownloaded(bookId: bookId), await !allowed() {
+            throw BookOpenError("Este libro se descarga con Wi-Fi. Podés cambiarlo en Perfil.")
+        }
         do {
             try await fetch(bookId: bookId)
         } catch is RemoteUnavailableError {
