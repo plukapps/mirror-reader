@@ -61,6 +61,7 @@ import com.pluk.reader.ui.theme.MarginColors
 data class ProfileActions(
     val onComingSoon: () -> Unit = {},
     val onSignOut: () -> Unit = onComingSoon,
+    val onChangePassword: () -> Unit = onComingSoon,
     val onFaq: (FaqId) -> Unit = { onComingSoon() },
     val onAllFaq: () -> Unit = onComingSoon,
     val onFont: (ReaderFont) -> Unit = {},
@@ -76,6 +77,7 @@ fun ProfileScreen(
     onSignedOut: () -> Unit,
     onFaq: (FaqId) -> Unit,
     onAllFaq: () -> Unit,
+    onChangePassword: () -> Unit,
     viewModel: ProfileViewModel = hiltViewModel()) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     val context = LocalContext.current
@@ -95,6 +97,7 @@ fun ProfileScreen(
         actions = ProfileActions(
             onComingSoon = { Toast.makeText(context, R.string.nav_coming_soon, Toast.LENGTH_SHORT).show() },
             onSignOut = viewModel::onSignOutRequested,
+            onChangePassword = onChangePassword,
             onFaq = onFaq,
             onAllFaq = onAllFaq,
             onFont = viewModel::onFont,
@@ -236,7 +239,7 @@ private fun AccountCard(state: ProfileUiState, isTablet: Boolean, actions: Profi
         ThisDevice(state.deviceName, isTablet)
         if (state.canChangePassword) {
             CardDivider()
-            NavigationRow(stringResource(R.string.profile_change_password), actions.onComingSoon, ProfileIcons.Lock)
+            NavigationRow(stringResource(R.string.profile_change_password), actions.onChangePassword, ProfileIcons.Lock)
         }
         CardDivider()
         ActionRow(stringResource(R.string.profile_sign_out), ProfileIcons.Logout, MarginColors.Ink, actions.onSignOut)

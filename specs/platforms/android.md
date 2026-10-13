@@ -42,6 +42,7 @@ Stack y capas definidos en `specs/adr/0005-android-stack-and-architecture.md`: C
   - **Ajustes de lectura:** los mismos de `SettingsRepository` que usa el lector. El panel de letra reutiliza `FontChips` y `SizeButtons` con una paleta clara.
   - **Cerrar sesión:** `SignOut` deja de escuchar la nube, espera la pasada en curso (`LibrarySync.whileIdle`), borra con `LocalDataWiper` (la base, los archivos y el DataStore, salvo los ajustes del lector y `sync_device_id`), cancela el recordatorio, sale de Firebase y de Credential Manager y vuelve a la bienvenida.
   - **Ayuda:** `domain/help/Faq.kt` con las respuestas en `strings.xml`.
+  - **Cambiar contraseña (PRF-020, K-203):** ruta `profile/password` sin barra (`ChangePasswordScreen`, `ChangePasswordViewModel`), con los campos, reglas y medidor del onboarding. `AuthRepository.changePassword` reautentica con `EmailAuthProvider` y llama `updatePassword`; la actual incorrecta llega como `InvalidCredentials` y se muestra bajo su campo. Regla de "Guardar" en `canSaveNewPassword`.
   - Plan `specs/plans/2026-10-12-profile.md`.
 
 ## Criterio de terminado

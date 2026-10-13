@@ -103,6 +103,16 @@ class FirebaseAccountRepository @Inject constructor(
         Unit
     }
 
+    override suspend fun changePassword(current: String, newPassword: String): Result<Unit> = runAuth {
+        val user = auth.currentUser.required()
+        val email = user.email ?: throw IllegalStateException("La cuenta no tiene email")
+        // Firebase pide un ingreso reciente para cambiar la contraseña: se verifica la actual y, si es
+        // incorrecta, falla con FirebaseAuthInvalidCredentialsException (InvalidCredentials).
+        user.reauthenticate(EmailAuthProvider.getCredential(email, current)).await()
+        user.updatePassword(newPassword).await()
+        Unit
+    }
+
     override suspend fun applyEmailVerification(code: String): Result<Unit> = runAuth {
         auth.applyActionCode(code).await()
         // Si es el usuario de esta sesión, que se entere ya (ONB-007).
