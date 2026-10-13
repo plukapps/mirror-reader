@@ -42,7 +42,6 @@ Plan de referencia: `specs/plans/2026-10-06-android-epub-viewer.md`
 - **K-203** Perfil: cambiar contraseña en Android. PRF-020. Rama `feature/profile-password-android`, PR contra `claude/tabbar-menu-design-e09011`. Plan `2026-10-13-profile-settings.md`.
 - **K-204** Perfil: cambiar contraseña en iOS. PRF-020. Rama `feature/profile-password-ios`.
 - **K-205** Perfil: apariencia (claro, oscuro, sistema) y tema oscuro en Android. PRF-021, PRF-022. Resuelve K-200. Rama `feature/profile-appearance-android`.
-- **K-206** Perfil: apariencia y tema oscuro en iOS. PRF-021, PRF-022. Rama `feature/profile-appearance-ios`.
 - **K-207** Perfil: sincronizar solo con Wi-Fi en Android. PRF-023. Rama `feature/profile-wifi-android`.
 - **K-208** Perfil: sincronizar solo con Wi-Fi en iOS. PRF-023. Rama `feature/profile-wifi-ios`.
 - **K-134** Lector iOS, Tarea 7: cierre de docs y verificación a mano en el simulador. Rama `feature/ios-reader`. Era K-125 hasta el merge con `master`.
@@ -51,6 +50,7 @@ Plan de referencia: `specs/plans/2026-10-06-android-epub-viewer.md`
 
 ## En curso
 
+- **K-206** Perfil: apariencia y tema oscuro en iOS. PRF-021, PRF-022. Rama `feature/profile-appearance-ios`.
 - **K-176** Posición exacta, Tarea 5: verificación a mano entre el teléfono y el iPhone, cierre de docs. SYN-014.
 
 ## Revisión
