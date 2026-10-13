@@ -44,13 +44,13 @@ Plan de referencia: `specs/plans/2026-10-06-android-epub-viewer.md`
 - **K-205** Perfil: apariencia (claro, oscuro, sistema) y tema oscuro en Android. PRF-021, PRF-022. Resuelve K-200. Rama `feature/profile-appearance-android`.
 - **K-206** Perfil: apariencia y tema oscuro en iOS. PRF-021, PRF-022. Rama `feature/profile-appearance-ios`.
 - **K-207** Perfil: sincronizar solo con Wi-Fi en Android. PRF-023. Rama `feature/profile-wifi-android`.
-- **K-208** Perfil: sincronizar solo con Wi-Fi en iOS. PRF-023. Rama `feature/profile-wifi-ios`.
 - **K-134** Lector iOS, Tarea 7: cierre de docs y verificación a mano en el simulador. Rama `feature/ios-reader`. Era K-125 hasta el merge con `master`.
 - **K-038** Inicio, Tarea 4: cierre de docs y verificación a mano. Rama `feature/home`.
 - **K-024** Quitar el padding vertical de Readium (40 dp arriba y abajo en modo paginado) y reservar la barra de estado desde la pantalla. RDR-002. Rama `feat/page-turn-animation`.
 
 ## En curso
 
+- **K-208** Perfil: sincronizar solo con Wi-Fi en iOS. PRF-023. Rama `feature/profile-wifi-ios`.
 - **K-176** Posición exacta, Tarea 5: verificación a mano entre el teléfono y el iPhone, cierre de docs. SYN-014.
 
 ## Revisión
