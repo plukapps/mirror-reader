@@ -50,6 +50,7 @@ Stack y capas en `specs/adr/0010-apple-stack-and-architecture.md` (provisional):
   - **Ajustes de lectura:** los mismos de `UserDefaultsReaderSettings`.
   - **Cerrar sesión:** `SignOut` (dominio) usa `SyncScheduler.whileIdle` mediante `CoordinatorSyncControl`. `LocalAccountWiper` borra SwiftData, los archivos y las claves de la cuenta en `UserDefaults` (se listan las que se borran: el dominio también guarda claves del sistema). Sale de Firebase y de `GIDSignIn`.
   - **Ayuda:** las preguntas se abren en un `NavigationStack` propio del tab.
+  - **Solo con Wi-Fi (PRF-023, K-208):** `canSync` y `NetworkType` en `ReaderDomain`; `SyncScheduler` no corre la pasada sin red apta y publica `waitingForWifi` ("Esperando Wi-Fi para sincronizar." en la biblioteca, sin reintentar); `DownloadBook` no baja un libro solo en la nube. `PathNetworkMonitor` (`NWPathMonitor`: Wi-Fi o cable) alimenta `SyncNetworkGate`, que guarda `sync.wifiOnly` en `UserDefaults` (del dispositivo: cerrar sesión no la borra). `SyncCoordinator` tampoco escucha ni envía posiciones ni libros quitados sin red apta; al llegar el Wi-Fi con la app a la vista (o al apagar la opción) escucha y pide una pasada. Al abrir un libro sin red apta se usa la posición local.
   - **Tests de la Mac:** no arrancan por la firma del framework del paquete (K-201).
   - Plan `specs/plans/2026-10-12-profile.md`.
 
