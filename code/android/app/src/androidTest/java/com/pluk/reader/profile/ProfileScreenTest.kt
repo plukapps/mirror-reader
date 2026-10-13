@@ -1,5 +1,8 @@
 package com.pluk.reader.profile
 
+import androidx.compose.ui.semantics.SemanticsProperties
+import androidx.compose.ui.test.SemanticsMatcher
+import androidx.compose.ui.test.assert
 import androidx.compose.ui.test.assertIsSelected
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithContentDescription
@@ -74,6 +77,19 @@ class ProfileScreenTest {
         compose.onNodeWithText("Eliminar cuenta").performScrollTo().performClick()
         compose.onNodeWithText("Descargar libros automáticamente").performScrollTo().performClick()
         assertEquals(3, notices)
+    }
+
+    // PRF-023: "Sincronizar solo con Wi-Fi" muestra su estado y tocarlo lo cambia, sin aviso
+    @Test
+    fun wifiOnlySwitchShowsStateAndToggles() {
+        var chosen: Boolean? = null
+        var notices = 0
+        show(state.copy(wifiOnly = true), ProfileActions(onComingSoon = { notices++ }, onWifiOnly = { chosen = it }))
+        compose.onNodeWithText("Sincronizar solo con Wi-Fi", substring = true).performScrollTo()
+            .assert(SemanticsMatcher.expectValue(SemanticsProperties.StateDescription, "activado"))
+            .performClick()
+        assertEquals(false, chosen)
+        assertEquals(0, notices)
     }
 
     // PRF-016: la apariencia muestra el comportamiento de hoy (claro)

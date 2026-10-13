@@ -16,6 +16,7 @@ import com.pluk.reader.domain.profile.formatStorage
 import com.pluk.reader.domain.profile.storageUnitFor
 import com.pluk.reader.domain.repository.SettingsRepository
 import com.pluk.reader.domain.repository.SyncPreferences
+import com.pluk.reader.domain.sync.WifiOnlyPreference
 import com.pluk.reader.domain.usecase.SignOut
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
@@ -49,6 +50,8 @@ data class ProfileUiState(
     val deviceName: String = "",
     /** Ajustes del lector: los mismos que cambia el panel "Aa" (PRF-011). */
     val reading: ReaderSettings = ReaderSettings(),
+    /** "Sincronizar solo con Wi-Fi" de este dispositivo (PRF-023). */
+    val wifiOnly: Boolean = false,
     /** Confirmación de cerrar sesión a la vista, o null (PRF-009). */
     val signOutDialog: SignOutDialog? = null,
     val signingOut: Boolean = false,
@@ -81,6 +84,7 @@ class ProfileViewModel @Inject constructor(
     syncPreferences: SyncPreferences,
     private val settings: SettingsRepository,
     private val signOut: SignOut,
+    private val wifiOnlyPreference: WifiOnlyPreference,
 ) : ViewModel() {
     private val signOutState = MutableStateFlow(SignOutState())
     private val quota = MutableStateFlow<StorageQuota?>(null)
@@ -88,8 +92,8 @@ class ProfileViewModel @Inject constructor(
     private val deviceName = syncPreferences.deviceName()
 
     val uiState: StateFlow<ProfileUiState> = combine(
-        account.user, quota, quotaFailed, settings.settings, signOutState,
-    ) { user, quota, failed, reading, signingOut ->
+        account.user, quota, quotaFailed, combine(settings.settings, wifiOnlyPreference.wifiOnly, ::Pair), signOutState,
+    ) { user, quota, failed, (reading, wifiOnly), signingOut ->
         ProfileUiState(
             name = user?.displayName,
             email = user?.email,
@@ -99,6 +103,7 @@ class ProfileViewModel @Inject constructor(
             storageFailed = failed && quota == null,
             deviceName = deviceName,
             reading = reading,
+            wifiOnly = wifiOnly,
             signOutDialog = signingOut.dialog,
             signingOut = signingOut.running,
             signedOut = signingOut.done,
@@ -130,6 +135,11 @@ class ProfileViewModel @Inject constructor(
     fun onBiggerFont() = updateReading { it.biggerFont() }
     fun onTheme(theme: ReadingTheme) = updateReading { it.withTheme(theme) }
     fun onLineSpacing(spacing: LineSpacing) = updateReading { it.withLineSpacing(spacing) }
+
+    /** PRF-023: encendido, este dispositivo solo sincroniza por Wi-Fi; apagarlo sincroniza en el momento. */
+    fun onWifiOnly(enabled: Boolean) {
+        viewModelScope.launch { wifiOnlyPreference.setWifiOnly(enabled) }
+    }
 
     /** PRF-009: muestra la confirmación, con aviso si hay cambios sin subir. */
     fun onSignOutRequested() {

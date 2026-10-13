@@ -68,6 +68,7 @@ data class ProfileActions(
     val onBiggerFont: () -> Unit = {},
     val onTheme: (ReadingTheme) -> Unit = {},
     val onLineSpacing: (LineSpacing) -> Unit = {},
+    val onWifiOnly: (Boolean) -> Unit = {},
 )
 
 /** Perfil: cuenta, espacio, ajustes y ayuda (PRF-001 a PRF-019). Diseño: "09 — Profile". */
@@ -102,6 +103,7 @@ fun ProfileScreen(
             onBiggerFont = viewModel::onBiggerFont,
             onTheme = viewModel::onTheme,
             onLineSpacing = viewModel::onLineSpacing,
+            onWifiOnly = viewModel::onWifiOnly,
         ),
     )
 }
@@ -142,7 +144,7 @@ fun ProfileContent(
             )
             ReadingDefaultsCard(state.reading, actions, onOpenFont = { fontSheetOpen = true })
             SectionTitle(stringResource(R.string.profile_section_app))
-            AppCard(actions.onComingSoon)
+            AppCard(state.wifiOnly, actions)
             SectionTitle(stringResource(R.string.profile_section_help))
             HelpCard(actions)
             Footer(version, actions.onComingSoon, Modifier.padding(bottom = 24.dp + bottomBarPadding))
@@ -307,9 +309,10 @@ private fun ThisDevice(name: String, isTablet: Boolean) {
     }
 }
 
-/** PRF-016: apariencia e interruptores con el comportamiento de hoy; avisan al tocarlos. */
+/** PRF-016, PRF-023: apariencia y descarga automática avisan al tocarlos; "Solo con Wi-Fi" funciona. */
 @Composable
-private fun AppCard(onComingSoon: () -> Unit) {
+private fun AppCard(wifiOnly: Boolean, actions: ProfileActions) {
+    val onComingSoon = actions.onComingSoon
     ProfileCard {
         Column(
             Modifier.padding(horizontal = 16.dp, vertical = 14.dp),
@@ -328,7 +331,9 @@ private fun AppCard(onComingSoon: () -> Unit) {
             )
         }
         CardDivider()
-        SwitchRow(stringResource(R.string.profile_wifi_only), stringResource(R.string.profile_wifi_only_hint), false, onComingSoon)
+        SwitchRow(stringResource(R.string.profile_wifi_only), stringResource(R.string.profile_wifi_only_hint), wifiOnly) {
+            actions.onWifiOnly(!wifiOnly)
+        }
         CardDivider()
         SwitchRow(stringResource(R.string.profile_auto_download), stringResource(R.string.profile_auto_download_hint), false, onComingSoon)
     }

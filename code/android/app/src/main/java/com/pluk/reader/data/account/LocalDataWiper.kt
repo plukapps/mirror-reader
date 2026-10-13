@@ -38,9 +38,9 @@ class LocalDataWiper @Inject constructor(
     companion object {
         /**
          * Claves del DataStore que sobreviven al cierre de sesión: los ajustes del lector (`SettingsRepositoryImpl`)
-         * y el id de esta instalación (`SyncPreferencesImpl`). Todo lo demás se borra, también lo que se agregue
+         * el id de esta instalación (`SyncPreferencesImpl`) y "Solo con Wi-Fi" (`WifiOnlyPreferenceImpl`, PRF-023). Todo lo demás se borra, también lo que se agregue
          * más adelante, salvo que se sume aquí.
          */
-        val RETAINED_KEYS = setOf("theme", "fontTenths", "pageAnimation", "font", "lineSpacing", "sync_device_id")
+        val RETAINED_KEYS = setOf("theme", "fontTenths", "pageAnimation", "font", "lineSpacing", "sync_device_id", "sync_wifi_only")
     }
 }
