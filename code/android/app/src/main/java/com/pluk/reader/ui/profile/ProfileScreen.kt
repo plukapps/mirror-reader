@@ -49,6 +49,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.pluk.reader.BuildConfig
 import com.pluk.reader.R
+import com.pluk.reader.domain.appearance.Appearance
 import com.pluk.reader.domain.help.Faq
 import com.pluk.reader.domain.help.FaqId
 import com.pluk.reader.domain.model.LineSpacing
@@ -61,6 +62,7 @@ import com.pluk.reader.ui.theme.MarginColors
 data class ProfileActions(
     val onComingSoon: () -> Unit = {},
     val onSignOut: () -> Unit = onComingSoon,
+    val onChangePassword: () -> Unit = onComingSoon,
     val onFaq: (FaqId) -> Unit = { onComingSoon() },
     val onAllFaq: () -> Unit = onComingSoon,
     val onFont: (ReaderFont) -> Unit = {},
@@ -68,6 +70,7 @@ data class ProfileActions(
     val onBiggerFont: () -> Unit = {},
     val onTheme: (ReadingTheme) -> Unit = {},
     val onLineSpacing: (LineSpacing) -> Unit = {},
+    val onAppearance: (Appearance) -> Unit = {},
     val onWifiOnly: (Boolean) -> Unit = {},
 )
 
@@ -77,6 +80,7 @@ fun ProfileScreen(
     onSignedOut: () -> Unit,
     onFaq: (FaqId) -> Unit,
     onAllFaq: () -> Unit,
+    onChangePassword: () -> Unit,
     viewModel: ProfileViewModel = hiltViewModel()) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     val context = LocalContext.current
@@ -96,6 +100,7 @@ fun ProfileScreen(
         actions = ProfileActions(
             onComingSoon = { Toast.makeText(context, R.string.nav_coming_soon, Toast.LENGTH_SHORT).show() },
             onSignOut = viewModel::onSignOutRequested,
+            onChangePassword = onChangePassword,
             onFaq = onFaq,
             onAllFaq = onAllFaq,
             onFont = viewModel::onFont,
@@ -103,6 +108,7 @@ fun ProfileScreen(
             onBiggerFont = viewModel::onBiggerFont,
             onTheme = viewModel::onTheme,
             onLineSpacing = viewModel::onLineSpacing,
+            onAppearance = viewModel::onAppearance,
             onWifiOnly = viewModel::onWifiOnly,
         ),
     )
@@ -144,7 +150,7 @@ fun ProfileContent(
             )
             ReadingDefaultsCard(state.reading, actions, onOpenFont = { fontSheetOpen = true })
             SectionTitle(stringResource(R.string.profile_section_app))
-            AppCard(state.wifiOnly, actions)
+            AppCard(state.appearance, state.wifiOnly, actions)
             SectionTitle(stringResource(R.string.profile_section_help))
             HelpCard(actions)
             Footer(version, actions.onComingSoon, Modifier.padding(bottom = 24.dp + bottomBarPadding))
@@ -207,7 +213,7 @@ private fun Header(state: ProfileUiState, onClick: () -> Unit) {
         Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
             Text(
                 title,
-                style = profileText(20, FontWeight.Bold, letterSpacing = (-0.02).em).copy(lineHeight = 1.1.em),
+                style = profileText(20, FontWeight.Bold, MarginColors.OnYellow, (-0.02).em).copy(lineHeight = 1.1.em),
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
             )
@@ -220,7 +226,7 @@ private fun Header(state: ProfileUiState, onClick: () -> Unit) {
                 )
             }
         }
-        RowIcon(ProfileIcons.ChevronRight, MarginColors.Ink, 24.dp)
+        RowIcon(ProfileIcons.ChevronRight, MarginColors.OnYellow, 24.dp)
     }
 }
 
@@ -238,7 +244,7 @@ private fun AccountCard(state: ProfileUiState, isTablet: Boolean, actions: Profi
         ThisDevice(state.deviceName, isTablet)
         if (state.canChangePassword) {
             CardDivider()
-            NavigationRow(stringResource(R.string.profile_change_password), actions.onComingSoon, ProfileIcons.Lock)
+            NavigationRow(stringResource(R.string.profile_change_password), actions.onChangePassword, ProfileIcons.Lock)
         }
         CardDivider()
         ActionRow(stringResource(R.string.profile_sign_out), ProfileIcons.Logout, MarginColors.Ink, actions.onSignOut)
@@ -309,9 +315,9 @@ private fun ThisDevice(name: String, isTablet: Boolean) {
     }
 }
 
-/** PRF-016, PRF-023: apariencia y descarga automática avisan al tocarlos; "Solo con Wi-Fi" funciona. */
+/** PRF-016, PRF-021, PRF-023: apariencia y "Solo con Wi-Fi" funcionan; la descarga automática avisa al tocarla. */
 @Composable
-private fun AppCard(wifiOnly: Boolean, actions: ProfileActions) {
+private fun AppCard(appearance: Appearance, wifiOnly: Boolean, actions: ProfileActions) {
     val onComingSoon = actions.onComingSoon
     ProfileCard {
         Column(
@@ -325,9 +331,8 @@ private fun AppCard(wifiOnly: Boolean, actions: ProfileActions) {
                     Segment(stringResource(R.string.profile_appearance_dark), ProfileIcons.DarkMode),
                     Segment(stringResource(R.string.profile_appearance_system), ProfileIcons.Contrast),
                 ),
-                // La app hoy es solo clara.
-                selected = 0,
-                onSelect = { onComingSoon() },
+                selected = APPEARANCE_ORDER.indexOf(appearance),
+                onSelect = { actions.onAppearance(APPEARANCE_ORDER[it]) },
             )
         }
         CardDivider()
@@ -358,7 +363,7 @@ private fun SwitchRow(title: String, subtitle: String, checked: Boolean, onClick
 /** PRF-017: tarjeta tinta con tres preguntas y "Todas las preguntas". */
 @Composable
 private fun HelpCard(actions: ProfileActions) {
-    ProfileCard(background = MarginColors.Ink) {
+    ProfileCard(background = MarginColors.InkFill) {
         Text(
             stringResource(R.string.profile_faq).uppercase(),
             style = profileText(11, FontWeight.SemiBold, MarginColors.Yellow, 0.08.em),
@@ -395,6 +400,9 @@ private fun Footer(version: String, onComingSoon: () -> Unit, modifier: Modifier
         }
     }
 }
+
+/** Orden de los segmentos de "Apariencia": Claro, Oscuro, Sistema (diseño 09). */
+private val APPEARANCE_ORDER = listOf(Appearance.LIGHT, Appearance.DARK, Appearance.SYSTEM)
 
 private val MAX_CONTENT_WIDTH = 640.dp
 private const val TABLET_MIN_WIDTH_DP = 600

@@ -105,7 +105,7 @@ private struct ScopeChips: View {
                         .foregroundStyle(isSelected ? MarginColors.yellow : MarginColors.ink)
                         .padding(.horizontal, 14)
                         .frame(height: 34)
-                        .background(isSelected ? MarginColors.ink : .clear, in: Capsule())
+                        .background(isSelected ? MarginColors.inkFill : .clear, in: Capsule())
                         .overlay {
                             if !isSelected { Capsule().strokeBorder(MarginColors.ink, lineWidth: 1.5) }
                         }

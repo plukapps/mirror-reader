@@ -190,6 +190,11 @@
     <string name="profile_devices">Dispositivos vinculados</string>
     <string name="profile_this_device">· este dispositivo</string>
     <string name="profile_change_password">Cambiar contraseña</string>
+    <string name="profile_password_current">Contraseña actual</string>
+    <string name="profile_password_wrong">La contraseña actual no es correcta.</string>
+    <string name="profile_password_same">Tiene que ser distinta de la actual.</string>
+    <string name="profile_password_save">Guardar</string>
+    <string name="profile_password_updated">Contraseña actualizada.</string>
     <string name="profile_sign_out">Cerrar sesión</string>
     <string name="profile_delete_account">Eliminar cuenta</string>
     <string name="profile_sign_out_title">¿Cerrar sesión?</string>

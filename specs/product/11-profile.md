@@ -44,7 +44,7 @@ Primera rebanada: Android (teléfono y tablet) e iPhone. La Mac queda afuera has
 ### Cambiar contraseña
 
 - **PRF-020** "Cambiar contraseña" abre una pantalla con flecha atrás, el título "Cambiar contraseña", y tres campos con ver u ocultar: "Contraseña actual", "Contraseña nueva" (con las reglas de ONB-005 marcadas a medida que se cumplen y su medidor) y "Confirmar contraseña". "Guardar" se habilita con la actual no vacía, la nueva válida (ONB-005), distinta de la actual e igual a la confirmación. Mientras espera al servidor muestra que está trabajando (ONB-021).
-  - Si la actual es incorrecta, lo dice en rojo bajo ese campo ("La contraseña actual no es correcta."). Demasiados intentos y sin conexión se avisan igual que en ONB-015.
+  - Si la actual es incorrecta, lo dice en rojo bajo ese campo ("La contraseña actual no es correcta."). Si la nueva es igual a la actual, lo dice bajo la nueva ("Tiene que ser distinta de la actual."). Demasiados intentos y sin conexión se avisan igual que en ONB-015.
   - Al guardar bien, vuelve a Perfil con el aviso "Contraseña actualizada.". La sesión de este dispositivo sigue abierta; los otros dispositivos pueden pedir volver a entrar.
   - Atrás descarta sin cambiar nada.
 

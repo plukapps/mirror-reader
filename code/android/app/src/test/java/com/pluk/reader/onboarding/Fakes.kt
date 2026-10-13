@@ -91,6 +91,14 @@ open class FakeAuth : AccountRepository, AuthRepository {
         confirmed += code to newPassword
         return confirmResult
     }
+
+    var changePasswordResult: Result<Unit> = Result.success(Unit)
+    val passwordChanges = mutableListOf<Pair<String, String>>()
+
+    override suspend fun changePassword(current: String, newPassword: String): Result<Unit> {
+        passwordChanges += current to newPassword
+        return changePasswordResult
+    }
 }
 
 class FakePreferences : OnboardingPreferences {

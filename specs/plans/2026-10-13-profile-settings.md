@@ -48,6 +48,8 @@ Cada PR: tests en verde (Android JVM; Apple dominio e iPhone), notas de la plata
 | `inkMuted` | `#8A8676` | `#8A8676` | íconos inactivos sobre `inkFill` |
 | `yellow`, `danger`, `readingDot`, portadas | igual | igual | |
 | `onYellow`, `onYellowMuted` | `#130000`, `#3A3115` | igual | texto sobre amarillo |
+| `onInkFill`, `onInkFillMuted` | `#FDFDFD`, `#DDD9CE` | igual | texto sobre `inkFill` (preguntas de ayuda, autor en "Seguir leyendo"). Agregado en K-205 |
+| `card` | `#FFFFFF` | `#221C19` (`field`) | tarjeta "Nada en lectura" de Inicio. Agregado en K-205 |
 
 Donde hoy se usa `Ink` como relleno (no como texto), pasa a `inkFill`. Se revisan una por una las pantallas de Inicio, Buscar, Estantes, el menú de libro, avisos y Perfil, con capturas en los dos modos.
 

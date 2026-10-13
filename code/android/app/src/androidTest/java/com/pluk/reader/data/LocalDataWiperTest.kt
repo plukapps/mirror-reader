@@ -61,6 +61,7 @@ class LocalDataWiperTest {
         dataStore.edit {
             it[stringPreferencesKey("theme")] = "SEPIA"
             it[stringPreferencesKey("sync_device_id")] = "d1"
+            it[stringPreferencesKey("appearance")] = "DARK" // PRF-021: es del dispositivo
             it[booleanPreferencesKey("sync_wifi_only")] = true // PRF-023: es del dispositivo
             it[longPreferencesKey("sync_last_positions_seen_at")] = 5
             it[longPreferencesKey("profile_used_bytes")] = 10
@@ -74,6 +75,7 @@ class LocalDataWiperTest {
         val prefs = dataStore.data.first()
         assertEquals("SEPIA", prefs[stringPreferencesKey("theme")])
         assertEquals("d1", prefs[stringPreferencesKey("sync_device_id")])
+        assertEquals("DARK", prefs[stringPreferencesKey("appearance")])
         assertEquals(true, prefs[booleanPreferencesKey("sync_wifi_only")])
         assertNull(prefs[longPreferencesKey("sync_last_positions_seen_at")])
         assertNull(prefs[longPreferencesKey("profile_used_bytes")])
