@@ -149,7 +149,7 @@ internal fun PlanChip(text: String) {
         Modifier
             .height(22.dp)
             .clip(RoundedCornerShape(11.dp))
-            .background(MarginColors.Ink)
+            .background(MarginColors.InkFill)
             .padding(horizontal = 9.dp),
         contentAlignment = Alignment.Center,
     ) {
@@ -173,6 +173,7 @@ internal fun StorageBar(fraction: Float) {
                     .fillMaxWidth(fraction)
                     .fillMaxHeight()
                     .clip(RoundedCornerShape(4.dp))
+                    // Tinta (no relleno): en oscuro, una barra clara que se ve sobre la pista.
                     .background(MarginColors.Ink),
             )
         }
@@ -200,7 +201,7 @@ internal fun ProfileSwitch(checked: Boolean) {
         Modifier
             .size(width = 46.dp, height = 28.dp)
             .clip(RoundedCornerShape(14.dp))
-            .background(if (checked) MarginColors.Ink else MarginColors.Off)
+            .background(if (checked) MarginColors.InkFill else MarginColors.Off)
             .padding(4.dp),
         contentAlignment = if (checked) Alignment.CenterEnd else Alignment.CenterStart,
     ) {
@@ -234,7 +235,7 @@ internal fun SegmentedControl(segments: List<Segment>, selected: Int, onSelect: 
                     .weight(1f)
                     .height(36.dp)
                     .clip(RoundedCornerShape(18.dp))
-                    .background(if (isSelected) MarginColors.Ink else Color.Transparent)
+                    .background(if (isSelected) MarginColors.InkFill else Color.Transparent)
                     .clickable(role = Role.RadioButton) { onSelect(index) }
                     .semantics { this.selected = isSelected },
                 horizontalArrangement = Arrangement.spacedBy(6.dp, Alignment.CenterHorizontally),
@@ -258,7 +259,8 @@ internal fun Avatar(initial: String) {
         Modifier
             .size(56.dp)
             .clip(CircleShape)
-            .background(MarginColors.Ink),
+            // Va sobre la cabecera amarilla: tinta fija en los dos modos (PRF-022).
+            .background(MarginColors.OnYellow),
         contentAlignment = Alignment.Center,
     ) {
         Text(initial, style = profileText(22, FontWeight.Bold, MarginColors.Yellow))
