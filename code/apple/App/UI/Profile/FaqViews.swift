@@ -32,6 +32,8 @@ enum ProfileRoute: Hashable {
     case allFaq
     /// PRF-020.
     case changePassword
+    /// PLN-012: Mi plan.
+    case myPlan
 }
 
 /// Filas de preguntas sobre la tarjeta tinta de ayuda (PRF-017): 52 de alto, separador, flecha.

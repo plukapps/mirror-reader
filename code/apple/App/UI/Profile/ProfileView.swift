@@ -9,6 +9,8 @@ struct ProfileActions {
     var comingSoon: () -> Void = {}
     /// PLN-002: "Mejorar plan" abre Planes.
     var openPlans: (() -> Void)?
+    /// PLN-012: tocar el bloque del espacio abre Mi plan.
+    var openMyPlan: (() -> Void)?
     var signOut: (() -> Void)?
     var openFaq: ((FaqId) -> Void)?
     var openAllFaq: (() -> Void)?
@@ -40,25 +42,10 @@ struct ProfileView: View {
             }
             .background(MarginColors.paper)
             .toolbar(.hidden)
-            .navigationDestination(for: ProfileRoute.self) { route in
-                switch route {
-                case let .faq(id): FaqAnswerView(id: id, onBack: { path.removeLast() })
-                case .allFaq: FaqListView(onBack: { path.removeLast() }, onOpen: { path.append(.faq($0)) })
-                case .changePassword:
-                    if let changePassword = viewModel.makeChangePassword() {
-                        ChangePasswordView(
-                            viewModel: changePassword,
-                            onBack: { path.removeLast() },
-                            onSaved: {
-                                path.removeLast()
-                                actions.notify(String(localized: "Contraseña actualizada."))
-                            }
-                        )
-                    }
-                }
-            }
+            .navigationDestination(for: ProfileRoute.self) { route in destination(route) }
         }
-        .onChange(of: path) { _, path in actions.setTabBarHidden(path.last == .changePassword) }
+        // Cambiar contraseña y Mi plan van sin barra inferior.
+        .onChange(of: path) { _, path in actions.setTabBarHidden(Self.hidesTabBar(path.last)) }
         .onDisappear { actions.setTabBarHidden(false) }
         .task { await viewModel.load() }
         // PRF-013: el panel de letra, claro, con la misma forma que el del lector.
@@ -93,11 +80,42 @@ struct ProfileView: View {
         }
     }
 
+    private static func hidesTabBar(_ route: ProfileRoute?) -> Bool {
+        route == .changePassword || route == .myPlan
+    }
+
+    @ViewBuilder
+    private func destination(_ route: ProfileRoute) -> some View {
+        switch route {
+        case let .faq(id): FaqAnswerView(id: id, onBack: { path.removeLast() })
+        case .allFaq: FaqListView(onBack: { path.removeLast() }, onOpen: { path.append(.faq($0)) })
+        case .myPlan:
+            MyPlanView(
+                viewModel: viewModel.makeMyPlan(),
+                onBack: { path.removeLast() },
+                onChangePlan: actions.openPlans ?? actions.comingSoon,
+                comingSoon: actions.comingSoon
+            )
+        case .changePassword:
+            if let changePassword = viewModel.makeChangePassword() {
+                ChangePasswordView(
+                    viewModel: changePassword,
+                    onBack: { path.removeLast() },
+                    onSaved: {
+                        path.removeLast()
+                        actions.notify(String(localized: "Contraseña actualizada."))
+                    }
+                )
+            }
+        }
+    }
+
     /// Sin cuenta (sin Firebase), "Cerrar sesión" avisa como lo que todavía no existe.
     private var contentActions: ProfileActions {
         var actions = actions
         actions.openFaq = { path.append(.faq($0)) }
         actions.openAllFaq = { path.append(.allFaq) }
+        actions.openMyPlan = { path.append(.myPlan) }
         if viewModel.hasChangePassword { actions.changePassword = { path.append(.changePassword) } }
         if viewModel.canSignOut { actions.signOut = { Task { await viewModel.requestSignOut() } } }
         return actions
@@ -238,6 +256,10 @@ struct ProfileContent: View {
             .foregroundStyle(MarginColors.muted)
         }
         .padding(16)
+        // PLN-012: el bloque entero abre Mi plan; "Mejorar plan", que va adentro, sigue abriendo Planes.
+        .contentShape(Rectangle())
+        .onTapGesture { actions.openMyPlan?() }
+        .accessibilityAction(named: Text("Abrir Mi plan")) { actions.openMyPlan?() }
     }
 
     /// PRF-007: por ahora solo este dispositivo.

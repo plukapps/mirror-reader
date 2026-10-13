@@ -89,6 +89,11 @@ final class ProfileViewModel {
         }
     }
 
+    /// PLN-012: Mi plan, con la misma cuota (guardada y del servidor).
+    func makeMyPlan() -> MyPlanViewModel {
+        MyPlanViewModel(quota: quota, cache: cache)
+    }
+
     /// Hay con qué cambiar la contraseña (con Firebase).
     var hasChangePassword: Bool { passwords != nil }
 
