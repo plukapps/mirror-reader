@@ -47,11 +47,11 @@ Plan de referencia: `specs/plans/2026-10-06-android-epub-viewer.md`
 
 ## En curso
 
-- **K-213** Orden de la biblioteca, cierre: docs, verificación a mano en el teléfono y el iPhone, PR único contra `develop`. Rama `feature/library-order`.
 - **K-176** Posición exacta, Tarea 5: verificación a mano entre el teléfono y el iPhone, cierre de docs. SYN-014.
 
 ## Revisión
 
+- **K-213** Orden de la biblioteca, cierre: docs, verificación a mano en el teléfono y el iPhone, PR único contra `develop`. Rama `feature/library-order`. Hecho: resultado en el plan, PR abierto. Falta la verificación a mano con la misma cuenta en las dos plataformas.
 - **K-212** Orden de la biblioteca, iOS: la fecha de la nube reemplaza también la de libros ya guardados. LIB-021. Rama `feature/library-order`. Hecho: `LibraryStore.addCloudOnly` corrige `addedAt` de los registros existentes con el `createdAt` de la nube. Tests: dominio 205, iPhone 188 (+2 en `LibraryStoreTests`). Mac compila (tests sin correr, K-201).
 - **K-211** Orden de la biblioteca, Android: `createdAt` de la nube como fecha de entrada, también para libros ya guardados. LIB-021. Rama `feature/library-order`. Plan `2026-10-13-library-order.md`. Hecho: `RemoteBook.createdAt` (leído de Firestore), `cloudAddedAt` en `domain/remote`, `BookDao.getAddedAts`/`updateAddedAt`, `addCloudOnly` inserta y corrige fechas. 414 tests JVM pasan (4 nuevos en `CloudAddedAtTest`); `CloudBooksOrderTest` (2 casos, emulador) compila, sin correr.
 - **K-207** Perfil: sincronizar solo con Wi-Fi en Android. PRF-023. Rama `feature/profile-wifi-android`. Hecho: `canSync`/`SyncGate`/`NetworkSyncGate`, `ConnectivityNetworkMonitor`, preferencia `sync_wifi_only` (se conserva al cerrar sesión), puerta en la pasada, posiciones, borrados, escuchas y descarga al abrir ("Este libro se descarga con Wi-Fi…"), `SyncIssue.WaitingForWifi` en Estantes, `SyncGateWatcher`, interruptor de Perfil con su estado. 400 tests JVM pasan (15 nuevos); `ProfileScreenTest` (1 caso nuevo) y `LocalDataWiperTest` compilan, sin correr. Sin verificar a mano: el teléfono SM-S711B no estaba conectado.

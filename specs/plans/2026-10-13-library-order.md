@@ -48,3 +48,10 @@ Las dos plataformas ordenan por `addedAt` descendente (`BookDao.observeAll`, `Li
 - `./gradlew :app:testDebugUnitTest` y `:app:compileDebugAndroidTestKotlin`.
 - `swift test` en `Packages/ReaderDomain` y `xcodebuild test` en iPhone 16.
 - A mano: importar un libro en cada plataforma y ver el mismo orden en las dos.
+
+## Resultado (2026-10-13)
+
+- Android: 414 tests JVM pasan (4 nuevos en `CloudAddedAtTest`). `CloudBooksOrderTest` (2 casos, emulador) compila, sin correr.
+- iOS: dominio 205 tests, iPhone 188 (2 nuevos en `LibraryStoreTests`). Mac compila; sus tests no arrancan (K-201).
+- Docs de plataforma: sin cambios, no describían el orden.
+- Falta la verificación a mano: el teléfono y el iPhone con la misma cuenta deben mostrar el mismo orden después de sincronizar.
