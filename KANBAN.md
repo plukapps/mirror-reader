@@ -5,7 +5,7 @@ Plan de referencia: `specs/plans/2026-10-06-android-epub-viewer.md`
 
 ## Backlog
 
-- **K-191** Perfil, Tarea 2: Android, pantalla Perfil pixel perfect (ruta, barra marcada, cabecera, Cuenta, App, Ayuda, pie, avisos). PRF-001 a PRF-008, PRF-010, PRF-016, PRF-017, PRF-019.
+- **K-200** Bug Android: con el teléfono en modo oscuro, los íconos de la barra de estado salen blancos sobre el fondo claro de la app (Inicio, Buscar, Estantes, Perfil). `enableEdgeToEdge()` elige el estilo según el tema del sistema y la app es solo clara. Pasar `SystemBarStyle.light(...)` en `MainActivity` (y revisar el lector, que maneja sus propias barras, RDR-015). Visto en el SM-S711B el 2026-10-12.
 - **K-192** Perfil, Tarea 3: Android, ajustes de lectura en Perfil (vista previa, Letra, Tema, Interlineado). PRF-011 a PRF-015.
 - **K-193** Perfil, Tarea 4: Android, cerrar sesión (detener sincronización, borrar datos locales, salir de Firebase y Google, volver a la bienvenida). PRF-009, ACC-006. Reemplaza a K-158 en Android.
 - **K-194** Perfil, Tarea 5: Android, ayuda (preguntas frecuentes en la app, respuesta, lista completa). PRF-017, PRF-018.
@@ -55,6 +55,7 @@ Plan de referencia: `specs/plans/2026-10-06-android-epub-viewer.md`
 
 ## Revisión
 
+- **K-191** Perfil, Tarea 2: Android, pantalla Perfil pixel perfect (ruta, barra marcada, cabecera, Cuenta, App, Ayuda, pie, avisos). PRF-001 a PRF-008, PRF-010, PRF-016, PRF-017, PRF-019. Hecho: `ProfileScreen`/`ProfileContent`, `ProfileComponents`, `ProfileIcons` (Material Symbols del repo oficial), colores nuevos en `MarginColors`, ruta `profile` con la barra marcada. `ProfileScreenTest` (5 casos) compila, sin correr. Verificado en el SM-S711B con datos reales. Cerrar sesión y las preguntas avisan hasta K-193 y K-194.
 - **K-190** Perfil, Tarea 1: Android, datos del perfil (`signInMethod`, caché del espacio, `formatStorage`, `ProfileViewModel`). PRF-005 a PRF-008, PRF-019. Plan `2026-10-12-profile.md`. Rama `claude/tabbar-menu-design-e09011`. Hecho: `SignInMethod` en `AccountUser`, `plan` en `StorageQuota`, `storageUnitFor` y `formatStorage`, `QuotaCache` (DataStore), `ProfileViewModel`. 367 tests JVM pasan (17 nuevos).
 - **K-181** Acciones del libro, Tarea 5: cierre de docs y verificación a mano en el teléfono y el simulador. Rama `feature/library-actions`. Hecho: notas de plataforma y resultado en el plan. Verificado a mano por el usuario en el SM-S711B, la SM-X510 y el iPhone 13 (2026-10-12); la prueba cruzada encontró K-184, K-185 y K-189, arreglados.
 - **K-189** Bug: en el iPhone un libro agregado desde Android llegó sin portada (prueba del usuario, 2026-10-12). Con la escucha de SYN-015 el iPhone baja el libro antes de que Android suba la portada (Storage exige que exista el documento) y iOS dependía solo de la portada de la nube. Ahora, como Android, un libro bajado sin portada la saca del EPUB (`CoverExtractingBookFiles`, `EpubImporter.extractCoverIfMissing`). Fixture `fixture-cover.epub` (`tools/make_cover_fixture.py`). Test de regresión (verificado en rojo sin el arreglo). iPhone 113. Rama `feature/library-actions`.

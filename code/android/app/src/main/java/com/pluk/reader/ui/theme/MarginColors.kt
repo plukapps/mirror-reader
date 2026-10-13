@@ -23,6 +23,21 @@ object MarginColors {
     /** Íconos inactivos sobre fondo tinta (barra inferior). */
     val InkMuted = Color(0xFF8A8676)
 
+    /** Separadores de tarjeta y pista de la barra de espacio (diseño 09 Profile). */
+    val Hairline = Color(0xFFE7E4DC)
+
+    /** Texto e íconos secundarios oscuros: candado, valores de fila, segmentos sin elegir (09). */
+    val Ink2 = Color(0xFF3A3830)
+
+    /** Texto secundario sobre amarillo: el email de la cabecera (09). */
+    val OnYellowMuted = Color(0xFF3A3115)
+
+    /** Interruptor apagado y borde del círculo del tema Clásico (09). */
+    val Off = Color(0xFFDAD6CA)
+
+    /** Separadores dentro de una tarjeta tinta: la de ayuda (09). */
+    val InkLine = Color(0xFF33322D)
+
     /** Fondos de las portadas generadas cuando el EPUB no trae una. */
     val Covers = listOf(
         Color(0xFF130000), Color(0xFF1F3A5F), Color(0xFFFBD256), Color(0xFFE45A3F),

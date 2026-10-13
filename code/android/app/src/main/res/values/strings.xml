@@ -177,6 +177,41 @@
     <string name="nav_profile">Perfil</string>
     <string name="nav_coming_soon">Llega más adelante.</string>
 
+    <!-- Perfil (PRF-001 a PRF-019), diseño 09 Profile -->
+    <string name="profile_account_header">Cuenta de %1$s</string>
+    <string name="profile_section_account">Cuenta</string>
+    <string name="profile_storage">Espacio</string>
+    <string name="profile_plan_free">GRATIS</string>
+    <string name="profile_upgrade">Mejorar plan</string>
+    <string name="profile_storage_used">%1$s de %2$s usados</string>
+    <string name="profile_storage_free">%1$s libres</string>
+    <string name="profile_storage_failed">No se pudo cargar el espacio</string>
+    <string name="profile_devices">Dispositivos vinculados</string>
+    <string name="profile_this_device">· este dispositivo</string>
+    <string name="profile_change_password">Cambiar contraseña</string>
+    <string name="profile_sign_out">Cerrar sesión</string>
+    <string name="profile_delete_account">Eliminar cuenta</string>
+    <string name="profile_section_app">App</string>
+    <string name="profile_appearance">Apariencia</string>
+    <string name="profile_appearance_light">Claro</string>
+    <string name="profile_appearance_dark">Oscuro</string>
+    <string name="profile_appearance_system">Sistema</string>
+    <string name="profile_wifi_only">Sincronizar solo con Wi-Fi</string>
+    <string name="profile_wifi_only_hint">Ahorra datos móviles</string>
+    <string name="profile_auto_download">Descargar libros automáticamente</string>
+    <string name="profile_auto_download_hint">Libros nuevos de tus otros dispositivos</string>
+    <string name="profile_section_help">Ayuda</string>
+    <string name="profile_faq">Preguntas frecuentes</string>
+    <string name="profile_faq_all">Todas las preguntas</string>
+    <string name="profile_version">margin. %1$s</string>
+    <string name="profile_terms">Términos</string>
+    <string name="profile_privacy">Privacidad</string>
+    <string name="state_on">activado</string>
+    <string name="state_off">desactivado</string>
+    <string name="faq_epub_question">¿Por qué no abre este EPUB?</string>
+    <string name="faq_books_question">¿Dónde están mis libros?</string>
+    <string name="faq_space_question">¿Cuánto espacio tengo?</string>
+
     <string name="home_greeting_morning">Buenos días.</string>
     <string name="home_greeting_afternoon">Buenas tardes.</string>
     <string name="home_greeting_night">Buenas noches.</string>

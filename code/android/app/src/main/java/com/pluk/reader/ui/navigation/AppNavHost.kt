@@ -1,6 +1,5 @@
 package com.pluk.reader.ui.navigation
 
-import android.widget.Toast
 import androidx.compose.foundation.layout.Box
 import androidx.compose.ui.draw.blur
 import com.pluk.reader.ui.actions.BookActionsHost
@@ -20,14 +19,12 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.platform.LocalContext
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.navArgument
-import com.pluk.reader.R
 import com.pluk.reader.ui.home.HomeScreen
 import com.pluk.reader.domain.model.LibraryFilter
 import com.pluk.reader.ui.library.LibraryScreen
@@ -46,6 +43,7 @@ import com.pluk.reader.ui.onboarding.SignUpScreen
 import com.pluk.reader.ui.onboarding.SignUpViewModel
 import com.pluk.reader.ui.onboarding.VerifyEmailScreen
 import com.pluk.reader.ui.onboarding.VerifyEmailViewModel
+import com.pluk.reader.ui.profile.ProfileScreen
 import com.pluk.reader.ui.search.SearchScreen
 import com.pluk.reader.ui.welcome.WelcomeScreen
 import android.net.Uri
@@ -67,6 +65,7 @@ object Routes {
     const val LIBRARY = "library?${LibraryViewModel.ARG_FILTER}={${LibraryViewModel.ARG_FILTER}}"
     const val READER = "reader/{${ReaderViewModel.ARG_BOOK_ID}}"
     const val SEARCH = "search"
+    const val PROFILE = "profile"
 
     fun reader(bookId: String): String = "reader/$bookId"
 
@@ -89,7 +88,6 @@ fun AppNavHost(
     navController: NavHostController,
     startDestination: String,
 ) {
-    val context = LocalContext.current
     // ONB-013: "Importar mis libros" abre el selector apenas aparece Inicio.
     var pendingImport by rememberSaveable { mutableStateOf(false) }
     val route by navController.currentBackStackEntryAsState()
@@ -97,6 +95,7 @@ fun AppNavHost(
         Routes.HOME -> MainDestination.Home
         Routes.LIBRARY -> MainDestination.Shelves
         Routes.SEARCH -> MainDestination.Search
+        Routes.PROFILE -> MainDestination.Profile
         else -> null // La barra se oculta en el lector.
     }
     // La barra flota sobre el contenido, que pasa por debajo; las pantallas dejan este espacio al final.
@@ -217,6 +216,9 @@ fun AppNavHost(
                     composable(Routes.SEARCH) {
                         SearchScreen(onBookClick = { bookId -> navController.navigate(Routes.reader(bookId)) })
                     }
+                    composable(Routes.PROFILE) {
+                        ProfileScreen()
+                    }
                     composable(
                         route = Routes.READER,
                         arguments = listOf(navArgument(ReaderViewModel.ARG_BOOK_ID) { type = NavType.StringType }),
@@ -231,9 +233,7 @@ fun AppNavHost(
                         MainDestination.Home -> navController.navigateTo(Routes.HOME)
                         MainDestination.Shelves -> navController.navigateTo(Routes.library())
                         MainDestination.Search -> navController.navigateTo(Routes.SEARCH)
-                        // TODO: Perfil (ACC) aún no existe (HOM-006).
-                        MainDestination.Profile ->
-                            Toast.makeText(context, R.string.nav_coming_soon, Toast.LENGTH_SHORT).show()
+                        MainDestination.Profile -> navController.navigateTo(Routes.PROFILE)
                     }
                 }
             }
