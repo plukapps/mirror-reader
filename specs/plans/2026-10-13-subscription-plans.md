@@ -70,3 +70,21 @@ Cada PR: tests en verde (Android `:app:testDebugUnitTest` y compilación de los 
 | P03 agrega un paso a importar | Es lo que pide el diseño; "Desde este dispositivo" queda primero |
 | Los precios fijos no coinciden con la tienda | Son de ejemplo; la rebanada de compras los toma de la tienda |
 | Dos PR tocan `KANBAN.md` | Cambios acotados; conflictos menores al fusionar |
+
+## Notas de implementación (iOS)
+
+Rama `feature/subscription-plans-ios`, tarjetas K-223 a K-227.
+
+- **Dominio** (`ReaderDomain`): `Plans.swift` (`PlanCatalog`, `Plan`, `Billing`, `PlanCta`, `PlanUsage`, `PlanComparisonRow`) y `QuotaBlock.swift` (`quotaBlock`, `ImportQuotaCheck`, `QuotaBlockNotice`, `shouldShowUsageNotice`, `UsageNoticePreference`). Los textos del catálogo viven en el dominio para poder probarlos. `UploadBooks` recibe la `QuotaCache` y guarda la cuota en cada pasada.
+- **Proporción de P01:** porcentaje en monoespaciada ("80 %"), igual que Android.
+- **Presentación:** `PlansPresenter` (`@Observable`, en `AppGraph.Screens`) maneja P01 (`fullScreenCover` sobre la raíz, con su propio aviso "Llega más adelante." porque tapa la barra) y la hoja "Importar libros". "Ver planes" desde una hoja cierra la hoja y abre P01 en el `onDismiss`, para que dos presentaciones no se pisen. "Desde este dispositivo" abre el selector de la misma forma.
+- **P03:** la función paga de Drive y Calibre se muestra dentro de la misma hoja "Importar libros" (cambia el contenido); "Ahora no" vuelve a la lista. Evita una hoja sobre otra. "Importar mis libros" del onboarding sigue yendo directo al selector.
+- **P02:** la comprobación corre en `HomeViewModel.importBooks` (selector de Archivos). La fila del libro de P02b lleva el recuadro "EPUB" del diseño, no la portada (igual que Android). "Abrir con" no muestra la hoja: K-240.
+- **Tablet:** el target de iOS es solo iPhone (`TARGETED_DEVICE_FAMILY 1`, el iPad corre en modo compatible), así que las tres columnas (≥ 600 pt) solo se ven en un iPhone grande en horizontal. Se verificaron dibujando la pantalla a 1180 pt.
+- **Biblioteca:** el aviso del 80 % relee la cuota guardada en cada `load()`, que la sincronización llama al terminar cada pasada. La preferencia `plans_usage_notice_dismissed` se borra al cerrar sesión (`LocalAccountWiper`).
+- **Mi plan:** `ProfileRoute.myPlan`; el bloque del espacio de Perfil es tocable (y tiene una acción de VoiceOver) sin tapar "Mejorar plan", que abre P01.
+- **Colores nuevos** (`MarginColors`): `track` (pista del selector y separadores de la tabla), `onYellowLine` y `warn` (tamaño que no entra). En oscuro, el segmento elegido del selector se invierte (fondo claro), porque la tinta no se distinguía sobre la pista.
+- **Íconos:** Material Symbols Rounded oficiales en `Assets.xcassets/Plans` (SVG de plantilla, como Perfil).
+- **Verificación:** capturas claras y oscuras de P01 (teléfono, mensual con tabla, tablet), P02a, P02b, P03 (lista, Drive, Calibre), aviso del 80 % y P04, dibujadas desde un test local que no se commitea. Falta la prueba a mano en el iPhone.
+- **Build local:** la etiqueta 3.9.0 de Readium ya no está en GitHub (K-202): se compiló con una copia de los paquetes de un DerivedData anterior (`-clonedSourcePackagesDirPath`, sin resolver). Los tests de la Mac no arrancan por la firma (K-201); la Mac compila.
+
