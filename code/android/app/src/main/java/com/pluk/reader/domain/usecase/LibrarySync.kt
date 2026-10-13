@@ -2,6 +2,7 @@ package com.pluk.reader.domain.usecase
 
 import com.pluk.reader.domain.ApplicationScope
 import com.pluk.reader.domain.account.AccountRepository
+import com.pluk.reader.domain.sync.SyncGate
 import java.util.concurrent.atomic.AtomicBoolean
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -22,6 +23,9 @@ import kotlinx.coroutines.sync.withLock
 /** Qué le impidió a la última pasada dejarlo todo al día (SYN-008). */
 sealed interface SyncIssue {
     data object Offline : SyncIssue
+
+    /** "Sincronizar solo con Wi-Fi" y sin Wi-Fi: no es un error, se espera (PRF-023). */
+    data object WaitingForWifi : SyncIssue
     data class NotEnoughSpace(val count: Int) : SyncIssue
     data class Failed(val count: Int) : SyncIssue
 }
@@ -35,6 +39,7 @@ interface LibraryPassGate {
 data class SyncState(val running: Boolean = false, val issue: SyncIssue? = null)
 
 fun SyncReport.toIssue(): SyncIssue? = when {
+    waitingForWifi -> SyncIssue.WaitingForWifi
     offline -> SyncIssue.Offline
     failed > 0 -> SyncIssue.Failed(failed)
     notEnoughSpace > 0 -> SyncIssue.NotEnoughSpace(notEnoughSpace)
@@ -61,15 +66,17 @@ class LibrarySync internal constructor(
     private val sync: SyncLibraryUseCase,
     private val account: AccountRepository,
     private val scope: CoroutineScope,
-    private val now: () -> Long,
-    private val ttlMs: Long,
+    private val now: () -> Long = ::monotonicMillis,
+    private val ttlMs: Long = DEFAULT_TTL_MS,
+    private val gate: SyncGate = SyncGate.ALWAYS_OPEN,
 ) : LibrarySyncRequester, LibraryPassGate {
     @Inject
     constructor(
         sync: SyncLibraryUseCase,
         account: AccountRepository,
         @ApplicationScope scope: CoroutineScope,
-    ) : this(sync, account, scope, ::monotonicMillis, DEFAULT_TTL_MS)
+        gate: SyncGate,
+    ) : this(sync, account, scope, ::monotonicMillis, DEFAULT_TTL_MS, gate)
 
     private val requests = Channel<Unit>(Channel.CONFLATED)
 
@@ -104,6 +111,19 @@ class LibrarySync internal constructor(
             // El consumidor decide si hace falta una pasada para ese usuario (ver abajo): así no hay carrera con onStart.
             // Sin filtrar antes los null: así salir y volver a entrar con la misma cuenta cuenta como sesión nueva (PRF-009).
             account.user.distinctUntilChangedBy { it?.id }.filterNotNull().collect { requests.trySend(Unit) }
+        }
+        scope.launch {
+            // PRF-023: mientras falte el Wi-Fi, la biblioteca lo dice; al volver, el aviso se va (la pasada la pide
+            // SyncGateWatcher con la app a la vista, o la próxima vuelta a la app).
+            gate.open.collect { open ->
+                _state.update {
+                    when {
+                        !open -> it.copy(issue = SyncIssue.WaitingForWifi)
+                        it.issue == SyncIssue.WaitingForWifi -> it.copy(issue = null)
+                        else -> it
+                    }
+                }
+            }
         }
         scope.launch {
             requests.receiveAsFlow().collect {

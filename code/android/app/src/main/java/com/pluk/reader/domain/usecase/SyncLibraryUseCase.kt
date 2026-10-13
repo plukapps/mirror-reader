@@ -2,6 +2,8 @@ package com.pluk.reader.domain.usecase
 
 import com.pluk.reader.domain.remote.RemoteUnavailableException
 import com.pluk.reader.domain.repository.CloudBooksRepository
+import com.pluk.reader.domain.sync.SyncGate
+import com.pluk.reader.domain.sync.WaitingForWifiException
 import javax.inject.Inject
 
 /**
@@ -18,8 +20,10 @@ data class SyncReport(
     val downloaded: Int = 0,
     val downloadFailed: Int = 0,
     val unreachable: Boolean = false,
+    /** PRF-023: "Solo con Wi-Fi" y sin Wi-Fi; la pasada se cortó sin tocar la nube. */
+    val waitingForWifi: Boolean = false,
 ) {
-    val offline: Boolean get() = unreachable || upload.unreachable
+    val offline: Boolean get() = unreachable || upload.unreachable || waitingForWifi
     val notEnoughSpace: Int get() = upload.notEnoughSpace
     val failed: Int get() = upload.failed + downloadFailed
 }
@@ -38,15 +42,25 @@ class SyncLibraryUseCase @Inject constructor(
     private val cloud: CloudBooksRepository,
     private val positions: PositionFlusher,
     private val removals: CloudRemovals,
+    private val gate: SyncGate = SyncGate.ALWAYS_OPEN,
 ) {
     suspend operator fun invoke(): SyncReport {
+        // PRF-023: sin Wi-Fi (con "Solo con Wi-Fi") no se toca la nube. Se vuelve a mirar entre pasos por si la red
+        // cambia a mitad de la pasada.
+        val waiting = SyncReport(waitingForWifi = true)
+        if (!gate.isOpen()) return waiting
         // LIB-020, LIB-008: primero los borrados, así no se baja un libro que ya no existe en la cuenta.
-        if (removals.sync().exceptionOrNull() is RemoteUnavailableException) return SyncReport(unreachable = true)
+        when (removals.sync().exceptionOrNull()) {
+            is RemoteUnavailableException -> return SyncReport(unreachable = true)
+            is WaitingForWifiException -> return waiting
+        }
         if (syncRemoteBooks().exceptionOrNull() is RemoteUnavailableException) return SyncReport(unreachable = true)
 
+        if (!gate.isOpen()) return waiting
         val upload = uploadBooks()
         if (upload.unreachable) return SyncReport(upload)
 
+        if (!gate.isOpen()) return SyncReport(upload, waitingForWifi = true)
         syncCovers()
 
         var downloaded = 0
@@ -55,6 +69,7 @@ class SyncLibraryUseCase @Inject constructor(
             val failure = downloadBook(bookId).exceptionOrNull()
             when {
                 failure == null -> downloaded++
+                failure.cause is WaitingForWifiException -> return SyncReport(upload, downloaded, failed, waitingForWifi = true)
                 failure.cause is RemoteUnavailableException -> return SyncReport(upload, downloaded, failed, unreachable = true)
                 else -> failed++
             }
