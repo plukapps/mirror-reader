@@ -23,21 +23,31 @@ final class ProfileViewModel {
     /// La lectura falló y no había valor guardado.
     private(set) var storageFailed = false
     let deviceName: String
+    /// Ajustes del lector: los mismos que cambia el panel "Aa" (PRF-011).
+    private(set) var reading: ReaderSettings
 
     private let account: AccountRepository?
     private let quota: QuotaSource?
     private let cache: QuotaCache
+    private let settings: ReaderSettingsRepository
 
     /// `account` y `quota` son nil sin Firebase (ADR 0015).
-    init(account: AccountRepository?, quota: QuotaSource?, cache: QuotaCache, deviceName: String) {
+    init(
+        account: AccountRepository?, quota: QuotaSource?, cache: QuotaCache, deviceName: String,
+        settings: ReaderSettingsRepository
+    ) {
         self.account = account
         self.quota = quota
         self.cache = cache
         self.deviceName = deviceName
+        self.settings = settings
+        reading = settings.load()
     }
 
     /// Lee la cuenta y el espacio: primero el guardado, después el del servidor (PRF-006).
     func load() async {
+        // Pudieron cambiar en el lector desde la última vez.
+        reading = settings.load()
         let user = await account?.currentUser()
         name = user?.displayName
         email = user?.email
@@ -56,6 +66,19 @@ final class ProfileViewModel {
         } catch {
             storageFailed = storage == nil
         }
+    }
+
+    // PRF-011 a PRF-015: los cambios van al mismo lugar que los del panel del lector.
+    func setTheme(_ theme: ReadingTheme) { update(reading.withTheme(theme)) }
+    func setFont(_ font: ReaderFont) { update(reading.withFont(font)) }
+    func setLineSpacing(_ spacing: LineSpacing) { update(reading.withLineSpacing(spacing)) }
+    func biggerFont() { update(reading.biggerFont()) }
+    func smallerFont() { update(reading.smallerFont()) }
+
+    private func update(_ newSettings: ReaderSettings) {
+        guard newSettings != reading else { return }
+        reading = newSettings
+        settings.save(newSettings)
     }
 
     private func summary(_ quota: StorageQuota) -> StorageSummary {

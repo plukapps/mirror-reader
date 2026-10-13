@@ -91,7 +91,8 @@ enum AppGraph {
                 account: account,
                 quota: firebase ? FirestoreQuotaSource() : nil,
                 cache: UserDefaultsQuotaCache(),
-                deviceName: UserDefaultsSyncPreferences.model
+                deviceName: UserDefaultsSyncPreferences.model,
+                settings: UserDefaultsReaderSettings()
             ),
             bookActions: bookActions,
             makeReader: reader?.makeReader,

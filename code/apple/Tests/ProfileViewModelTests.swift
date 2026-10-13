@@ -22,15 +22,25 @@ private final class MemoryQuotaCache: QuotaCache, @unchecked Sendable {
     func save(_ quota: StorageQuota) { saved = quota }
 }
 
+private final class MemorySettings: ReaderSettingsRepository, @unchecked Sendable {
+    var stored: ReaderSettings
+    init(_ stored: ReaderSettings = ReaderSettings()) { self.stored = stored }
+    func load() -> ReaderSettings { stored }
+    func save(_ settings: ReaderSettings) { stored = settings }
+}
+
 private let ana = AccountUser(id: "u1", email: "ana.ruiz@gmail.com", displayName: "ana Ruiz")
 private let used = StubQuota(result: .success(StorageQuota(usedBytes: gib * 12 / 10, quotaBytes: 2 * gib)))
 private let offline = StubQuota(result: .failure(RemoteUnavailableError("sin red")))
 
 @MainActor
 private func loaded(
-    _ user: AccountUser?, quota: QuotaSource? = used, cache: MemoryQuotaCache = MemoryQuotaCache()
+    _ user: AccountUser?, quota: QuotaSource? = used, cache: MemoryQuotaCache = MemoryQuotaCache(),
+    settings: MemorySettings = MemorySettings()
 ) async -> ProfileViewModel {
-    let viewModel = ProfileViewModel(account: StubAccount(user: user), quota: quota, cache: cache, deviceName: "iPhone")
+    let viewModel = ProfileViewModel(
+        account: StubAccount(user: user), quota: quota, cache: cache, deviceName: "iPhone", settings: settings
+    )
     await viewModel.load()
     return viewModel
 }
@@ -98,7 +108,9 @@ struct ProfileViewModelTests {
 
     @Test("PRF-006: sin cuenta configurada (sin Firebase) no hay espacio que leer")
     func withoutBackend() async {
-        let viewModel = ProfileViewModel(account: nil, quota: nil, cache: MemoryQuotaCache(), deviceName: "iPhone")
+        let viewModel = ProfileViewModel(
+            account: nil, quota: nil, cache: MemoryQuotaCache(), deviceName: "iPhone", settings: MemorySettings()
+        )
         await viewModel.load()
         #expect(viewModel.email == nil)
         #expect(viewModel.storageFailed)
@@ -107,5 +119,35 @@ struct ProfileViewModelTests {
     @Test("PRF-007: este dispositivo con su nombre")
     func device() async {
         #expect(await loaded(ana).deviceName == "iPhone")
+    }
+
+    @Test("PRF-011: Perfil muestra los mismos ajustes que el lector")
+    func showsReaderSettings() async {
+        let saved = ReaderSettings(theme: .sepia, fontScale: 1.2, font: .mono, lineSpacing: .wide)
+        let viewModel = await loaded(ana, settings: MemorySettings(saved))
+        #expect(viewModel.reading == saved)
+    }
+
+    @Test("PRF-011, PRF-013 a PRF-015: los cambios se guardan donde los lee el lector")
+    func changesAreSaved() async {
+        let settings = MemorySettings()
+        let viewModel = await loaded(ana, settings: settings)
+        viewModel.setTheme(.dark)
+        viewModel.setLineSpacing(.wide)
+        viewModel.setFont(.sans)
+        viewModel.biggerFont()
+        viewModel.biggerFont()
+        viewModel.smallerFont()
+        #expect(settings.stored == ReaderSettings(theme: .dark, fontScale: 1.1, font: .sans, lineSpacing: .wide))
+        #expect(viewModel.reading == settings.stored)
+    }
+
+    @Test("PRF-011: al volver a Perfil se ven los cambios hechos en el lector")
+    func reloadsSettings() async {
+        let settings = MemorySettings()
+        let viewModel = await loaded(ana, settings: settings)
+        settings.stored = ReaderSettings(theme: .sepia)
+        await viewModel.load()
+        #expect(viewModel.reading.theme == .sepia)
     }
 }

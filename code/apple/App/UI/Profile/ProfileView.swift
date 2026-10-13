@@ -24,15 +24,24 @@ private var cardQuestions: [(key: String, question: LocalizedStringKey)] {
 struct ProfileView: View {
     let viewModel: ProfileViewModel
     var actions = ProfileActions()
+    @State private var fontSheetOpen = false
 
     var body: some View {
         ScrollView {
-            ProfileContent(viewModel: viewModel, actions: actions)
+            ProfileContent(viewModel: viewModel, actions: actions, onOpenFont: { fontSheetOpen = true })
                 .frame(maxWidth: WindowLayout.contentMaxWidth)
                 .frame(maxWidth: .infinity)
         }
         .background(MarginColors.paper)
         .task { await viewModel.load() }
+        // PRF-013: el panel de letra, claro, con la misma forma que el del lector.
+        .sheet(isPresented: $fontSheetOpen) {
+            FontSheet(viewModel: viewModel)
+                .presentationDetents([.height(200)])
+                .presentationCornerRadius(28)
+                .presentationBackground(MarginColors.field)
+                .presentationDragIndicator(.visible)
+        }
     }
 }
 
@@ -40,6 +49,7 @@ struct ProfileView: View {
 struct ProfileContent: View {
     let viewModel: ProfileViewModel
     var actions = ProfileActions()
+    var onOpenFont: () -> Void = {}
     var version: String = Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? ""
 
     var body: some View {
@@ -47,6 +57,14 @@ struct ProfileContent: View {
             header
             ProfileSectionTitle(text: "Cuenta")
             accountCard
+            ProfileSectionTitle(text: "Ajustes de lectura", bottom: 4)
+            Text("Se aplican a todos tus libros.")
+                .font(.app(12))
+                .lineSpacing(12 * 0.2)
+                .foregroundStyle(MarginColors.muted)
+                .padding(EdgeInsets(top: 0, leading: 24, bottom: 10, trailing: 24))
+                .frame(maxWidth: .infinity, alignment: .leading)
+            ReadingDefaultsCard(viewModel: viewModel, onOpenFont: onOpenFont)
             ProfileSectionTitle(text: "App")
             appCard
             ProfileSectionTitle(text: "Ayuda")
