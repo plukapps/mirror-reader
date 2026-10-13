@@ -1,3 +1,4 @@
+import ReaderDomain
 import SwiftUI
 #if os(iOS)
 import UIKit
@@ -7,18 +8,10 @@ import UIKit
 struct ProfileActions {
     var comingSoon: () -> Void = {}
     var signOut: (() -> Void)?
-    var openFaq: ((String) -> Void)?
+    var openFaq: ((FaqId) -> Void)?
     var openAllFaq: (() -> Void)?
 }
 
-/// Preguntas de la tarjeta de ayuda (PRF-017); K-198 las abre.
-private var cardQuestions: [(key: String, question: LocalizedStringKey)] {
-    [
-        ("epub", "¿Por qué no abre este EPUB?"),
-        ("books", "¿Dónde están mis libros?"),
-        ("space", "¿Cuánto espacio tengo?"),
-    ]
-}
 
 /// Perfil: cuenta, espacio, ajustes y ayuda (PRF-001 a PRF-019). Diseño: "09 — Profile".
 struct ProfileView: View {
@@ -27,14 +20,25 @@ struct ProfileView: View {
     /// PRF-009: con la sesión cerrada, a la bienvenida.
     var onSignedOut: () -> Void = {}
     @State private var fontSheetOpen = false
+    /// PRF-017, PRF-018: las preguntas frecuentes se abren dentro del tab.
+    @State private var path: [ProfileRoute] = []
 
     var body: some View {
-        ScrollView {
-            ProfileContent(viewModel: viewModel, actions: contentActions, onOpenFont: { fontSheetOpen = true })
-                .frame(maxWidth: WindowLayout.contentMaxWidth)
-                .frame(maxWidth: .infinity)
+        NavigationStack(path: $path) {
+            ScrollView {
+                ProfileContent(viewModel: viewModel, actions: contentActions, onOpenFont: { fontSheetOpen = true })
+                    .frame(maxWidth: WindowLayout.contentMaxWidth)
+                    .frame(maxWidth: .infinity)
+            }
+            .background(MarginColors.paper)
+            .toolbar(.hidden)
+            .navigationDestination(for: ProfileRoute.self) { route in
+                switch route {
+                case let .faq(id): FaqAnswerView(id: id, onBack: { path.removeLast() })
+                case .allFaq: FaqListView(onBack: { path.removeLast() }, onOpen: { path.append(.faq($0)) })
+                }
+            }
         }
-        .background(MarginColors.paper)
         .task { await viewModel.load() }
         // PRF-013: el panel de letra, claro, con la misma forma que el del lector.
         .sheet(isPresented: $fontSheetOpen) {
@@ -71,6 +75,8 @@ struct ProfileView: View {
     /// Sin cuenta (sin Firebase), "Cerrar sesión" avisa como lo que todavía no existe.
     private var contentActions: ProfileActions {
         var actions = actions
+        actions.openFaq = { path.append(.faq($0)) }
+        actions.openAllFaq = { path.append(.allFaq) }
         if viewModel.canSignOut { actions.signOut = { Task { await viewModel.requestSignOut() } } }
         return actions
     }
@@ -284,14 +290,7 @@ struct ProfileContent: View {
                 .foregroundStyle(MarginColors.yellow)
                 .padding(EdgeInsets(top: 16, leading: 16, bottom: 6, trailing: 16))
                 .frame(maxWidth: .infinity, alignment: .leading)
-            ForEach(Array(cardQuestions.enumerated()), id: \.offset) { index, item in
-                if index > 0 { CardDivider(color: MarginColors.inkLine) }
-                ProfileRow(minHeight: 52, action: { (actions.openFaq ?? { _ in actions.comingSoon() })(item.key) }) {
-                    Text(item.question).font(.app(15, .medium)).foregroundStyle(MarginColors.field)
-                    Spacer(minLength: 0)
-                    ProfileIcon(name: "ChevronRight", color: MarginColors.inkMuted)
-                }
-            }
+            FaqRows(questions: Faq.card, onOpen: actions.openFaq ?? { _ in actions.comingSoon() })
             CardDivider(color: MarginColors.inkLine)
             ProfileRow(minHeight: 52, action: actions.openAllFaq ?? actions.comingSoon) {
                 Text("Todas las preguntas").font(.app(15, .semibold)).foregroundStyle(MarginColors.yellow)
