@@ -10,6 +10,7 @@ import com.pluk.reader.domain.account.AccountUser
 import com.pluk.reader.domain.account.AuthError
 import com.pluk.reader.domain.account.AuthException
 import com.pluk.reader.domain.account.AuthRepository
+import com.pluk.reader.domain.account.SignInMethod
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
@@ -115,5 +116,10 @@ class FirebaseAccountRepository @Inject constructor(
         needsEmailVerification = !isEmailVerified &&
             providerData.any { it.providerId == EmailAuthProvider.PROVIDER_ID } &&
             providerData.none { it.providerId == GoogleAuthProvider.PROVIDER_ID },
+        signInMethod = when {
+            providerData.any { it.providerId == EmailAuthProvider.PROVIDER_ID } -> SignInMethod.PASSWORD
+            providerData.any { it.providerId == GoogleAuthProvider.PROVIDER_ID } -> SignInMethod.GOOGLE
+            else -> SignInMethod.OTHER
+        },
     )
 }
