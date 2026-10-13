@@ -15,6 +15,13 @@ import com.pluk.reader.domain.model.ReaderFont
 import com.pluk.reader.domain.model.ReaderSettings
 import com.pluk.reader.domain.model.ReadingTheme
 import com.pluk.reader.domain.profile.QuotaCache
+import com.pluk.reader.domain.plans.PlanCatalog
+import com.pluk.reader.domain.plans.PlanId
+import com.pluk.reader.domain.plans.PlanPrompts
+import com.pluk.reader.domain.plans.allowReadingOption
+import com.pluk.reader.domain.plans.effectiveReaderSettings
+import com.pluk.reader.domain.plans.hasThemesAndFonts
+import com.pluk.reader.domain.plans.isPaid
 import com.pluk.reader.domain.profile.storageUsage
 import com.pluk.reader.domain.repository.SettingsRepository
 import com.pluk.reader.domain.repository.SyncPreferences
@@ -50,8 +57,10 @@ data class ProfileUiState(
     /** Verdadero si la lectura falló y no había valor guardado. */
     val storageFailed: Boolean = false,
     val deviceName: String = "",
-    /** Ajustes del lector: los mismos que cambia el panel "Aa" (PRF-011). */
+    /** Ajustes del lector: los mismos que cambia el panel "Aa" (PRF-011). En Gratis, los efectivos (PLN-015). */
     val reading: ReaderSettings = ReaderSettings(),
+    /** PLN-015: temas y fuentes pagos llevan la marca "Lector" y abren la hoja de función paga. */
+    val readingOptionsLocked: Boolean = true,
     /** Apariencia de la app en este dispositivo (PRF-021). */
     val appearance: Appearance = DEFAULT_APPEARANCE,
     /** "Sincronizar solo con Wi-Fi" de este dispositivo (PRF-023). */
@@ -90,6 +99,7 @@ class ProfileViewModel @Inject constructor(
     private val signOut: SignOut,
     private val appearancePreferences: AppearancePreferences,
     private val wifiOnlyPreference: WifiOnlyPreference,
+    private val planPrompts: PlanPrompts,
 ) : ViewModel() {
     private val signOutState = MutableStateFlow(SignOutState())
     private val quota = MutableStateFlow<StorageQuota?>(null)
@@ -108,7 +118,8 @@ class ProfileViewModel @Inject constructor(
             storage = quota?.toUi(),
             storageFailed = failed && quota == null,
             deviceName = deviceName,
-            reading = reading,
+            reading = effectiveReaderSettings(reading, PlanCatalog.planOf(quota)),
+            readingOptionsLocked = !PlanCatalog.planOf(quota).hasThemesAndFonts,
             appearance = appearance,
             wifiOnly = wifiOnly,
             signOutDialog = signingOut.dialog,
@@ -137,10 +148,19 @@ class ProfileViewModel @Inject constructor(
     }
 
     // PRF-011 a PRF-015: los cambios van al mismo lugar que los del panel del lector.
-    fun onFont(font: ReaderFont) = updateReading { it.withFont(font) }
+    /** PLN-015: en Gratis, las letras pagas abren la hoja de función paga y no cambian la preferencia. */
+    fun onFont(font: ReaderFont) {
+        if (planPrompts.allowReadingOption(currentPlan(), font.isPaid)) updateReading { it.withFont(font) }
+    }
     fun onSmallerFont() = updateReading { it.smallerFont() }
     fun onBiggerFont() = updateReading { it.biggerFont() }
-    fun onTheme(theme: ReadingTheme) = updateReading { it.withTheme(theme) }
+    /** PLN-015: en Gratis, Sepia y Noche abren la hoja de función paga. */
+    fun onTheme(theme: ReadingTheme) {
+        if (planPrompts.allowReadingOption(currentPlan(), theme.isPaid)) updateReading { it.withTheme(theme) }
+    }
+
+    /** PLN-015: plan de la cuenta según el último espacio conocido; sin dato, Gratis. */
+    private fun currentPlan(): PlanId = PlanCatalog.planOf(quota.value)
     fun onLineSpacing(spacing: LineSpacing) = updateReading { it.withLineSpacing(spacing) }
 
     /** PRF-021: se aplica en el momento a toda la app (la raíz observa la misma preferencia). */

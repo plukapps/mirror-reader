@@ -184,3 +184,17 @@ internal fun SheetActions(seePlans: String, notNow: String, onSeePlans: () -> Un
         TextPlanButton(notNow, onNotNow)
     }
 }
+
+/** PLN-015: marca "Lector" de las opciones pagas (temas y fuentes). Amarilla con texto tinta, igual en los dos modos. */
+@Composable
+fun LectorMark(modifier: Modifier = Modifier) {
+    Text(
+        androidx.compose.ui.res.stringResource(com.pluk.reader.R.string.plans_reader),
+        style = planText(9, FontWeight.Bold, MarginColors.OnYellow),
+        maxLines = 1,
+        modifier = modifier
+            .clip(RoundedCornerShape(99.dp))
+            .background(MarginColors.Yellow)
+            .padding(horizontal = 5.dp, vertical = 2.dp),
+    )
+}

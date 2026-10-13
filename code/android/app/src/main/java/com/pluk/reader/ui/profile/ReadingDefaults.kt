@@ -1,5 +1,9 @@
 package com.pluk.reader.ui.profile
 
+import com.pluk.reader.domain.plans.isPaid
+import com.pluk.reader.ui.plans.LectorMark
+import androidx.compose.foundation.layout.offset
+import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
@@ -80,7 +84,7 @@ private val ProfileFontControls: FontControlsPalette
 
 /** PRF-011 a PRF-015: vista previa, letra, tema e interlineado. */
 @Composable
-internal fun ReadingDefaultsCard(reading: ReaderSettings, actions: ProfileActions, onOpenFont: () -> Unit) {
+internal fun ReadingDefaultsCard(reading: ReaderSettings, actions: ProfileActions, onOpenFont: () -> Unit, locked: Boolean = false) {
     ProfileCard {
         Preview(reading)
         ProfileRow(onClick = onOpenFont) {
@@ -96,7 +100,7 @@ internal fun ReadingDefaultsCard(reading: ReaderSettings, actions: ProfileAction
             Text(stringResource(R.string.profile_theme), style = profileText(15, FontWeight.Medium), modifier = Modifier.weight(1f))
             Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                 listOf(ReadingTheme.LIGHT, ReadingTheme.SEPIA, ReadingTheme.DARK).forEach { theme ->
-                    ThemeSwatch(theme, theme == reading.theme) { actions.onTheme(theme) }
+                    ThemeSwatch(theme, theme == reading.theme, marked = locked && theme.isPaid) { actions.onTheme(theme) }
                 }
             }
         }
@@ -135,8 +139,10 @@ private fun Preview(reading: ReaderSettings) {
 
 /** Círculo de 28; el elegido lleva un aro tinta separado por 2 dp, por fuera, sin mover nada. */
 @Composable
-private fun ThemeSwatch(theme: ReadingTheme, selected: Boolean, onClick: () -> Unit) {
-    val name = stringResource(theme.label)
+private fun ThemeSwatch(theme: ReadingTheme, selected: Boolean, marked: Boolean, onClick: () -> Unit) {
+    // PLN-015: en Gratis, Sepia y Noche llevan la marca "Lector" debajo del círculo y se anuncian como pagas.
+    val name = stringResource(theme.label).let { if (marked) "$it, ${stringResource(R.string.reader_paid_option)}" else it }
+    Box(contentAlignment = Alignment.Center) {
     // Se leen antes: la lambda de dibujo no es composable.
     val ring = MarginColors.Ink
     val gap = MarginColors.Field
@@ -157,6 +163,8 @@ private fun ThemeSwatch(theme: ReadingTheme, selected: Boolean, onClick: () -> U
             .semantics { contentDescription = name }
             .testTag("profile-theme-${theme.name}"),
     )
+    if (marked) LectorMark(Modifier.align(Alignment.BottomCenter).offset(y = 12.dp).clearAndSetSemantics {})
+    }
 }
 
 /** Botón de 36, radio 10: el elegido en tinta con el ícono amarillo. */
@@ -185,7 +193,7 @@ private fun SpacingOption(spacing: LineSpacing, selected: LineSpacing, onSelect:
 /** PRF-013: panel claro con el tipo de letra y "A−"/"A+", los mismos controles del panel del lector. */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-internal fun FontSheet(reading: ReaderSettings, actions: ProfileActions, onDismiss: () -> Unit) {
+internal fun FontSheet(reading: ReaderSettings, actions: ProfileActions, onDismiss: () -> Unit, locked: Boolean = false) {
     ModalBottomSheet(
         onDismissRequest = onDismiss,
         sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
@@ -202,7 +210,7 @@ internal fun FontSheet(reading: ReaderSettings, actions: ProfileActions, onDismi
             verticalArrangement = Arrangement.spacedBy(18.dp),
         ) {
             Text(stringResource(R.string.profile_font), style = profileText(15, FontWeight.SemiBold))
-            FontChips(reading.font, actions.onFont, ProfileFontControls)
+            FontChips(reading.font, actions.onFont, ProfileFontControls, locked = locked)
             SizeButtons(actions.onSmallerFont, actions.onBiggerFont, ProfileFontControls)
         }
     }

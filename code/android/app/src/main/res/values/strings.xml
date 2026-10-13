@@ -363,6 +363,7 @@
     <!-- P03, funciones pagas (PLN-015). -->
     <string name="plans_paid_themes_title">Leé con tus temas y fuentes</string>
     <string name="plans_paid_themes_body">Sepia, Noche y todas las letras del lector, en todos tus libros.</string>
+    <string name="reader_paid_option">Incluido en Lector</string>
     <string name="plans_paid_included">Incluido en %1$s</string>
     <!-- Aviso suave del 80 % (PLN-011). -->
     <string name="plans_notice_free">Te quedan %1$s en la nube.</string>

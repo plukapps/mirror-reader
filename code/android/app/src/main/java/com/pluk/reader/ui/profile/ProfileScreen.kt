@@ -156,7 +156,7 @@ fun ProfileContent(
                 style = profileText(12, color = MarginColors.Muted).copy(lineHeight = 1.4.em),
                 modifier = Modifier.padding(start = 24.dp, end = 24.dp, bottom = 10.dp),
             )
-            ReadingDefaultsCard(state.reading, actions, onOpenFont = { fontSheetOpen = true })
+            ReadingDefaultsCard(state.reading, actions, onOpenFont = { fontSheetOpen = true }, locked = state.readingOptionsLocked)
             SectionTitle(stringResource(R.string.profile_section_app))
             AppCard(state.appearance, state.wifiOnly, actions)
             SectionTitle(stringResource(R.string.profile_section_help))
@@ -164,7 +164,7 @@ fun ProfileContent(
             Footer(version, actions.onComingSoon, Modifier.padding(bottom = 24.dp + bottomBarPadding))
         }
     }
-    if (fontSheetOpen) FontSheet(state.reading, actions, onDismiss = { fontSheetOpen = false })
+    if (fontSheetOpen) FontSheet(state.reading, actions, onDismiss = { fontSheetOpen = false }, locked = state.readingOptionsLocked)
 }
 
 /** PRF-009: confirmación de cerrar sesión, con el mismo estilo que la de quitar un libro (LIB-020). */

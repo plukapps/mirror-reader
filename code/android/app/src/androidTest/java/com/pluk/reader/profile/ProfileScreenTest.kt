@@ -164,4 +164,19 @@ class ProfileScreenTest {
         assertEquals(FaqId.SPACE, opened)
         assertEquals(true, all)
     }
+
+    // PLN-015, PRF-014: en Gratis, Sepia y Noche llevan la marca "Lector"; con un plan pago, no
+    @Test
+    fun paidThemesAreMarkedOnFree() {
+        show(state.copy(readingOptionsLocked = true))
+        compose.onNodeWithContentDescription("Sepia, Incluido en Lector").performScrollTo().assertExists()
+        compose.onNodeWithContentDescription("Noche, Incluido en Lector").assertExists()
+        compose.onNodeWithContentDescription("Clásico").assertExists()
+    }
+
+    @Test
+    fun paidThemesAreNotMarkedOnPaidPlans() {
+        show(state.copy(readingOptionsLocked = false))
+        compose.onNodeWithContentDescription("Sepia").performScrollTo().assertExists()
+    }
 }
