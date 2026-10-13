@@ -5,8 +5,8 @@ import ReaderDomain
 /// P01 Planes (PLN-002 a PLN-006), como `PlansViewModel` de Android. Lee la cuota guardada, sin red.
 @MainActor @Observable
 final class PlansViewModel {
-    /// PLN-004: arranca en anual.
-    var billing: Billing = .annual
+    /// PLN-004: arranca en mensual.
+    var billing: Billing = .monthly
     /// PLN-005: arranca elegido Lector. Gratis no se elige.
     private(set) var selected: PlanId = .reader
     /// PLN-006: la tabla comparativa, desplegada o no.
@@ -35,6 +35,9 @@ final class PlansViewModel {
         guard plan != .free else { return }
         selected = plan
     }
+
+    /// PLN-005: la tarjeta del plan elegido va en amarillo. Gratis no se elige.
+    func isHighlighted(_ plan: PlanId) -> Bool { plan != .free && plan == selected }
 
     func toggleTable() {
         tableOpen.toggle()

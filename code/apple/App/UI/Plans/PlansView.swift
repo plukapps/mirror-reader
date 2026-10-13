@@ -289,10 +289,12 @@ private struct PlanCard: View {
     let wide: Bool
 
     private var isReader: Bool { plan.id == .reader }
+    /// PLN-005: la tarjeta elegida va en amarillo con borde tinta; las demás, con el fondo y el borde de siempre.
+    private var highlighted: Bool { viewModel.isHighlighted(plan.id) }
     private var isFree: Bool { plan.id == .free }
     private var selected: Bool { viewModel.selected == plan.id }
-    private var text: Color { isReader ? MarginColors.onYellow : MarginColors.ink }
-    private var secondary: Color { isReader ? MarginColors.onYellowMuted : MarginColors.ink2 }
+    private var text: Color { highlighted ? MarginColors.onYellow : MarginColors.ink }
+    private var secondary: Color { highlighted ? MarginColors.onYellowMuted : MarginColors.ink2 }
     private var radius: CGFloat { wide ? 28 : 24 }
 
     var body: some View {
@@ -329,10 +331,10 @@ private struct PlanCard: View {
         }
         .padding(wide ? 24 : 18)
         .frame(maxWidth: .infinity, alignment: .leading)
-        .background(isReader ? MarginColors.yellow : MarginColors.field, in: RoundedRectangle(cornerRadius: radius))
+        .background(highlighted ? MarginColors.yellow : MarginColors.field, in: RoundedRectangle(cornerRadius: radius))
         .overlay(
             RoundedRectangle(cornerRadius: radius)
-                .strokeBorder(isReader ? MarginColors.onYellow : MarginColors.off, lineWidth: isReader ? 2 : 1.5)
+                .strokeBorder(highlighted ? MarginColors.onYellow : MarginColors.off, lineWidth: highlighted ? 2 : 1.5)
         )
         .accessibilityElement(children: .ignore)
         .accessibilityLabel(Text(accessibilityText))
@@ -383,11 +385,11 @@ private struct PlanCard: View {
             .foregroundStyle(text)
             Text(plan.periodNote(viewModel.billing))
                 .font(.app(wide ? 13 : 12, .medium))
-                .foregroundStyle(isReader ? MarginColors.onYellowMuted : MarginColors.muted)
+                .foregroundStyle(highlighted ? MarginColors.onYellowMuted : MarginColors.muted)
         }
         .padding(.top, 12)
         .frame(maxWidth: .infinity, alignment: .leading)
-        .overlay(alignment: .top) { (isReader ? MarginColors.onYellowLine : MarginColors.line).frame(height: 1) }
+        .overlay(alignment: .top) { (highlighted ? MarginColors.onYellowLine : MarginColors.line).frame(height: 1) }
     }
 
     private var accessibilityText: String {
