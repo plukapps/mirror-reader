@@ -2,6 +2,9 @@ package com.pluk.reader.domain.account
 
 import kotlinx.coroutines.flow.Flow
 
+/** Cómo entra la cuenta. Define si se puede cambiar la contraseña desde Perfil (PRF-008). */
+enum class SignInMethod { PASSWORD, GOOGLE, OTHER }
+
 /**
  * Usuario con sesión iniciada. [id] es el `uid` del backend (ACC-004). [needsEmailVerification] es verdadero
  * para una cuenta de email que todavía no confirmó su dirección (ONB-019).
@@ -11,6 +14,7 @@ data class AccountUser(
     val email: String?,
     val displayName: String? = null,
     val needsEmailVerification: Boolean = false,
+    val signInMethod: SignInMethod = SignInMethod.PASSWORD,
 )
 
 interface AccountRepository {

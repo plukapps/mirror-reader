@@ -4,6 +4,7 @@ import com.pluk.reader.domain.ApplicationScope
 import com.pluk.reader.domain.account.AccountRepository
 import com.pluk.reader.domain.remote.RemoteBookChanges
 import com.pluk.reader.domain.repository.KnownBooks
+import com.pluk.reader.domain.sync.SyncGate
 import javax.inject.Inject
 import javax.inject.Singleton
 import kotlinx.coroutines.CoroutineScope
@@ -31,6 +32,7 @@ class LibraryWatcher internal constructor(
     private val account: AccountRepository,
     private val scope: CoroutineScope,
     private val now: () -> Long,
+    private val gate: SyncGate = SyncGate.ALWAYS_OPEN,
 ) : CloudListener {
     @Inject
     constructor(
@@ -39,7 +41,8 @@ class LibraryWatcher internal constructor(
         sync: LibrarySyncRequester,
         account: AccountRepository,
         @ApplicationScope scope: CoroutineScope,
-    ) : this(remote, known, sync, account, scope, System::currentTimeMillis)
+        gate: SyncGate,
+    ) : this(remote, known, sync, account, scope, System::currentTimeMillis, gate)
 
     private var listenJob: Job? = null
 
@@ -49,8 +52,13 @@ class LibraryWatcher internal constructor(
         listenJob = scope.launch {
             account.user.distinctUntilChangedBy { it?.id }.collectLatest { user ->
                 if (user == null) return@collectLatest
-                remote.observeAliveSince(now() - LOOKBACK_MS).collect { result ->
-                    result.onSuccess { ids -> if (ids.any { it !in known.knownBookIds() }) sync.request() }
+                // PRF-023: sin Wi-Fi no se escuchan libros nuevos.
+                gate.open.collectLatest { open ->
+                    if (open) {
+                        remote.observeAliveSince(now() - LOOKBACK_MS).collect { result ->
+                            result.onSuccess { ids -> if (ids.any { it !in known.knownBookIds() }) sync.request() }
+                        }
+                    }
                 }
             }
         }
@@ -67,19 +75,60 @@ class LibraryWatcher internal constructor(
     }
 }
 
-/** Las escuchas de la nube que siguen a la app a la vista: borrados (LIB-020) y libros nuevos (SYN-015). */
+/**
+ * PRF-023: con la app a la vista, cuando la puerta se abre (llegó el Wi-Fi o se apagó "Solo con Wi-Fi") pide una
+ * pasada y envía las posiciones pendientes. Solo reacciona a cambios: el valor de cuando empieza a escuchar no cuenta.
+ */
+@Singleton
+class SyncGateWatcher @Inject constructor(
+    private val gate: SyncGate,
+    private val sync: LibrarySyncRequester,
+    private val positions: PositionFlushRequester,
+    @ApplicationScope private val scope: CoroutineScope,
+) : CloudListener {
+    private var listenJob: Job? = null
+
+    @Synchronized
+    override fun startListening() {
+        if (listenJob?.isActive == true) return
+        listenJob = scope.launch {
+            var wasOpen: Boolean? = null
+            gate.open.collect { open ->
+                if (open && wasOpen == false) {
+                    sync.request()
+                    positions.requestFlush()
+                }
+                wasOpen = open
+            }
+        }
+    }
+
+    @Synchronized
+    override fun stopListening() {
+        listenJob?.cancel()
+        listenJob = null
+    }
+}
+
+/**
+ * Las escuchas de la nube que siguen a la app a la vista: borrados (LIB-020), libros nuevos (SYN-015) y la vuelta
+ * del Wi-Fi (PRF-023).
+ */
 @Singleton
 class CloudListeners @Inject constructor(
     private val removals: RemovalSync,
     private val library: LibraryWatcher,
+    private val gate: SyncGateWatcher,
 ) : CloudListener {
     override fun startListening() {
         removals.startListening()
         library.startListening()
+        gate.startListening()
     }
 
     override fun stopListening() {
         removals.stopListening()
         library.stopListening()
+        gate.stopListening()
     }
 }

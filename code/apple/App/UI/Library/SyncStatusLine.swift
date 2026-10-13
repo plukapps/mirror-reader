@@ -9,9 +9,13 @@ struct SyncStatusLine: Equatable {
 
     /// nil si no hay nada que decir: sin sesión, o todo al día.
     init?(state: SyncState, pendingUploads: Int) {
-        guard state.hasSession, state.running || state.issue != nil || pendingUploads > 0 else { return nil }
+        guard state.hasSession, state.running || state.waitingForWifi || state.issue != nil || pendingUploads > 0
+        else { return nil }
         let message: String = if state.running {
             String(localized: "Sincronizando…")
+        } else if state.waitingForWifi {
+            // PRF-023: no es un error: no se ofrece reintentar.
+            String(localized: "Esperando Wi-Fi para sincronizar.")
         } else {
             switch state.issue {
             case .offline:
@@ -30,7 +34,7 @@ struct SyncStatusLine: Equatable {
                 String(localized: "\(pendingUploads) libros sin subir")
             }
         }
-        canRetry = !state.running && state.issue != nil
+        canRetry = !state.running && !state.waitingForWifi && state.issue != nil
         text = canRetry ? String(localized: "\(message) Tocá para reintentar.") : message
     }
 }

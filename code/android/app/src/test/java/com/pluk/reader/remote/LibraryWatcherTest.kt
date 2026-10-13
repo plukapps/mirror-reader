@@ -33,6 +33,8 @@ class LibraryWatcherTest {
     private var requests = 0
     private val account = FakeSession(AccountUser("u1", null))
 
+    private val gate = FakeGate()
+
     private fun watcher() = LibraryWatcher(
         remote,
         KnownBooks { known.toSet() },
@@ -40,6 +42,7 @@ class LibraryWatcherTest {
         account,
         CoroutineScope(dispatcher),
         now = { 100_000_000L },
+        gate = gate,
     )
 
     @Test
@@ -83,5 +86,16 @@ class LibraryWatcherTest {
         watcher().startListening()
         advanceUntilIdle()
         assertEquals(emptyList<Long>(), remote.since)
+    }
+
+    // PRF-023: sin Wi-Fi no se escuchan los libros nuevos de otros dispositivos
+    @Test
+    fun withoutWifiDoesNotWatch() = runTest(dispatcher) {
+        gate.state.value = false
+        val watcher = watcher()
+        watcher.startListening()
+        advanceUntilIdle()
+        assertEquals(0, remote.since.size)
+        watcher.stopListening()
     }
 }

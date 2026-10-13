@@ -4,6 +4,8 @@ import com.pluk.reader.domain.ApplicationScope
 import com.pluk.reader.domain.account.AccountRepository
 import com.pluk.reader.domain.remote.RemoteRemovals
 import com.pluk.reader.domain.repository.BookRemovals
+import com.pluk.reader.domain.sync.SyncGate
+import com.pluk.reader.domain.sync.WaitingForWifiException
 import javax.inject.Inject
 import javax.inject.Singleton
 import kotlinx.coroutines.CoroutineScope
@@ -47,6 +49,7 @@ class RemovalSync @Inject constructor(
     private val session: ReadingSession,
     private val account: AccountRepository,
     @ApplicationScope private val scope: CoroutineScope,
+    private val gate: SyncGate = SyncGate.ALWAYS_OPEN,
 ) : CloudRemovals, RemovalPushRequester, CloudListener {
     private val pushLock = Mutex()
     private val applyLock = Mutex()
@@ -77,6 +80,8 @@ class RemovalSync @Inject constructor(
     }
 
     private suspend fun push(): Result<Unit> = pushLock.withLock {
+        // PRF-023: sin Wi-Fi, lo quitado queda pendiente.
+        if (!gate.isOpen()) return Result.failure(WaitingForWifiException())
         for (bookId in local.pendingCloudRemovals()) {
             remote.markDeleted(bookId).onFailure { return Result.failure(it) }
             remote.deleteFiles(bookId).onFailure { return Result.failure(it) }
@@ -101,7 +106,11 @@ class RemovalSync @Inject constructor(
         if (listenJob?.isActive == true) return
         listenJob = scope.launch {
             account.user.distinctUntilChangedBy { it?.id }.collectLatest { user ->
-                if (user != null) remote.observeDeleted().collect { result -> result.onSuccess { apply(it) } }
+                if (user != null) {
+                    gate.open.collectLatest { open ->
+                        if (open) remote.observeDeleted().collect { result -> result.onSuccess { apply(it) } }
+                    }
+                }
             }
         }
     }

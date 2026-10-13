@@ -19,6 +19,8 @@ final class SyncCoordinator {
     @ObservationIgnored private let positions: PositionSync?
     @ObservationIgnored private let removals: RemovalSync?
     @ObservationIgnored private let watcher: LibraryWatcher?
+    /// PRF-023: si la red permite sincronizar ("Sincronizar solo con Wi-Fi"). nil: siempre.
+    @ObservationIgnored private let gate: SyncNetworkGate?
     @ObservationIgnored private var removalUpdates: Task<Void, Never>?
     @ObservationIgnored private let reload: @MainActor () async -> Void
     @ObservationIgnored private var isActive = true
@@ -27,12 +29,14 @@ final class SyncCoordinator {
     /// - Parameters:
     ///   - pass: nil si la app funciona solo en local.
     ///   - positions: sincronización de la posición, o nil si la app funciona solo en local.
+    ///   - gate: "Sincronizar solo con Wi-Fi" (PRF-023): sin red apta no hay pasadas, envíos ni escuchas.
     ///   - reload: vuelve a leer la base en las pantallas.
     init(
         pass: Pass?,
         positions: PositionSync? = nil,
         removals: RemovalSync? = nil,
         watcher: LibraryWatcher? = nil,
+        gate: SyncNetworkGate? = nil,
         ttl: Duration = SyncScheduler.defaultTTL,
         reload: @escaping @MainActor () async -> Void
     ) {
@@ -40,15 +44,21 @@ final class SyncCoordinator {
         self.positions = positions
         self.removals = removals
         self.watcher = watcher
+        self.gate = gate
         guard let pass else { return }
         state = SyncState()
         let onChange: @Sendable () async -> Void = { [weak self] in await self?.changed() }
         scheduler = SyncScheduler(
             ttl: ttl,
             pass: { await pass(onChange) },
+            allowed: { [weak gate] in await gate?.allowsSync ?? true },
             onState: { [weak self] state in await self?.apply(state) }
         )
+        gate?.onChange = { [weak self] allowed in self?.networkGateChanged(allowed) }
     }
+
+    /// PRF-023: la red permite sincronizar (o no hay "solo Wi-Fi").
+    private var cloudAllowed: Bool { gate?.allowsSync ?? true }
 
     /// Pide una pasada que siempre corre: al arrancar, tras importar, al reintentar.
     func request() {
@@ -70,7 +80,10 @@ final class SyncCoordinator {
         isActive = false
         if let removals { Task { await removals.stopListening() } }
         if let watcher { Task { await watcher.stopListening() } }
-        guard let positions else { return }
+        guard let positions, cloudAllowed else {
+            if let positions { Task { await positions.stopListening() } }
+            return
+        }
         Task {
             await positions.stopListening()
             await positions.flush()
@@ -88,12 +101,61 @@ final class SyncCoordinator {
         Task { await removals.bookClosed(bookId) }
     }
 
+    /// SYN-011: envía las posiciones pendientes, si la red lo permite (PRF-023).
+    func flushPositions() async {
+        guard let positions, cloudAllowed else { return }
+        await positions.flush()
+    }
+
+    /// LIB-020: borra de la cuenta los libros quitados, si la red lo permite (PRF-023).
+    func pushRemovals() async {
+        guard let removals, cloudAllowed else { return }
+        await removals.push()
+    }
+
+    // MARK: Solo Wi-Fi (PRF-023)
+
+    /// Con red apta y la app a la vista, vuelve a escuchar y sincroniza; sin ella, deja de escuchar y el estado pasa a
+    /// "Esperando Wi-Fi".
+    private func networkGateChanged(_ allowed: Bool) {
+        if allowed {
+            guard isActive else { return }
+            startListening()
+            request()
+        } else {
+            Task { await stopListeningForSignOut() }
+            request()
+        }
+    }
+
+    // MARK: Cerrar sesión (PRF-009)
+
+    /// Deja de escuchar la nube y espera a que cada escucha se haya detenido.
+    func stopListeningForSignOut() async {
+        await positions?.stopListening()
+        await removals?.stopListening()
+        await watcher?.stopListening()
+    }
+
+    /// Corre `body` sin pasadas de biblioteca en curso ni nuevas (ver `SyncScheduler.whileIdle`).
+    func whileIdle<T: Sendable>(_ body: @Sendable () async -> T) async -> T {
+        guard let scheduler else { return await body() }
+        return await scheduler.whileIdle(body)
+    }
+
+    /// Vuelve a escuchar si la app está a la vista; sin sesión, las escuchas no hacen nada.
+    func resumeListening() {
+        startListening()
+    }
+
     /// Espera a que no quede ninguna pasada por correr. Para los tests.
     func idle() async {
         await scheduler?.idle()
     }
 
     private func startListening() {
+        // PRF-023: sin red apta no se escucha la nube.
+        guard cloudAllowed else { return }
         startListeningForRemovals()
         guard let positions, isActive else { return }
         Task { await positions.startListening() }
@@ -130,5 +192,22 @@ final class SyncCoordinator {
         // Al arrancar la sesión llega con la primera pasada: recién entonces se puede escuchar.
         if newState.hasSession { startListening() }
         await reload()
+    }
+}
+
+/// `SyncCoordinator` como lo ve el cierre de sesión (PRF-009).
+struct CoordinatorSyncControl: SyncControl {
+    let coordinator: SyncCoordinator
+
+    func stopListening() async {
+        await coordinator.stopListeningForSignOut()
+    }
+
+    func whileIdle<T: Sendable>(_ body: @Sendable () async -> T) async -> T {
+        await coordinator.whileIdle(body)
+    }
+
+    func startListening() async {
+        await coordinator.resumeListening()
     }
 }

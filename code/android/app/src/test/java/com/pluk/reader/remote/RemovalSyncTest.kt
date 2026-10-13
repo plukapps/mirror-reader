@@ -64,7 +64,9 @@ class RemovalSyncTest {
     private val session = ReadingSession()
     private val account = FakeSession(AccountUser("u1", null))
 
-    private fun removals() = RemovalSync(remote, local, session, account, CoroutineScope(dispatcher))
+    private val gate = FakeGate()
+
+    private fun removals() = RemovalSync(remote, local, session, account, CoroutineScope(dispatcher), gate)
 
     // LIB-020: primero se marca en la nube, después se borran los archivos y recién ahí queda hecho
     @Test
@@ -168,5 +170,35 @@ class RemovalSyncTest {
         advanceUntilIdle()
 
         assertEquals(listOf("marcar:a", "archivos:a"), remote.calls)
+    }
+
+    // PRF-023: sin Wi-Fi, quitar un libro queda pendiente y no se envía
+    @Test
+    fun withoutWifiRemovalStaysPending() = runTest(dispatcher) {
+        gate.state.value = false
+        local.pending += "a"
+        removals().requestPush()
+        advanceUntilIdle()
+        assertTrue(remote.calls.isEmpty())
+        assertEquals(listOf("a"), local.pending)
+    }
+
+    // PRF-023: sin Wi-Fi no se escuchan los borrados de otros dispositivos; al volver el Wi-Fi, sí
+    @Test
+    fun withoutWifiDoesNotListenToRemovals() = runTest(dispatcher) {
+        gate.state.value = false
+        val removals = removals()
+        removals.startListening()
+        advanceUntilIdle()
+        remote.changes.emit(Result.success(listOf("b")))
+        advanceUntilIdle()
+        assertTrue(local.removedByCloud.isEmpty())
+
+        gate.state.value = true
+        advanceUntilIdle()
+        remote.changes.emit(Result.success(listOf("b")))
+        advanceUntilIdle()
+        assertEquals(listOf("b"), local.removedByCloud)
+        removals.stopListening()
     }
 }

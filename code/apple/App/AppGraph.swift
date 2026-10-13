@@ -12,10 +12,16 @@ enum AppGraph {
         let search: SearchViewModel
         let library: LibraryViewModel
         let sync: SyncCoordinator
+        /// Perfil (PRF-001): cuenta, espacio y ajustes.
+        let profile: ProfileViewModel
         /// Menú de un libro con mantener presionado (LIB-016).
         let bookActions: BookActionsViewModel
         /// nil en la Mac: Readium Swift solo soporta iOS (ADR 0013).
         let makeReader: ((_ bookId: String) -> ReaderViewModel)?
+        /// Apariencia de la app (PRF-021).
+        let appearance: AppearanceSettings
+        /// La red del dispositivo para "Sincronizar solo con Wi-Fi" (PRF-023). Se guarda para que siga avisando.
+        let network: PathNetworkMonitor
         /// Pantalla de arranque (ONB-019).
         let start: AppStartViewModel
         /// nil sin Firebase: no hay cuenta que crear (ADR 0015).
@@ -29,6 +35,11 @@ enum AppGraph {
         let store = LibraryStore(container: container(), files: files)
         // Los tests corren dentro de la app: nunca tocan el proyecto real.
         let firebase = !isRunningTests && FirebaseSetup.configureIfAvailable()
+        // PRF-023: "Sincronizar solo con Wi-Fi" mira la red real.
+        let gate = SyncNetworkGate()
+        let network = PathNetworkMonitor()
+        network.start { type in Task { @MainActor in gate.networkChanged(type) } }
+        let cloudAllowed: @Sendable () async -> Bool = { await gate.allowsSync }
         let positions = firebase ? positionSync(store: store) : nil
         // LIB-020: quitar un libro lo borra de la cuenta y de los otros dispositivos.
         let removals = firebase ? RemovalSync(remote: FirebaseRemovals(), local: store, account: FirebaseAccountRepository()) : nil
@@ -38,7 +49,8 @@ enum AppGraph {
         let importer = EpubImporter(store: store, files: files, loader: loader)
         let bookFiles: BookFiles = CoverExtractingBookFiles(store: store, importer: importer)
         let reader: (importer: BookImporter, makeReader: (String) -> ReaderViewModel)? = readerParts(
-            store: store, files: files, loader: loader, importer: importer, bookFiles: bookFiles, firebase: firebase, positions: positions
+            store: store, files: files, loader: loader, importer: importer, bookFiles: bookFiles, firebase: firebase, positions: positions,
+            cloudAllowed: cloudAllowed
         )
         #else
         let bookFiles: BookFiles = store
@@ -54,7 +66,7 @@ enum AppGraph {
                 await MainActor.run { refs.sync?.request() }
             }
             : nil
-        let sync = SyncCoordinator(pass: pass, positions: positions, removals: removals, watcher: watcher) {
+        let sync = SyncCoordinator(pass: pass, positions: positions, removals: removals, watcher: watcher, gate: gate) {
             await refs.home?.reload()
             await refs.library?.load()
         }
@@ -69,8 +81,8 @@ enum AppGraph {
             actions: BookActions(
                 positions: store,
                 editor: store,
-                requestFlush: { if let positions { Task { await positions.flush() } } },
-                requestRemovalPush: { if let removals { Task { await removals.push() } } }
+                requestFlush: { Task { await sync.flushPositions() } },
+                requestRemovalPush: { Task { await sync.pushRemovals() } }
             ),
             reload: {
                 await home.reload()
@@ -80,13 +92,40 @@ enum AppGraph {
             notify: { [weak home] in home?.show($0) }
         )
         let account = firebase ? FirebaseAccountRepository() : nil
+        let appearance = AppearanceSettings(repository: UserDefaultsAppearance())
         return Screens(
             home: home,
             search: search,
             library: library,
             sync: sync,
+            profile: ProfileViewModel(
+                account: account,
+                quota: firebase ? FirestoreQuotaSource() : nil,
+                cache: UserDefaultsQuotaCache(),
+                deviceName: UserDefaultsSyncPreferences.model,
+                settings: UserDefaultsReaderSettings(),
+                passwords: account,
+                appearance: appearance,
+                wifiOnly: gate,
+                signOut: account.map { account in
+                    SignOut(
+                        sync: CoordinatorSyncControl(coordinator: sync),
+                        localData: LocalAccountWiper(store: store, files: files, defaults: .standard),
+                        session: account,
+                        reminders: NotificationReminderScheduler(),
+                        hasPending: {
+                            let uploads = (try? await store.pending()) ?? []
+                            let positions = await store.pendingPositions()
+                            let removals = await store.pendingCloudRemovals()
+                            return !uploads.isEmpty || !positions.isEmpty || !removals.isEmpty
+                        }
+                    )
+                }
+            ),
             bookActions: bookActions,
             makeReader: reader?.makeReader,
+            appearance: appearance,
+            network: network,
             start: AppStartViewModel(account: account),
             onboarding: account.map { account in
                 OnboardingDependencies(
@@ -140,17 +179,20 @@ enum AppGraph {
     #if os(iOS)
     private static func readerParts(
         store: LibraryStore, files: LibraryFiles, loader: PublicationLoader, importer: EpubImporter, bookFiles: BookFiles,
-        firebase: Bool, positions: PositionSync?
+        firebase: Bool, positions: PositionSync?, cloudAllowed: @escaping @Sendable () async -> Bool
     ) -> (importer: BookImporter, makeReader: (String) -> ReaderViewModel) {
         let bookStore: BookFileStore = firebase ? FirebaseBookStore() : OfflineBookStore()
-        let source = EpubBookSource(store: store, files: files, loader: loader, download: DownloadBook(files: bookFiles, store: bookStore))
+        // PRF-023: un libro solo en la nube no se baja sin Wi-Fi si así se eligió.
+        let download = DownloadBook(files: bookFiles, store: bookStore, allowed: cloudAllowed)
+        let source = EpubBookSource(store: store, files: files, loader: loader, download: download)
         let settings = UserDefaultsReaderSettings()
         let readerSync = positions.map { positions in
             CloudReaderSync(
                 resolver: ResolveOpeningPosition(
                     remote: FirestorePositions(), store: store, positions: store, account: FirebaseAccountRepository()
                 ),
-                positions: positions
+                positions: positions,
+                allowed: cloudAllowed
             )
         }
         return (

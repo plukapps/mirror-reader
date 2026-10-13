@@ -1,11 +1,12 @@
 import FirebaseAuth
 import Foundation
+import GoogleSignIn
 import OSLog
 import ReaderDomain
 
 /// Sesión y cuenta con Firebase Auth: email y contraseña, y Google (ADR 0012, ADR 0015), como
 /// `FirebaseAccountRepository` de Android. Firebase guarda la sesión entre arranques.
-struct FirebaseAccountRepository: AccountRepository, AuthRepository {
+struct FirebaseAccountRepository: AccountRepository, AuthRepository, SessionRepository, PasswordRepository {
     private var auth: Auth { Auth.auth() }
 
     func currentUser() async -> AccountUser? {
@@ -85,6 +86,18 @@ struct FirebaseAccountRepository: AccountRepository, AuthRepository {
         }
     }
 
+    /// PRF-020: Firebase pide un ingreso reciente para cambiar la contraseña; se reautentica con la actual y después se
+    /// cambia. Una actual incorrecta llega como `.wrongPassword` o `.invalidCredential` y se traduce a
+    /// `.invalidCredentials`. La sesión de este dispositivo sigue abierta.
+    func changePassword(current: String, new: String) async throws {
+        try await run("cambiar la contraseña desde Perfil") {
+            let user = try requiredUser()
+            guard let email = user.email else { throw AuthFailure(.unknown) }
+            _ = try await user.reauthenticate(with: EmailAuthProvider.credential(withEmail: email, password: current))
+            try await user.updatePassword(to: new)
+        }
+    }
+
     private func requiredUser() throws -> User {
         guard let user = auth.currentUser else { throw AuthFailure(.unknown) }
         return user
@@ -103,6 +116,16 @@ struct FirebaseAccountRepository: AccountRepository, AuthRepository {
         }
     }
 
+    /// PRF-009: cierra la sesión de Firebase y olvida la cuenta de Google elegida (ADR 0015).
+    func signOut() async throws {
+        do {
+            try Auth.auth().signOut()
+        } catch {
+            throw AuthFailure(authError(error))
+        }
+        await MainActor.run { GIDSignIn.sharedInstance.signOut() }
+    }
+
     private func accountUser(_ user: User) -> AccountUser {
         let providers = user.providerData.map(\.providerID)
         let name = user.displayName?.trimmed
@@ -113,7 +136,10 @@ struct FirebaseAccountRepository: AccountRepository, AuthRepository {
             // Solo las cuentas de email verifican; Google ya llega verificada (ONB-006).
             needsEmailVerification: !user.isEmailVerified
                 && providers.contains(EmailAuthProvider.id)
-                && !providers.contains(GoogleAuthProvider.id)
+                && !providers.contains(GoogleAuthProvider.id),
+            signInMethod: providers.contains(EmailAuthProvider.id)
+                ? .password
+                : providers.contains(GoogleAuthProvider.id) ? .google : .other
         )
     }
 }

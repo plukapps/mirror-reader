@@ -10,6 +10,7 @@ import com.pluk.reader.domain.repository.BookUploadRepository
 import com.pluk.reader.domain.repository.CloudBooksRepository
 import com.pluk.reader.domain.repository.CoverFile
 import com.pluk.reader.domain.repository.PendingUpload
+import com.pluk.reader.domain.sync.SyncGate
 import com.pluk.reader.domain.usecase.CloudRemovals
 import com.pluk.reader.domain.usecase.DownloadBookUseCase
 import com.pluk.reader.domain.usecase.PositionFlusher
@@ -53,17 +54,18 @@ class FakeSyncBackend : BookUploadRepository, BookFileStore, RemoteLibrary, Quot
 
     fun unavailable() = RemoteUnavailableException("sin red")
 
-    fun useCase() = SyncLibraryUseCase(
+    fun useCase(gate: SyncGate = SyncGate.ALWAYS_OPEN) = SyncLibraryUseCase(
         SyncRemoteBooksUseCase(this, this),
         UploadBooksUseCase(this, this, this, this),
         SyncCoversUseCase(this, this),
-        DownloadBookUseCase(this, this),
+        DownloadBookUseCase(this, this, gate),
         this,
         PositionFlusher { positionFlushes++ },
         CloudRemovals {
             removalSyncs++
             if (offline) Result.failure(unavailable()) else Result.success(Unit)
         },
+        gate,
     )
 
     /** Cuántas veces la pasada envió y aplicó borrados (LIB-020). */

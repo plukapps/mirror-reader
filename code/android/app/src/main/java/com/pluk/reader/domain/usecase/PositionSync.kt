@@ -10,6 +10,7 @@ import com.pluk.reader.domain.remote.RemotePositions
 import com.pluk.reader.domain.remote.RemoteUnavailableException
 import com.pluk.reader.domain.repository.PositionSyncStore
 import com.pluk.reader.domain.repository.SyncPreferences
+import com.pluk.reader.domain.sync.SyncGate
 import javax.inject.Inject
 import javax.inject.Singleton
 import kotlinx.coroutines.CoroutineScope
@@ -47,7 +48,8 @@ class PositionSync @Inject constructor(
     private val prefs: SyncPreferences,
     private val account: AccountRepository,
     @ApplicationScope private val scope: CoroutineScope,
-) : PositionFlusher, PositionFlushRequester {
+    private val gate: SyncGate = SyncGate.ALWAYS_OPEN,
+) : PositionFlusher, PositionFlushRequester, CloudListener {
     private val flushLock = Mutex()
     private val _remoteUpdates = MutableSharedFlow<RemotePosition>(extraBufferCapacity = UPDATES_BUFFER)
     private var listenJob: Job? = null
@@ -58,6 +60,8 @@ class PositionSync @Inject constructor(
     override suspend fun flush() {
         flushLock.withLock {
             if (account.user.first() == null) return
+            // PRF-023: sin Wi-Fi queda pendiente; sale al volver (SyncGateWatcher) o en la próxima pasada.
+            if (!gate.isOpen()) return
             val pending = store.pending()
             if (pending.isEmpty()) return
             val deviceId = prefs.deviceId()
@@ -92,19 +96,20 @@ class PositionSync @Inject constructor(
 
     /** Empieza a recibir cambios mientras la app está a la vista. Llamarlo otra vez no hace nada. */
     @Synchronized
-    fun startListening() {
+    override fun startListening() {
         if (listenJob?.isActive == true) return
         listenJob = scope.launch {
             // La sesión puede llegar después: cada usuario nuevo reinicia la escucha.
             account.user.distinctUntilChangedBy { it?.id }.collectLatest { user ->
-                if (user != null) listen()
+                // PRF-023: sin Wi-Fi no se escucha; al volver, la escucha retoma desde la última vez.
+                if (user != null) gate.open.collectLatest { open -> if (open) listen() }
             }
         }
     }
 
     /** Deja de recibir cambios: la app dejó de verse. No hay trabajo en segundo plano. */
     @Synchronized
-    fun stopListening() {
+    override fun stopListening() {
         listenJob?.cancel()
         listenJob = null
     }

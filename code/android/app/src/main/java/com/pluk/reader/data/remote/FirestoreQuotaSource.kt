@@ -9,7 +9,7 @@ import com.pluk.reader.domain.remote.RemoteUnavailableException
 import kotlinx.coroutines.tasks.await
 import javax.inject.Inject
 
-/** Lee `users/{uid}`: `usedBytes` lo mantiene el servidor y `quotaBytes` lo define el plan (ADR 0008). */
+/** Lee `users/{uid}`: `usedBytes` lo mantiene el servidor y `quotaBytes` y `plan` los define el plan (ADR 0008). */
 class FirestoreQuotaSource @Inject constructor(
     private val db: FirebaseFirestore,
     private val auth: FirebaseAuth,
@@ -22,6 +22,6 @@ class FirestoreQuotaSource @Inject constructor(
         val quota = doc.getLong("quotaBytes")
         // Si el documento aún no existe, la función de alta no terminó: se reintenta más tarde.
         if (!doc.exists() || used == null || quota == null) throw RemoteUnavailableException("La cuenta todavía no está lista.")
-        StorageQuota(used, quota)
+        StorageQuota(used, quota, plan = doc.getString("plan") ?: StorageQuota.FREE_PLAN)
     }
 }

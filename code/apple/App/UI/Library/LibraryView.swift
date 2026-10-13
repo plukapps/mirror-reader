@@ -47,7 +47,7 @@ private struct Header: View {
                         Image(systemName: "plus").font(.system(size: 17, weight: .semibold))
                         Text("Importar").font(.app(13, .bold))
                     }
-                    .foregroundStyle(MarginColors.ink)
+                    .foregroundStyle(MarginColors.onYellow)
                     .padding(.leading, 10)
                     .padding(.trailing, 14)
                     .frame(height: 40)
@@ -206,7 +206,7 @@ private struct EmptyLibrary: View {
                         .foregroundStyle(MarginColors.yellow)
                         .padding(.horizontal, 20)
                         .frame(height: 44)
-                        .background(MarginColors.ink, in: Capsule())
+                        .background(MarginColors.inkFill, in: Capsule())
                 }
                 .buttonStyle(.plain)
                 .padding(.top, 20)

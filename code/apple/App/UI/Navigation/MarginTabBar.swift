@@ -16,7 +16,7 @@ struct MarginTabBar: View {
         }
         .padding(.horizontal, 8)
         .frame(height: 60)
-        .background(MarginColors.ink, in: Capsule())
+        .background(MarginColors.inkFill, in: Capsule())
         .padding(.horizontal, 40)
         .padding(.bottom, 12)
     }
@@ -32,7 +32,7 @@ private struct Item: View {
             Image(selected ? destination.selectedIcon : destination.icon)
                 .resizable()
                 .frame(width: 24, height: 24)
-                .foregroundStyle(selected ? MarginColors.ink : MarginColors.inkMuted)
+                .foregroundStyle(selected ? MarginColors.onYellow : MarginColors.inkMuted)
                 .frame(width: 52, height: 44)
                 .background(selected ? MarginColors.yellow : .clear, in: Capsule())
                 .contentShape(Capsule())
@@ -51,7 +51,7 @@ struct ComingSoonNotice: View {
             .foregroundStyle(.white)
             .padding(.horizontal, 16)
             .padding(.vertical, 10)
-            .background(MarginColors.ink, in: Capsule())
+            .background(MarginColors.inkFill, in: Capsule())
     }
 }
 

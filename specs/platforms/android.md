@@ -36,6 +36,16 @@ Stack y capas definidos en `specs/adr/0005-android-stack-and-architecture.md`: C
   - **Quitar:** borra de la cuenta. `RemovalSync` pone `deletedAt` y borra los archivos de Storage, quita los borrados de otros dispositivos al sincronizar y, con la app a la vista, al llegar. Un libro abierto en el lector se quita al cerrarlo. Usa la tabla `removed_books`, de la base v7.
   - **Libros nuevos al instante:** `LibraryWatcher` escucha los libros cambiados en los últimos 15 minutos y pide una pasada si aparece uno desconocido.
   - Plan `specs/plans/2026-10-12-library-actions.md`.
+- Perfil (PRF-001 a PRF-019, diseño 09, K-190 a K-194):
+  - **Pantalla:** ruta `profile` de la barra (`ui/profile`). Lo que todavía no existe avisa "Llega más adelante.". Colores nuevos en `MarginColors`; íconos de Material Symbols en `ProfileIcons`.
+  - **Espacio:** `QuotaSource` con `plan` y una caché en DataStore (`QuotaCacheImpl`) para mostrarlo sin conexión. Los tamaños usan la unidad del total.
+  - **Ajustes de lectura:** los mismos de `SettingsRepository` que usa el lector. El panel de letra reutiliza `FontChips` y `SizeButtons` con una paleta clara.
+  - **Cerrar sesión:** `SignOut` deja de escuchar la nube, espera la pasada en curso (`LibrarySync.whileIdle`), borra con `LocalDataWiper` (la base, los archivos y el DataStore, salvo los ajustes del lector y `sync_device_id`), cancela el recordatorio, sale de Firebase y de Credential Manager y vuelve a la bienvenida.
+  - **Ayuda:** `domain/help/Faq.kt` con las respuestas en `strings.xml`.
+  - **Solo con Wi-Fi (PRF-023, K-207):** `domain/sync/SyncPolicy.kt` (`canSync`, `SyncGate`, `NetworkSyncGate`). Red por defecto con `ConnectivityManager.registerDefaultNetworkCallback` (`ConnectivityNetworkMonitor`; Wi-Fi o cable cuentan), preferencia `sync_wifi_only` en DataStore (en `RETAINED_KEYS`). La puerta la consultan `SyncLibraryUseCase` (entre pasos), `PositionSync`, `RemovalSync`, `LibraryWatcher` y `DownloadBookUseCase`; `LibrarySync` muestra `SyncIssue.WaitingForWifi`. `SyncGateWatcher` (dentro de `CloudListeners`, solo con la app a la vista) pide una pasada y envía posiciones cuando la puerta se abre.
+  - **Apariencia (PRF-021, PRF-022, K-205):** `AppearancePreferences` en DataStore (clave `appearance`, en `RETAINED_KEYS`). `MarginColors` lee la `MarginPalette` de `LocalMarginPalette`, que `MainActivity` provee según la preferencia e `isSystemInDarkTheme()`; `InkFill` para rellenos oscuros y `OnYellow` sobre amarillo. Onboarding y lector se envuelven con la paleta clara (`lightComposable` en `AppNavHost`). Barras del sistema con `enableEdgeToEdge(SystemBarStyle…)` según el modo (`SystemBarsEffect`); el lector pone los íconos según su tema (resuelve K-200).
+  - **Cambiar contraseña (PRF-020, K-203):** ruta `profile/password` sin barra (`ChangePasswordScreen`, `ChangePasswordViewModel`), con los campos, reglas y medidor del onboarding. `AuthRepository.changePassword` reautentica con `EmailAuthProvider` y llama `updatePassword`; la actual incorrecta llega como `InvalidCredentials` y se muestra bajo su campo. Regla de "Guardar" en `canSaveNewPassword`.
+  - Plan `specs/plans/2026-10-12-profile.md`.
 
 ## Criterio de terminado
 

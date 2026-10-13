@@ -135,10 +135,10 @@ private fun Header(importing: Boolean, onImport: () -> Unit) {
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(4.dp),
         ) {
-            Icon(LibraryIcons.Add, contentDescription = null, tint = MarginColors.Ink)
+            Icon(LibraryIcons.Add, contentDescription = null, tint = MarginColors.OnYellow)
             Text(
                 text = stringResource(if (importing) R.string.library_importing else R.string.library_import),
-                color = MarginColors.Ink,
+                color = MarginColors.OnYellow,
                 fontSize = 13.sp,
                 fontWeight = FontWeight.Bold,
             )
@@ -155,11 +155,13 @@ private fun SyncStatus(state: LibraryUiState, onRetry: () -> Unit) {
     val text = when {
         state.sync.running -> stringResource(R.string.library_syncing)
         issue is SyncIssue.Offline -> stringResource(R.string.library_sync_offline)
+        issue is SyncIssue.WaitingForWifi -> stringResource(R.string.library_sync_waiting_wifi)
         issue is SyncIssue.NotEnoughSpace -> pluralStringResource(R.plurals.library_no_space, issue.count, issue.count)
         issue is SyncIssue.Failed -> pluralStringResource(R.plurals.library_sync_failed, issue.count, issue.count)
         else -> pluralStringResource(R.plurals.library_pending_upload, state.pendingUploadCount, state.pendingUploadCount)
     }
-    val retry = !state.sync.running && issue != null
+    // PRF-023: esperar el Wi-Fi no es un error: no se ofrece reintentar.
+    val retry = !state.sync.running && issue != null && issue != SyncIssue.WaitingForWifi
     Text(
         text = if (retry) stringResource(R.string.library_sync_retry, text) else text,
         color = MarginColors.Muted,
@@ -295,7 +297,7 @@ private fun EmptyLibrary(onImport: () -> Unit, modifier: Modifier = Modifier) {
             Modifier
                 .height(44.dp)
                 .clip(RoundedCornerShape(22.dp))
-                .background(MarginColors.Ink)
+                .background(MarginColors.InkFill)
                 .clickable(role = Role.Button, onClick = onImport)
                 .padding(horizontal = 20.dp),
             verticalAlignment = Alignment.CenterVertically,

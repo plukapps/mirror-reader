@@ -29,7 +29,7 @@ struct BookCover: View {
                 .tracking(-0.04 * 13)
                 .lineSpacing(0)
                 .lineLimit(5)
-                .foregroundStyle(style.isLight ? MarginColors.ink : .white)
+                .foregroundStyle(style.isLight ? MarginColors.onYellow : .white)
                 .padding(7)
         }
     }

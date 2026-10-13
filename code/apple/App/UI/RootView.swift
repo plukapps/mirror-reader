@@ -3,7 +3,7 @@ import ReaderDomain
 import SwiftUI
 import UniformTypeIdentifiers
 
-/// Pantalla raíz. En iPhone, Inicio, Buscar y la biblioteca (Estantes) con la barra inferior flotante (HOM-005), y el
+/// Pantalla raíz. En iPhone, Inicio, Buscar, la biblioteca (Estantes) y Perfil con la barra inferior flotante (HOM-005), y el
 /// lector a pantalla completa (RDR-007); en la Mac, sin barra hasta que su navegación tenga diseño (K-078): la
 /// biblioteca se abre desde Inicio y se vuelve atrás, y no hay lector (ADR 0013).
 struct RootView: View {
@@ -11,11 +11,14 @@ struct RootView: View {
     let search: SearchViewModel
     let library: LibraryViewModel
     let sync: SyncCoordinator
+    let profile: ProfileViewModel
     @Bindable var bookActions: BookActionsViewModel
     let makeReader: ((String) -> ReaderViewModel)?
     /// ONB-013: al llegar desde "Importar mis libros" abre el selector de Archivos.
     var importOnAppear = false
     var onImportOpened: () -> Void = {}
+    /// PRF-009: la sesión se cerró desde Perfil.
+    var onSignedOut: () -> Void = {}
     @Environment(\.scenePhase) private var scenePhase
     @State private var tabs = TabBarModel()
     /// LIB-001: selector de Archivos, desde Inicio o desde la biblioteca.
@@ -98,7 +101,13 @@ struct RootView: View {
         destination
             // La barra va en el área segura de abajo: el scroll pasa por debajo y deja su alto al final.
             .safeAreaInset(edge: .bottom, spacing: 0) {
-                MarginTabBar(selected: tabs.selected, onSelect: tabs.select)
+                Group {
+                    if tabs.barHidden {
+                        Color.clear.frame(height: 0)
+                    } else {
+                        MarginTabBar(selected: tabs.selected, onSelect: tabs.select)
+                    }
+                }
                     // Los avisos cuelgan hacia arriba desde el borde de la barra, sin cambiar el alto del área segura.
                     .overlay(alignment: .top) {
                         Color.clear.frame(height: 0).overlay(alignment: .bottom) {
@@ -153,6 +162,16 @@ struct RootView: View {
         switch tabs.selected {
         case .search: SearchView(viewModel: search, onOpen: home.open(bookId:))
         case .shelves: LibraryView(viewModel: library, onImport: importAction ?? tabs.showComingSoon, onOpen: home.open(bookId:))
+        case .profile:
+            ProfileView(
+                viewModel: profile,
+                actions: ProfileActions(
+                    comingSoon: tabs.showComingSoon,
+                    notify: { home.show($0) },
+                    setTabBarHidden: { tabs.barHidden = $0 }
+                ),
+                onSignedOut: onSignedOut
+            )
         default: HomeView(viewModel: home, onOpenLibrary: openLibrary, onImport: importAction)
         }
     }
@@ -197,7 +216,7 @@ private struct HomeMessage: View {
             .multilineTextAlignment(.center)
             .padding(.horizontal, 16)
             .padding(.vertical, 10)
-            .background(MarginColors.ink, in: RoundedRectangle(cornerRadius: 14))
+            .background(MarginColors.inkFill, in: RoundedRectangle(cornerRadius: 14))
             .padding(.horizontal, 16)
             .task {
                 AccessibilityNotification.Announcement(text).post()

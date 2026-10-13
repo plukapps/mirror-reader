@@ -34,6 +34,22 @@ private struct FakeBookStore: BookFileStore {
 }
 
 struct DownloadBookTests {
+    @Test("PRF-023: sin red apta no baja un libro solo en la nube y lo dice")
+    func waitsForWifi() async {
+        let files = FakeBookFiles()
+        let download = DownloadBook(files: files, store: FakeBookStore(), allowed: { false })
+        await #expect(throws: BookOpenError("Este libro se descarga con Wi-Fi. Podés cambiarlo en Perfil.")) {
+            try await download(bookId: "a")
+        }
+        #expect(await files.installed.isEmpty)
+    }
+
+    @Test("PRF-023: un libro ya bajado se abre aunque no haya Wi-Fi")
+    func downloadedOpensWithoutWifi() async throws {
+        let files = FakeBookFiles(downloaded: ["a"])
+        try await DownloadBook(files: files, store: FakeBookStore(), allowed: { false })(bookId: "a")
+    }
+
     @Test func alreadyDownloadedDoesNothing() async throws {
         let files = FakeBookFiles(downloaded: ["a"])
         try await DownloadBook(files: files, store: FakeBookStore(error: CocoaError(.fileNoSuchFile)))(bookId: "a")

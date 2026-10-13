@@ -124,4 +124,24 @@ class DownloadBooksTest {
         assertEquals("Archivo dañado.", result.exceptionOrNull()?.message)
         assertFalse(cloud.isDownloaded("a"))
     }
+
+    // PRF-023: con "Solo con Wi-Fi" y sin Wi-Fi, abrir un libro de la nube avisa y no lo baja
+    @Test
+    fun withoutWifiTheBookIsNotDownloaded() = runTest {
+        val cloud = FakeCloud()
+        val result = DownloadBookUseCase(cloud, FakeFiles(), FakeGate(open = false))("a")
+        assertEquals(
+            "Este libro se descarga con Wi-Fi. Podés cambiarlo en Perfil.",
+            (result.exceptionOrNull() as BookOpenException).message,
+        )
+        assertTrue(calls.isEmpty())
+        assertFalse(cloud.isDownloaded("a"))
+    }
+
+    // PRF-023: lo que ya está en el dispositivo se abre igual sin Wi-Fi
+    @Test
+    fun withoutWifiADownloadedBookStillOpens() = runTest {
+        val cloud = FakeCloud(downloaded = mutableSetOf("a"))
+        assertTrue(DownloadBookUseCase(cloud, FakeFiles(), FakeGate(open = false))("a").isSuccess)
+    }
 }

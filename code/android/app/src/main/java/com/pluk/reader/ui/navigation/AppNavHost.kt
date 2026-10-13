@@ -1,6 +1,5 @@
 package com.pluk.reader.ui.navigation
 
-import android.widget.Toast
 import androidx.compose.foundation.layout.Box
 import androidx.compose.ui.draw.blur
 import com.pluk.reader.ui.actions.BookActionsHost
@@ -20,14 +19,12 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.platform.LocalContext
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.navArgument
-import com.pluk.reader.R
 import com.pluk.reader.ui.home.HomeScreen
 import com.pluk.reader.domain.model.LibraryFilter
 import com.pluk.reader.ui.library.LibraryScreen
@@ -46,9 +43,23 @@ import com.pluk.reader.ui.onboarding.SignUpScreen
 import com.pluk.reader.ui.onboarding.SignUpViewModel
 import com.pluk.reader.ui.onboarding.VerifyEmailScreen
 import com.pluk.reader.ui.onboarding.VerifyEmailViewModel
+import com.pluk.reader.domain.help.Faq
+import com.pluk.reader.ui.profile.ChangePasswordScreen
+import com.pluk.reader.ui.profile.FaqAnswerScreen
+import com.pluk.reader.ui.profile.FaqListScreen
+import com.pluk.reader.ui.profile.ProfileScreen
 import com.pluk.reader.ui.search.SearchScreen
 import com.pluk.reader.ui.welcome.WelcomeScreen
 import android.net.Uri
+import androidx.activity.ComponentActivity
+import androidx.activity.compose.LocalActivity
+import androidx.navigation.NamedNavArgument
+import androidx.navigation.NavBackStackEntry
+import androidx.navigation.NavGraphBuilder
+import com.pluk.reader.ui.theme.LightPalette
+import com.pluk.reader.ui.theme.ReaderTheme
+import com.pluk.reader.ui.theme.LocalMarginPalette
+import com.pluk.reader.ui.theme.SystemBarsEffect
 
 object Routes {
     /** Inicio es la pantalla de arranque (HOM-005), salvo que corresponda el onboarding (ONB-019). */
@@ -67,6 +78,11 @@ object Routes {
     const val LIBRARY = "library?${LibraryViewModel.ARG_FILTER}={${LibraryViewModel.ARG_FILTER}}"
     const val READER = "reader/{${ReaderViewModel.ARG_BOOK_ID}}"
     const val SEARCH = "search"
+    const val PROFILE = "profile"
+    const val FAQ_LIST = "profile/faq"
+    const val FAQ_ANSWER = "profile/faq/{key}"
+    const val CHANGE_PASSWORD = "profile/password"
+    fun faqAnswer(key: String): String = "profile/faq/$key"
 
     fun reader(bookId: String): String = "reader/$bookId"
 
@@ -89,7 +105,6 @@ fun AppNavHost(
     navController: NavHostController,
     startDestination: String,
 ) {
-    val context = LocalContext.current
     // ONB-013: "Importar mis libros" abre el selector apenas aparece Inicio.
     var pendingImport by rememberSaveable { mutableStateOf(false) }
     val route by navController.currentBackStackEntryAsState()
@@ -97,7 +112,14 @@ fun AppNavHost(
         Routes.HOME -> MainDestination.Home
         Routes.LIBRARY -> MainDestination.Shelves
         Routes.SEARCH -> MainDestination.Search
+        Routes.PROFILE -> MainDestination.Profile
         else -> null // La barra se oculta en el lector.
+    }
+    // PRF-021: onboarding y lector, siempre claros; el resto sigue la apariencia. El lector maneja sus barras.
+    val routeName = route?.destination?.route
+    val activity = LocalActivity.current as? ComponentActivity
+    if (activity != null && routeName != null && routeName != Routes.READER) {
+        SystemBarsEffect(activity, darkIcons = routeName in LightOnlyRoutes || !LocalMarginPalette.current.isDark)
     }
     // La barra flota sobre el contenido, que pasa por debajo; las pantallas dejan este espacio al final.
     val navBarInset = WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding()
@@ -110,13 +132,13 @@ fun AppNavHost(
         Box(Modifier.fillMaxSize().then(if (menuOpen) Modifier.blur(3.dp) else Modifier)) {
             CompositionLocalProvider(LocalBottomBarPadding provides bottomPadding, LocalBookActions provides bookActions) {
                 NavHost(navController = navController, startDestination = startDestination, modifier = Modifier.fillMaxSize()) {
-                    composable(Routes.WELCOME) {
+                    lightComposable(Routes.WELCOME) {
                         WelcomeScreen(
                             onCreateAccount = { navController.navigate(Routes.signUp()) },
                             onSignIn = { navController.navigate(Routes.SIGNIN) },
                         )
                     }
-                    composable(
+                    lightComposable(
                         Routes.SIGNUP,
                         arguments = listOf(
                             navArgument(SignUpViewModel.ARG_NAME) { type = NavType.StringType; defaultValue = "" },
@@ -131,7 +153,7 @@ fun AppNavHost(
                             onSignIn = { navController.navigate(Routes.SIGNIN) { popUpTo(Routes.SIGNUP) { inclusive = true } } },
                         )
                     }
-                    composable(
+                    lightComposable(
                         Routes.VERIFY,
                         arguments = listOf(navArgument(VerifyEmailViewModel.ARG_JUST_SENT) { type = NavType.BoolType; defaultValue = false }),
                     ) {
@@ -144,19 +166,19 @@ fun AppNavHost(
                             },
                         )
                     }
-                    composable(Routes.INTERESTS) {
+                    lightComposable(Routes.INTERESTS) {
                         InterestsScreen(
                             onBack = null,
                             onDone = { navController.navigate(Routes.GOAL) },
                         )
                     }
-                    composable(Routes.GOAL) {
+                    lightComposable(Routes.GOAL) {
                         GoalScreen(
                             onBack = { navController.popBackStack() },
                             onDone = { navController.startOver(Routes.ALL_SET) },
                         )
                     }
-                    composable(Routes.ALL_SET) {
+                    lightComposable(Routes.ALL_SET) {
                         AllSetScreen(
                             onStartReading = { navController.startOver(Routes.HOME) },
                             onImportBooks = {
@@ -165,7 +187,7 @@ fun AppNavHost(
                             },
                         )
                     }
-                    composable(Routes.SIGNIN) {
+                    lightComposable(Routes.SIGNIN) {
                         SignInScreen(
                             onBack = { navController.popOrStartOver() },
                             onHome = { navController.startOver(Routes.HOME) },
@@ -174,13 +196,13 @@ fun AppNavHost(
                             onCreateAccount = { navController.navigate(Routes.signUp()) { popUpTo(Routes.SIGNIN) { inclusive = true } } },
                         )
                     }
-                    composable(
+                    lightComposable(
                         Routes.FORGOT,
                         arguments = listOf(navArgument(ForgotPasswordViewModel.ARG_EMAIL) { type = NavType.StringType; defaultValue = "" }),
                     ) {
                         ForgotPasswordScreen(onBack = { navController.popOrStartOver() })
                     }
-                    composable(
+                    lightComposable(
                         Routes.RESET,
                         arguments = listOf(navArgument(ResetPasswordViewModel.ARG_CODE) { type = NavType.StringType; defaultValue = "" }),
                     ) {
@@ -217,7 +239,31 @@ fun AppNavHost(
                     composable(Routes.SEARCH) {
                         SearchScreen(onBookClick = { bookId -> navController.navigate(Routes.reader(bookId)) })
                     }
-                    composable(
+                    composable(Routes.PROFILE) {
+                        // PRF-009: con la sesión cerrada, a la bienvenida sin poder volver atrás.
+                        ProfileScreen(
+                            onSignedOut = { navController.startOver(Routes.WELCOME) },
+                            onFaq = { navController.navigate(Routes.faqAnswer(it.key)) },
+                            onAllFaq = { navController.navigate(Routes.FAQ_LIST) },
+                            onChangePassword = { navController.navigate(Routes.CHANGE_PASSWORD) },
+                        )
+                    }
+                    // PRF-020: cambiar contraseña, sin barra inferior.
+                    composable(Routes.CHANGE_PASSWORD) {
+                        ChangePasswordScreen(onBack = { navController.popBackStack() })
+                    }
+                    // PRF-017, PRF-018: preguntas frecuentes, sin barra inferior.
+                    composable(Routes.FAQ_LIST) {
+                        FaqListScreen(
+                            onBack = { navController.popBackStack() },
+                            onOpen = { navController.navigate(Routes.faqAnswer(it.key)) },
+                        )
+                    }
+                    composable(Routes.FAQ_ANSWER, arguments = listOf(navArgument("key") { type = NavType.StringType })) { entry ->
+                        val id = Faq.byKey(entry.arguments?.getString("key").orEmpty())
+                        if (id != null) FaqAnswerScreen(id, onBack = { navController.popBackStack() })
+                    }
+                    lightComposable(
                         route = Routes.READER,
                         arguments = listOf(navArgument(ReaderViewModel.ARG_BOOK_ID) { type = NavType.StringType }),
                     ) {
@@ -231,9 +277,7 @@ fun AppNavHost(
                         MainDestination.Home -> navController.navigateTo(Routes.HOME)
                         MainDestination.Shelves -> navController.navigateTo(Routes.library())
                         MainDestination.Search -> navController.navigateTo(Routes.SEARCH)
-                        // TODO: Perfil (ACC) aún no existe (HOM-006).
-                        MainDestination.Profile ->
-                            Toast.makeText(context, R.string.nav_coming_soon, Toast.LENGTH_SHORT).show()
+                        MainDestination.Profile -> navController.navigateTo(Routes.PROFILE)
                     }
                 }
             }
@@ -242,6 +286,25 @@ fun AppNavHost(
             BookActionsHost(bookActions, onRead = { navController.navigate(Routes.reader(it)) }, bottomPadding = bottomPadding)
         }
     }
+}
+
+/** Rutas del onboarding (O1 a O9): siempre con la paleta clara (PRF-021). */
+private val LightOnlyRoutes = setOf(
+    Routes.WELCOME, Routes.SIGNUP, Routes.VERIFY, Routes.INTERESTS, Routes.GOAL, Routes.ALL_SET,
+    Routes.SIGNIN, Routes.FORGOT, Routes.RESET,
+)
+
+/**
+ * Destino que se dibuja siempre con la paleta clara (PRF-021). El onboarding también fuerza el tema claro de Material
+ * (el selector de hora de O7 toma de ahí sus colores); el lector conserva el suyo.
+ */
+private fun NavGraphBuilder.lightComposable(
+    route: String,
+    arguments: List<NamedNavArgument> = emptyList(),
+    content: @Composable (NavBackStackEntry) -> Unit,
+) = composable(route, arguments) { entry ->
+    if (route == Routes.READER) LightPalette { content(entry) }
+    else ReaderTheme(darkTheme = false) { LightPalette { content(entry) } }
 }
 
 /**

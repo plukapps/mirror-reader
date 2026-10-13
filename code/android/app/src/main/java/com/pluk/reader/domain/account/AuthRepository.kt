@@ -39,6 +39,9 @@ interface AuthRepository {
     /** Vuelve a preguntar al servidor si el email del usuario actual ya se verificó (ONB-007). */
     suspend fun refreshEmailVerified(): Result<Boolean>
 
+    /** Cierra la sesión en este dispositivo, también la de Google (PRF-009). */
+    suspend fun signOut(): Result<Unit>
+
     /** Borra la cuenta actual si su email no está verificado (ONB-008). */
     suspend fun discardUnverifiedAccount(): Result<Unit>
 
@@ -49,6 +52,12 @@ interface AuthRepository {
     suspend fun emailForResetCode(code: String): Result<String>
 
     suspend fun confirmPasswordReset(code: String, newPassword: String): Result<Unit>
+
+    /**
+     * Cambia la contraseña de la cuenta actual (PRF-020): vuelve a verificar [current] y guarda [newPassword].
+     * Si [current] no es la contraseña, falla con [AuthError.InvalidCredentials]. La sesión sigue abierta.
+     */
+    suspend fun changePassword(current: String, newPassword: String): Result<Unit>
 
     /** Aplica el enlace de verificación cuando lo abre la app en lugar del navegador (ONB-007). */
     suspend fun applyEmailVerification(code: String): Result<Unit>

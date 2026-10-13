@@ -16,4 +16,9 @@ class LibraryFiles @Inject constructor(@ApplicationContext context: Context) {
     fun bookFile(bookId: String) = File(booksDir, "$bookId.epub")
     fun coverFile(bookId: String) = File(coversDir, "$bookId.jpg")
     fun newTempFile(): File = File.createTempFile("import-", ".tmp", booksDir)
+
+    /** Borra todos los libros y portadas, incluidos los temporales de importación (PRF-009). */
+    fun deleteAll() {
+        listOf(booksDir, coversDir).forEach { dir -> dir.listFiles()?.forEach { it.deleteRecursively() } }
+    }
 }

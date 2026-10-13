@@ -23,7 +23,14 @@ import androidx.navigation.compose.rememberNavController
 import com.pluk.reader.di.MainEntryPoint
 import com.pluk.reader.domain.account.AuthLink
 import com.pluk.reader.domain.account.parseAuthLink
+import com.pluk.reader.ui.AppearanceViewModel
 import com.pluk.reader.ui.MainViewModel
+import com.pluk.reader.domain.appearance.isDarkMode
+import com.pluk.reader.ui.theme.DarkMarginPalette
+import com.pluk.reader.ui.theme.LightMarginPalette
+import com.pluk.reader.ui.theme.LocalMarginPalette
+import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.runtime.CompositionLocalProvider
 import com.pluk.reader.ui.navigation.AppNavHost
 import com.pluk.reader.ui.navigation.Routes
 import com.pluk.reader.ui.theme.ReaderTheme
@@ -36,6 +43,7 @@ class MainActivity : FragmentActivity() {
     // EPUB recibido con "Abrir con", o enlace de un email de la cuenta, todavía sin atender.
     private val incomingBook = mutableStateOf<Uri?>(null)
     private val viewModel: MainViewModel by viewModels()
+    private val appearanceViewModel: AppearanceViewModel by viewModels()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         // Android debe poder recrear el fragmento del navegador, y eso exige instalar la fábrica
@@ -50,7 +58,11 @@ class MainActivity : FragmentActivity() {
 
         if (savedInstanceState == null) incomingBook.value = intent?.data
         setContent {
-            ReaderTheme {
+            // PRF-021: Claro, Oscuro o Sistema; con Sistema, cambia con el dispositivo sin reiniciar.
+            val appearance by appearanceViewModel.appearance.collectAsStateWithLifecycle()
+            val dark = isDarkMode(appearance, isSystemInDarkTheme())
+            CompositionLocalProvider(LocalMarginPalette provides if (dark) DarkMarginPalette else LightMarginPalette) {
+            ReaderTheme(darkTheme = dark) {
                 val start by viewModel.start.collectAsStateWithLifecycle()
                 // WEL-006: hasta decidir la pantalla de arranque (ONB-019), el mismo amarillo del arranque.
                 if (start == MainViewModel.Start.Loading) {
@@ -90,6 +102,7 @@ class MainActivity : FragmentActivity() {
                         },
                     )
                 }
+            }
             }
         }
     }
