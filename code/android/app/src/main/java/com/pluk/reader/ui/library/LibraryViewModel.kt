@@ -11,6 +11,9 @@ import com.pluk.reader.domain.repository.LibraryRepository
 import com.pluk.reader.domain.account.AccountRepository
 import com.pluk.reader.domain.usecase.ImportBooksUseCase
 import com.pluk.reader.domain.plans.ImportQuotaCheck
+import com.pluk.reader.domain.plans.ImportSource
+import com.pluk.reader.domain.plans.PlanPrompts
+import com.pluk.reader.domain.plans.onImportSource
 import com.pluk.reader.domain.usecase.LibrarySync
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
@@ -32,6 +35,7 @@ class LibraryViewModel @Inject constructor(
     account: AccountRepository,
     savedState: SavedStateHandle,
     private val importQuotaCheck: ImportQuotaCheck,
+    private val planPrompts: PlanPrompts,
 ) : ViewModel() {
     /** HOM-011: Inicio abre la biblioteca con el filtro de la sección elegida. */
     private val filter = MutableStateFlow(
@@ -66,6 +70,9 @@ class LibraryViewModel @Inject constructor(
     fun onFilterSelected(selected: LibraryFilter) {
         filter.value = selected
     }
+
+    /** PLN-010: origen elegido en "Importar libros". True si hay que abrir el selector de archivos. */
+    fun onImportSource(source: ImportSource): Boolean = planPrompts.onImportSource(source)
 
     /** LIB-001: importa los archivos elegidos y avisa el resultado. */
     fun onImport(uris: List<String>) {

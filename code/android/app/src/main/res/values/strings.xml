@@ -367,4 +367,15 @@
     <string name="plans_sheet_too_big_title">Este libro pesa %1$s</string>
     <string name="plans_sheet_too_big_body">Te quedan %1$s en la nube. No se subió, pero podés leerlo en este dispositivo.</string>
     <string name="plans_sheet_book_size">%1$s · te quedan %2$s</string>
+    <!-- P03, importar con funciones pagas (PLN-010). -->
+    <string name="plans_import_title">Importar libros</string>
+    <string name="plans_import_device">Desde este dispositivo</string>
+    <string name="plans_import_drive">Google Drive</string>
+    <string name="plans_import_calibre">Calibre / OPDS</string>
+    <string name="plans_import_badge_description">%1$s, incluido en %2$s</string>
+    <string name="plans_paid_drive_title">Traé tus libros desde Drive</string>
+    <string name="plans_paid_drive_body">Elegí una carpeta y los EPUB nuevos se suman solos a tu biblioteca.</string>
+    <string name="plans_paid_calibre_title">Traé tus libros desde Calibre</string>
+    <string name="plans_paid_calibre_body">Conectá tu biblioteca de Calibre o un catálogo OPDS y tus libros se suman solos a tu biblioteca.</string>
+    <string name="plans_paid_included">Incluido en %1$s</string>
 </resources>

@@ -9,6 +9,9 @@ import com.pluk.reader.domain.usecase.ImportBooksUseCase
 import com.pluk.reader.domain.usecase.LibrarySyncRequester
 import com.pluk.reader.domain.model.ImportOutcome
 import com.pluk.reader.domain.plans.ImportQuotaCheck
+import com.pluk.reader.domain.plans.ImportSource
+import com.pluk.reader.domain.plans.PlanPrompts
+import com.pluk.reader.domain.plans.onImportSource
 import com.pluk.reader.ui.library.LibraryMessage
 import com.pluk.reader.ui.library.toMessages
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -35,6 +38,7 @@ class HomeViewModel @Inject constructor(
     private val importBooks: ImportBooksUseCase,
     private val librarySync: LibrarySyncRequester,
     private val importQuotaCheck: ImportQuotaCheck,
+    private val planPrompts: PlanPrompts,
 ) : ViewModel() {
     private val _messages = MutableSharedFlow<LibraryMessage>(extraBufferCapacity = MESSAGE_BUFFER)
     val messages: SharedFlow<LibraryMessage> = _messages.asSharedFlow()
@@ -42,6 +46,9 @@ class HomeViewModel @Inject constructor(
     val uiState: StateFlow<HomeUiState> = library.books
         .map { HomeUiState(loading = false, content = homeContent(it)) }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(STOP_TIMEOUT_MS), HomeUiState())
+
+    /** PLN-010: origen elegido en "Importar libros". True si hay que abrir el selector de archivos. */
+    fun onImportSource(source: ImportSource): Boolean = planPrompts.onImportSource(source)
 
     /** HOM-003 con LIB-001: importa desde Inicio cuando la biblioteca está vacía. */
     fun onImport(uris: List<String>) {

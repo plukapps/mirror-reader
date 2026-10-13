@@ -6,6 +6,8 @@ import com.pluk.reader.domain.repository.LibraryRepository
 import com.pluk.reader.domain.usecase.ImportBooksUseCase
 import com.pluk.reader.domain.account.StorageQuota
 import com.pluk.reader.domain.plans.ImportQuotaCheck
+import com.pluk.reader.domain.plans.ImportSource
+import com.pluk.reader.domain.plans.PaidFeature
 import com.pluk.reader.domain.plans.PlanPrompt
 import com.pluk.reader.domain.plans.PlanPrompts
 import com.pluk.reader.domain.plans.QuotaBlock
@@ -60,6 +62,7 @@ class HomeViewModelTest {
         ImportBooksUseCase(library),
         { syncRequests++ },
         ImportQuotaCheck(quotaCache, pendingUploads, prompts),
+        prompts,
     )
 
     // HOM-002, HOM-004
@@ -120,5 +123,17 @@ class HomeViewModelTest {
         vm.onImport(listOf("content://x"))
         advanceUntilIdle()
         assertEquals(PlanPrompt.Quota("Nuevo", QuotaBlock.DoesNotFit(8 * mib, 3 * mib), 15 * mib), prompts.current.value)
+    }
+
+    // PLN-010: "Desde este dispositivo" abre el selector; Drive y Calibre, la hoja de función paga
+    @Test
+    fun importSourcesOpenThePickerOrThePaidSheet() = runTest(dispatcher) {
+        val vm = viewModel(FakeLibrary())
+        assertTrue(vm.onImportSource(ImportSource.DEVICE))
+        assertEquals(null, prompts.current.value)
+        assertFalse(vm.onImportSource(ImportSource.DRIVE))
+        assertEquals(PlanPrompt.Paid(PaidFeature.DRIVE), prompts.current.value)
+        assertFalse(vm.onImportSource(ImportSource.CALIBRE))
+        assertEquals(PlanPrompt.Paid(PaidFeature.CALIBRE), prompts.current.value)
     }
 }

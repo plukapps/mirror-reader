@@ -29,6 +29,12 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
+import com.pluk.reader.domain.plans.ImportSource
+import com.pluk.reader.ui.plans.ImportSheet
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -75,6 +81,7 @@ fun LibraryScreen(onBookClick: (bookId: String) -> Unit, viewModel: LibraryViewM
         onImport = viewModel::onImport,
         onBookClick = onBookClick,
         onRetrySync = viewModel::onRetrySync,
+        onImportSource = viewModel::onImportSource,
     )
 }
 
@@ -87,12 +94,24 @@ fun LibraryContent(
     onImport: (List<String>) -> Unit,
     onBookClick: (String) -> Unit,
     onRetrySync: () -> Unit = {},
+    onImportSource: (ImportSource) -> Boolean = { true },
 ) {
     // El libro se copia a la app (ADR 0006), así que no hace falta permiso persistente.
     val picker = rememberLauncherForActivityResult(ActivityResultContracts.OpenMultipleDocuments()) { uris ->
         onImport(uris.map { it.toString() })
     }
-    val launchPicker = { picker.launch(arrayOf(EPUB_MIME_TYPE)) }
+    // PLN-010: "Importar" abre la hoja de orígenes; "Desde este dispositivo" abre el selector de siempre.
+    var importSheetOpen by rememberSaveable { mutableStateOf(false) }
+    val launchPicker = { importSheetOpen = true }
+    if (importSheetOpen) {
+        ImportSheet(
+            onSource = { source ->
+                importSheetOpen = false
+                if (onImportSource(source)) picker.launch(arrayOf(EPUB_MIME_TYPE))
+            },
+            onDismiss = { importSheetOpen = false },
+        )
+    }
 
     val bottomBarPadding = LocalBottomBarPadding.current
     Box(Modifier.fillMaxSize().background(MarginColors.Paper)) {

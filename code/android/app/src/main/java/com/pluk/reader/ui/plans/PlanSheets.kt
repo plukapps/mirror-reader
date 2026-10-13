@@ -44,6 +44,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.pluk.reader.R
+import com.pluk.reader.domain.plans.PaidFeature
 import com.pluk.reader.domain.plans.PlanCatalog
 import com.pluk.reader.domain.plans.PlanPrompt
 import com.pluk.reader.domain.plans.PlanPrompts
@@ -122,8 +123,7 @@ fun PlanPromptContent(prompt: PlanPrompt, onSeePlans: () -> Unit, onNotNow: () -
             QuotaBlock.Full -> QuotaFullContent(prompt.title, prompt.quotaBytes, onSeePlans, onNotNow)
             is QuotaBlock.DoesNotFit -> DoesNotFitContent(prompt.title, block, onSeePlans, onNotNow)
         }
-        // PLN-010: llega con la hoja "Importar libros" (K-220).
-        is PlanPrompt.Paid -> Unit
+        is PlanPrompt.Paid -> PaidFeatureContent(prompt.feature, onSeePlans, onNotNow)
     }
 }
 
@@ -265,6 +265,48 @@ private fun DoesNotFitContent(title: String, block: QuotaBlock.DoesNotFit, onSee
                 stringResource(R.string.plans_with_reader, formatCloud(PlanCatalog.reader.cloudBytes ?: 0)),
                 style = planText(14, FontWeight.SemiBold, MarginColors.OnYellow).copy(lineHeight = 1.35.em),
             )
+        }
+        SheetActions(stringResource(R.string.plans_see_plans), stringResource(R.string.plans_not_now), onSeePlans, onNotNow)
+    }
+}
+
+/**
+ * PLN-010 (P03b): función de un plan pago. Componente reutilizable (ícono, título, bajada, "Incluido en {plan}"),
+ * listo para exportar notas (P03a) cuando existan las anotaciones.
+ */
+@Composable
+private fun PaidFeatureContent(feature: PaidFeature, onSeePlans: () -> Unit, onNotNow: () -> Unit) {
+    when (feature) {
+        PaidFeature.DRIVE -> PaidContent(PlanIcons.AddToDrive, R.string.plans_paid_drive_title, R.string.plans_paid_drive_body, onSeePlans, onNotNow)
+        PaidFeature.CALIBRE -> PaidContent(PlanIcons.Dns, R.string.plans_paid_calibre_title, R.string.plans_paid_calibre_body, onSeePlans, onNotNow)
+    }
+}
+
+@Composable
+internal fun PaidContent(
+    icon: androidx.compose.ui.graphics.vector.ImageVector,
+    title: Int,
+    body: Int,
+    onSeePlans: () -> Unit,
+    onNotNow: () -> Unit,
+    plan: com.pluk.reader.domain.plans.PlanId = com.pluk.reader.domain.plans.PlanId.LIBRARY,
+) {
+    Column(Modifier.testTag("plan-sheet-paid")) {
+        SheetIcon(icon)
+        AnnouncedTitle(stringResource(title), Modifier.padding(top = 18.dp))
+        SheetBody(AnnotatedString(stringResource(body)), Modifier.padding(top = 10.dp))
+        Row(
+            Modifier
+                .padding(top = 16.dp)
+                .height(30.dp)
+                .clip(RoundedCornerShape(15.dp))
+                .background(MarginColors.InkFill)
+                .padding(horizontal = 12.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(6.dp),
+        ) {
+            Icon(PlanIcons.WorkspacePremium, null, tint = MarginColors.Yellow, modifier = Modifier.size(16.dp))
+            Text(stringResource(R.string.plans_paid_included, planName(plan)), style = planText(13, FontWeight.Bold, MarginColors.Yellow))
         }
         SheetActions(stringResource(R.string.plans_see_plans), stringResource(R.string.plans_not_now), onSeePlans, onNotNow)
     }
