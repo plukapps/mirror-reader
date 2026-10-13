@@ -46,11 +46,11 @@ Plan de referencia: `specs/plans/2026-10-06-android-epub-viewer.md`
 
 ## En curso
 
-- **K-216** Volver a importar, iOS: `saveBook` escribe `addedAt` y el listado lo usa como fecha de entrada. LIB-021. Rama `feature/library-order`.
 - **K-176** Posición exacta, Tarea 5: verificación a mano entre el teléfono y el iPhone, cierre de docs. SYN-014.
 
 ## Revisión
 
+- **K-216** Volver a importar, iOS: `saveBook` escribe `addedAt` y el listado lo usa como fecha de entrada. LIB-021. Rama `feature/library-order`. Hecho: `listBooks` lee `addedAt ?? createdAt`; `saveBook` escribe `addedAt` al crear y al revivir. Tests: dominio 205, iPhone 189 (+1). Falta desplegar las reglas y probar a mano.
 - **K-215** Volver a importar, Android: `saveBook` escribe `addedAt` y el listado lo usa como fecha de entrada. LIB-021. Rama `feature/library-order`. Hecho: `listBooks` lee `addedAt ?: createdAt`; `saveBook` escribe `addedAt` al crear y al revivir. 415 tests JVM pasan (1 nuevo); los de emulador compilan.
 - **K-214** Volver a importar un libro quitado cuenta como entrada nueva (LIB-021): spec, campo `addedAt` en `backend.md` y reglas de Firestore con tests. Rama `feature/library-order`. Plan `2026-10-13-library-order.md`, segunda parte. Aprobado por el usuario (2026-10-13). Hecho: `addedAt` en `backend.md`, regla `isAddedAt`, 5 tests nuevos (97 pasan). Falta desplegar las reglas, antes que las apps.
 - **K-207** Perfil: sincronizar solo con Wi-Fi en Android. PRF-023. Rama `feature/profile-wifi-android`. Hecho: `canSync`/`SyncGate`/`NetworkSyncGate`, `ConnectivityNetworkMonitor`, preferencia `sync_wifi_only` (se conserva al cerrar sesión), puerta en la pasada, posiciones, borrados, escuchas y descarga al abrir ("Este libro se descarga con Wi-Fi…"), `SyncIssue.WaitingForWifi` en Estantes, `SyncGateWatcher`, interruptor de Perfil con su estado. 400 tests JVM pasan (15 nuevos); `ProfileScreenTest` (1 caso nuevo) y `LocalDataWiperTest` compilan, sin correr. Sin verificar a mano: el teléfono SM-S711B no estaba conectado.

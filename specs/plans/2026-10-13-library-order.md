@@ -79,3 +79,10 @@ Las dos plataformas ordenan por `addedAt` descendente (`BookDao.observeAll`, `Li
 - iOS: dominio 205 tests, iPhone 188 (2 nuevos en `LibraryStoreTests`). Mac compila; sus tests no arrancan (K-201).
 - Docs de plataforma: sin cambios, no describían el orden.
 - Falta la verificación a mano: el teléfono y el iPhone con la misma cuenta deben mostrar el mismo orden después de sincronizar.
+
+## Resultado de la segunda parte (2026-10-13)
+
+- Backend: regla `isAddedAt` y 5 tests nuevos; 97 pasan con los emuladores.
+- Android: 415 tests JVM pasan (1 nuevo); los de emulador compilan.
+- iOS: dominio 205, iPhone 189 (1 nuevo).
+- Pendiente: desplegar `firestore.rules` a `mirror-reading-staging` antes de instalar las apps, y probar a mano quitar y volver a importar.

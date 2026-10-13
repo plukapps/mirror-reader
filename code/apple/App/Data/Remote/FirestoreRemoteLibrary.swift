@@ -16,7 +16,7 @@ struct FirestoreRemoteLibrary: RemoteLibrary, RemoteBookChanges {
                     title: title,
                     authors: (doc.get(Field.authors) as? [String]) ?? [],
                     sizeBytes: (doc.get(Field.sizeBytes) as? NSNumber)?.int64Value ?? 0,
-                    createdAt: (doc.get(Field.createdAt) as? Timestamp)?.dateValue()
+                    createdAt: ((doc.get(Field.addedAt) ?? doc.get(Field.createdAt)) as? Timestamp)?.dateValue()
                 )
             }
         } catch {
@@ -40,11 +40,11 @@ struct FirestoreRemoteLibrary: RemoteLibrary, RemoteBookChanges {
                     return nil
                 }
                 if exists {
-                    // Un libro borrado que se vuelve a importar revive (LIB-020).
+                    // Un libro borrado que se vuelve a importar revive (LIB-020) y vuelve a entrar a la biblioteca (LIB-021).
                     transaction.updateData(
                         [
-                            Field.title: book.title, Field.authors: book.authors, Field.updatedAt: FieldValue.serverTimestamp(),
-                            Field.deletedAt: NSNull(),
+                            Field.title: book.title, Field.authors: book.authors, Field.addedAt: FieldValue.serverTimestamp(),
+                            Field.updatedAt: FieldValue.serverTimestamp(), Field.deletedAt: NSNull(),
                         ],
                         forDocument: ref
                     )
@@ -56,6 +56,7 @@ struct FirestoreRemoteLibrary: RemoteLibrary, RemoteBookChanges {
                             Field.filePath: "users/\(uid)/books/\(book.id).epub",
                             Field.sizeBytes: book.sizeBytes,
                             Field.createdAt: FieldValue.serverTimestamp(),
+                            Field.addedAt: FieldValue.serverTimestamp(),
                             Field.updatedAt: FieldValue.serverTimestamp(),
                             Field.deletedAt: NSNull(),
                         ],
@@ -106,6 +107,7 @@ struct FirestoreRemoteLibrary: RemoteLibrary, RemoteBookChanges {
         static let authors = "authors"
         static let sizeBytes = "sizeBytes"
         static let createdAt = "createdAt"
+        static let addedAt = "addedAt"
         static let updatedAt = "updatedAt"
         static let filePath = "filePath"
         static let deletedAt = "deletedAt"

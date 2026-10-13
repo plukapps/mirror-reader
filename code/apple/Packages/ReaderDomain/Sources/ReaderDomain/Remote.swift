@@ -6,7 +6,8 @@ public struct RemoteBook: Equatable, Sendable {
     public let title: String
     public let authors: [String]
     public let sizeBytes: Int64
-    /// Cuándo se subió (hora del servidor), o nil si el documento no la trae.
+    /// Cuándo entró a la biblioteca (LIB-021: `addedAt` de la nube o, si falta, `createdAt`; hora del servidor), o nil
+    /// si el documento no la trae.
     public let createdAt: Date?
 
     public init(id: String, title: String, authors: [String], sizeBytes: Int64, createdAt: Date? = nil) {

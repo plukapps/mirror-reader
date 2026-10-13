@@ -63,6 +63,16 @@ struct LibraryStoreTests {
         #expect(await store.books()[0].addedAt == Date(timeIntervalSince1970: 100))
     }
 
+    @Test("LIB-021: un libro quitado y vuelto a importar trae una fecha más nueva y pasa adelante")
+    func reimportedBookMovesToTheFront() async throws {
+        let store = try makeStore()
+        try await store.addCloudOnly([remote("dracula", createdAt: 100), remote("walden", createdAt: 200)])
+
+        try await store.addCloudOnly([remote("dracula", createdAt: 300), remote("walden", createdAt: 200)])
+
+        #expect(await store.books().map(\.id) == ["dracula", "walden"])
+    }
+
     @Test("LIB-021: los libros de la nube se intercalan con los ya guardados según su fecha")
     func cloudBooksInterleaveWithKnownOnes() async throws {
         let store = try makeStore()
