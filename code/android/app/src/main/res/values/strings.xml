@@ -160,8 +160,8 @@
         <item quantity="other">%d libros sin subir</item>
     </plurals>
     <plurals name="library_no_space">
-        <item quantity="one">%d libro no entra en tu espacio. Podés seguir leyendo.</item>
-        <item quantity="other">%d libros no entran en tu espacio. Podés seguir leyendo.</item>
+        <item quantity="one">%d libro no entra en tu plan. Podés seguir leyendo.</item>
+        <item quantity="other">%d libros no entran en tu plan. Podés seguir leyendo.</item>
     </plurals>
     <plurals name="library_sync_failed">
         <item quantity="one">No se pudo sincronizar %d libro.</item>
@@ -357,6 +357,9 @@
     <string name="plans_sheet_too_big_title">Este libro pesa %1$s</string>
     <string name="plans_sheet_too_big_body">Te quedan %1$s en la nube. No se subió, pero podés leerlo en este dispositivo.</string>
     <string name="plans_sheet_book_size">%1$s · te quedan %2$s</string>
+    <string name="plans_sheet_book_limit">%1$s · límite %2$s</string>
+    <string name="plans_sheet_too_large_body">Tu plan admite archivos de hasta %1$s. No se subió a la nube, pero podés leerlo en este dispositivo.</string>
+    <string name="plans_sheet_too_large_upsell">Con %1$s: archivos de hasta %2$s y %3$s en la nube</string>
     <!-- P03, funciones pagas (PLN-015). -->
     <string name="plans_paid_themes_title">Leé con tus temas y fuentes</string>
     <string name="plans_paid_themes_body">Sepia, Noche y todas las letras del lector, en todos tus libros.</string>

@@ -114,11 +114,11 @@ class HomeViewModelTest {
     @Test
     fun importFromHomeChecksTheQuota() = runTest(dispatcher) {
         val mib = 1024L * 1024
-        quotaCache.quota.value = StorageQuota(12 * mib, 15 * mib)
-        pendingUploads.items = FakePendingUploads("nuevo" to 8 * mib).items
+        quotaCache.quota.value = StorageQuota(14 * mib, 15 * mib)
+        pendingUploads.items = FakePendingUploads("nuevo" to 2 * mib).items
         val vm = viewModel(FakeLibrary())
         vm.onImport(listOf("content://x"))
         advanceUntilIdle()
-        assertEquals(PlanPrompt.Quota("Nuevo", QuotaBlock.DoesNotFit(8 * mib, 3 * mib), 15 * mib), prompts.current.value)
+        assertEquals(PlanPrompt.Quota("Nuevo", QuotaBlock.DoesNotFit(2 * mib, 1 * mib), 15 * mib), prompts.current.value)
     }
 }

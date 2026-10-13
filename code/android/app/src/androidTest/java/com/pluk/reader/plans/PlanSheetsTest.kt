@@ -45,10 +45,10 @@ class PlanSheetsTest {
     // PLN-008: queda espacio pero el libro no entra
     @Test
     fun doesNotFitSheetShowsSizes() {
-        show(PlanPrompt.Quota("Atlas", QuotaBlock.DoesNotFit(8 * MIB, 3 * MIB), 15 * MIB))
-        compose.onNodeWithText("Este libro pesa 8 MB").assertExists()
-        compose.onNodeWithText("Te quedan 3 MB en la nube. No se subió, pero podés leerlo en este dispositivo.").assertExists()
-        compose.onNodeWithText("8 MB · te quedan 3 MB").assertExists()
+        show(PlanPrompt.Quota("Atlas", QuotaBlock.DoesNotFit(2 * MIB, 1 * MIB), 15 * MIB))
+        compose.onNodeWithText("Este libro pesa 2 MB").assertExists()
+        compose.onNodeWithText("Te quedan 1 MB en la nube. No se subió, pero podés leerlo en este dispositivo.").assertExists()
+        compose.onNodeWithText("2 MB · te quedan 1 MB").assertExists()
         compose.onNodeWithText("Con Lector: 5 GB en la nube").assertExists()
     }
 
@@ -61,5 +61,15 @@ class PlanSheetsTest {
         compose.onNodeWithText("Incluido en Lector").assertExists()
         compose.onNodeWithText("Ver planes").performClick()
         assertEquals(1, seePlans)
+    }
+
+    // PLN-014: archivo más grande que el máximo del plan
+    @Test
+    fun tooLargeSheetShowsTheLimit() {
+        show(PlanPrompt.Quota("Atlas", QuotaBlock.TooLarge(3 * MIB, 2 * MIB, com.pluk.reader.domain.plans.PlanId.FREE), 15 * MIB))
+        compose.onNodeWithText("3 MB · límite 2 MB").assertExists()
+        compose.onNodeWithText("Este libro pesa 3 MB").assertExists()
+        compose.onNodeWithText("Tu plan admite archivos de hasta 2 MB. No se subió a la nube, pero podés leerlo en este dispositivo.").assertExists()
+        compose.onNodeWithText("Con Lector: archivos de hasta 50 MB y 5 GB en la nube").assertExists()
     }
 }

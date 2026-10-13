@@ -3,6 +3,7 @@ package com.pluk.reader.domain.usecase
 import com.pluk.reader.domain.account.QuotaSource
 import com.pluk.reader.domain.account.StorageQuota
 import com.pluk.reader.domain.profile.QuotaCache
+import com.pluk.reader.domain.plans.PlanCatalog
 import com.pluk.reader.domain.remote.BookFileStore
 import com.pluk.reader.domain.remote.QuotaExceededException
 import com.pluk.reader.domain.remote.RemoteLibrary
@@ -14,7 +15,7 @@ import javax.inject.Inject
 /**
  * Resultado de una tanda de subida. Los libros que no se subieron siguen pendientes y no se pierde nada (SYN-001).
  *
- * @param notEnoughSpace libros que no entraron en la cuota (LIB-009).
+ * @param notEnoughSpace libros que no entraron en la cuota (LIB-009) o superan el máximo por archivo del plan (PLN-014).
  * @param failed libros que fallaron por otro motivo.
  * @param unreachable no se pudo contactar la nube: la tanda se cortó.
  */
@@ -48,13 +49,15 @@ class UploadBooksUseCase @Inject constructor(
         // PLN-009: la última cuota conocida se refresca en cada pasada (y al final con lo subido, que el servidor suma después).
         quotaCache.save(read)
         var free = read.freeBytes
+        // PLN-014: el tope por archivo del plan lo controla por ahora solo la app.
+        val maxFileBytes = PlanCatalog.maxFileBytes(read)
         var uploadedBytes = 0L
 
         var uploaded = 0
         var noSpace = 0
         var failed = 0
         for (item in pending) {
-            if (item.book.sizeBytes > free) {
+            if (item.book.sizeBytes > free || item.book.sizeBytes > maxFileBytes) {
                 noSpace++
                 continue
             }

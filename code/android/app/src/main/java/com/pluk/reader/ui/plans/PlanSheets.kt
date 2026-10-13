@@ -46,6 +46,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.pluk.reader.R
 import com.pluk.reader.domain.plans.PaidFeature
 import com.pluk.reader.domain.plans.PlanCatalog
+import com.pluk.reader.domain.plans.PlanId
 import com.pluk.reader.domain.plans.PlanPrompt
 import com.pluk.reader.domain.plans.PlanPrompts
 import com.pluk.reader.domain.plans.QuotaBlock
@@ -120,8 +121,9 @@ internal fun PlanSheet(onDismiss: () -> Unit, content: @Composable () -> Unit) {
 fun PlanPromptContent(prompt: PlanPrompt, onSeePlans: () -> Unit, onNotNow: () -> Unit) {
     when (prompt) {
         is PlanPrompt.Quota -> when (val block = prompt.block) {
-            QuotaBlock.Full -> QuotaFullContent(prompt.title, prompt.quotaBytes, onSeePlans, onNotNow)
+            QuotaBlock.Full -> QuotaFullContent(prompt.title, prompt.quotaBytes ?: PlanCatalog.FREE_QUOTA_BYTES, onSeePlans, onNotNow)
             is QuotaBlock.DoesNotFit -> DoesNotFitContent(prompt.title, block, onSeePlans, onNotNow)
+            is QuotaBlock.TooLarge -> TooLargeContent(prompt.title, block, onSeePlans, onNotNow)
         }
         is PlanPrompt.Paid -> PaidFeatureContent(prompt.feature, onSeePlans, onNotNow)
     }
@@ -209,61 +211,95 @@ private fun CompareRow(label: String, value: String, fraction: Float, bold: Bool
     }
 }
 
-/** PLN-008 (P02b): queda espacio, pero este libro no entra. */
+/** Fila del libro de P02b: recuadro "EPUB", título y tamaños en rojo. */
+@Composable
+private fun BookRow(title: String, detail: String) {
+    val mono = rememberMonoFamily()
+    val warning = if (LocalMarginPalette.current.isDark) Color(0xFFE8A0A0) else Color(0xFF8B1E1E)
+    Row(
+        Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(16.dp))
+            .background(MarginColors.Paper)
+            .semantics(mergeDescendants = true) {}
+            .padding(12.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(12.dp),
+    ) {
+        Box(
+            Modifier
+                .width(40.dp)
+                .height(58.dp)
+                .clip(RoundedCornerShape(5.dp))
+                .background(MarginColors.Field)
+                .border(1.dp, MarginColors.Line, RoundedCornerShape(5.dp))
+                .padding(4.dp)
+                .clearAndSetSemantics {},
+            contentAlignment = Alignment.BottomStart,
+        ) {
+            Text("EPUB", style = planText(8, FontWeight.SemiBold, MarginColors.Muted).copy(fontFamily = mono))
+        }
+        Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
+            Text(title, style = planText(14, FontWeight.Bold), maxLines = 2)
+            Text(detail, style = planText(12, FontWeight.Medium, warning).copy(fontFamily = mono))
+        }
+    }
+}
+
+/** Tarjeta amarilla con el ícono de subir archivo y lo que trae el plan siguiente. */
+@Composable
+private fun UpsellCard(text: String) {
+    Row(
+        Modifier
+            .padding(top = 18.dp)
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(18.dp))
+            .background(MarginColors.Yellow)
+            .padding(horizontal = 16.dp, vertical = 14.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(10.dp),
+    ) {
+        Icon(PlanIcons.UploadFile, null, tint = MarginColors.OnYellow, modifier = Modifier.size(22.dp))
+        Text(text, style = planText(14, FontWeight.SemiBold, MarginColors.OnYellow).copy(lineHeight = 1.35.em))
+    }
+}
+
+/** PLN-008: queda espacio, pero este libro no entra. */
 @Composable
 private fun DoesNotFitContent(title: String, block: QuotaBlock.DoesNotFit, onSeePlans: () -> Unit, onNotNow: () -> Unit) {
     val size = formatCloud(block.bookBytes)
     val free = formatCloud(block.freeBytes)
-    val mono = rememberMonoFamily()
-    val warning = if (LocalMarginPalette.current.isDark) Color(0xFFE8A0A0) else Color(0xFF8B1E1E)
     Column(Modifier.testTag("plan-sheet-does-not-fit")) {
-        Row(
-            Modifier
-                .fillMaxWidth()
-                .clip(RoundedCornerShape(16.dp))
-                .background(MarginColors.Paper)
-                .semantics(mergeDescendants = true) {}
-                .padding(12.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(12.dp),
-        ) {
-            Box(
-                Modifier
-                    .width(40.dp)
-                    .height(58.dp)
-                    .clip(RoundedCornerShape(5.dp))
-                    .background(MarginColors.Field)
-                    .border(1.dp, MarginColors.Line, RoundedCornerShape(5.dp))
-                    .padding(4.dp)
-                    .clearAndSetSemantics {},
-                contentAlignment = Alignment.BottomStart,
-            ) {
-                Text("EPUB", style = planText(8, FontWeight.SemiBold, MarginColors.Muted).copy(fontFamily = mono))
-            }
-            Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
-                Text(title, style = planText(14, FontWeight.Bold), maxLines = 2)
-                Text(
-                    stringResource(R.string.plans_sheet_book_size, size, free),
-                    style = planText(12, FontWeight.Medium, warning).copy(fontFamily = mono),
-                )
-            }
-        }
+        BookRow(title, stringResource(R.string.plans_sheet_book_size, size, free))
         AnnouncedTitle(stringResource(R.string.plans_sheet_too_big_title, size), Modifier.padding(top = 18.dp))
         SheetBody(AnnotatedString(stringResource(R.string.plans_sheet_too_big_body, free)), Modifier.padding(top = 10.dp))
-        Row(
-            Modifier
-                .padding(top = 18.dp)
-                .fillMaxWidth()
-                .clip(RoundedCornerShape(18.dp))
-                .background(MarginColors.Yellow)
-                .padding(horizontal = 16.dp, vertical = 14.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(10.dp),
-        ) {
-            Icon(PlanIcons.UploadFile, null, tint = MarginColors.OnYellow, modifier = Modifier.size(22.dp))
-            Text(
-                stringResource(R.string.plans_with_reader, formatCloud(PlanCatalog.reader.cloudBytes ?: 0)),
-                style = planText(14, FontWeight.SemiBold, MarginColors.OnYellow).copy(lineHeight = 1.35.em),
+        UpsellCard(stringResource(R.string.plans_with_reader, formatCloud(PlanCatalog.reader.cloudBytes ?: 0)))
+        SheetActions(stringResource(R.string.plans_see_plans), stringResource(R.string.plans_not_now), onSeePlans, onNotNow)
+    }
+}
+
+/** PLN-014 (P02b): el archivo supera el máximo del plan. Ofrece el plan siguiente, si hay. */
+@Composable
+private fun TooLargeContent(title: String, block: QuotaBlock.TooLarge, onSeePlans: () -> Unit, onNotNow: () -> Unit) {
+    val size = formatCloud(block.bookBytes)
+    val max = formatCloud(block.maxBytes)
+    val next = when (block.plan) {
+        PlanId.FREE -> PlanCatalog.reader
+        PlanId.READER -> PlanCatalog.library
+        PlanId.LIBRARY -> null
+    }
+    Column(Modifier.testTag("plan-sheet-too-large")) {
+        BookRow(title, stringResource(R.string.plans_sheet_book_limit, size, max))
+        AnnouncedTitle(stringResource(R.string.plans_sheet_too_big_title, size), Modifier.padding(top = 18.dp))
+        SheetBody(AnnotatedString(stringResource(R.string.plans_sheet_too_large_body, max)), Modifier.padding(top = 10.dp))
+        if (next != null) {
+            UpsellCard(
+                stringResource(
+                    R.string.plans_sheet_too_large_upsell,
+                    planName(next.id),
+                    formatCloud(next.maxFileBytes),
+                    formatCloud(next.cloudBytes ?: 0),
+                ),
             )
         }
         SheetActions(stringResource(R.string.plans_see_plans), stringResource(R.string.plans_not_now), onSeePlans, onNotNow)
@@ -283,7 +319,7 @@ private fun PaidFeatureContent(feature: PaidFeature, onSeePlans: () -> Unit, onN
             R.string.plans_paid_themes_body,
             onSeePlans,
             onNotNow,
-            plan = com.pluk.reader.domain.plans.PlanId.READER,
+            plan = PlanId.READER,
         )
     }
 }
@@ -295,7 +331,7 @@ internal fun PaidContent(
     body: Int,
     onSeePlans: () -> Unit,
     onNotNow: () -> Unit,
-    plan: com.pluk.reader.domain.plans.PlanId = com.pluk.reader.domain.plans.PlanId.LIBRARY,
+    plan: PlanId = PlanId.LIBRARY,
 ) {
     Column(Modifier.testTag("plan-sheet-paid")) {
         SheetIcon(icon)

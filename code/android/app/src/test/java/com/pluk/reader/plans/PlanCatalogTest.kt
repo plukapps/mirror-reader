@@ -47,6 +47,16 @@ class PlanCatalogTest {
         assertEquals(PlanId.LIBRARY, monthly.plan.id)
     }
 
+    // PLN-014: el plan sale de la cuota; desconocido o sin dato, Gratis
+    @Test
+    fun planOfQuota() {
+        assertEquals(PlanId.FREE, PlanCatalog.planOf(null))
+        assertEquals(PlanId.FREE, PlanCatalog.planOf(StorageQuota(0, 1)))
+        assertEquals(PlanId.FREE, PlanCatalog.planOf(StorageQuota(0, 1, plan = "plus")))
+        assertEquals(PlanId.READER, PlanCatalog.planOf(StorageQuota(0, 1, plan = "reader")))
+        assertEquals(PlanId.LIBRARY, PlanCatalog.planOf(StorageQuota(0, 1, plan = "library")))
+    }
+
     // PLN-001, PLN-014: tamaño máximo por archivo de cada plan
     @Test
     fun maxFileSizePerPlan() {

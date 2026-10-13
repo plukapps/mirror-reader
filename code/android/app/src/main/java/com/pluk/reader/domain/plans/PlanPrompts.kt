@@ -15,15 +15,22 @@ sealed interface QuotaBlock {
     /** El espacio ya está lleno (P02a). */
     data object Full : QuotaBlock
 
-    /** Queda espacio, pero este libro no entra (P02b). */
+    /** Queda espacio, pero este libro no entra (PLN-008). */
     data class DoesNotFit(val bookBytes: Long, val freeBytes: Long) : QuotaBlock
+
+    /** El archivo supera el máximo del plan [plan] (PLN-014, P02b). */
+    data class TooLarge(val bookBytes: Long, val maxBytes: Long, val plan: PlanId) : QuotaBlock
 }
 
 /**
- * PLN-009: con la última cuota conocida, descontando [pendingBytes] de los libros de este dispositivo que esperan
- * subirse, ¿entra un libro de [bookBytes]? Null si entra, o si nunca se leyó la cuota (vale el aviso de LIB-009).
+ * PLN-014: primero el tamaño máximo por archivo del plan (sin cuota, el de Gratis). PLN-009: después, con la última
+ * cuota conocida, descontando [pendingBytes] de los libros de este dispositivo que esperan subirse, ¿entra un libro
+ * de [bookBytes]? Null si entra, o si nunca se leyó la cuota (vale el aviso de LIB-009).
  */
 fun quotaBlock(quota: StorageQuota?, pendingBytes: Long, bookBytes: Long): QuotaBlock? {
+    val plan = PlanCatalog.planOf(quota)
+    val maxBytes = PlanCatalog.of(plan).maxFileBytes
+    if (bookBytes > maxBytes) return QuotaBlock.TooLarge(bookBytes, maxBytes, plan)
     if (quota == null) return null
     val available = quota.freeBytes - pendingBytes
     return when {
@@ -41,8 +48,11 @@ enum class PaidFeature {
 
 /** Hoja de planes a mostrar encima de todo (P02, P03). */
 sealed interface PlanPrompt {
-    /** PLN-007, PLN-008: [title] se importó pero no entra en la nube. [quotaBytes]: la cuota de la cuenta. */
-    data class Quota(val title: String, val block: QuotaBlock, val quotaBytes: Long) : PlanPrompt
+    /**
+     * PLN-007, PLN-008, PLN-014: [title] se importó pero no entra en la nube. [quotaBytes]: la cuota de la cuenta, o
+     * null si nunca se leyó (solo en [QuotaBlock.TooLarge]).
+     */
+    data class Quota(val title: String, val block: QuotaBlock, val quotaBytes: Long?) : PlanPrompt
 
     /** PLN-015: una función de un plan pago. */
     data class Paid(val feature: PaidFeature) : PlanPrompt
@@ -76,7 +86,7 @@ class ImportQuotaCheck @Inject constructor(
     suspend operator fun invoke(outcomes: List<ImportOutcome>) {
         val imported = outcomes.filterIsInstance<ImportOutcome.Imported>()
         if (imported.isEmpty()) return
-        val quota = quotaCache.last() ?: return
+        val quota = quotaCache.last()
         val pending = uploads.pending()
         val importedIds = imported.map { it.bookId }.toSet()
         var pendingBytes = pending.filter { it.book.id !in importedIds }.sumOf { it.book.sizeBytes }
@@ -85,7 +95,7 @@ class ImportQuotaCheck @Inject constructor(
             val size = sizes[book.bookId] ?: continue
             val block = quotaBlock(quota, pendingBytes, size)
             if (block != null) {
-                prompts.show(PlanPrompt.Quota(book.title, block, quota.quotaBytes))
+                prompts.show(PlanPrompt.Quota(book.title, block, quota?.quotaBytes))
                 return
             }
             pendingBytes += size
