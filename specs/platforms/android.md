@@ -42,6 +42,7 @@ Stack y capas definidos en `specs/adr/0005-android-stack-and-architecture.md`: C
   - **Ajustes de lectura:** los mismos de `SettingsRepository` que usa el lector. El panel de letra reutiliza `FontChips` y `SizeButtons` con una paleta clara.
   - **Cerrar sesión:** `SignOut` deja de escuchar la nube, espera la pasada en curso (`LibrarySync.whileIdle`), borra con `LocalDataWiper` (la base, los archivos y el DataStore, salvo los ajustes del lector y `sync_device_id`), cancela el recordatorio, sale de Firebase y de Credential Manager y vuelve a la bienvenida.
   - **Ayuda:** `domain/help/Faq.kt` con las respuestas en `strings.xml`.
+  - **Solo con Wi-Fi (PRF-023, K-207):** `domain/sync/SyncPolicy.kt` (`canSync`, `SyncGate`, `NetworkSyncGate`). Red por defecto con `ConnectivityManager.registerDefaultNetworkCallback` (`ConnectivityNetworkMonitor`; Wi-Fi o cable cuentan), preferencia `sync_wifi_only` en DataStore (en `RETAINED_KEYS`). La puerta la consultan `SyncLibraryUseCase` (entre pasos), `PositionSync`, `RemovalSync`, `LibraryWatcher` y `DownloadBookUseCase`; `LibrarySync` muestra `SyncIssue.WaitingForWifi`. `SyncGateWatcher` (dentro de `CloudListeners`, solo con la app a la vista) pide una pasada y envía posiciones cuando la puerta se abre.
   - Plan `specs/plans/2026-10-12-profile.md`.
 
 ## Criterio de terminado

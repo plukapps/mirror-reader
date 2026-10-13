@@ -50,11 +50,11 @@ Plan de referencia: `specs/plans/2026-10-06-android-epub-viewer.md`
 
 ## En curso
 
-- **K-207** Perfil: sincronizar solo con Wi-Fi en Android. PRF-023. Rama `feature/profile-wifi-android`.
 - **K-176** Posición exacta, Tarea 5: verificación a mano entre el teléfono y el iPhone, cierre de docs. SYN-014.
 
 ## Revisión
 
+- **K-207** Perfil: sincronizar solo con Wi-Fi en Android. PRF-023. Rama `feature/profile-wifi-android`. Hecho: `canSync`/`SyncGate`/`NetworkSyncGate`, `ConnectivityNetworkMonitor`, preferencia `sync_wifi_only` (se conserva al cerrar sesión), puerta en la pasada, posiciones, borrados, escuchas y descarga al abrir ("Este libro se descarga con Wi-Fi…"), `SyncIssue.WaitingForWifi` en Estantes, `SyncGateWatcher`, interruptor de Perfil con su estado. 400 tests JVM pasan (15 nuevos); `ProfileScreenTest` (1 caso nuevo) y `LocalDataWiperTest` compilan, sin correr. Sin verificar a mano: el teléfono SM-S711B no estaba conectado.
 - **K-199** Perfil, Tarea 10: cierre de docs (plataformas, AGENTS.md), capturas junto al diseño y verificación a mano en el teléfono y el iPhone. Hecho: notas de Perfil en `android.md` y `apple.md`, `AGENTS.md` (cerrar sesión para volver al onboarding; aviso de K-202), resultado en el plan. Falta la prueba a mano de cerrar sesión en el teléfono y el simulador.
 - **K-198** Perfil, Tarea 9: iOS, ayuda. PRF-017, PRF-018. Hecho: `Faq` y `FaqId` en `ReaderDomain` (mismos ids y orden que Android), `FaqViews.swift` con los mismos textos que `strings.xml`, navegación dentro del tab (`ProfileRoute`). Tests: dominio 192, iPhone 167; compila para la Mac. Revisado con render.
 - **K-197** Perfil, Tarea 8: iOS, cerrar sesión. PRF-009, ACC-006. Reemplaza a K-158 en iOS. Hecho: `SignOut`, `SessionRepository`, `LocalAccountData` y `SyncControl` en `ReaderDomain`; `SyncScheduler.whileIdle` (espera la pasada, bloquea nuevas y olvida la última); `signOut()` en `FirebaseAccountRepository` (Firebase y Google); `LocalAccountWiper` (SwiftData, archivos y claves de la cuenta en `UserDefaults`); confirmación con aviso de pendientes y vuelta a la bienvenida. Tests: dominio 189, iPhone 167; compila para la Mac. Falta la prueba a mano en el simulador (sin acceso de control de pantalla).
