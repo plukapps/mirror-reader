@@ -260,23 +260,29 @@ struct ProfileContent: View {
             .padding(.horizontal, 16)
             .padding(.vertical, 14)
             CardDivider()
-            switchRow("Sincronizar solo con Wi-Fi", "Ahorra datos móviles")
+            // PRF-023.
+            switchRow("Sincronizar solo con Wi-Fi", "Ahorra datos móviles", isOn: viewModel.wifiOnly ?? false) {
+                if let on = viewModel.wifiOnly { viewModel.setWifiOnly(!on) } else { actions.comingSoon() }
+            }
             CardDivider()
-            switchRow("Descargar libros automáticamente", "Libros nuevos de tus otros dispositivos")
+            // PRF-016: todavía avisa que llega más adelante.
+            switchRow("Descargar libros automáticamente", "Libros nuevos de tus otros dispositivos", isOn: false, action: actions.comingSoon)
         }
     }
 
-    private func switchRow(_ title: LocalizedStringKey, _ subtitle: LocalizedStringKey) -> some View {
-        ProfileRow(action: actions.comingSoon) {
+    private func switchRow(
+        _ title: LocalizedStringKey, _ subtitle: LocalizedStringKey, isOn: Bool, action: @escaping () -> Void
+    ) -> some View {
+        ProfileRow(action: action) {
             VStack(alignment: .leading, spacing: 2) {
                 Text(title).font(.app(15, .medium)).foregroundStyle(MarginColors.ink)
                 Text(subtitle).font(.app(12)).foregroundStyle(MarginColors.muted)
             }
             Spacer(minLength: 0)
-            ProfileSwitch(isOn: false)
+            ProfileSwitch(isOn: isOn)
         }
         .accessibilityElement(children: .combine)
-        .accessibilityValue(Text("desactivado"))
+        .accessibilityValue(Text(isOn ? "activado" : "desactivado"))
     }
 
     // MARK: Ayuda (PRF-017)
