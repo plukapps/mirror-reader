@@ -5,7 +5,8 @@ import SwiftUI
 private extension ReadingTheme {
     var background: Color {
         switch self {
-        case .light: MarginColors.field
+        // Son los colores de la página del lector: no cambian con la apariencia de la app.
+        case .light: Color(hex: 0xFDFDFD)
         case .sepia: Color(hex: 0xF3E9D4)
         case .dark: Color(hex: 0x000000)
         }
@@ -13,9 +14,9 @@ private extension ReadingTheme {
 
     var text: Color {
         switch self {
-        case .light: MarginColors.ink
+        case .light: Color(hex: 0x130000)
         case .sepia: Color(hex: 0x3B2F1E)
-        case .dark: MarginColors.field
+        case .dark: Color(hex: 0xFDFDFD)
         }
     }
 
@@ -30,7 +31,7 @@ private extension ReadingTheme {
 
 /// Paleta clara de los controles de letra en Perfil: lo elegido en tinta con texto amarillo.
 private let lightFontControls = FontControlsPalette(
-    ink: MarginColors.ink, accent: MarginColors.ink, onAccent: MarginColors.yellow, border: MarginColors.off
+    ink: MarginColors.ink, accent: MarginColors.inkFill, onAccent: MarginColors.yellow, border: MarginColors.off
 )
 
 /// PRF-011 a PRF-015: vista previa, letra, tema e interlineado.
@@ -114,7 +115,7 @@ struct ReadingDefaultsCard: View {
         return Button { viewModel.setLineSpacing(spacing) } label: {
             ProfileIcon(name: icon, size: 20, color: isSelected ? MarginColors.yellow : MarginColors.inkMuted)
                 .frame(width: 36, height: 36)
-                .background(isSelected ? MarginColors.ink : .clear, in: RoundedRectangle(cornerRadius: 10))
+                .background(isSelected ? MarginColors.inkFill : .clear, in: RoundedRectangle(cornerRadius: 10))
                 .contentShape(Rectangle())
         }
         .buttonStyle(.plain)

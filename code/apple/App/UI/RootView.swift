@@ -202,7 +202,7 @@ private struct HomeMessage: View {
             .multilineTextAlignment(.center)
             .padding(.horizontal, 16)
             .padding(.vertical, 10)
-            .background(MarginColors.ink, in: RoundedRectangle(cornerRadius: 14))
+            .background(MarginColors.inkFill, in: RoundedRectangle(cornerRadius: 14))
             .padding(.horizontal, 16)
             .task {
                 AccessibilityNotification.Announcement(text).post()

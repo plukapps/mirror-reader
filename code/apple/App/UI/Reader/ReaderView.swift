@@ -48,6 +48,8 @@ struct ReaderView: View {
         // RDR-015: con los controles ocultos se oculta también la barra de estado.
         .statusBarHidden(!viewModel.controlsVisible)
         .animation(.easeOut(duration: 0.2), value: viewModel.controlsVisible)
+        // PRF-021: el lector tiene su propio tema (RDR-003); los colores de la app adentro se ven siempre claros.
+        .environment(\.colorScheme, .light)
         .preferredColorScheme(viewModel.settings.theme == .dark ? .dark : .light)
     }
 
@@ -230,7 +232,7 @@ private struct FailedReader: View {
                 .foregroundStyle(MarginColors.yellow)
                 .padding(.horizontal, 20)
                 .frame(height: 44)
-                .background(MarginColors.ink, in: Capsule())
+                .background(MarginColors.inkFill, in: Capsule())
         }
         .padding(24)
     }
