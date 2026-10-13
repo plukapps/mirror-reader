@@ -7,6 +7,10 @@ import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performScrollTo
 import androidx.test.ext.junit.runners.AndroidJUnit4
+import androidx.compose.ui.test.onNodeWithTag
+import com.pluk.reader.domain.model.LineSpacing
+import com.pluk.reader.domain.model.ReaderSettings
+import com.pluk.reader.domain.model.ReadingTheme
 import com.pluk.reader.ui.profile.ProfileActions
 import com.pluk.reader.ui.profile.ProfileContent
 import com.pluk.reader.ui.profile.ProfileUiState
@@ -76,5 +80,25 @@ class ProfileScreenTest {
     fun appearanceShowsLight() {
         show()
         compose.onNodeWithText("Claro").performScrollTo().assertIsSelected()
+    }
+
+    // PRF-013: la fila "Letra" muestra tipo y tamaño y abre el panel
+    @Test
+    fun fontRowShowsValueAndOpensSheet() {
+        show(state.copy(reading = ReaderSettings(fontScale = 1.1)))
+        compose.onNodeWithText("Newsreader · 20").performScrollTo().performClick()
+        compose.onNodeWithTag("profile-font-sheet").assertExists()
+    }
+
+    // PRF-014, PRF-015: tocar un tema o un interlineado lo elige
+    @Test
+    fun themeAndSpacingReportChoice() {
+        var theme: ReadingTheme? = null
+        var spacing: LineSpacing? = null
+        show(actions = ProfileActions(onTheme = { theme = it }, onLineSpacing = { spacing = it }))
+        compose.onNodeWithTag("profile-theme-SEPIA").performScrollTo().performClick()
+        compose.onNodeWithTag("profile-spacing-WIDE").performScrollTo().performClick()
+        assertEquals(ReadingTheme.SEPIA, theme)
+        assertEquals(LineSpacing.WIDE, spacing)
     }
 }

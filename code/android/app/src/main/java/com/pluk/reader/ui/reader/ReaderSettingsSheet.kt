@@ -55,9 +55,19 @@ private val SheetLine = Color(0xFF4A4840)
 private val SheetTrack = Color(0xFF33322D)
 private val SheetMuted = Color(0xFFA8A496)
 
+/**
+ * Colores de los chips de letra y los botones de tamaño. El panel del lector usa [Dark]; Perfil (PRF-013) los
+ * reutiliza sobre fondo claro con su propia paleta.
+ */
+internal data class FontControlsPalette(val ink: Color, val accent: Color, val onAccent: Color, val line: Color) {
+    companion object {
+        val Dark = FontControlsPalette(ink = SheetInk, accent = SheetAccent, onAccent = SheetBackground, line = SheetLine)
+    }
+}
+
 /** Fuente de cada opción para dibujar su propia etiqueta; sale de los mismos archivos que usa el libro (ADR 0009). */
 @Composable
-private fun ReaderFont.labelFamily(): FontFamily {
+internal fun ReaderFont.labelFamily(): FontFamily {
     val assets = LocalContext.current.assets
     return remember(this) {
         when (this) {
@@ -137,7 +147,7 @@ fun ReaderSettingsSheet(settings: ReaderSettings, actions: ReaderSettingsActions
 }
 
 @Composable
-private fun FontChips(selected: ReaderFont, onSelect: (ReaderFont) -> Unit) {
+internal fun FontChips(selected: ReaderFont, onSelect: (ReaderFont) -> Unit, palette: FontControlsPalette = FontControlsPalette.Dark) {
     Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
         ReaderFont.entries.forEach { font ->
             val isSelected = font == selected
@@ -145,7 +155,7 @@ private fun FontChips(selected: ReaderFont, onSelect: (ReaderFont) -> Unit) {
                 Modifier
                     .height(40.dp)
                     .clip(RoundedCornerShape(20.dp))
-                    .then(if (isSelected) Modifier.background(SheetAccent) else Modifier.border(BorderStroke(1.5.dp, SheetLine), RoundedCornerShape(20.dp)))
+                    .then(if (isSelected) Modifier.background(palette.accent) else Modifier.border(BorderStroke(1.5.dp, palette.line), RoundedCornerShape(20.dp)))
                     .selectableOption(isSelected) { onSelect(font) }
                     .padding(horizontal = 16.dp)
                     .testTag("reader-font-${font.name}"),
@@ -153,7 +163,7 @@ private fun FontChips(selected: ReaderFont, onSelect: (ReaderFont) -> Unit) {
             ) {
                 Text(
                     font.label(),
-                    color = if (isSelected) SheetBackground else SheetInk,
+                    color = if (isSelected) palette.onAccent else palette.ink,
                     style = TextStyle(fontFamily = font.labelFamily(), fontSize = 15.sp, fontWeight = FontWeight.Medium),
                 )
             }
@@ -162,23 +172,23 @@ private fun FontChips(selected: ReaderFont, onSelect: (ReaderFont) -> Unit) {
 }
 
 @Composable
-private fun SizeButtons(onSmaller: () -> Unit, onBigger: () -> Unit) {
+internal fun SizeButtons(onSmaller: () -> Unit, onBigger: () -> Unit, palette: FontControlsPalette = FontControlsPalette.Dark) {
     Row(
-        Modifier.fillMaxWidth().clip(RoundedCornerShape(20.dp)).border(BorderStroke(1.5.dp, SheetLine), RoundedCornerShape(20.dp)),
+        Modifier.fillMaxWidth().clip(RoundedCornerShape(20.dp)).border(BorderStroke(1.5.dp, palette.line), RoundedCornerShape(20.dp)),
     ) {
-        SizeButton("A−", 14.sp, "Letra más chica", onSmaller, Modifier.weight(1f).testTag("reader-font-smaller"))
-        Box(Modifier.width(1.5.dp).height(48.dp).background(SheetLine))
-        SizeButton("A+", 22.sp, "Letra más grande", onBigger, Modifier.weight(1f).testTag("reader-font-bigger"))
+        SizeButton("A−", 14.sp, "Letra más chica", palette.ink, onSmaller, Modifier.weight(1f).testTag("reader-font-smaller"))
+        Box(Modifier.width(1.5.dp).height(48.dp).background(palette.line))
+        SizeButton("A+", 22.sp, "Letra más grande", palette.ink, onBigger, Modifier.weight(1f).testTag("reader-font-bigger"))
     }
 }
 
 @Composable
-private fun SizeButton(text: String, size: androidx.compose.ui.unit.TextUnit, description: String, onClick: () -> Unit, modifier: Modifier) {
+private fun SizeButton(text: String, size: androidx.compose.ui.unit.TextUnit, description: String, color: Color, onClick: () -> Unit, modifier: Modifier) {
     Box(
         modifier.height(48.dp).clickable(role = Role.Button, onClick = onClick).semantics { contentDescription = description },
         contentAlignment = Alignment.Center,
     ) {
-        Text(text, color = SheetInk, style = TextStyle(fontFamily = ReaderFont.SERIF.labelFamily(), fontSize = size, fontWeight = FontWeight.Medium))
+        Text(text, color = color, style = TextStyle(fontFamily = ReaderFont.SERIF.labelFamily(), fontSize = size, fontWeight = FontWeight.Medium))
     }
 }
 

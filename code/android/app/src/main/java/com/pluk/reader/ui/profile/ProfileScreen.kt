@@ -18,6 +18,9 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -43,6 +46,9 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.pluk.reader.BuildConfig
 import com.pluk.reader.R
+import com.pluk.reader.domain.model.LineSpacing
+import com.pluk.reader.domain.model.ReaderFont
+import com.pluk.reader.domain.model.ReadingTheme
 import com.pluk.reader.ui.navigation.LocalBottomBarPadding
 import com.pluk.reader.ui.theme.MarginColors
 
@@ -52,6 +58,11 @@ data class ProfileActions(
     val onSignOut: () -> Unit = onComingSoon,
     val onFaq: (FaqTopic) -> Unit = { onComingSoon() },
     val onAllFaq: () -> Unit = onComingSoon,
+    val onFont: (ReaderFont) -> Unit = {},
+    val onSmallerFont: () -> Unit = {},
+    val onBiggerFont: () -> Unit = {},
+    val onTheme: (ReadingTheme) -> Unit = {},
+    val onLineSpacing: (LineSpacing) -> Unit = {},
 )
 
 /** Preguntas de la tarjeta de ayuda (PRF-017). */
@@ -70,6 +81,11 @@ fun ProfileScreen(viewModel: ProfileViewModel = hiltViewModel()) {
         state = state,
         actions = ProfileActions(
             onComingSoon = { Toast.makeText(context, R.string.nav_coming_soon, Toast.LENGTH_SHORT).show() },
+            onFont = viewModel::onFont,
+            onSmallerFont = viewModel::onSmallerFont,
+            onBiggerFont = viewModel::onBiggerFont,
+            onTheme = viewModel::onTheme,
+            onLineSpacing = viewModel::onLineSpacing,
         ),
     )
 }
@@ -83,6 +99,7 @@ fun ProfileContent(
     isTablet: Boolean = LocalConfiguration.current.smallestScreenWidthDp >= TABLET_MIN_WIDTH_DP,
 ) {
     val bottomBarPadding = LocalBottomBarPadding.current
+    var fontSheetOpen by rememberSaveable { mutableStateOf(false) }
     Box(
         Modifier
             .fillMaxSize()
@@ -101,6 +118,13 @@ fun ProfileContent(
             Header(state, actions.onComingSoon)
             SectionTitle(stringResource(R.string.profile_section_account))
             AccountCard(state, isTablet, actions)
+            SectionTitle(stringResource(R.string.profile_section_reading), bottom = 4.dp)
+            Text(
+                stringResource(R.string.profile_reading_hint),
+                style = profileText(12, color = MarginColors.Muted).copy(lineHeight = 1.4.em),
+                modifier = Modifier.padding(start = 24.dp, end = 24.dp, bottom = 10.dp),
+            )
+            ReadingDefaultsCard(state.reading, actions, onOpenFont = { fontSheetOpen = true })
             SectionTitle(stringResource(R.string.profile_section_app))
             AppCard(actions.onComingSoon)
             SectionTitle(stringResource(R.string.profile_section_help))
@@ -108,6 +132,7 @@ fun ProfileContent(
             Footer(version, actions.onComingSoon, Modifier.padding(bottom = 24.dp + bottomBarPadding))
         }
     }
+    if (fontSheetOpen) FontSheet(state.reading, actions, onDismiss = { fontSheetOpen = false })
 }
 
 /** PRF-005: tarjeta amarilla con la inicial, el nombre y el email. */

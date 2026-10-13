@@ -4,6 +4,11 @@ import com.pluk.reader.domain.account.AccountUser
 import com.pluk.reader.domain.account.QuotaSource
 import com.pluk.reader.domain.account.SignInMethod
 import com.pluk.reader.domain.account.StorageQuota
+import com.pluk.reader.domain.model.LineSpacing
+import com.pluk.reader.domain.model.ReaderFont
+import com.pluk.reader.domain.model.ReaderSettings
+import com.pluk.reader.domain.model.ReadingTheme
+import com.pluk.reader.domain.repository.SettingsRepository
 import com.pluk.reader.domain.profile.QuotaCache
 import com.pluk.reader.domain.remote.RemoteUnavailableException
 import com.pluk.reader.domain.repository.SyncPreferences
@@ -11,6 +16,7 @@ import com.pluk.reader.onboarding.FakeAuth
 import com.pluk.reader.ui.profile.ProfileUiState
 import com.pluk.reader.ui.profile.ProfileViewModel
 import com.pluk.reader.ui.profile.StorageUi
+import com.pluk.reader.ui.profile.readerFontPoints
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -52,6 +58,13 @@ class ProfileViewModelTest {
         override suspend fun setLastPositionsSeenAt(value: Long) = Unit
     }
 
+    private class FakeSettings(initial: ReaderSettings = ReaderSettings()) : SettingsRepository {
+        override val settings = kotlinx.coroutines.flow.MutableStateFlow(initial)
+        override suspend fun update(transform: (ReaderSettings) -> ReaderSettings) {
+            settings.value = transform(settings.value)
+        }
+    }
+
     @Before
     fun setUp() = Dispatchers.setMain(dispatcher)
 
@@ -64,7 +77,7 @@ class ProfileViewModelTest {
         cache: FakeCache = FakeCache(),
     ): ProfileUiState {
         val auth = FakeAuth().apply { this.user.value = user }
-        val vm = ProfileViewModel(auth, quota, cache, FakeDevice())
+        val vm = ProfileViewModel(auth, quota, cache, FakeDevice(), FakeSettings())
         backgroundScope.launch { vm.uiState.collect {} }
         advanceUntilIdle()
         return vm.uiState.value
@@ -159,7 +172,7 @@ class ProfileViewModelTest {
             }
         }
         val auth = FakeAuth().apply { user.value = AccountUser("u1", "a@mail.com") }
-        val vm = ProfileViewModel(auth, slow, FakeCache(StorageQuota(gib / 2, 2 * gib)), FakeDevice())
+        val vm = ProfileViewModel(auth, slow, FakeCache(StorageQuota(gib / 2, 2 * gib)), FakeDevice(), FakeSettings())
         backgroundScope.launch { vm.uiState.collect {} }
         advanceUntilIdle()
         assertEquals("0,5 GB", vm.uiState.value.storage?.used)
@@ -172,5 +185,56 @@ class ProfileViewModelTest {
     @Test
     fun showsThisDeviceName() = runTest(dispatcher) {
         assertEquals("Pixel 8", state(AccountUser("u1", "a@mail.com")).deviceName)
+    }
+
+    private fun TestScope.readingViewModel(settings: FakeSettings): ProfileViewModel {
+        val auth = FakeAuth().apply { user.value = AccountUser("u1", "a@mail.com") }
+        val vm = ProfileViewModel(auth, FakeQuota(Result.success(StorageQuota(0, gib))), FakeCache(), FakeDevice(), settings)
+        backgroundScope.launch { vm.uiState.collect {} }
+        advanceUntilIdle()
+        return vm
+    }
+
+    // PRF-011: Perfil muestra los mismos ajustes que el lector
+    @Test
+    fun showsReaderSettings() = runTest(dispatcher) {
+        val saved = ReaderSettings(theme = ReadingTheme.SEPIA, font = ReaderFont.MONO, fontScale = 1.2, lineSpacing = LineSpacing.WIDE)
+        val vm = readingViewModel(FakeSettings(saved))
+        assertEquals(saved, vm.uiState.value.reading)
+    }
+
+    // PRF-011, PRF-014, PRF-015: elegir tema e interlineado los guarda donde los lee el lector
+    @Test
+    fun themeAndSpacingAreSaved() = runTest(dispatcher) {
+        val settings = FakeSettings()
+        val vm = readingViewModel(settings)
+        vm.onTheme(ReadingTheme.DARK)
+        vm.onLineSpacing(LineSpacing.WIDE)
+        advanceUntilIdle()
+        assertEquals(ReadingTheme.DARK, settings.settings.value.theme)
+        assertEquals(LineSpacing.WIDE, settings.settings.value.lineSpacing)
+        assertEquals(ReadingTheme.DARK, vm.uiState.value.reading.theme)
+    }
+
+    // PRF-013: letra y tamaño, con los mismos pasos del lector
+    @Test
+    fun fontAndSizeAreSaved() = runTest(dispatcher) {
+        val settings = FakeSettings()
+        val vm = readingViewModel(settings)
+        vm.onFont(ReaderFont.SANS)
+        vm.onBiggerFont()
+        vm.onBiggerFont()
+        vm.onSmallerFont()
+        advanceUntilIdle()
+        assertEquals(ReaderFont.SANS, settings.settings.value.font)
+        assertEquals(1.1, settings.settings.value.fontScale, 0.001)
+    }
+
+    // PRF-013: el tamaño se muestra en puntos sobre una base de 18
+    @Test
+    fun fontSizeLabel() {
+        assertEquals(18, readerFontPoints(1.0))
+        assertEquals(20, readerFontPoints(1.1))
+        assertEquals(9, readerFontPoints(0.5))
     }
 }

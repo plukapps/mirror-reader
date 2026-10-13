@@ -7,12 +7,18 @@ import com.pluk.reader.domain.account.AccountUser
 import com.pluk.reader.domain.account.QuotaSource
 import com.pluk.reader.domain.account.SignInMethod
 import com.pluk.reader.domain.account.StorageQuota
+import com.pluk.reader.domain.model.LineSpacing
+import com.pluk.reader.domain.model.ReaderFont
+import com.pluk.reader.domain.model.ReaderSettings
+import com.pluk.reader.domain.model.ReadingTheme
 import com.pluk.reader.domain.profile.QuotaCache
 import com.pluk.reader.domain.profile.formatStorage
 import com.pluk.reader.domain.profile.storageUnitFor
+import com.pluk.reader.domain.repository.SettingsRepository
 import com.pluk.reader.domain.repository.SyncPreferences
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
+import kotlin.math.roundToInt
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -40,7 +46,14 @@ data class ProfileUiState(
     /** Verdadero si la lectura falló y no había valor guardado. */
     val storageFailed: Boolean = false,
     val deviceName: String = "",
+    /** Ajustes del lector: los mismos que cambia el panel "Aa" (PRF-011). */
+    val reading: ReaderSettings = ReaderSettings(),
 )
+
+/** PRF-013: tamaño de letra en puntos, sobre la base de 18 del diseño. */
+fun readerFontPoints(fontScale: Double): Int = (BASE_FONT_POINTS * fontScale).roundToInt()
+
+private const val BASE_FONT_POINTS = 18
 
 @HiltViewModel
 class ProfileViewModel @Inject constructor(
@@ -48,12 +61,13 @@ class ProfileViewModel @Inject constructor(
     private val quotaSource: QuotaSource,
     private val quotaCache: QuotaCache,
     syncPreferences: SyncPreferences,
+    private val settings: SettingsRepository,
 ) : ViewModel() {
     private val quota = MutableStateFlow<StorageQuota?>(null)
     private val quotaFailed = MutableStateFlow(false)
     private val deviceName = syncPreferences.deviceName()
 
-    val uiState: StateFlow<ProfileUiState> = combine(account.user, quota, quotaFailed) { user, quota, failed ->
+    val uiState: StateFlow<ProfileUiState> = combine(account.user, quota, quotaFailed, settings.settings) { user, quota, failed, reading ->
         ProfileUiState(
             name = user?.displayName,
             email = user?.email,
@@ -62,6 +76,7 @@ class ProfileViewModel @Inject constructor(
             storage = quota?.toUi(),
             storageFailed = failed && quota == null,
             deviceName = deviceName,
+            reading = reading,
         )
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(STOP_TIMEOUT_MS), ProfileUiState(deviceName = deviceName))
 
@@ -81,6 +96,17 @@ class ProfileViewModel @Inject constructor(
                 }
                 .onFailure { quotaFailed.value = true }
         }
+    }
+
+    // PRF-011 a PRF-015: los cambios van al mismo lugar que los del panel del lector.
+    fun onFont(font: ReaderFont) = updateReading { it.withFont(font) }
+    fun onSmallerFont() = updateReading { it.smallerFont() }
+    fun onBiggerFont() = updateReading { it.biggerFont() }
+    fun onTheme(theme: ReadingTheme) = updateReading { it.withTheme(theme) }
+    fun onLineSpacing(spacing: LineSpacing) = updateReading { it.withLineSpacing(spacing) }
+
+    private fun updateReading(transform: (ReaderSettings) -> ReaderSettings) {
+        viewModelScope.launch { settings.update(transform) }
     }
 
     private fun AccountUser?.initial(): String =
