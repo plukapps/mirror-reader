@@ -16,6 +16,7 @@ import com.pluk.reader.domain.profile.formatStorage
 import com.pluk.reader.domain.profile.storageUnitFor
 import com.pluk.reader.domain.repository.SettingsRepository
 import com.pluk.reader.domain.repository.SyncPreferences
+import com.pluk.reader.domain.usecase.SignOut
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 import kotlin.math.roundToInt
@@ -48,6 +49,23 @@ data class ProfileUiState(
     val deviceName: String = "",
     /** Ajustes del lector: los mismos que cambia el panel "Aa" (PRF-011). */
     val reading: ReaderSettings = ReaderSettings(),
+    /** Confirmación de cerrar sesión a la vista, o null (PRF-009). */
+    val signOutDialog: SignOutDialog? = null,
+    val signingOut: Boolean = false,
+    /** La sesión se cerró: la pantalla vuelve a la bienvenida. */
+    val signedOut: Boolean = false,
+    /** El último intento de cerrar sesión falló; se avisa una vez. */
+    val signOutFailed: Boolean = false,
+)
+
+/** PRF-009: la confirmación avisa si hay cambios de este dispositivo que se perderían. */
+data class SignOutDialog(val hasPendingChanges: Boolean)
+
+private data class SignOutState(
+    val dialog: SignOutDialog? = null,
+    val running: Boolean = false,
+    val done: Boolean = false,
+    val failed: Boolean = false,
 )
 
 /** PRF-013: tamaño de letra en puntos, sobre la base de 18 del diseño. */
@@ -62,12 +80,16 @@ class ProfileViewModel @Inject constructor(
     private val quotaCache: QuotaCache,
     syncPreferences: SyncPreferences,
     private val settings: SettingsRepository,
+    private val signOut: SignOut,
 ) : ViewModel() {
+    private val signOutState = MutableStateFlow(SignOutState())
     private val quota = MutableStateFlow<StorageQuota?>(null)
     private val quotaFailed = MutableStateFlow(false)
     private val deviceName = syncPreferences.deviceName()
 
-    val uiState: StateFlow<ProfileUiState> = combine(account.user, quota, quotaFailed, settings.settings) { user, quota, failed, reading ->
+    val uiState: StateFlow<ProfileUiState> = combine(
+        account.user, quota, quotaFailed, settings.settings, signOutState,
+    ) { user, quota, failed, reading, signingOut ->
         ProfileUiState(
             name = user?.displayName,
             email = user?.email,
@@ -77,6 +99,10 @@ class ProfileViewModel @Inject constructor(
             storageFailed = failed && quota == null,
             deviceName = deviceName,
             reading = reading,
+            signOutDialog = signingOut.dialog,
+            signingOut = signingOut.running,
+            signedOut = signingOut.done,
+            signOutFailed = signingOut.failed,
         )
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(STOP_TIMEOUT_MS), ProfileUiState(deviceName = deviceName))
 
@@ -104,6 +130,33 @@ class ProfileViewModel @Inject constructor(
     fun onBiggerFont() = updateReading { it.biggerFont() }
     fun onTheme(theme: ReadingTheme) = updateReading { it.withTheme(theme) }
     fun onLineSpacing(spacing: LineSpacing) = updateReading { it.withLineSpacing(spacing) }
+
+    /** PRF-009: muestra la confirmación, con aviso si hay cambios sin subir. */
+    fun onSignOutRequested() {
+        if (signOutState.value.running) return
+        viewModelScope.launch {
+            val pending = signOut.hasPendingChanges()
+            signOutState.value = SignOutState(dialog = SignOutDialog(pending))
+        }
+    }
+
+    fun onSignOutDismissed() {
+        signOutState.value = signOutState.value.copy(dialog = null)
+    }
+
+    fun onSignOutConfirmed() {
+        if (signOutState.value.running) return
+        signOutState.value = SignOutState(running = true)
+        viewModelScope.launch {
+            val result = signOut()
+            signOutState.value = SignOutState(done = result.isSuccess, failed = result.isFailure)
+        }
+    }
+
+    /** El aviso de error ya se mostró. */
+    fun onSignOutFailureShown() {
+        signOutState.value = signOutState.value.copy(failed = false)
+    }
 
     private fun updateReading(transform: (ReaderSettings) -> ReaderSettings) {
         viewModelScope.launch { settings.update(transform) }

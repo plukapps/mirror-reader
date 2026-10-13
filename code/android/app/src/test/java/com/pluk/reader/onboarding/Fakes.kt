@@ -15,7 +15,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 fun authFailure(error: AuthError) = Result.failure<Nothing>(AuthException(error))
 
 /** Cuenta falsa: guarda lo que se le pidió y responde lo que el test configura. */
-class FakeAuth : AccountRepository, AuthRepository {
+open class FakeAuth : AccountRepository, AuthRepository {
     override val user = MutableStateFlow<AccountUser?>(null)
 
     var createResult: Result<AccountUser> = Result.success(AccountUser("u1", "ana@mail.com", "Ana Ruiz", needsEmailVerification = true))
@@ -27,6 +27,8 @@ class FakeAuth : AccountRepository, AuthRepository {
     var resetResult: Result<Unit> = Result.success(Unit)
     var resetEmail: Result<String> = Result.success("ana@mail.com")
     var confirmResult: Result<Unit> = Result.success(Unit)
+    var signOutResult: Result<Unit> = Result.success(Unit)
+    var signOuts = 0
 
     val created = mutableListOf<Triple<String, String, String>>()
     val signIns = mutableListOf<Pair<String, String>>()
@@ -37,6 +39,12 @@ class FakeAuth : AccountRepository, AuthRepository {
     val confirmed = mutableListOf<Pair<String, String>>()
 
     override suspend fun signIn(email: String, password: String) = signInWithPassword(email, password)
+
+    override suspend fun signOut(): Result<Unit> {
+        signOuts++
+        if (signOutResult.isSuccess) user.value = null
+        return signOutResult
+    }
 
     override suspend fun createAccount(name: String, email: String, password: String): Result<AccountUser> {
         created += Triple(name, email, password)

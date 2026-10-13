@@ -217,7 +217,8 @@ fun AppNavHost(
                         SearchScreen(onBookClick = { bookId -> navController.navigate(Routes.reader(bookId)) })
                     }
                     composable(Routes.PROFILE) {
-                        ProfileScreen()
+                        // PRF-009: con la sesión cerrada, a la bienvenida sin poder volver atrás.
+                        ProfileScreen(onSignedOut = { navController.startOver(Routes.WELCOME) })
                     }
                     composable(
                         route = Routes.READER,

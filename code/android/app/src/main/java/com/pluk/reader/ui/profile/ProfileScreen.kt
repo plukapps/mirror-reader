@@ -15,8 +15,11 @@ import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -74,13 +77,25 @@ enum class FaqTopic(val question: Int) {
 
 /** Perfil: cuenta, espacio, ajustes y ayuda (PRF-001 a PRF-019). Diseño: "09 — Profile". */
 @Composable
-fun ProfileScreen(viewModel: ProfileViewModel = hiltViewModel()) {
+fun ProfileScreen(onSignedOut: () -> Unit, viewModel: ProfileViewModel = hiltViewModel()) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     val context = LocalContext.current
+    // PRF-009: con la sesión cerrada, a la bienvenida.
+    LaunchedEffect(state.signedOut) { if (state.signedOut) onSignedOut() }
+    LaunchedEffect(state.signOutFailed) {
+        if (state.signOutFailed) {
+            Toast.makeText(context, R.string.profile_sign_out_failed, Toast.LENGTH_SHORT).show()
+            viewModel.onSignOutFailureShown()
+        }
+    }
+    state.signOutDialog?.let { dialog ->
+        SignOutConfirmation(dialog, onConfirm = viewModel::onSignOutConfirmed, onDismiss = viewModel::onSignOutDismissed)
+    }
     ProfileContent(
         state = state,
         actions = ProfileActions(
             onComingSoon = { Toast.makeText(context, R.string.nav_coming_soon, Toast.LENGTH_SHORT).show() },
+            onSignOut = viewModel::onSignOutRequested,
             onFont = viewModel::onFont,
             onSmallerFont = viewModel::onSmallerFont,
             onBiggerFont = viewModel::onBiggerFont,
@@ -133,6 +148,36 @@ fun ProfileContent(
         }
     }
     if (fontSheetOpen) FontSheet(state.reading, actions, onDismiss = { fontSheetOpen = false })
+}
+
+/** PRF-009: confirmación de cerrar sesión, con el mismo estilo que la de quitar un libro (LIB-020). */
+@Composable
+private fun SignOutConfirmation(dialog: SignOutDialog, onConfirm: () -> Unit, onDismiss: () -> Unit) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text(stringResource(R.string.profile_sign_out_title)) },
+        text = {
+            Text(
+                stringResource(
+                    if (dialog.hasPendingChanges) R.string.profile_sign_out_body_pending else R.string.profile_sign_out_body,
+                ),
+            )
+        },
+        confirmButton = {
+            TextButton(onClick = onConfirm, modifier = Modifier.testTag("confirm-sign-out")) {
+                Text(stringResource(R.string.profile_sign_out), color = MarginColors.Danger, fontWeight = FontWeight.SemiBold)
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) {
+                Text(stringResource(R.string.profile_sign_out_cancel), color = MarginColors.Ink)
+            }
+        },
+        // Colores explícitos: el tema de Material no es el de la app y el texto salía casi blanco.
+        containerColor = MarginColors.Field,
+        titleContentColor = MarginColors.Ink,
+        textContentColor = MarginColors.Ink,
+    )
 }
 
 /** PRF-005: tarjeta amarilla con la inicial, el nombre y el email. */

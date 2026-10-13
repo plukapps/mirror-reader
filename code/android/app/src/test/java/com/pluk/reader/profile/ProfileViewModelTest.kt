@@ -10,11 +10,18 @@ import com.pluk.reader.domain.model.ReaderSettings
 import com.pluk.reader.domain.model.ReadingTheme
 import com.pluk.reader.domain.repository.SettingsRepository
 import com.pluk.reader.domain.profile.QuotaCache
+import com.pluk.reader.domain.account.LocalAccountData
+import com.pluk.reader.domain.onboarding.DailyReminder
+import com.pluk.reader.domain.onboarding.ReadingGoal
+import com.pluk.reader.domain.onboarding.ReminderScheduler
 import com.pluk.reader.domain.remote.RemoteUnavailableException
+import com.pluk.reader.domain.usecase.LibraryPassGate
+import com.pluk.reader.domain.usecase.SignOut
 import com.pluk.reader.domain.repository.SyncPreferences
 import com.pluk.reader.onboarding.FakeAuth
 import com.pluk.reader.ui.profile.ProfileUiState
 import com.pluk.reader.ui.profile.ProfileViewModel
+import com.pluk.reader.ui.profile.SignOutDialog
 import com.pluk.reader.ui.profile.StorageUi
 import com.pluk.reader.ui.profile.readerFontPoints
 import kotlinx.coroutines.CompletableDeferred
@@ -65,6 +72,26 @@ class ProfileViewModelTest {
         }
     }
 
+    private class Wipe : LocalAccountData {
+        var wiped = 0
+        override suspend fun wipe() {
+            wiped++
+        }
+    }
+
+    private object NoReminders : ReminderScheduler {
+        override fun schedule(reminder: DailyReminder, goal: ReadingGoal?) = Unit
+        override fun cancel() = Unit
+        override fun canNotify() = true
+    }
+
+    private object OpenGate : LibraryPassGate {
+        override suspend fun <T> whileIdle(block: suspend () -> T): T = block()
+    }
+
+    private fun signOutOf(auth: FakeAuth, wipe: LocalAccountData = Wipe(), pending: Boolean = false) =
+        SignOut(emptyList(), OpenGate, wipe, auth, NoReminders) { pending }
+
     @Before
     fun setUp() = Dispatchers.setMain(dispatcher)
 
@@ -77,7 +104,7 @@ class ProfileViewModelTest {
         cache: FakeCache = FakeCache(),
     ): ProfileUiState {
         val auth = FakeAuth().apply { this.user.value = user }
-        val vm = ProfileViewModel(auth, quota, cache, FakeDevice(), FakeSettings())
+        val vm = ProfileViewModel(auth, quota, cache, FakeDevice(), FakeSettings(), signOutOf(auth))
         backgroundScope.launch { vm.uiState.collect {} }
         advanceUntilIdle()
         return vm.uiState.value
@@ -172,7 +199,7 @@ class ProfileViewModelTest {
             }
         }
         val auth = FakeAuth().apply { user.value = AccountUser("u1", "a@mail.com") }
-        val vm = ProfileViewModel(auth, slow, FakeCache(StorageQuota(gib / 2, 2 * gib)), FakeDevice(), FakeSettings())
+        val vm = ProfileViewModel(auth, slow, FakeCache(StorageQuota(gib / 2, 2 * gib)), FakeDevice(), FakeSettings(), signOutOf(auth))
         backgroundScope.launch { vm.uiState.collect {} }
         advanceUntilIdle()
         assertEquals("0,5 GB", vm.uiState.value.storage?.used)
@@ -189,7 +216,7 @@ class ProfileViewModelTest {
 
     private fun TestScope.readingViewModel(settings: FakeSettings): ProfileViewModel {
         val auth = FakeAuth().apply { user.value = AccountUser("u1", "a@mail.com") }
-        val vm = ProfileViewModel(auth, FakeQuota(Result.success(StorageQuota(0, gib))), FakeCache(), FakeDevice(), settings)
+        val vm = ProfileViewModel(auth, FakeQuota(Result.success(StorageQuota(0, gib))), FakeCache(), FakeDevice(), settings, signOutOf(auth))
         backgroundScope.launch { vm.uiState.collect {} }
         advanceUntilIdle()
         return vm
@@ -236,5 +263,66 @@ class ProfileViewModelTest {
         assertEquals(18, readerFontPoints(1.0))
         assertEquals(20, readerFontPoints(1.1))
         assertEquals(9, readerFontPoints(0.5))
+    }
+
+    private fun TestScope.signOutViewModel(auth: FakeAuth, signOut: SignOut): ProfileViewModel {
+        auth.user.value = AccountUser("u1", "a@mail.com")
+        val vm = ProfileViewModel(auth, FakeQuota(Result.success(StorageQuota(0, gib))), FakeCache(), FakeDevice(), FakeSettings(), signOut)
+        backgroundScope.launch { vm.uiState.collect {} }
+        advanceUntilIdle()
+        return vm
+    }
+
+    // PRF-009: "Cerrar sesión" pide confirmación y avisa si hay cambios sin subir
+    @Test
+    fun signOutAsksForConfirmation() = runTest(dispatcher) {
+        val auth = FakeAuth()
+        val vm = signOutViewModel(auth, signOutOf(auth, pending = true))
+        vm.onSignOutRequested()
+        advanceUntilIdle()
+        assertEquals(SignOutDialog(hasPendingChanges = true), vm.uiState.value.signOutDialog)
+        assertEquals(0, auth.signOuts)
+    }
+
+    // PRF-009: cancelar no cierra la sesión
+    @Test
+    fun cancellingKeepsTheSession() = runTest(dispatcher) {
+        val auth = FakeAuth()
+        val vm = signOutViewModel(auth, signOutOf(auth))
+        vm.onSignOutRequested()
+        advanceUntilIdle()
+        vm.onSignOutDismissed()
+        advanceUntilIdle()
+        assertNull(vm.uiState.value.signOutDialog)
+        assertEquals(0, auth.signOuts)
+    }
+
+    // PRF-009: confirmar borra lo local, cierra la sesión y avisa para volver a la bienvenida
+    @Test
+    fun confirmingSignsOut() = runTest(dispatcher) {
+        val auth = FakeAuth()
+        val wipe = Wipe()
+        val vm = signOutViewModel(auth, signOutOf(auth, wipe))
+        vm.onSignOutRequested()
+        advanceUntilIdle()
+        vm.onSignOutConfirmed()
+        advanceUntilIdle()
+        assertEquals(1, wipe.wiped)
+        assertEquals(1, auth.signOuts)
+        assertTrue(vm.uiState.value.signedOut)
+        assertNull(vm.uiState.value.signOutDialog)
+    }
+
+    // PRF-009: si no se pudo cerrar la sesión, se avisa y se sigue en Perfil
+    @Test
+    fun failedSignOutIsReported() = runTest(dispatcher) {
+        val auth = FakeAuth().apply { signOutResult = Result.failure(IllegalStateException()) }
+        val vm = signOutViewModel(auth, signOutOf(auth))
+        vm.onSignOutRequested()
+        advanceUntilIdle()
+        vm.onSignOutConfirmed()
+        advanceUntilIdle()
+        assertFalse(vm.uiState.value.signedOut)
+        assertTrue(vm.uiState.value.signOutFailed)
     }
 }

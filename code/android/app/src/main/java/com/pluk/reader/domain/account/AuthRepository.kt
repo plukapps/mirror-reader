@@ -39,6 +39,9 @@ interface AuthRepository {
     /** Vuelve a preguntar al servidor si el email del usuario actual ya se verificó (ONB-007). */
     suspend fun refreshEmailVerified(): Result<Boolean>
 
+    /** Cierra la sesión en este dispositivo, también la de Google (PRF-009). */
+    suspend fun signOut(): Result<Unit>
+
     /** Borra la cuenta actual si su email no está verificado (ONB-008). */
     suspend fun discardUnverifiedAccount(): Result<Unit>
 

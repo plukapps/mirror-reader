@@ -191,6 +191,11 @@
     <string name="profile_change_password">Cambiar contraseña</string>
     <string name="profile_sign_out">Cerrar sesión</string>
     <string name="profile_delete_account">Eliminar cuenta</string>
+    <string name="profile_sign_out_title">¿Cerrar sesión?</string>
+    <string name="profile_sign_out_body">Tus libros siguen en tu cuenta. En este dispositivo se borran hasta que vuelvas a entrar.</string>
+    <string name="profile_sign_out_body_pending">Hay libros o progreso de lectura que todavía no se subieron. Si cerrás sesión ahora, se pierden.</string>
+    <string name="profile_sign_out_cancel">Cancelar</string>
+    <string name="profile_sign_out_failed">No se pudo cerrar sesión. Probá de nuevo.</string>
     <string name="profile_section_reading">Ajustes de lectura</string>
     <string name="profile_reading_hint">Se aplican a todos tus libros.</string>
     <string name="profile_reading_preview">Al empezar la mañana, decite: hoy me voy a cruzar con el entrometido, el desagradecido, el soberbio…</string>

@@ -1,5 +1,8 @@
 package com.pluk.reader.data.account
 
+import android.content.Context
+import androidx.credentials.ClearCredentialStateRequest
+import androidx.credentials.CredentialManager
 import com.google.firebase.auth.EmailAuthProvider
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
@@ -11,6 +14,7 @@ import com.pluk.reader.domain.account.AuthError
 import com.pluk.reader.domain.account.AuthException
 import com.pluk.reader.domain.account.AuthRepository
 import com.pluk.reader.domain.account.SignInMethod
+import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
@@ -24,6 +28,7 @@ import javax.inject.Singleton
 @Singleton
 class FirebaseAccountRepository @Inject constructor(
     private val auth: FirebaseAuth,
+    @ApplicationContext private val context: Context,
 ) : AccountRepository, AuthRepository {
 
     // El listener del token avisa al iniciar y cerrar sesión, y también al refrescar el token: así una
@@ -65,6 +70,14 @@ class FirebaseAccountRepository @Inject constructor(
         // El token nuevo lleva email_verified (lo usarán las reglas, K-050) y avisa a quien observa la sesión.
         if (verified) current.getIdToken(true).await()
         verified
+    }
+
+    override suspend fun signOut(): Result<Unit> = runAuth {
+        auth.signOut()
+        // Olvida la cuenta de Google elegida, así el próximo ingreso vuelve a ofrecer todas (ADR 0014). Si falla,
+        // la sesión ya está cerrada: no vale la pena informarlo.
+        runCatching { CredentialManager.create(context).clearCredentialState(ClearCredentialStateRequest()) }
+        Unit
     }
 
     override suspend fun discardUnverifiedAccount(): Result<Unit> = runAuth {

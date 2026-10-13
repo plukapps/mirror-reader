@@ -47,7 +47,7 @@ class PositionSync @Inject constructor(
     private val prefs: SyncPreferences,
     private val account: AccountRepository,
     @ApplicationScope private val scope: CoroutineScope,
-) : PositionFlusher, PositionFlushRequester {
+) : PositionFlusher, PositionFlushRequester, CloudListener {
     private val flushLock = Mutex()
     private val _remoteUpdates = MutableSharedFlow<RemotePosition>(extraBufferCapacity = UPDATES_BUFFER)
     private var listenJob: Job? = null
@@ -92,7 +92,7 @@ class PositionSync @Inject constructor(
 
     /** Empieza a recibir cambios mientras la app está a la vista. Llamarlo otra vez no hace nada. */
     @Synchronized
-    fun startListening() {
+    override fun startListening() {
         if (listenJob?.isActive == true) return
         listenJob = scope.launch {
             // La sesión puede llegar después: cada usuario nuevo reinicia la escucha.
@@ -104,7 +104,7 @@ class PositionSync @Inject constructor(
 
     /** Deja de recibir cambios: la app dejó de verse. No hay trabajo en segundo plano. */
     @Synchronized
-    fun stopListening() {
+    override fun stopListening() {
         listenJob?.cancel()
         listenJob = null
     }

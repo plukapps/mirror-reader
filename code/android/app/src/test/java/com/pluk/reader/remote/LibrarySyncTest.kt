@@ -8,6 +8,7 @@ import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.runTest
@@ -257,6 +258,51 @@ class LibrarySyncTest {
         account.state.value = AccountUser("u2", null)
         advanceUntilIdle()
 
+        assertEquals(2, backend.listings)
+    }
+
+    // PRF-009: cerrar sesión espera a que termine la pasada en curso antes de borrar los datos locales
+    @Test
+    fun whileIdleWaitsForThePassInProgress() = runTest(dispatcher) {
+        val gate = CompletableDeferred<Unit>()
+        backend.listGate = gate
+        val sync = sync(FakeAccount(session))
+        advanceUntilIdle()
+        assertTrue(sync.state.value.running)
+        var ranAt: Boolean? = null
+        val job = backgroundScope.launch { sync.whileIdle { ranAt = sync.state.value.running } }
+        advanceUntilIdle()
+        assertNull(ranAt)
+        gate.complete(Unit)
+        advanceUntilIdle()
+        job.join()
+        assertEquals(false, ranAt)
+    }
+
+    // PRF-009: sin sesión al terminar, un pedido que esperaba no corre una pasada vieja
+    @Test
+    fun noPassAfterSignOutWhileIdle() = runTest(dispatcher) {
+        val account = FakeAccount(session)
+        val sync = sync(account)
+        advanceUntilIdle()
+        sync.whileIdle {
+            sync.request()
+            account.state.value = null
+        }
+        advanceUntilIdle()
+        assertEquals(1, backend.listings)
+    }
+
+    // PRF-009: al volver a entrar con la misma cuenta, la biblioteca se baja de nuevo aunque no haya vencido el TTL
+    @Test
+    fun sameUserSyncsAgainAfterWhileIdle() = runTest(dispatcher) {
+        val account = FakeAccount(session)
+        val sync = syncWithClock(account)
+        advanceUntilIdle()
+        sync.whileIdle { account.state.value = null }
+        advanceUntilIdle()
+        account.state.value = session
+        advanceUntilIdle()
         assertEquals(2, backend.listings)
     }
 }
