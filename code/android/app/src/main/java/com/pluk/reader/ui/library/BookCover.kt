@@ -24,6 +24,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.em
 import androidx.compose.ui.unit.sp
 import com.pluk.reader.domain.model.LibraryBook
+import com.pluk.reader.ui.theme.LightMarginPalette
 import com.pluk.reader.ui.theme.MarginColors
 import kotlin.math.abs
 import kotlinx.coroutines.Dispatchers
@@ -55,7 +56,7 @@ fun BookCover(book: LibraryBook, modifier: Modifier = Modifier) {
         Box(frame.background(background).padding(7.dp)) {
             Text(
                 text = book.title,
-                color = if (background.isLight()) MarginColors.Ink else Color.White,
+                color = if (background.isLight()) LightMarginPalette.ink else Color.White, // la portada no cambia con el modo
                 fontSize = 13.sp,
                 lineHeight = 13.sp,
                 fontWeight = FontWeight.ExtraBold,

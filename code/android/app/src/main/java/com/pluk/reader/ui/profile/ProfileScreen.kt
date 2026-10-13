@@ -49,6 +49,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.pluk.reader.BuildConfig
 import com.pluk.reader.R
+import com.pluk.reader.domain.appearance.Appearance
 import com.pluk.reader.domain.help.Faq
 import com.pluk.reader.domain.help.FaqId
 import com.pluk.reader.domain.model.LineSpacing
@@ -69,6 +70,7 @@ data class ProfileActions(
     val onBiggerFont: () -> Unit = {},
     val onTheme: (ReadingTheme) -> Unit = {},
     val onLineSpacing: (LineSpacing) -> Unit = {},
+    val onAppearance: (Appearance) -> Unit = {},
 )
 
 /** Perfil: cuenta, espacio, ajustes y ayuda (PRF-001 a PRF-019). Diseño: "09 — Profile". */
@@ -105,6 +107,7 @@ fun ProfileScreen(
             onBiggerFont = viewModel::onBiggerFont,
             onTheme = viewModel::onTheme,
             onLineSpacing = viewModel::onLineSpacing,
+            onAppearance = viewModel::onAppearance,
         ),
     )
 }
@@ -145,7 +148,7 @@ fun ProfileContent(
             )
             ReadingDefaultsCard(state.reading, actions, onOpenFont = { fontSheetOpen = true })
             SectionTitle(stringResource(R.string.profile_section_app))
-            AppCard(actions.onComingSoon)
+            AppCard(state.appearance, actions)
             SectionTitle(stringResource(R.string.profile_section_help))
             HelpCard(actions)
             Footer(version, actions.onComingSoon, Modifier.padding(bottom = 24.dp + bottomBarPadding))
@@ -208,7 +211,7 @@ private fun Header(state: ProfileUiState, onClick: () -> Unit) {
         Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
             Text(
                 title,
-                style = profileText(20, FontWeight.Bold, letterSpacing = (-0.02).em).copy(lineHeight = 1.1.em),
+                style = profileText(20, FontWeight.Bold, MarginColors.OnYellow, (-0.02).em).copy(lineHeight = 1.1.em),
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
             )
@@ -221,7 +224,7 @@ private fun Header(state: ProfileUiState, onClick: () -> Unit) {
                 )
             }
         }
-        RowIcon(ProfileIcons.ChevronRight, MarginColors.Ink, 24.dp)
+        RowIcon(ProfileIcons.ChevronRight, MarginColors.OnYellow, 24.dp)
     }
 }
 
@@ -310,9 +313,10 @@ private fun ThisDevice(name: String, isTablet: Boolean) {
     }
 }
 
-/** PRF-016: apariencia e interruptores con el comportamiento de hoy; avisan al tocarlos. */
+/** PRF-016, PRF-021: apariencia; los interruptores muestran el comportamiento de hoy y avisan al tocarlos. */
 @Composable
-private fun AppCard(onComingSoon: () -> Unit) {
+private fun AppCard(appearance: Appearance, actions: ProfileActions) {
+    val onComingSoon = actions.onComingSoon
     ProfileCard {
         Column(
             Modifier.padding(horizontal = 16.dp, vertical = 14.dp),
@@ -325,9 +329,8 @@ private fun AppCard(onComingSoon: () -> Unit) {
                     Segment(stringResource(R.string.profile_appearance_dark), ProfileIcons.DarkMode),
                     Segment(stringResource(R.string.profile_appearance_system), ProfileIcons.Contrast),
                 ),
-                // La app hoy es solo clara.
-                selected = 0,
-                onSelect = { onComingSoon() },
+                selected = APPEARANCE_ORDER.indexOf(appearance),
+                onSelect = { actions.onAppearance(APPEARANCE_ORDER[it]) },
             )
         }
         CardDivider()
@@ -356,7 +359,7 @@ private fun SwitchRow(title: String, subtitle: String, checked: Boolean, onClick
 /** PRF-017: tarjeta tinta con tres preguntas y "Todas las preguntas". */
 @Composable
 private fun HelpCard(actions: ProfileActions) {
-    ProfileCard(background = MarginColors.Ink) {
+    ProfileCard(background = MarginColors.InkFill) {
         Text(
             stringResource(R.string.profile_faq).uppercase(),
             style = profileText(11, FontWeight.SemiBold, MarginColors.Yellow, 0.08.em),
@@ -393,6 +396,9 @@ private fun Footer(version: String, onComingSoon: () -> Unit, modifier: Modifier
         }
     }
 }
+
+/** Orden de los segmentos de "Apariencia": Claro, Oscuro, Sistema (diseño 09). */
+private val APPEARANCE_ORDER = listOf(Appearance.LIGHT, Appearance.DARK, Appearance.SYSTEM)
 
 private val MAX_CONTENT_WIDTH = 640.dp
 private const val TABLET_MIN_WIDTH_DP = 600

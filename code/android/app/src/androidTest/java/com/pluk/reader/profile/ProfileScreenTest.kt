@@ -8,6 +8,7 @@ import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performScrollTo
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.compose.ui.test.onNodeWithTag
+import com.pluk.reader.domain.appearance.Appearance
 import com.pluk.reader.domain.help.FaqId
 import com.pluk.reader.domain.model.LineSpacing
 import com.pluk.reader.domain.model.ReaderSettings
@@ -87,11 +88,14 @@ class ProfileScreenTest {
         assertEquals(3, notices)
     }
 
-    // PRF-016: la apariencia muestra el comportamiento de hoy (claro)
+    // PRF-021: la apariencia muestra la elegida (por defecto, Sistema) y tocar otra la informa
     @Test
-    fun appearanceShowsLight() {
-        show()
-        compose.onNodeWithText("Claro").performScrollTo().assertIsSelected()
+    fun appearanceShowsAndReportsChoice() {
+        var chosen: Appearance? = null
+        show(actions = ProfileActions(onAppearance = { chosen = it }))
+        compose.onNodeWithText("Sistema").performScrollTo().assertIsSelected()
+        compose.onNodeWithText("Oscuro").performClick()
+        assertEquals(Appearance.DARK, chosen)
     }
 
     // PRF-013: la fila "Letra" muestra tipo y tamaño y abre el panel

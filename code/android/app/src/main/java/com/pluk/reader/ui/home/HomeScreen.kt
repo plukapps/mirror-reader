@@ -188,7 +188,7 @@ private fun ContinueCard(book: LibraryBook, onClick: () -> Unit) {
             .padding(start = 20.dp, end = 20.dp, top = 24.dp)
             .fillMaxWidth()
             .clip(RoundedCornerShape(20.dp))
-            .background(MarginColors.Ink)
+            .background(MarginColors.InkFill)
             .bookClickable(book, anchor, onClick)
             .clearAndSetSemantics { contentDescription = description; role = Role.Button }
             .padding(16.dp)
@@ -219,7 +219,7 @@ private fun ContinueCard(book: LibraryBook, onClick: () -> Unit) {
                 book.author?.let {
                     Text(
                         it,
-                        color = MarginColors.Line,
+                        color = MarginColors.OnInkFillMuted,
                         fontSize = 13.sp,
                         lineHeight = 13.sp,
                         maxLines = 1,
@@ -254,7 +254,7 @@ private fun NothingReading(libraryEmpty: Boolean, onAction: () -> Unit) {
             .padding(start = 20.dp, end = 20.dp, top = 24.dp)
             .fillMaxWidth()
             .clip(RoundedCornerShape(20.dp))
-            .background(Color.White)
+            .background(MarginColors.Card)
             .padding(20.dp)
             .testTag("nothing-reading"),
         verticalArrangement = Arrangement.spacedBy(8.dp),
@@ -266,7 +266,7 @@ private fun NothingReading(libraryEmpty: Boolean, onAction: () -> Unit) {
                 .padding(top = 8.dp)
                 .height(44.dp)
                 .clip(RoundedCornerShape(22.dp))
-                .background(MarginColors.Ink)
+                .background(MarginColors.InkFill)
                 .clickable(role = Role.Button, onClick = onAction)
                 .padding(horizontal = 20.dp)
                 .testTag("nothing-reading-action"),
@@ -453,7 +453,7 @@ private fun FinishedItem(book: LibraryBook, onBookClick: (String) -> Unit) {
                         .background(MarginColors.Yellow),
                     contentAlignment = Alignment.Center,
                 ) {
-                    Icon(LibraryIcons.Check, contentDescription = null, tint = MarginColors.Ink, modifier = Modifier.size(15.dp))
+                    Icon(LibraryIcons.Check, contentDescription = null, tint = MarginColors.OnYellow, modifier = Modifier.size(15.dp))
                 }
             }
         },

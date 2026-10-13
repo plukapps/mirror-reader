@@ -57,6 +57,7 @@ import com.pluk.reader.R
 import com.pluk.reader.domain.model.LibraryBook
 import com.pluk.reader.domain.model.ReadingStatus
 import com.pluk.reader.ui.library.BookCover
+import com.pluk.reader.ui.theme.LightMarginPalette
 import com.pluk.reader.ui.theme.MarginColors
 import kotlin.math.roundToInt
 
@@ -136,7 +137,7 @@ fun BookActionsMenu(target: BookActionsTarget, onAction: (BookAction) -> Unit, o
                 Modifier
                     .layoutId("scrim")
                     .fillMaxSize()
-                    .background(MarginColors.Ink.copy(alpha = 0.55f))
+                    .background(LightMarginPalette.ink.copy(alpha = 0.55f)) // velo oscuro en los dos modos
                     .clickable(interactionSource = remember { MutableInteractionSource() }, indication = null, onClick = onDismiss),
             )
             BookCover(
@@ -212,7 +213,11 @@ private fun ActionRow(action: BookAction, onClick: () -> Unit) {
         BookAction.ChangeCover -> R.drawable.ic_action_add_photo_alternate to R.string.book_actions_change_cover
         BookAction.Remove -> R.drawable.ic_action_delete to R.string.book_actions_remove
     }
-    val color = if (action == BookAction.Remove) MarginColors.Danger else MarginColors.Ink
+    val color = when (action) {
+        BookAction.Remove -> MarginColors.Danger
+        BookAction.Read -> MarginColors.OnYellow // sobre amarillo
+        else -> MarginColors.Ink
+    }
     Row(
         Modifier
             .fillMaxWidth()

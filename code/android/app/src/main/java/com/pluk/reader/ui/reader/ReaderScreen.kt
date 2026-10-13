@@ -220,7 +220,7 @@ private fun ReaderContent(
     val animated = settings.pageAnimation
     val outgoingTint = settings.theme.outgoingTint()
     val controlsVisible by rememberUpdatedState(controlsVisible)
-    ImmersiveSystemBars(window, hidden = !controlsVisible)
+    ImmersiveSystemBars(window, hidden = !controlsVisible, darkIcons = settings.theme != ReadingTheme.DARK)
     // Al pasar de página los controles se quitan de golpe: esperar a que se desvanezcan retrasa el inicio de la animación.
     var hideControlsInstantly by remember { mutableStateOf(false) }
     LaunchedEffect(controlsVisible) { if (controlsVisible) hideControlsInstantly = false }
@@ -528,9 +528,16 @@ private fun ReadingTheme.pageTextColor() = when (this) {
  * visibilidad de las barras, así el texto no se mueve. Al salir de la pantalla se vuelven a mostrar.
  */
 @Composable
-private fun ImmersiveSystemBars(window: Window?, hidden: Boolean) {
+private fun ImmersiveSystemBars(window: Window?, hidden: Boolean, darkIcons: Boolean) {
     if (window == null) return
     val view = LocalView.current
+    // K-200, PRF-021: íconos de las barras según el tema del libro, no según la apariencia de la app.
+    LaunchedEffect(window, darkIcons) {
+        WindowCompat.getInsetsController(window, view).apply {
+            isAppearanceLightStatusBars = darkIcons
+            isAppearanceLightNavigationBars = darkIcons
+        }
+    }
     LaunchedEffect(window, hidden) {
         val controller = WindowCompat.getInsetsController(window, view)
         controller.systemBarsBehavior = WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
