@@ -4,7 +4,8 @@ import java.io.File
 
 /**
  * Metadatos de un libro en la nube. [id] es el hash del contenido, igual que el identificador local (LIB-003).
- * [createdAt] es cuándo entró a la cuenta (hora del servidor, en milisegundos), o null si el documento no la trae.
+ * [createdAt] es cuándo entró a la biblioteca (LIB-021: `addedAt` de la nube o, si falta, `createdAt`; hora del servidor
+ * en milisegundos), o null si el documento no la trae.
  */
 data class RemoteBook(
     val id: String,
@@ -28,7 +29,7 @@ interface RemoteLibrary {
     /** Libros vivos (no marcados como borrados, SYN-007) del usuario actual. */
     suspend fun listBooks(): Result<List<RemoteBook>>
 
-    /** Crea o actualiza los metadatos del libro. */
+    /** Crea o actualiza los metadatos del libro. Lo marca como recién entrado a la biblioteca (LIB-021). */
     suspend fun saveBook(book: RemoteBook): Result<Unit>
 }
 

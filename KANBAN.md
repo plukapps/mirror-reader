@@ -40,18 +40,18 @@ Plan de referencia: `specs/plans/2026-10-06-android-epub-viewer.md`
 
 ## Listo
 
-- **K-216** Volver a importar, iOS: `saveBook` escribe `addedAt` y el listado lo usa como fecha de entrada. LIB-021. Rama `feature/library-order`.
 - **K-134** Lector iOS, Tarea 7: cierre de docs y verificación a mano en el simulador. Rama `feature/ios-reader`. Era K-125 hasta el merge con `master`.
 - **K-038** Inicio, Tarea 4: cierre de docs y verificación a mano. Rama `feature/home`.
 - **K-024** Quitar el padding vertical de Readium (40 dp arriba y abajo en modo paginado) y reservar la barra de estado desde la pantalla. RDR-002. Rama `feat/page-turn-animation`.
 
 ## En curso
 
-- **K-215** Volver a importar, Android: `saveBook` escribe `addedAt` y el listado lo usa como fecha de entrada. LIB-021. Rama `feature/library-order`.
+- **K-216** Volver a importar, iOS: `saveBook` escribe `addedAt` y el listado lo usa como fecha de entrada. LIB-021. Rama `feature/library-order`.
 - **K-176** Posición exacta, Tarea 5: verificación a mano entre el teléfono y el iPhone, cierre de docs. SYN-014.
 
 ## Revisión
 
+- **K-215** Volver a importar, Android: `saveBook` escribe `addedAt` y el listado lo usa como fecha de entrada. LIB-021. Rama `feature/library-order`. Hecho: `listBooks` lee `addedAt ?: createdAt`; `saveBook` escribe `addedAt` al crear y al revivir. 415 tests JVM pasan (1 nuevo); los de emulador compilan.
 - **K-214** Volver a importar un libro quitado cuenta como entrada nueva (LIB-021): spec, campo `addedAt` en `backend.md` y reglas de Firestore con tests. Rama `feature/library-order`. Plan `2026-10-13-library-order.md`, segunda parte. Aprobado por el usuario (2026-10-13). Hecho: `addedAt` en `backend.md`, regla `isAddedAt`, 5 tests nuevos (97 pasan). Falta desplegar las reglas, antes que las apps.
 - **K-207** Perfil: sincronizar solo con Wi-Fi en Android. PRF-023. Rama `feature/profile-wifi-android`. Hecho: `canSync`/`SyncGate`/`NetworkSyncGate`, `ConnectivityNetworkMonitor`, preferencia `sync_wifi_only` (se conserva al cerrar sesión), puerta en la pasada, posiciones, borrados, escuchas y descarga al abrir ("Este libro se descarga con Wi-Fi…"), `SyncIssue.WaitingForWifi` en Estantes, `SyncGateWatcher`, interruptor de Perfil con su estado. 400 tests JVM pasan (15 nuevos); `ProfileScreenTest` (1 caso nuevo) y `LocalDataWiperTest` compilan, sin correr. Sin verificar a mano: el teléfono SM-S711B no estaba conectado.
 - **K-208** Perfil: sincronizar solo con Wi-Fi en iOS. PRF-023. Rama `feature/profile-wifi-ios`. Hecho: `NetworkType`/`canSync` en `ReaderDomain`; `SyncScheduler` con `allowed` y `waitingForWifi`; `DownloadBook` con aviso de Wi-Fi; `PathNetworkMonitor` (`NWPathMonitor`) y `SyncNetworkGate` (`sync.wifiOnly`, se conserva al cerrar sesión); `SyncCoordinator` sin pasadas, envíos ni escuchas sin red apta; posición local al abrir; interruptor real en Perfil. Tests: dominio 198 (+6), iPhone 174 (+7). Mac compila. Renders de la línea de estado y del interruptor. Instalada en el iPhone; falta probar a mano con datos móviles y al volver al Wi-Fi.

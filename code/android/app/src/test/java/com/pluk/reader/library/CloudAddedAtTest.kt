@@ -33,6 +33,16 @@ class CloudAddedAtTest {
         assertEquals(mapOf("a" to 100L), result.updates)
     }
 
+    // LIB-021: un libro quitado y vuelto a importar trae una fecha más nueva y pasa adelante
+    @Test
+    fun reimportedBookMovesToTheFront() {
+        val known = mapOf("drácula" to 100L, "walden" to 200L)
+        val result = cloudAddedAt(listOf(remote("drácula", 300), remote("walden", 200)), known, now = 5_000)
+        assertEquals(mapOf("drácula" to 300L), result.updates)
+        val order = (known + result.updates).entries.sortedByDescending { it.value }.map { it.key }
+        assertEquals(listOf("drácula", "walden"), order)
+    }
+
     // LIB-021: sin fecha en la nube se conserva lo que hay, y un libro nuevo usa la hora en que se vio
     @Test
     fun withoutCloudDateKeepsWhatThereIs() {
