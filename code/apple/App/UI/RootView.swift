@@ -149,12 +149,12 @@ struct RootView: View {
             .background {
                 // Va en su propia vista: dos presentaciones a pantalla completa no comparten la misma.
                 Color.clear.fullScreenCover(isPresented: $plans.plansOpen) {
-                    PlansScreen(presenter: plans, tabs: tabs)
+                    PlansScreen(presenter: plans, tabs: tabs, onClose: plans.closePlans)
                 }
             }
             .fullScreenCover(item: readerBinding) { opened in
                 if let makeReader {
-                    ReaderView(viewModel: makeReader(opened.id)) {
+                    ReaderView(viewModel: makeReader(opened.id), plans: plans, tabs: tabs) {
                         home.closeReader()
                         Task {
                             await home.reload()
@@ -193,6 +193,8 @@ struct RootView: View {
                 actions: ProfileActions(
                     comingSoon: tabs.showComingSoon,
                     openPlans: plans.openPlans,
+                    openPlansAfterSheet: plans.openPlansAfterSheet,
+                    sheetDismissed: plans.sheetDismissed,
                     notify: { home.show($0) },
                     setTabBarHidden: { tabs.barHidden = $0 }
                 ),
@@ -223,28 +225,6 @@ struct RootView: View {
             get: { home.readerBookId.map(OpenBook.init) },
             set: { if $0 == nil { home.closeReader() } }
         )
-    }
-}
-
-/// P01 con su propio ViewModel (arranca de cero cada vez que se abre) y el aviso de lo que todavía no existe.
-private struct PlansScreen: View {
-    let presenter: PlansPresenter
-    let tabs: TabBarModel
-    @State private var viewModel: PlansViewModel?
-
-    var body: some View {
-        Group {
-            if let viewModel {
-                PlansView(
-                    viewModel: viewModel,
-                    actions: PlansActions(close: presenter.closePlans, comingSoon: tabs.showComingSoon),
-                    showsComingSoon: tabs.showsComingSoon
-                )
-            } else {
-                MarginColors.paper.ignoresSafeArea()
-            }
-        }
-        .onAppear { if viewModel == nil { viewModel = presenter.makePlans() } }
     }
 }
 

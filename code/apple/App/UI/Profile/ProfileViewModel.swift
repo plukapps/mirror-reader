@@ -10,6 +10,19 @@ struct StorageSummary: Equatable {
     let isFreePlan: Bool
 }
 
+/// Hojas de Perfil (PRF-013, PLN-015).
+enum ProfileSheet: Identifiable, Equatable {
+    case font
+    case paid(PaidFeature)
+
+    var id: String {
+        switch self {
+        case .font: "font"
+        case .paid: "paid"
+        }
+    }
+}
+
 /// PRF-009: la confirmación avisa si hay cambios de este dispositivo que se perderían.
 struct SignOutDialog: Equatable {
     let hasPendingChanges: Bool
@@ -28,8 +41,10 @@ final class ProfileViewModel {
     /// La lectura falló y no había valor guardado.
     private(set) var storageFailed = false
     let deviceName: String
-    /// Ajustes del lector: los mismos que cambia el panel "Aa" (PRF-011).
-    private(set) var reading: ReaderSettings
+    /// Ajustes del lector guardados: los mismos que cambia el panel "Aa" (PRF-011).
+    private(set) var savedReading: ReaderSettings
+    /// La hoja abierta en Perfil: la letra (PRF-013) o la función paga (PLN-015).
+    var sheet: ProfileSheet?
     /// Confirmación de cerrar sesión a la vista, o nil (PRF-009).
     private(set) var signOutDialog: SignOutDialog?
     private(set) var signingOut = false
@@ -46,13 +61,16 @@ final class ProfileViewModel {
     private let passwords: PasswordRepository?
     private let appearanceSettings: AppearanceSettings?
     private let wifiOnlyGate: SyncNetworkGate?
+    private let plan: @MainActor () -> PlanId
 
     /// `account` y `quota` son nil sin Firebase (ADR 0015).
     init(
         account: AccountRepository?, quota: QuotaSource?, cache: QuotaCache, deviceName: String,
         settings: ReaderSettingsRepository, passwords: PasswordRepository? = nil, appearance: AppearanceSettings? = nil,
-        wifiOnly: SyncNetworkGate? = nil, signOut: SignOut? = nil
+        wifiOnly: SyncNetworkGate? = nil, signOut: SignOut? = nil, plan: (@MainActor () -> PlanId)? = nil
     ) {
+        // PLN-015: sin dato de plan, el de la cuota guardada (desconocido: Gratis).
+        self.plan = plan ?? { PlanCatalog.planOf(cache.last()) }
         appearanceSettings = appearance
         wifiOnlyGate = wifiOnly
         self.signOut = signOut
@@ -62,13 +80,13 @@ final class ProfileViewModel {
         self.cache = cache
         self.deviceName = deviceName
         self.settings = settings
-        reading = settings.load()
+        savedReading = settings.load()
     }
 
     /// Lee la cuenta y el espacio: primero el guardado, después el del servidor (PRF-006).
     func load() async {
         // Pudieron cambiar en el lector desde la última vez.
-        reading = settings.load()
+        savedReading = settings.load()
         let user = await account?.currentUser()
         name = user?.displayName
         email = user?.email
@@ -142,16 +160,36 @@ final class ProfileViewModel {
         signingOut = false
     }
 
+    /// Lo que usa el lector (y muestra la vista previa): en Gratis, Clásico y serifa (PLN-015).
+    var reading: ReaderSettings { effectiveReaderSettings(savedReading, plan: plan()) }
+
+    /// PLN-015: la opción lleva la marca "Lector" y abre la hoja de función paga.
+    func isLocked(_ theme: ReadingTheme) -> Bool { theme.isPaid && !plan().hasThemesAndFonts }
+    func isLocked(_ font: ReaderFont) -> Bool { font.isPaid && !plan().hasThemesAndFonts }
+
     // PRF-011 a PRF-015: los cambios van al mismo lugar que los del panel del lector.
-    func setTheme(_ theme: ReadingTheme) { update(reading.withTheme(theme)) }
-    func setFont(_ font: ReaderFont) { update(reading.withFont(font)) }
-    func setLineSpacing(_ spacing: LineSpacing) { update(reading.withLineSpacing(spacing)) }
-    func biggerFont() { update(reading.biggerFont()) }
-    func smallerFont() { update(reading.smallerFont()) }
+    func setTheme(_ theme: ReadingTheme) {
+        guard !isLocked(theme) else { return showThemesAndFonts() }
+        update(savedReading.withTheme(theme))
+    }
+
+    func setFont(_ font: ReaderFont) {
+        guard !isLocked(font) else { return showThemesAndFonts() }
+        update(savedReading.withFont(font))
+    }
+
+    func setLineSpacing(_ spacing: LineSpacing) { update(savedReading.withLineSpacing(spacing)) }
+    func biggerFont() { update(savedReading.biggerFont()) }
+    func smallerFont() { update(savedReading.smallerFont()) }
+
+    func openFontSheet() { sheet = .font }
+
+    /// Cambiar la hoja (de la letra a la función paga) cierra una y abre la otra.
+    private func showThemesAndFonts() { sheet = .paid(.themesAndFonts) }
 
     private func update(_ newSettings: ReaderSettings) {
-        guard newSettings != reading else { return }
-        reading = newSettings
+        guard newSettings != savedReading else { return }
+        savedReading = newSettings
         settings.save(newSettings)
     }
 

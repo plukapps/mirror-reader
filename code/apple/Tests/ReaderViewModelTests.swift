@@ -51,8 +51,8 @@ struct ReaderViewModelTests {
     private let positions = FakePositions()
     private let settings = FakeSettings()
 
-    private func makeViewModel(_ source: FakeSource, debounce: Duration = .zero) -> ReaderViewModel {
-        ReaderViewModel(bookId: "a", source: source, positions: positions, settings: settings, saveDelay: debounce)
+    private func makeViewModel(_ source: FakeSource, debounce: Duration = .zero, plan: PlanId = .free) -> ReaderViewModel {
+        ReaderViewModel(bookId: "a", source: source, positions: positions, settings: settings, saveDelay: debounce, plan: { plan })
     }
 
     @Test("RDR-007: abre el libro pedido y queda listo, con los controles visibles")
@@ -157,9 +157,9 @@ struct ReaderViewModelTests {
         #expect(!viewModel.settingsOpen)
     }
 
-    @Test("RDR-014: cada ajuste se aplica y se guarda como preferencia")
+    @Test("RDR-014: con Lector, cada ajuste se aplica y se guarda como preferencia")
     func settingsAreAppliedAndSaved() async {
-        let viewModel = makeViewModel(FakeSource(book: book))
+        let viewModel = makeViewModel(FakeSource(book: book), plan: .reader)
         await viewModel.load()
 
         viewModel.setTheme(.sepia)
@@ -170,6 +170,52 @@ struct ReaderViewModelTests {
         let expected = ReaderSettings(theme: .sepia, fontScale: 1.1, font: .mono, lineSpacing: .wide)
         #expect(viewModel.settings == expected)
         #expect(settings.stored == expected)
+    }
+
+    @Test("PLN-015: en Gratis, tocar Sepia en el panel no cambia el tema y abre la hoja al cerrarse el panel")
+    func freePlanThemeOpensPaidSheet() async {
+        let viewModel = makeViewModel(FakeSource(book: book))
+        await viewModel.load()
+        viewModel.toggleSettings()
+        viewModel.setTheme(.sepia)
+        #expect(viewModel.settings.theme == .light)
+        #expect(settings.stored.theme == .light)
+        #expect(!viewModel.settingsOpen)
+        #expect(viewModel.paidFeature == nil)
+        viewModel.settingsDismissed()
+        #expect(viewModel.paidFeature == .themesAndFonts)
+        viewModel.dismissPaidFeature()
+        viewModel.paidFeatureDismissed()
+        #expect(!viewModel.plansOpen)
+        #expect(viewModel.isLocked(ReaderFont.mono))
+        #expect(!viewModel.isLocked(ReadingTheme.light))
+    }
+
+    @Test("PLN-015: en Gratis la letra paga pide la hoja; tamaño e interlineado siguen libres; Ver planes abre P01")
+    func freePlanFontAndSeePlans() async {
+        let viewModel = makeViewModel(FakeSource(book: book))
+        await viewModel.load()
+        viewModel.setFont(.mono)
+        #expect(viewModel.paidFeature == .themesAndFonts)
+        #expect(viewModel.settings.font == .serif)
+        viewModel.seePlans()
+        #expect(viewModel.paidFeature == nil)
+        viewModel.paidFeatureDismissed()
+        #expect(viewModel.plansOpen)
+        viewModel.biggerFont()
+        viewModel.setLineSpacing(.wide)
+        #expect(settings.stored == ReaderSettings(theme: .light, fontScale: 1.1, font: .serif, lineSpacing: .wide))
+    }
+
+    @Test("PLN-015: en Gratis lo guardado de un plan pago no se borra; el lector usa Clásico y serifa")
+    func freePlanKeepsSavedPreference() async {
+        settings.stored = ReaderSettings(theme: .dark, fontScale: 1.2, font: .mono, lineSpacing: .wide)
+        let free = makeViewModel(FakeSource(book: book))
+        #expect(free.settings == ReaderSettings(theme: .light, fontScale: 1.2, font: .serif, lineSpacing: .wide))
+        free.biggerFont()
+        #expect(settings.stored.theme == .dark)
+        #expect(settings.stored.font == .mono)
+        #expect(makeViewModel(FakeSource(book: book), plan: .library).settings.theme == .dark)
     }
 
     @Test("RDR-014: abrir el índice desde el panel cierra el panel; elegir un capítulo pide el salto y cierra el índice")

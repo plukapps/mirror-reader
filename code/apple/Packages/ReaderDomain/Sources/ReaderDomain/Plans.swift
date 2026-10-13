@@ -154,9 +154,13 @@ public enum PlanCatalog {
         quota.flatMap { PlanId(rawValue: $0.plan) } ?? .free
     }
 
-    /// PLN-014: el plan que se ofrece para pasar de este ("Con Lector…", "Con Biblioteca…").
-    public static func nextPlan(after id: PlanId) -> PlanId {
-        id == .free ? .reader : .library
+    /// PLN-014: el plan que se ofrece para pasar de este ("Con Lector…", "Con Biblioteca…"); nil en Biblioteca.
+    public static func nextPlan(after id: PlanId) -> PlanId? {
+        switch id {
+        case .free: .reader
+        case .reader: .library
+        case .library: nil
+        }
     }
 
     /// "2 MB", "50 MB": el tamaño máximo por archivo del plan (PLN-014).
@@ -191,4 +195,28 @@ public enum PlanCatalog {
             PlanComparisonRow(feature: "Exportar notas (Markdown, Obsidian, Notion)", free: no, reader: yes, library: yes),
         ]
     }
+}
+
+// MARK: Temas y fuentes (PLN-015)
+
+public extension PlanId {
+    /// PLN-015: temas y fuentes son de Lector y Biblioteca.
+    var hasThemesAndFonts: Bool { self != .free }
+}
+
+public extension ReadingTheme {
+    /// PLN-015: Sepia y Noche son de los planes pagos; Clásico es de todos.
+    var isPaid: Bool { self != .light }
+}
+
+public extension ReaderFont {
+    /// PLN-015: sin serifa y monoespaciada son de los planes pagos; la serifa es de todos.
+    var isPaid: Bool { self != .serif }
+}
+
+/// PLN-015: lo que el lector aplica. En Gratis, Clásico y serifa; el resto de lo guardado (tamaño, interlineado) sigue
+/// igual. La preferencia guardada no se toca: vuelve si la cuenta pasa a un plan pago.
+public func effectiveReaderSettings(_ saved: ReaderSettings, plan: PlanId) -> ReaderSettings {
+    guard !plan.hasThemesAndFonts else { return saved }
+    return saved.withTheme(.light).withFont(.serif)
 }

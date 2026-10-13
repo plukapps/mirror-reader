@@ -86,3 +86,13 @@ func comparison() {
     let texts = rows.map(\.feature) + PlanCatalog.all.flatMap(\.includes)
     #expect(!texts.contains { text in hidden.contains { text.contains($0) } })
 }
+
+@Test("PLN-015: en Gratis el lector usa Clásico y serifa; tamaño e interlineado siguen; en Lector, lo guardado")
+func effectiveSettings() {
+    let saved = ReaderSettings(theme: .dark, fontScale: 1.3, font: .mono, lineSpacing: .wide)
+    #expect(effectiveReaderSettings(saved, plan: .free) == ReaderSettings(theme: .light, fontScale: 1.3, font: .serif, lineSpacing: .wide))
+    #expect(effectiveReaderSettings(saved, plan: .reader) == saved)
+    #expect(effectiveReaderSettings(saved, plan: .library) == saved)
+    #expect(ReadingTheme.allCases.filter(\.isPaid) == [.dark, .sepia])
+    #expect(ReaderFont.allCases.filter(\.isPaid) == [.sans, .mono])
+}

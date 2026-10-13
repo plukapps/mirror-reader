@@ -80,10 +80,10 @@ struct HomeImportTests {
         #expect(viewModel.quotaBlock?.block == .full)
     }
 
-    @Test("PLN-009: sin cuota conocida, o si el libro ya estaba, no hay hoja")
+    @Test("PLN-009: sin cuota conocida y dentro de los 2 MB de Gratis, o si el libro ya estaba, no hay hoja")
     func noSheet() async {
         let unknown = HomeViewModel(
-            library: CountingLibrary(), importer: importer, quotaCheck: quotaCheck(used: nil, [pendingBook("a", "Walden", 99 * mib)])
+            library: CountingLibrary(), importer: importer, quotaCheck: quotaCheck(used: nil, [pendingBook("a", "Walden", 2 * mib)])
         )
         await unknown.importBooks([file("a.epub")])
         #expect(unknown.quotaBlock == nil)

@@ -153,20 +153,23 @@ struct QuotaBlockContent: View {
     private func tooLarge(bookBytes: Int64, maxBytes: Int64) -> some View {
         let size = formatted(bookBytes)
         let max = formatted(maxBytes)
-        let next = PlanCatalog.nextPlan(after: PlanCatalog.planOf(notice.quota))
-        let nextName = PlanCatalog.plan(next).name
+        // En Lector se ofrece Biblioteca; en Biblioteca no hay tarjeta.
+        let upsell = PlanCatalog.nextPlan(after: PlanCatalog.planOf(notice.quota)).map { next in
+            String(localized: """
+                Con \(PlanCatalog.plan(next).name): archivos de hasta \(unbroken(PlanCatalog.maxFileText(next))) y \
+                \(unbroken(PlanCatalog.storageText(next, quota: notice.quota))) en la nube
+                """)
+        }
         return bookSheet(
             detail: "\(size) · límite \(max)",
             size: size,
             body: String(localized: "Tu plan admite archivos de hasta \(max). No se subió a la nube, pero podés leerlo en este dispositivo."),
-            upsell: String(localized: """
-                Con \(nextName): archivos de hasta \(PlanCatalog.maxFileText(next)) y \(PlanCatalog.storageText(next, quota: notice.quota)) en la nube
-                """)
+            upsell: upsell
         )
     }
 
     /// P02b: la fila del libro, el título con su tamaño, la explicación y la tarjeta amarilla del plan siguiente.
-    private func bookSheet(detail: String, size: String, body: String, upsell: String) -> some View {
+    private func bookSheet(detail: String, size: String, body: String, upsell: String?) -> some View {
         VStack(alignment: .leading, spacing: 0) {
             HStack(spacing: 12) {
                 EpubPlaceholder()
@@ -181,6 +184,7 @@ struct QuotaBlockContent: View {
             .accessibilityElement(children: .combine)
             SheetTitle(text: String(localized: "Este libro pesa \(size)")).padding(.top, 18)
             Text(body).sheetBody()
+            if let upsell {
             HStack(spacing: 10) {
                 PlanIcon(name: "UploadFile", size: 22, color: MarginColors.onYellow)
                 Text(upsell)
@@ -195,7 +199,13 @@ struct QuotaBlockContent: View {
             .background(MarginColors.yellow, in: RoundedRectangle(cornerRadius: 18))
             .padding(.top, 18)
             .accessibilityElement(children: .combine)
+            }
         }
+    }
+
+    /// "5 GB" no se parte entre dos líneas.
+    private func unbroken(_ size: String) -> String {
+        size.replacingOccurrences(of: " ", with: "\u{00A0}")
     }
 
     /// Cada tamaño con su propia unidad ("8 MB", "1,2 GB"), con el formato de PRF-006.
@@ -229,6 +239,23 @@ extension Text {
             .frame(maxWidth: .infinity, alignment: .leading)
             .padding(.top, 10)
     }
+}
+
+/// La hoja de función paga (PLN-015), con su alto medido.
+struct PaidFeatureSheet: View {
+    let feature: PaidFeature
+    let onSeePlans: () -> Void
+    let onNotNow: () -> Void
+
+    var body: some View {
+        MeasuredSheet { PaidFeatureContent(feature: feature, onSeePlans: onSeePlans, onNotNow: onNotNow) }
+    }
+}
+
+/// `PaidFeature` para `.sheet(item:)`.
+struct PaidFeatureItem: Identifiable {
+    let feature: PaidFeature
+    var id: PaidFeature { feature }
 }
 
 /// Hoja de función paga (P03): ícono, título, bajada, "Incluido en {plan}", "Ver planes" y "Ahora no" (PLN-015). Lista

@@ -41,6 +41,30 @@ struct PlansView: View {
     }
 }
 
+/// P01 con su propio ViewModel (arranca de cero cada vez que se abre) y el aviso de lo que todavía no existe. Se
+/// presenta desde la raíz y desde el lector (PLN-015).
+struct PlansScreen: View {
+    let presenter: PlansPresenter
+    let tabs: TabBarModel
+    let onClose: () -> Void
+    @State private var viewModel: PlansViewModel?
+
+    var body: some View {
+        Group {
+            if let viewModel {
+                PlansView(
+                    viewModel: viewModel,
+                    actions: PlansActions(close: onClose, comingSoon: tabs.showComingSoon),
+                    showsComingSoon: tabs.showsComingSoon
+                )
+            } else {
+                MarginColors.paper.ignoresSafeArea()
+            }
+        }
+        .onAppear { if viewModel == nil { viewModel = presenter.makePlans() } }
+    }
+}
+
 enum PlansLayout {
     /// PLN-005: tres columnas desde 600 pt de ancho.
     static let tabletMinWidth: CGFloat = 600

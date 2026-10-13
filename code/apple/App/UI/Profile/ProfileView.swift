@@ -11,6 +11,9 @@ struct ProfileActions {
     var openPlans: (() -> Void)?
     /// PLN-012: tocar el bloque del espacio abre Mi plan.
     var openMyPlan: (() -> Void)?
+    /// PLN-015: "Ver planes" desde una hoja de Perfil: Planes se abre cuando la hoja se cerró.
+    var openPlansAfterSheet: () -> Void = {}
+    var sheetDismissed: () -> Void = {}
     var signOut: (() -> Void)?
     var openFaq: ((FaqId) -> Void)?
     var openAllFaq: (() -> Void)?
@@ -29,14 +32,13 @@ struct ProfileView: View {
     var actions = ProfileActions()
     /// PRF-009: con la sesión cerrada, a la bienvenida.
     var onSignedOut: () -> Void = {}
-    @State private var fontSheetOpen = false
     /// PRF-017, PRF-018: las preguntas frecuentes se abren dentro del tab.
     @State private var path: [ProfileRoute] = []
 
     var body: some View {
         NavigationStack(path: $path) {
             ScrollView {
-                ProfileContent(viewModel: viewModel, actions: contentActions, onOpenFont: { fontSheetOpen = true })
+                ProfileContent(viewModel: viewModel, actions: contentActions, onOpenFont: viewModel.openFontSheet)
                     .frame(maxWidth: WindowLayout.contentMaxWidth)
                     .frame(maxWidth: .infinity)
             }
@@ -49,12 +51,25 @@ struct ProfileView: View {
         .onDisappear { actions.setTabBarHidden(false) }
         .task { await viewModel.load() }
         // PRF-013: el panel de letra, claro, con la misma forma que el del lector.
-        .sheet(isPresented: $fontSheetOpen) {
-            FontSheet(viewModel: viewModel)
-                .presentationDetents([.height(200)])
-                .presentationCornerRadius(28)
-                .presentationBackground(MarginColors.field)
-                .presentationDragIndicator(.visible)
+        // PLN-015: tocar una letra paga en el panel cambia esta hoja por la de la función paga.
+        .sheet(item: Binding(get: { viewModel.sheet }, set: { viewModel.sheet = $0 }), onDismiss: actions.sheetDismissed) { sheet in
+            switch sheet {
+            case .font:
+                FontSheet(viewModel: viewModel)
+                    .presentationDetents([.height(200)])
+                    .presentationCornerRadius(28)
+                    .presentationBackground(MarginColors.field)
+                    .presentationDragIndicator(.visible)
+            case let .paid(feature):
+                PaidFeatureSheet(
+                    feature: feature,
+                    onSeePlans: {
+                        actions.openPlansAfterSheet()
+                        viewModel.sheet = nil
+                    },
+                    onNotNow: { viewModel.sheet = nil }
+                )
+            }
         }
         .alert(
             "¿Cerrar sesión?",

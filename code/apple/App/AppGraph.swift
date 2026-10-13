@@ -43,6 +43,8 @@ enum AppGraph {
         network.start { type in Task { @MainActor in gate.networkChanged(type) } }
         let cloudAllowed: @Sendable () async -> Bool = { await gate.allowsSync }
         let positions = firebase ? positionSync(store: store) : nil
+        // PRF-006, PLN-009: la última cuota leída, que cada pasada actualiza. De ella sale el plan (PLN-014, PLN-015).
+        let quotaCache = UserDefaultsQuotaCache()
         // LIB-020: quitar un libro lo borra de la cuenta y de los otros dispositivos.
         let removals = firebase ? RemovalSync(remote: FirebaseRemovals(), local: store, account: FirebaseAccountRepository()) : nil
         #if os(iOS)
@@ -52,7 +54,7 @@ enum AppGraph {
         let bookFiles: BookFiles = CoverExtractingBookFiles(store: store, importer: importer)
         let reader: (importer: BookImporter, makeReader: (String) -> ReaderViewModel)? = readerParts(
             store: store, files: files, loader: loader, importer: importer, bookFiles: bookFiles, firebase: firebase, positions: positions,
-            cloudAllowed: cloudAllowed
+            cloudAllowed: cloudAllowed, quotaCache: quotaCache
         )
         #else
         let bookFiles: BookFiles = store
@@ -61,8 +63,6 @@ enum AppGraph {
 
         // La sincronización vuelve a leer la base en Inicio y en la biblioteca cada vez que la cambia.
         let refs = ScreenRefs()
-        // PRF-006, PLN-009: la última cuota leída, que cada pasada actualiza.
-        let quotaCache = UserDefaultsQuotaCache()
         let pass = positions.map {
             libraryPass(store: store, bookFiles: bookFiles, positions: $0, removals: removals, quotaCache: quotaCache)
         }
@@ -188,7 +188,7 @@ enum AppGraph {
     #if os(iOS)
     private static func readerParts(
         store: LibraryStore, files: LibraryFiles, loader: PublicationLoader, importer: EpubImporter, bookFiles: BookFiles,
-        firebase: Bool, positions: PositionSync?, cloudAllowed: @escaping @Sendable () async -> Bool
+        firebase: Bool, positions: PositionSync?, cloudAllowed: @escaping @Sendable () async -> Bool, quotaCache: QuotaCache
     ) -> (importer: BookImporter, makeReader: (String) -> ReaderViewModel) {
         let bookStore: BookFileStore = firebase ? FirebaseBookStore() : OfflineBookStore()
         // PRF-023: un libro solo en la nube no se baja sin Wi-Fi si así se eligió.
@@ -206,7 +206,12 @@ enum AppGraph {
         }
         return (
             importer,
-            { bookId in ReaderViewModel(bookId: bookId, source: source, positions: store, settings: settings, sync: readerSync) }
+            { bookId in
+                ReaderViewModel(
+                    bookId: bookId, source: source, positions: store, settings: settings, sync: readerSync,
+                    plan: { PlanCatalog.planOf(quotaCache.last()) }
+                )
+            }
         )
     }
     #endif

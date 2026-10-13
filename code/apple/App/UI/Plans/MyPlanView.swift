@@ -113,7 +113,9 @@ struct MyPlanContent: View {
             }
             .accessibilityElement(children: .combine)
             detail("Dispositivos", "Todos, sin límite")
-            detail("Archivos de hasta", viewModel.maxFile)
+            Text("Archivos de hasta \(viewModel.maxFile)")
+                .font(.app(14, .medium))
+                .foregroundStyle(MarginColors.ink2)
         }
         .padding(18)
         .background(MarginColors.field, in: RoundedRectangle(cornerRadius: 24))

@@ -78,6 +78,22 @@ struct PlanPrimaryButton: View {
     }
 }
 
+/// PLN-015: marca chica de una opción que es de un plan pago ("Lector"): amarillo con texto tinta, no cambia con el modo.
+struct PlanMark: View {
+    var plan: PlanId = .reader
+
+    var body: some View {
+        Text(PlanCatalog.plan(plan).name)
+            .font(.app(9, .bold))
+            .foregroundStyle(MarginColors.onYellow)
+            .padding(.horizontal, 5)
+            .padding(.vertical, 2)
+            .background(MarginColors.yellow, in: Capsule())
+            .fixedSize()
+            .accessibilityHidden(true)
+    }
+}
+
 extension Font {
     /// JetBrains Mono (ADR 0009) para las proporciones y tamaños.
     static func mono(_ size: CGFloat, _ weight: Font.Weight = .medium) -> Font {

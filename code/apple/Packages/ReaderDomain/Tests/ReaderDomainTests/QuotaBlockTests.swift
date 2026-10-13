@@ -57,10 +57,10 @@ func firstThatDoesNotFit() async {
     #expect(notice?.block == .doesNotFit(bookBytes: 9 * mib, freeBytes: mib))
 }
 
-@Test("PLN-009: si entra, o si nunca se leyó la cuota, no hay hoja")
+@Test("PLN-009: si entra, o si nunca se leyó la cuota y no supera 2 MB, no hay hoja")
 func noNotice() async {
     #expect(await check(used: 0, [item("a", mib)])(imported: ["a"]) == nil)
-    let unknown = ImportQuotaCheck(uploads: Pending(items: [item("a", 99 * mib)]), cache: Cache(nil))
+    let unknown = ImportQuotaCheck(uploads: Pending(items: [item("a", 2 * mib)]), cache: Cache(nil))
     #expect(await unknown(imported: ["a"]) == nil)
     #expect(await check(used: 15 * mib, [item("a", mib)])(imported: []) == nil)
 }
@@ -104,4 +104,19 @@ func unknownPlanIsFree() async {
 func oversizePendingTakesNoSpace() async {
     let notice = await check(used: 10 * mib, [item("grande", 4 * mib), item("a", 2 * mib)])(imported: ["a"])
     #expect(notice == nil)
+}
+
+@Test("PLN-014: sin cuota leída, el tamaño se comprueba con el máximo de Gratis")
+func tooLargeWithoutQuota() async {
+    let check = ImportQuotaCheck(uploads: Pending(items: [item("a", 3 * mib)]), cache: Cache(nil))
+    let notice = await check(imported: ["a"])
+    #expect(notice?.block == .tooLarge(bookBytes: 3 * mib, maxBytes: 2 * mib))
+    #expect(notice?.quota == nil)
+}
+
+@Test("PLN-014: se ofrece Lector desde Gratis, Biblioteca desde Lector y nada desde Biblioteca")
+func nextPlan() {
+    #expect(PlanCatalog.nextPlan(after: .free) == .reader)
+    #expect(PlanCatalog.nextPlan(after: .reader) == .library)
+    #expect(PlanCatalog.nextPlan(after: .library) == nil)
 }

@@ -24,9 +24,10 @@ public struct QuotaBlockNotice: Equatable, Sendable, Identifiable {
     public let block: QuotaBlock
     public let bookId: String
     public let title: String
-    public let quota: StorageQuota
+    /// nil si nunca se leyó: entonces solo puede ser `tooLarge`, con el máximo de Gratis (PLN-014).
+    public let quota: StorageQuota?
 
-    public init(block: QuotaBlock, bookId: String, title: String, quota: StorageQuota) {
+    public init(block: QuotaBlock, bookId: String, title: String, quota: StorageQuota?) {
         self.block = block
         self.bookId = bookId
         self.title = title
@@ -36,9 +37,10 @@ public struct QuotaBlockNotice: Equatable, Sendable, Identifiable {
     public var id: String { bookId }
 }
 
-/// PLN-009: después de importar, ¿alguno de los libros nuevos no entra en la nube? Usa la última cuota conocida
-/// (sin red) y descuenta los pendientes de subir en el mismo orden en que se suben (`UploadBooks`): un pendiente que
-/// no entra no ocupa lugar. Sin cuota conocida no hay hoja (vale LIB-009). Devuelve el primero que no entra.
+/// PLN-009, PLN-014: después de importar, ¿alguno de los libros nuevos no entra en la nube? Usa la última cuota
+/// conocida (sin red) y descuenta los pendientes de subir en el mismo orden en que se suben (`UploadBooks`): un
+/// pendiente que no entra no ocupa lugar. Sin cuota conocida solo se comprueba el tamaño máximo de Gratis (vale LIB-009
+/// para el espacio). Devuelve el primero que no entra.
 public struct ImportQuotaCheck: Sendable {
     private let uploads: BookUploadRepository
     private let cache: QuotaCache
@@ -49,10 +51,12 @@ public struct ImportQuotaCheck: Sendable {
     }
 
     public func callAsFunction(imported: [String]) async -> QuotaBlockNotice? {
-        guard !imported.isEmpty, let quota = cache.last(), let pending = try? await uploads.pending() else { return nil }
+        guard !imported.isEmpty, let pending = try? await uploads.pending() else { return nil }
+        let quota = cache.last()
         let newBooks = Set(imported)
         let maxFile = PlanCatalog.plan(PlanCatalog.planOf(quota)).maxFileBytes
-        var free = quota.freeBytes
+        // Sin cuota, el espacio no se comprueba: solo el tamaño.
+        var free = quota?.freeBytes ?? .max
         for item in pending {
             let size = item.book.sizeBytes
             if newBooks.contains(item.book.id),
