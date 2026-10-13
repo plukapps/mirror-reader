@@ -17,6 +17,8 @@ struct RootView: View {
     /// ONB-013: al llegar desde "Importar mis libros" abre el selector de Archivos.
     var importOnAppear = false
     var onImportOpened: () -> Void = {}
+    /// PRF-009: la sesión se cerró desde Perfil.
+    var onSignedOut: () -> Void = {}
     @Environment(\.scenePhase) private var scenePhase
     @State private var tabs = TabBarModel()
     /// LIB-001: selector de Archivos, desde Inicio o desde la biblioteca.
@@ -154,7 +156,8 @@ struct RootView: View {
         switch tabs.selected {
         case .search: SearchView(viewModel: search, onOpen: home.open(bookId:))
         case .shelves: LibraryView(viewModel: library, onImport: importAction ?? tabs.showComingSoon, onOpen: home.open(bookId:))
-        case .profile: ProfileView(viewModel: profile, actions: ProfileActions(comingSoon: tabs.showComingSoon))
+        case .profile:
+            ProfileView(viewModel: profile, actions: ProfileActions(comingSoon: tabs.showComingSoon), onSignedOut: onSignedOut)
         default: HomeView(viewModel: home, onOpenLibrary: openLibrary, onImport: importAction)
         }
     }

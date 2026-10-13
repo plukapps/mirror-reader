@@ -24,11 +24,13 @@ private var cardQuestions: [(key: String, question: LocalizedStringKey)] {
 struct ProfileView: View {
     let viewModel: ProfileViewModel
     var actions = ProfileActions()
+    /// PRF-009: con la sesión cerrada, a la bienvenida.
+    var onSignedOut: () -> Void = {}
     @State private var fontSheetOpen = false
 
     var body: some View {
         ScrollView {
-            ProfileContent(viewModel: viewModel, actions: actions, onOpenFont: { fontSheetOpen = true })
+            ProfileContent(viewModel: viewModel, actions: contentActions, onOpenFont: { fontSheetOpen = true })
                 .frame(maxWidth: WindowLayout.contentMaxWidth)
                 .frame(maxWidth: .infinity)
         }
@@ -42,6 +44,35 @@ struct ProfileView: View {
                 .presentationBackground(MarginColors.field)
                 .presentationDragIndicator(.visible)
         }
+        .alert(
+            "¿Cerrar sesión?",
+            isPresented: Binding(get: { viewModel.signOutDialog != nil }, set: { if !$0 { viewModel.dismissSignOut() } }),
+            presenting: viewModel.signOutDialog
+        ) { _ in
+            Button("Cancelar", role: .cancel) { viewModel.dismissSignOut() }
+            Button("Cerrar sesión", role: .destructive) { Task { await viewModel.confirmSignOut() } }
+        } message: { dialog in
+            Text(
+                dialog.hasPendingChanges
+                    ? "Hay libros o progreso de lectura que todavía no se subieron. Si cerrás sesión ahora, se pierden."
+                    : "Tus libros siguen en tu cuenta. En este dispositivo se borran hasta que vuelvas a entrar."
+            )
+        }
+        .alert("No se pudo cerrar sesión. Probá de nuevo.", isPresented: Binding(
+            get: { viewModel.signOutFailed }, set: { viewModel.signOutFailed = $0 }
+        )) {
+            Button("Aceptar", role: .cancel) {}
+        }
+        .onChange(of: viewModel.signedOut) { _, signedOut in
+            if signedOut { onSignedOut() }
+        }
+    }
+
+    /// Sin cuenta (sin Firebase), "Cerrar sesión" avisa como lo que todavía no existe.
+    private var contentActions: ProfileActions {
+        var actions = actions
+        if viewModel.canSignOut { actions.signOut = { Task { await viewModel.requestSignOut() } } }
+        return actions
     }
 }
 

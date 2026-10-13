@@ -376,4 +376,15 @@ actor LibraryStore: ModelActor, LibraryRepository, CloudBooksRepository, BookUpl
         let positions = try modelContext.fetch(FetchDescriptor<PositionRecord>())
         return Dictionary(positions.map { ($0.bookId, $0) }, uniquingKeysWith: { first, _ in first })
     }
+
+    // MARK: Cerrar sesión (PRF-009)
+
+    /// Borra todos los libros, posiciones y quitados de la base. Los archivos los borra `LibraryFiles.deleteAll()`.
+    func deleteAll() throws {
+        try modelContext.delete(model: BookRecord.self)
+        try modelContext.delete(model: PositionRecord.self)
+        try modelContext.delete(model: RemovedBookRecord.self)
+        try modelContext.save()
+    }
+
 }

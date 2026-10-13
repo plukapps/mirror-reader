@@ -1,11 +1,12 @@
 import FirebaseAuth
 import Foundation
+import GoogleSignIn
 import OSLog
 import ReaderDomain
 
 /// Sesión y cuenta con Firebase Auth: email y contraseña, y Google (ADR 0012, ADR 0015), como
 /// `FirebaseAccountRepository` de Android. Firebase guarda la sesión entre arranques.
-struct FirebaseAccountRepository: AccountRepository, AuthRepository {
+struct FirebaseAccountRepository: AccountRepository, AuthRepository, SessionRepository {
     private var auth: Auth { Auth.auth() }
 
     func currentUser() async -> AccountUser? {
@@ -101,6 +102,16 @@ struct FirebaseAccountRepository: AccountRepository, AuthRepository {
                 .error("No se pudo \(action, privacy: .public): \(String(describing: error), privacy: .public)")
             throw AuthFailure(authError(error))
         }
+    }
+
+    /// PRF-009: cierra la sesión de Firebase y olvida la cuenta de Google elegida (ADR 0015).
+    func signOut() async throws {
+        do {
+            try Auth.auth().signOut()
+        } catch {
+            throw AuthFailure(authError(error))
+        }
+        await MainActor.run { GIDSignIn.sharedInstance.signOut() }
     }
 
     private func accountUser(_ user: User) -> AccountUser {

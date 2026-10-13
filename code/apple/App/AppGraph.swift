@@ -92,7 +92,21 @@ enum AppGraph {
                 quota: firebase ? FirestoreQuotaSource() : nil,
                 cache: UserDefaultsQuotaCache(),
                 deviceName: UserDefaultsSyncPreferences.model,
-                settings: UserDefaultsReaderSettings()
+                settings: UserDefaultsReaderSettings(),
+                signOut: account.map { account in
+                    SignOut(
+                        sync: CoordinatorSyncControl(coordinator: sync),
+                        localData: LocalAccountWiper(store: store, files: files, defaults: .standard),
+                        session: account,
+                        reminders: NotificationReminderScheduler(),
+                        hasPending: {
+                            let uploads = (try? await store.pending()) ?? []
+                            let positions = await store.pendingPositions()
+                            let removals = await store.pendingCloudRemovals()
+                            return !uploads.isEmpty || !positions.isEmpty || !removals.isEmpty
+                        }
+                    )
+                }
             ),
             bookActions: bookActions,
             makeReader: reader?.makeReader,

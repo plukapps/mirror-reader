@@ -29,6 +29,36 @@ private final class MemorySettings: ReaderSettingsRepository, @unchecked Sendabl
     func save(_ settings: ReaderSettings) { stored = settings }
 }
 
+private struct IdleSync: SyncControl {
+    func stopListening() async {}
+    func whileIdle<T: Sendable>(_ body: @Sendable () async -> T) async -> T { await body() }
+    func startListening() async {}
+}
+
+private final class Wipe: LocalAccountData, @unchecked Sendable {
+    var wiped = 0
+    func wipe() async throws { wiped += 1 }
+}
+
+private struct NoReminders: ReminderScheduler {
+    func requestPermission() async -> Bool { true }
+    func schedule(_ reminder: DailyReminder, goal: ReadingGoal?) async {}
+    func cancel() async {}
+}
+
+private final class Session: SessionRepository, @unchecked Sendable {
+    var fails = false
+    var signOuts = 0
+    func signOut() async throws {
+        signOuts += 1
+        if fails { throw AuthFailure(.network) }
+    }
+}
+
+private func signOutUseCase(_ session: Session, wipe: Wipe = Wipe(), pending: Bool = false) -> SignOut {
+    SignOut(sync: IdleSync(), localData: wipe, session: session, reminders: NoReminders(), hasPending: { pending })
+}
+
 private let ana = AccountUser(id: "u1", email: "ana.ruiz@gmail.com", displayName: "ana Ruiz")
 private let used = StubQuota(result: .success(StorageQuota(usedBytes: gib * 12 / 10, quotaBytes: 2 * gib)))
 private let offline = StubQuota(result: .failure(RemoteUnavailableError("sin red")))
@@ -36,10 +66,11 @@ private let offline = StubQuota(result: .failure(RemoteUnavailableError("sin red
 @MainActor
 private func loaded(
     _ user: AccountUser?, quota: QuotaSource? = used, cache: MemoryQuotaCache = MemoryQuotaCache(),
-    settings: MemorySettings = MemorySettings()
+    settings: MemorySettings = MemorySettings(), signOut: SignOut? = nil
 ) async -> ProfileViewModel {
     let viewModel = ProfileViewModel(
-        account: StubAccount(user: user), quota: quota, cache: cache, deviceName: "iPhone", settings: settings
+        account: StubAccount(user: user), quota: quota, cache: cache, deviceName: "iPhone", settings: settings,
+        signOut: signOut
     )
     await viewModel.load()
     return viewModel
@@ -149,5 +180,46 @@ struct ProfileViewModelTests {
         settings.stored = ReaderSettings(theme: .sepia)
         await viewModel.load()
         #expect(viewModel.reading.theme == .sepia)
+    }
+
+    @Test("PRF-009: \"Cerrar sesión\" pide confirmación y avisa si hay cambios sin subir")
+    func asksForConfirmation() async {
+        let session = Session()
+        let viewModel = await loaded(ana, signOut: signOutUseCase(session, pending: true))
+        await viewModel.requestSignOut()
+        #expect(viewModel.signOutDialog == SignOutDialog(hasPendingChanges: true))
+        #expect(session.signOuts == 0)
+        viewModel.dismissSignOut()
+        #expect(viewModel.signOutDialog == nil)
+    }
+
+    @Test("PRF-009: confirmar borra lo local y cierra la sesión")
+    func confirmSignsOut() async {
+        let session = Session()
+        let wipe = Wipe()
+        let viewModel = await loaded(ana, signOut: signOutUseCase(session, wipe: wipe))
+        await viewModel.requestSignOut()
+        await viewModel.confirmSignOut()
+        #expect(wipe.wiped == 1)
+        #expect(session.signOuts == 1)
+        #expect(viewModel.signedOut)
+        #expect(viewModel.signOutDialog == nil)
+    }
+
+    @Test("PRF-009: si no se pudo cerrar la sesión, se avisa y se sigue en Perfil")
+    func failedSignOut() async {
+        let session = Session()
+        session.fails = true
+        let viewModel = await loaded(ana, signOut: signOutUseCase(session))
+        await viewModel.requestSignOut()
+        await viewModel.confirmSignOut()
+        #expect(!viewModel.signedOut)
+        #expect(viewModel.signOutFailed)
+    }
+
+    @Test("PRF-009: sin cuenta (sin Firebase) no se puede cerrar sesión")
+    func withoutSignOut() async {
+        let viewModel = await loaded(ana)
+        #expect(!viewModel.canSignOut)
     }
 }

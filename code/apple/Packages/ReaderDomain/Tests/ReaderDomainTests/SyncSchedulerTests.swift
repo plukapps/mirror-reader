@@ -198,4 +198,37 @@ struct SyncSchedulerTests {
         #expect(states.first == SyncState(running: true))
         #expect(states.contains(SyncState(issue: .notEnoughSpace(1))))
     }
+
+    @Test("PRF-009: whileIdle espera a la pasada en curso y no deja empezar otra mientras corre")
+    func whileIdleWaitsAndBlocks() async {
+        let pass = FakePass()
+        await pass.hold()
+        let scheduler = makeScheduler(pass)
+        await scheduler.request()
+        await pass.waitUntilStarted()
+        let task = Task {
+            await scheduler.whileIdle {
+                // Un pedido durante el cierre de sesión no corre una pasada.
+                await scheduler.request()
+                return await pass.runs
+            }
+        }
+        await pass.release()
+        let runsInside = await task.value
+        await scheduler.idle()
+        #expect(runsInside == 1)
+        #expect(await pass.runs == 1)
+    }
+
+    @Test("PRF-009: después de whileIdle, volver a la app sincroniza aunque no haya vencido el TTL")
+    func whileIdleForgetsLastPass() async {
+        let pass = FakePass()
+        let scheduler = makeScheduler(pass)
+        await scheduler.request()
+        await scheduler.idle()
+        _ = await scheduler.whileIdle { true }
+        await scheduler.requestIfStale()
+        await scheduler.idle()
+        #expect(await pass.runs == 2)
+    }
 }

@@ -53,7 +53,8 @@ struct AppRootView: View {
             RootView(
                 home: screens.home, search: screens.search, library: screens.library, sync: screens.sync, profile: screens.profile,
                 bookActions: screens.bookActions, makeReader: screens.makeReader,
-                importOnAppear: start.pendingImport, onImportOpened: start.importOpened
+                importOnAppear: start.pendingImport, onImportOpened: start.importOpened,
+                onSignedOut: { backToOnboarding(.welcome, then: []) }
             )
             .sheet(item: $resetFromHome) { link in
                 if let onboarding = screens.onboarding {

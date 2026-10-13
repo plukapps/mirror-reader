@@ -15,6 +15,14 @@ struct LibraryFiles: Sendable {
     func bookFile(bookId: String) -> URL { booksDirectory.appending(path: "\(bookId).epub") }
     func coverFile(bookId: String) -> URL { coversDirectory.appending(path: "\(bookId).jpg") }
 
+    /// Borra todos los libros, portadas y temporales de importación (PRF-009).
+    func deleteAll() throws {
+        for directory in [booksDirectory, coversDirectory, tempDirectory]
+        where FileManager.default.fileExists(atPath: directory.path(percentEncoded: false)) {
+            try FileManager.default.removeItem(at: directory)
+        }
+    }
+
     func newTempFile() -> URL {
         try? FileManager.default.createDirectory(at: tempDirectory, withIntermediateDirectories: true)
         return tempDirectory.appending(path: UUID().uuidString)

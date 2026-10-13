@@ -37,6 +37,8 @@ public actor SyncScheduler {
     private var explicitPending = false
     private var stalePending = false
     private var worker: Task<Void, Never>?
+    /// Mientras corre `whileIdle` no empieza ninguna pasada.
+    private var paused = false
 
     /// - Parameters:
     ///   - now: reloj monótono (tiempo transcurrido desde un origen fijo).
@@ -66,18 +68,31 @@ public actor SyncScheduler {
         startWorkerIfNeeded()
     }
 
+    /// PRF-009: espera a que termine la pasada en curso, corre `body` sin dejar empezar otra y olvida la última pasada
+    /// y los pedidos que llegaron mientras tanto: eran de la sesión que se cierra.
+    public func whileIdle<T: Sendable>(_ body: @Sendable () async -> T) async -> T {
+        paused = true
+        await worker?.value
+        let value = await body()
+        lastSuccessAt = nil
+        explicitPending = false
+        stalePending = false
+        paused = false
+        return value
+    }
+
     /// Espera a que no quede nada por correr.
     public func idle() async {
         await worker?.value
     }
 
     private func startWorkerIfNeeded() {
-        guard worker == nil else { return }
+        guard worker == nil, !paused else { return }
         worker = Task { await drain() }
     }
 
     private func drain() async {
-        while explicitPending || stalePending {
+        while !paused, explicitPending || stalePending {
             let explicit = explicitPending
             explicitPending = false
             stalePending = false

@@ -88,6 +88,26 @@ final class SyncCoordinator {
         Task { await removals.bookClosed(bookId) }
     }
 
+    // MARK: Cerrar sesión (PRF-009)
+
+    /// Deja de escuchar la nube y espera a que cada escucha se haya detenido.
+    func stopListeningForSignOut() async {
+        await positions?.stopListening()
+        await removals?.stopListening()
+        await watcher?.stopListening()
+    }
+
+    /// Corre `body` sin pasadas de biblioteca en curso ni nuevas (ver `SyncScheduler.whileIdle`).
+    func whileIdle<T: Sendable>(_ body: @Sendable () async -> T) async -> T {
+        guard let scheduler else { return await body() }
+        return await scheduler.whileIdle(body)
+    }
+
+    /// Vuelve a escuchar si la app está a la vista; sin sesión, las escuchas no hacen nada.
+    func resumeListening() {
+        startListening()
+    }
+
     /// Espera a que no quede ninguna pasada por correr. Para los tests.
     func idle() async {
         await scheduler?.idle()
@@ -130,5 +150,22 @@ final class SyncCoordinator {
         // Al arrancar la sesión llega con la primera pasada: recién entonces se puede escuchar.
         if newState.hasSession { startListening() }
         await reload()
+    }
+}
+
+/// `SyncCoordinator` como lo ve el cierre de sesión (PRF-009).
+struct CoordinatorSyncControl: SyncControl {
+    let coordinator: SyncCoordinator
+
+    func stopListening() async {
+        await coordinator.stopListeningForSignOut()
+    }
+
+    func whileIdle<T: Sendable>(_ body: @Sendable () async -> T) async -> T {
+        await coordinator.whileIdle(body)
+    }
+
+    func startListening() async {
+        await coordinator.resumeListening()
     }
 }

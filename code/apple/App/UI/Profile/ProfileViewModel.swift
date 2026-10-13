@@ -10,6 +10,11 @@ struct StorageSummary: Equatable {
     let isFreePlan: Bool
 }
 
+/// PRF-009: la confirmación avisa si hay cambios de este dispositivo que se perderían.
+struct SignOutDialog: Equatable {
+    let hasPendingChanges: Bool
+}
+
 /// Perfil (PRF-001 a PRF-019), como `ProfileViewModel` de Android.
 @MainActor @Observable
 final class ProfileViewModel {
@@ -25,17 +30,26 @@ final class ProfileViewModel {
     let deviceName: String
     /// Ajustes del lector: los mismos que cambia el panel "Aa" (PRF-011).
     private(set) var reading: ReaderSettings
+    /// Confirmación de cerrar sesión a la vista, o nil (PRF-009).
+    private(set) var signOutDialog: SignOutDialog?
+    private(set) var signingOut = false
+    /// La sesión se cerró: la app vuelve a la bienvenida.
+    private(set) var signedOut = false
+    /// El último intento de cerrar sesión falló.
+    var signOutFailed = false
 
     private let account: AccountRepository?
     private let quota: QuotaSource?
     private let cache: QuotaCache
     private let settings: ReaderSettingsRepository
+    private let signOut: SignOut?
 
     /// `account` y `quota` son nil sin Firebase (ADR 0015).
     init(
         account: AccountRepository?, quota: QuotaSource?, cache: QuotaCache, deviceName: String,
-        settings: ReaderSettingsRepository
+        settings: ReaderSettingsRepository, signOut: SignOut? = nil
     ) {
+        self.signOut = signOut
         self.account = account
         self.quota = quota
         self.cache = cache
@@ -66,6 +80,32 @@ final class ProfileViewModel {
         } catch {
             storageFailed = storage == nil
         }
+    }
+
+    /// Sin cuenta (sin Firebase) no hay sesión que cerrar.
+    var canSignOut: Bool { signOut != nil }
+
+    /// PRF-009: muestra la confirmación, con aviso si hay cambios sin subir.
+    func requestSignOut() async {
+        guard let signOut, !signingOut else { return }
+        signOutDialog = SignOutDialog(hasPendingChanges: await signOut.hasPendingChanges())
+    }
+
+    func dismissSignOut() {
+        signOutDialog = nil
+    }
+
+    func confirmSignOut() async {
+        guard let signOut, !signingOut else { return }
+        signOutDialog = nil
+        signingOut = true
+        do {
+            try await signOut()
+            signedOut = true
+        } catch {
+            signOutFailed = true
+        }
+        signingOut = false
     }
 
     // PRF-011 a PRF-015: los cambios van al mismo lugar que los del panel del lector.
