@@ -18,6 +18,8 @@ enum AppGraph {
         let bookActions: BookActionsViewModel
         /// nil en la Mac: Readium Swift solo soporta iOS (ADR 0013).
         let makeReader: ((_ bookId: String) -> ReaderViewModel)?
+        /// Apariencia de la app (PRF-021).
+        let appearance: AppearanceSettings
         /// Pantalla de arranque (ONB-019).
         let start: AppStartViewModel
         /// nil sin Firebase: no hay cuenta que crear (ADR 0015).
@@ -82,6 +84,7 @@ enum AppGraph {
             notify: { [weak home] in home?.show($0) }
         )
         let account = firebase ? FirebaseAccountRepository() : nil
+        let appearance = AppearanceSettings(repository: UserDefaultsAppearance())
         return Screens(
             home: home,
             search: search,
@@ -93,6 +96,7 @@ enum AppGraph {
                 cache: UserDefaultsQuotaCache(),
                 deviceName: UserDefaultsSyncPreferences.model,
                 settings: UserDefaultsReaderSettings(),
+                appearance: appearance,
                 signOut: account.map { account in
                     SignOut(
                         sync: CoordinatorSyncControl(coordinator: sync),
@@ -110,6 +114,7 @@ enum AppGraph {
             ),
             bookActions: bookActions,
             makeReader: reader?.makeReader,
+            appearance: appearance,
             start: AppStartViewModel(account: account),
             onboarding: account.map { account in
                 OnboardingDependencies(

@@ -100,6 +100,19 @@ struct ProfileViewModelTests {
         #expect(await !loaded(AccountUser(id: "u", email: "a@icloud.com", signInMethod: .other)).canChangePassword)
     }
 
+    @Test("PRF-021: Perfil muestra la apariencia elegida y la cambia")
+    func appearance() async {
+        let appearance = AppearanceSettings(repository: UserDefaultsAppearance(defaults: UserDefaults(suiteName: "ProfileAppearance-\(UUID().uuidString)")!))
+        let viewModel = ProfileViewModel(
+            account: StubAccount(user: ana), quota: used, cache: MemoryQuotaCache(), deviceName: "iPhone",
+            settings: MemorySettings(), appearance: appearance
+        )
+        #expect(viewModel.appearance == .system)
+        viewModel.setAppearance(.light)
+        #expect(viewModel.appearance == .light)
+        #expect(appearance.appearance == .light)
+    }
+
     @Test("PRF-006: espacio en la unidad del total, con la proporción usada")
     func storage() async throws {
         let viewModel = await loaded(ana)

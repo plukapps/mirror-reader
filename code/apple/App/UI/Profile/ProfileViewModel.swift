@@ -43,12 +43,14 @@ final class ProfileViewModel {
     private let cache: QuotaCache
     private let settings: ReaderSettingsRepository
     private let signOut: SignOut?
+    private let appearanceSettings: AppearanceSettings?
 
     /// `account` y `quota` son nil sin Firebase (ADR 0015).
     init(
         account: AccountRepository?, quota: QuotaSource?, cache: QuotaCache, deviceName: String,
-        settings: ReaderSettingsRepository, signOut: SignOut? = nil
+        settings: ReaderSettingsRepository, appearance: AppearanceSettings? = nil, signOut: SignOut? = nil
     ) {
+        appearanceSettings = appearance
         self.signOut = signOut
         self.account = account
         self.quota = quota
@@ -80,6 +82,13 @@ final class ProfileViewModel {
         } catch {
             storageFailed = storage == nil
         }
+    }
+
+    /// PRF-021: la apariencia elegida; nil si la app no la maneja (avisa que llega más adelante).
+    var appearance: Appearance? { appearanceSettings?.appearance }
+
+    func setAppearance(_ appearance: Appearance) {
+        appearanceSettings?.select(appearance)
     }
 
     /// Sin cuenta (sin Firebase) no hay sesión que cerrar.
