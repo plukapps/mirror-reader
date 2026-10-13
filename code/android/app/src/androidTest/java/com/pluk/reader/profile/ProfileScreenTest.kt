@@ -58,6 +58,17 @@ class ProfileScreenTest {
         compose.onNodeWithText("Cambiar contraseña").assertDoesNotExist()
     }
 
+    // PRF-008, PRF-020: "Cambiar contraseña" abre su pantalla, no el aviso
+    @Test
+    fun changePasswordOpensItsScreen() {
+        var opened = 0
+        var notices = 0
+        show(actions = ProfileActions(onComingSoon = { notices++ }, onChangePassword = { opened++ }))
+        compose.onNodeWithText("Cambiar contraseña").performScrollTo().performClick()
+        assertEquals(1, opened)
+        assertEquals(0, notices)
+    }
+
     // PRF-006: sin espacio leído ni guardado, se avisa
     @Test
     fun reportsStorageFailure() {

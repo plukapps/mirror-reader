@@ -44,6 +44,7 @@ import com.pluk.reader.ui.onboarding.SignUpViewModel
 import com.pluk.reader.ui.onboarding.VerifyEmailScreen
 import com.pluk.reader.ui.onboarding.VerifyEmailViewModel
 import com.pluk.reader.domain.help.Faq
+import com.pluk.reader.ui.profile.ChangePasswordScreen
 import com.pluk.reader.ui.profile.FaqAnswerScreen
 import com.pluk.reader.ui.profile.FaqListScreen
 import com.pluk.reader.ui.profile.ProfileScreen
@@ -80,6 +81,7 @@ object Routes {
     const val PROFILE = "profile"
     const val FAQ_LIST = "profile/faq"
     const val FAQ_ANSWER = "profile/faq/{key}"
+    const val CHANGE_PASSWORD = "profile/password"
     fun faqAnswer(key: String): String = "profile/faq/$key"
 
     fun reader(bookId: String): String = "reader/$bookId"
@@ -243,7 +245,12 @@ fun AppNavHost(
                             onSignedOut = { navController.startOver(Routes.WELCOME) },
                             onFaq = { navController.navigate(Routes.faqAnswer(it.key)) },
                             onAllFaq = { navController.navigate(Routes.FAQ_LIST) },
+                            onChangePassword = { navController.navigate(Routes.CHANGE_PASSWORD) },
                         )
+                    }
+                    // PRF-020: cambiar contraseña, sin barra inferior.
+                    composable(Routes.CHANGE_PASSWORD) {
+                        ChangePasswordScreen(onBack = { navController.popBackStack() })
                     }
                     // PRF-017, PRF-018: preguntas frecuentes, sin barra inferior.
                     composable(Routes.FAQ_LIST) {

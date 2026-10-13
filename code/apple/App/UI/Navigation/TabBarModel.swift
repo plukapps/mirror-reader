@@ -41,6 +41,8 @@ enum MainDestination: CaseIterable, Identifiable {
 final class TabBarModel {
     private(set) var selected: MainDestination = .home
     private(set) var showsComingSoon = false
+    /// Algunas pantallas van sin barra inferior (cambiar contraseña, PRF-020).
+    var barHidden = false
 
     private let noticeDuration: Duration
     private var noticeTask: Task<Void, Never>?

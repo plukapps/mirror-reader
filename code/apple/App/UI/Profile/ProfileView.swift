@@ -10,6 +10,12 @@ struct ProfileActions {
     var signOut: (() -> Void)?
     var openFaq: ((FaqId) -> Void)?
     var openAllFaq: (() -> Void)?
+    /// PRF-020: abre la pantalla de cambiar la contraseña.
+    var changePassword: (() -> Void)?
+    /// Aviso breve sobre la barra ("Contraseña actualizada.").
+    var notify: (String) -> Void = { _ in }
+    /// La pantalla de cambiar la contraseña va sin barra inferior, como en Android.
+    var setTabBarHidden: (Bool) -> Void = { _ in }
 }
 
 
@@ -36,9 +42,22 @@ struct ProfileView: View {
                 switch route {
                 case let .faq(id): FaqAnswerView(id: id, onBack: { path.removeLast() })
                 case .allFaq: FaqListView(onBack: { path.removeLast() }, onOpen: { path.append(.faq($0)) })
+                case .changePassword:
+                    if let changePassword = viewModel.makeChangePassword() {
+                        ChangePasswordView(
+                            viewModel: changePassword,
+                            onBack: { path.removeLast() },
+                            onSaved: {
+                                path.removeLast()
+                                actions.notify(String(localized: "Contraseña actualizada."))
+                            }
+                        )
+                    }
                 }
             }
         }
+        .onChange(of: path) { _, path in actions.setTabBarHidden(path.last == .changePassword) }
+        .onDisappear { actions.setTabBarHidden(false) }
         .task { await viewModel.load() }
         // PRF-013: el panel de letra, claro, con la misma forma que el del lector.
         .sheet(isPresented: $fontSheetOpen) {
@@ -77,6 +96,7 @@ struct ProfileView: View {
         var actions = actions
         actions.openFaq = { path.append(.faq($0)) }
         actions.openAllFaq = { path.append(.allFaq) }
+        if viewModel.hasChangePassword { actions.changePassword = { path.append(.changePassword) } }
         if viewModel.canSignOut { actions.signOut = { Task { await viewModel.requestSignOut() } } }
         return actions
     }
@@ -159,7 +179,7 @@ struct ProfileContent: View {
             thisDevice
             if viewModel.canChangePassword {
                 CardDivider()
-                ProfileRow(action: actions.comingSoon) {
+                ProfileRow(action: actions.changePassword ?? actions.comingSoon) {
                     ProfileIcon(name: "Lock", color: MarginColors.ink2)
                     Text("Cambiar contraseña").font(.app(15, .medium)).foregroundStyle(MarginColors.ink)
                     Spacer(minLength: 0)
