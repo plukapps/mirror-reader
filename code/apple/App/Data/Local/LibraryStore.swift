@@ -65,8 +65,15 @@ actor LibraryStore: ModelActor, LibraryRepository, CloudBooksRepository, BookUpl
         let removed = try modelContext.fetch(FetchDescriptor<RemovedBookRecord>())
         let alive = Set(books.map(\.id))
         for record in removed where record.isCloudDeleted && alive.contains(record.id) { modelContext.delete(record) }
-        let existing = Set(try modelContext.fetch(FetchDescriptor<BookRecord>()).map(\.id))
-            .union(removed.filter { !$0.isCloudDeleted }.map(\.id))
+        let records = Dictionary(try modelContext.fetch(FetchDescriptor<BookRecord>()).map { ($0.id, $0) }) { first, _ in first }
+        // LIB-021: el libro entró a la biblioteca cuando entró a la nube; esa fecha manda también sobre la de un libro
+        // importado aquí o visto antes. Sin fecha de la nube se conserva la que hay.
+        for book in books {
+            if let record = records[book.id], let createdAt = book.createdAt, record.addedAt != createdAt {
+                record.addedAt = createdAt
+            }
+        }
+        let existing = Set(records.keys).union(removed.filter { !$0.isCloudDeleted }.map(\.id))
         let seenAt = now()
         for book in books where !existing.contains(book.id) {
             modelContext.insert(

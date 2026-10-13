@@ -45,6 +45,7 @@ Reglas: **ni el dueño puede leer ni escribir.** Solo el servidor.
 | `filePath` | string | Debe ser `users/{uid}/books/{bookId}.epub`. No cambia. |
 | `sizeBytes` | int | Tamaño del archivo, mayor o igual a 0. No cambia. |
 | `createdAt` | timestamp | Del servidor. No cambia. |
+| `addedAt` | timestamp, opcional | Cuándo el libro entró a la biblioteca (LIB-021). Del servidor; se renueva cada vez que un dispositivo sube el libro tras importarlo, también al volver a importar uno borrado. Si falta (documentos viejos), vale `createdAt`. |
 | `updatedAt` | timestamp | Del servidor, en cada escritura. |
 | `deletedAt` | timestamp o null | Marca de borrado (SYN-007, LIB-008). `null` si el libro está vivo. |
 

@@ -26,6 +26,7 @@ Una biblioteca única y ordenada de los EPUB del usuario.
 - **LIB-018** "Marcar como terminado" deja el libro al 100 %: pasa a "Terminados" y conserva su última posición. "Marcar como no leído" deja el libro sin empezar (no está en "Leyendo" ni en "Terminados") y se abre desde el principio. Un libro sin empezar ofrece solo la primera, uno terminado solo la segunda y uno en lectura las dos. Los dos cambios llegan a mis otros dispositivos como cualquier avance de lectura (SYN).
 - **LIB-019** "Subir foto de portada" debe dejar elegir una foto del dispositivo y usarla como portada del libro en todas las pantallas. Por ahora la portada nueva se ve solo en este dispositivo (excepción a LIB-012 hasta sincronizar cambios de portada).
 - **LIB-020** "Quitar de la biblioteca" pide confirmación y borra el libro de mi cuenta (LIB-008): desaparece al instante de este dispositivo, con su archivo, su portada y su progreso, también sin conexión. En cuanto hay conexión se borra de la nube (el archivo y la portada dejan de ocupar espacio) y de mis otros dispositivos: los que tienen la app abierta lo quitan en segundos; el resto, al sincronizar. Si el libro está abierto en el lector de otro dispositivo, se quita al cerrarlo. Importar el mismo archivo otra vez lo devuelve a la biblioteca y a la nube.
+- **LIB-021** La biblioteca muestra primero el último libro que entró a mi biblioteca. Un libro entra cuando lo importo por primera vez, en cualquiera de mis dispositivos. Todos mis dispositivos muestran el mismo orden, también para los libros que todavía no descargué. Un libro importado sin conexión aparece primero en ese dispositivo; al subirse toma la fecha en que entró a la nube. Quitar un libro y volver a importarlo cuenta como entrada nueva.
 
 ## Escenarios
 
@@ -45,6 +46,9 @@ Una biblioteca única y ordenada de los EPUB del usuario.
 - Dado un libro que está en la nube, cuando elijo "Quitar de la biblioteca" y confirmo, entonces desaparece y no vuelve después de sincronizar; cuando cancelo, sigue ahí.
 - Dado un libro en mi teléfono y en mi tablet con la app abierta, cuando lo quito en el teléfono, entonces desaparece de la tablet sin tocar nada; si la tablet estaba apagada, desaparece al abrir la app.
 - Dado que quito un libro sin conexión, entonces desaparece del dispositivo y se borra de la nube y de los demás cuando vuelve la conexión.
+- Dado que importé "Drácula" en el teléfono el lunes y "Walden" en el iPhone el martes, cuando abro la biblioteca en cualquiera de los dos, entonces "Walden" aparece antes que "Drácula".
+- Dado un dispositivo que ya tenía libros, cuando sincroniza por primera vez y baja libros de la nube, entonces cada uno queda en su lugar según cuándo entró a mi biblioteca, no todos arriba.
+- Dado "Drácula" que importé hace un mes, cuando lo quito de la biblioteca y lo vuelvo a importar, entonces aparece primero en todos mis dispositivos y sigue primero después de sincronizar.
 
 ## Fuera de alcance
 

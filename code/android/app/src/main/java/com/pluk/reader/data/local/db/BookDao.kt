@@ -14,6 +14,13 @@ interface BookDao {
     @Query("SELECT id FROM books")
     suspend fun getAllIds(): List<String>
 
+    @Query("SELECT id, addedAt FROM books")
+    suspend fun getAddedAts(): List<BookAddedAt>
+
+    /** La nube sabe cuándo entró el libro a la biblioteca (LIB-021). */
+    @Query("UPDATE books SET addedAt = :addedAt WHERE id = :id")
+    suspend fun updateAddedAt(id: String, addedAt: Long)
+
     @Query("SELECT * FROM books WHERE id = :id")
     suspend fun get(id: String): BookEntity?
 
@@ -82,3 +89,5 @@ interface BookDao {
     @Query("UPDATE books SET isDownloaded = 1, hasCover = :hasCover WHERE id = :id")
     suspend fun markDownloaded(id: String, hasCover: Boolean)
 }
+
+data class BookAddedAt(val id: String, val addedAt: Long)

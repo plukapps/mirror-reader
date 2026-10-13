@@ -271,6 +271,39 @@ describe("Firestore", () => {
     });
   });
 
+  describe("LIB-021: addedAt, cuándo el libro entró a la biblioteca", () => {
+    const ref = () => doc(db("alice"), `users/alice/books/${HASH}`);
+
+    it("crear un libro con o sin addedAt del servidor funciona", async () => {
+      await assertSucceeds(setDoc(ref(), bookData("alice", HASH, { addedAt: serverTimestamp() })));
+      await assertSucceeds(setDoc(doc(db("alice"), `users/alice/books/${OTHER_HASH}`), bookData("alice", OTHER_HASH)));
+    });
+
+    it("rechaza un addedAt del reloj del cliente", async () => {
+      await assertFails(setDoc(ref(), bookData("alice", HASH, { addedAt: new Date(2999, 1, 1) })));
+      await seedBook("alice");
+      await assertFails(updateDoc(ref(), { addedAt: new Date(2999, 1, 1), updatedAt: serverTimestamp() }));
+    });
+
+    it("volver a importar un libro borrado renueva addedAt", async () => {
+      await assertSucceeds(setDoc(ref(), bookData("alice", HASH, { addedAt: serverTimestamp() })));
+      await assertSucceeds(updateDoc(ref(), { deletedAt: serverTimestamp(), updatedAt: serverTimestamp() }));
+      await assertSucceeds(
+        updateDoc(ref(), { title: "Otra vez", deletedAt: null, addedAt: serverTimestamp(), updatedAt: serverTimestamp() }),
+      );
+    });
+
+    it("un libro sin addedAt puede recibirlo al actualizarse", async () => {
+      await seedBook("alice");
+      await assertSucceeds(updateDoc(ref(), { addedAt: serverTimestamp(), updatedAt: serverTimestamp() }));
+    });
+
+    it("editar otro campo conserva addedAt", async () => {
+      await assertSucceeds(setDoc(ref(), bookData("alice", HASH, { addedAt: serverTimestamp() })));
+      await assertSucceeds(updateDoc(ref(), { title: "Editado", updatedAt: serverTimestamp() }));
+    });
+  });
+
   describe("LIB-005: colecciones", () => {
     it("el dueño crea una colección con varios libros", async () => {
       await assertSucceeds(

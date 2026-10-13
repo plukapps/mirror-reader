@@ -40,7 +40,7 @@ struct LibraryStoreTests {
         #expect(await store.books()[0].addedAt == seenAt)
     }
 
-    @Test("LIB-003: agregar dos veces el mismo libro no lo duplica ni lo cambia")
+    @Test("LIB-003: agregar dos veces el mismo libro no lo duplica ni cambia sus datos")
     func addingTwiceKeepsOne() async throws {
         let store = try makeStore()
         try await store.addCloudOnly([remote("a", createdAt: 100)])
@@ -48,6 +48,39 @@ struct LibraryStoreTests {
 
         let books = await store.books()
         #expect(books.map(\.title) == ["Ta"])
+        // LIB-021: sin fecha de la nube se conserva la que había.
+        #expect(books[0].addedAt == Date(timeIntervalSince1970: 100))
+    }
+
+    @Test("LIB-021: un libro ya guardado toma la fecha en que entró a la nube")
+    func knownBookTakesTheCloudDate() async throws {
+        let store = try makeStore()
+        try await store.addCloudOnly([remote("a")])
+        #expect(await store.books()[0].addedAt == seenAt)
+
+        try await store.addCloudOnly([remote("a", createdAt: 100)])
+
+        #expect(await store.books()[0].addedAt == Date(timeIntervalSince1970: 100))
+    }
+
+    @Test("LIB-021: un libro quitado y vuelto a importar trae una fecha más nueva y pasa adelante")
+    func reimportedBookMovesToTheFront() async throws {
+        let store = try makeStore()
+        try await store.addCloudOnly([remote("dracula", createdAt: 100), remote("walden", createdAt: 200)])
+
+        try await store.addCloudOnly([remote("dracula", createdAt: 300), remote("walden", createdAt: 200)])
+
+        #expect(await store.books().map(\.id) == ["dracula", "walden"])
+    }
+
+    @Test("LIB-021: los libros de la nube se intercalan con los ya guardados según su fecha")
+    func cloudBooksInterleaveWithKnownOnes() async throws {
+        let store = try makeStore()
+        try await store.addCloudOnly([remote("guardado", createdAt: 200)])
+
+        try await store.addCloudOnly([remote("viejo", createdAt: 100), remote("guardado", createdAt: 200), remote("nuevo", createdAt: 300)])
+
+        #expect(await store.books().map(\.id) == ["nuevo", "guardado", "viejo"])
     }
 
     @Test("HOM-009: el importado más reciente primero")

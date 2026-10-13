@@ -22,6 +22,14 @@ service cloud.firestore {
         || (resource != null && value == resource.data.deletedAt);
     }
 
+    // LIB-021: addedAt (cuándo el libro entró a la biblioteca) es opcional. Si está, es la hora del servidor
+    // (al subir o volver a importar el libro) o el valor que ya tenía (al editar otro campo).
+    function isAddedAt(data) {
+      return !('addedAt' in data)
+        || data.addedAt == request.time
+        || (resource != null && 'addedAt' in resource.data && data.addedAt == resource.data.addedAt);
+    }
+
     // ACC-004, ACC-005, ACC-002: el dueño solo lee. La creación del documento y
     // usedBytes se resuelven en K-047 y K-048.
     match /users/{uid} {
@@ -33,7 +41,8 @@ service cloud.firestore {
       function validBook() {
         let data = request.resource.data;
         return data.keys().hasAll(['title', 'authors', 'filePath', 'sizeBytes', 'createdAt', 'updatedAt', 'deletedAt'])
-          && data.keys().hasOnly(['title', 'authors', 'filePath', 'sizeBytes', 'createdAt', 'updatedAt', 'deletedAt'])
+          && data.keys().hasOnly(['title', 'authors', 'filePath', 'sizeBytes', 'createdAt', 'updatedAt', 'deletedAt', 'addedAt'])
+          && isAddedAt(data)
           && data.title is string && data.title.size() >= 1 && data.title.size() <= 500
           && data.authors is list && data.authors.size() <= 50
           && data.filePath == 'users/' + uid + '/books/' + bookId + '.epub'
