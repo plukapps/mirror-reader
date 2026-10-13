@@ -50,6 +50,7 @@ Stack y capas en `specs/adr/0010-apple-stack-and-architecture.md` (provisional):
   - **Ajustes de lectura:** los mismos de `UserDefaultsReaderSettings`.
   - **Cerrar sesión:** `SignOut` (dominio) usa `SyncScheduler.whileIdle` mediante `CoordinatorSyncControl`. `LocalAccountWiper` borra SwiftData, los archivos y las claves de la cuenta en `UserDefaults` (se listan las que se borran: el dominio también guarda claves del sistema). Sale de Firebase y de `GIDSignIn`.
   - **Ayuda:** las preguntas se abren en un `NavigationStack` propio del tab.
+  - **Apariencia (PRF-021, PRF-022, K-206):** `Appearance` en `ReaderDomain`, guardada en `UserDefaults` (`appearance`, del dispositivo: cerrar sesión no la borra). `MarginColors` son colores dinámicos (`UIColor`/`NSColor` con valor claro y oscuro) que SwiftUI resuelve con el `colorScheme` del entorno; los rellenos oscuros usan `inkFill` y lo que va sobre amarillo, `onYellow`. La raíz aplica `.preferredColorScheme` (nil para Sistema); el onboarding y O9 fuerzan `.environment(\.colorScheme, .light)` y la raíz pide claro mientras no hay sesión; el lector fuerza claro sus colores de la app y elige su barra de estado según su tema. La Mac sigue clara hasta tener Perfil (K-078).
   - **Tests de la Mac:** no arrancan por la firma del framework del paquete (K-201).
   - Plan `specs/plans/2026-10-12-profile.md`.
 
