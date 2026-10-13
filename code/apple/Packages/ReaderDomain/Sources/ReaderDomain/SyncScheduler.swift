@@ -6,11 +6,14 @@ public struct SyncState: Equatable, Sendable {
     public var issue: SyncIssue?
     /// Falso si la última pasada no encontró sesión: sin cuenta no hay nada que mostrar.
     public var hasSession: Bool
+    /// PRF-023: "Sincronizar solo con Wi-Fi" está encendido y no hay Wi-Fi: no se sincroniza y no es un error.
+    public var waitingForWifi: Bool
 
-    public init(running: Bool = false, issue: SyncIssue? = nil, hasSession: Bool = true) {
+    public init(running: Bool = false, issue: SyncIssue? = nil, hasSession: Bool = true, waitingForWifi: Bool = false) {
         self.running = running
         self.issue = issue
         self.hasSession = hasSession
+        self.waitingForWifi = waitingForWifi
     }
 }
 
@@ -30,6 +33,7 @@ public actor SyncScheduler {
     private let ttl: Duration
     private let now: @Sendable () -> Duration
     private let pass: @Sendable () async -> LibrarySyncOutcome
+    private let allowed: @Sendable () async -> Bool
     private let onState: @Sendable (SyncState) async -> Void
 
     public private(set) var state = SyncState()
@@ -43,16 +47,20 @@ public actor SyncScheduler {
     /// - Parameters:
     ///   - now: reloj monótono (tiempo transcurrido desde un origen fijo).
     ///   - pass: una pasada completa (`LibrarySync.run`).
+    ///   - allowed: si la red permite sincronizar (PRF-023). Si no, la pasada no corre, el estado dice que espera Wi-Fi
+    ///     y no cuenta como pasada exitosa: quien avisa que llegó la red pide otra.
     ///   - onState: se llama con cada cambio de estado.
     public init(
         ttl: Duration = SyncScheduler.defaultTTL,
         now: @escaping @Sendable () -> Duration = SyncScheduler.monotonicNow,
         pass: @escaping @Sendable () async -> LibrarySyncOutcome,
+        allowed: @escaping @Sendable () async -> Bool = { true },
         onState: @escaping @Sendable (SyncState) async -> Void = { _ in }
     ) {
         self.ttl = ttl
         self.now = now
         self.pass = pass
+        self.allowed = allowed
         self.onState = onState
     }
 
@@ -107,6 +115,10 @@ public actor SyncScheduler {
     }
 
     private func runOnce() async {
+        guard await allowed() else {
+            if !state.waitingForWifi { await publish(SyncState(hasSession: state.hasSession, waitingForWifi: true)) }
+            return
+        }
         await publish(SyncState(running: true, issue: state.issue, hasSession: state.hasSession))
         switch await pass() {
         case .noSession:

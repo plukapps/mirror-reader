@@ -60,7 +60,52 @@ private func makeScheduler(_ pass: FakePass, clock: ManualClock = ManualClock(),
     SyncScheduler(ttl: .seconds(300), now: { clock.now() }, pass: { await pass.run() }, onState: { await log?.add($0) })
 }
 
+/// Puerta de red manual (PRF-023).
+private final class Gate: @unchecked Sendable {
+    private let lock = NSLock()
+    private var open: Bool
+    init(_ open: Bool) { self.open = open }
+    func allows() -> Bool { lock.withLock { open } }
+    func set(_ value: Bool) { lock.withLock { open = value } }
+}
+
 struct SyncSchedulerTests {
+    @Test("PRF-023: sin red apta la pasada no corre y el estado dice que espera Wi-Fi; al llegar, corre")
+    func waitsForWifi() async {
+        let pass = FakePass()
+        let gate = Gate(false)
+        let log = StateLog()
+        let scheduler = SyncScheduler(
+            ttl: .seconds(300), now: { .zero }, pass: { await pass.run() }, allowed: { gate.allows() },
+            onState: { await log.add($0) }
+        )
+        await scheduler.request()
+        await scheduler.idle()
+        #expect(await pass.runs == 0)
+        #expect(await scheduler.state.waitingForWifi)
+        #expect(await scheduler.state.issue == nil)
+
+        gate.set(true)
+        await scheduler.request()
+        await scheduler.idle()
+        #expect(await pass.runs == 1)
+        #expect(await !scheduler.state.waitingForWifi)
+        #expect(await log.states.contains { $0.waitingForWifi })
+    }
+
+    @Test("PRF-023: una espera de Wi-Fi no cuenta como pasada: al volver a la app se reintenta")
+    func waitingIsNotSuccess() async {
+        let pass = FakePass()
+        let gate = Gate(false)
+        let scheduler = SyncScheduler(ttl: .seconds(300), now: { .zero }, pass: { await pass.run() }, allowed: { gate.allows() })
+        await scheduler.request()
+        await scheduler.idle()
+        gate.set(true)
+        await scheduler.requestIfStale()
+        await scheduler.idle()
+        #expect(await pass.runs == 1)
+    }
+
     @Test("SYN-001: un pedido corre una pasada")
     func requestRuns() async {
         let pass = FakePass()
