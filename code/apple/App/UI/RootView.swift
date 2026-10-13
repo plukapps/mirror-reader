@@ -62,6 +62,20 @@ struct RootView: View {
                     }
                 }
             }
+            // P02 (PLN-007 a PLN-009): el libro importado no entra en la nube.
+            .sheet(
+                item: Binding(get: { home.quotaBlock }, set: { if $0 == nil { home.dismissQuotaBlock() } }),
+                onDismiss: plans.sheetDismissed
+            ) { notice in
+                QuotaBlockSheet(
+                    notice: notice,
+                    onSeePlans: {
+                        plans.openPlansAfterSheet()
+                        home.dismissQuotaBlock()
+                    },
+                    onNotNow: home.dismissQuotaBlock
+                )
+            }
             // LIB-020: un libro abierto no se quita aunque lo borren desde otro dispositivo; al cerrarlo, sí.
             .onChange(of: home.readerBookId) { old, new in
                 if let old { sync.readerClosed(old) }

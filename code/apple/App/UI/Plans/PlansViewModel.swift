@@ -69,6 +69,20 @@ final class PlansPresenter {
         plansOpen = false
     }
 
+    /// "Ver planes" desde una hoja: Planes se abre cuando la hoja termina de cerrarse (dos presentaciones no se pisan).
+    private(set) var plansAfterSheet = false
+
+    func openPlansAfterSheet() {
+        plansAfterSheet = true
+    }
+
+    /// La hoja se cerró: si se tocó "Ver planes", se abre Planes.
+    func sheetDismissed() {
+        guard plansAfterSheet else { return }
+        plansAfterSheet = false
+        plansOpen = true
+    }
+
     /// Un ViewModel nuevo cada vez que se abre: vuelve a arrancar en anual con Lector elegido.
     func makePlans() -> PlansViewModel {
         PlansViewModel(cache: cache)

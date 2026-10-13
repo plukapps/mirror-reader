@@ -82,19 +82,24 @@ public struct UploadBooks: Sendable {
     private let covers: CoverStore
     private let library: RemoteLibrary
     private let quota: QuotaSource
+    private let cache: QuotaCache?
 
+    /// - Parameter cache: guarda la cuota leída en cada pasada, así Planes, los avisos y P02 usan un valor reciente
+    ///   (PLN-009).
     public init(
         uploads: BookUploadRepository,
         files: BookFileStore,
         covers: CoverStore,
         library: RemoteLibrary,
-        quota: QuotaSource
+        quota: QuotaSource,
+        cache: QuotaCache? = nil
     ) {
         self.uploads = uploads
         self.files = files
         self.covers = covers
         self.library = library
         self.quota = quota
+        self.cache = cache
     }
 
     private enum Step { case uploaded, noSpace, failed, unreachable }
@@ -102,7 +107,9 @@ public struct UploadBooks: Sendable {
     public func callAsFunction() async -> UploadReport {
         guard let pending = try? await uploads.pending(), !pending.isEmpty else { return UploadReport() }
         // El servidor suma el uso unos segundos después de cada subida: el espacio libre se lleva aquí.
-        guard var free = try? await quota.current().freeBytes else { return UploadReport(unreachable: true) }
+        guard let current = try? await quota.current() else { return UploadReport(unreachable: true) }
+        cache?.save(current)
+        var free = current.freeBytes
 
         var report = UploadReport()
         for item in pending {

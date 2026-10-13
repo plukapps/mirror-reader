@@ -122,7 +122,7 @@ public enum PlanCatalog {
     )
     public static let library = Plan(
         id: .library, name: "Biblioteca", tagline: "Para quien tiene una biblioteca", storageBytes: 50 * gib,
-        includes: ["Todo lo de Lector", "Importá desde Drive, Calibre o por email", "Familia: hasta 5 cuentas"],
+        includes: ["Todo lo de Lector", "Importá desde Drive, Calibre o por email", "Familia: hasta 5 cuentas", "Lector web (próximamente)"],
         monthlyPrice: "$5.99", annualPrice: "$49.99", annualPerMonth: "$4.17"
     )
 

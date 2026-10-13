@@ -51,6 +51,8 @@ enum MarginColors {
     static let track = Color(light: 0xE4E1D8, dark: 0x33322D)
     /// Borde de la tarjeta amarilla y su separador: tinta al 20 % sobre el amarillo, no cambia con el modo.
     static let onYellowLine = Color(hex: 0x130000).opacity(0.2)
+    /// Tamaño que no entra (P02b): rojo oscuro en claro, rosado en oscuro para que se lea sobre el fondo.
+    static let warn = Color(light: 0x8B1E1E, dark: 0xF2A49A)
 
     /// Fondos de las portadas generadas cuando el EPUB no trae una.
     static let covers: [(color: Color, isLight: Bool)] = [

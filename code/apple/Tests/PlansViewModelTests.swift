@@ -73,4 +73,18 @@ struct PlansViewModelTests {
         #expect(!presenter.plansOpen)
         #expect(presenter.makePlans().billing == .annual)
     }
+
+    @Test("PLN-007: Ver planes desde una hoja abre Planes cuando la hoja termina de cerrarse; Ahora no, no")
+    func plansAfterSheet() {
+        let presenter = PlansPresenter(cache: PlansMemoryQuotaCache())
+        presenter.sheetDismissed()
+        #expect(!presenter.plansOpen)
+        presenter.openPlansAfterSheet()
+        #expect(!presenter.plansOpen)
+        presenter.sheetDismissed()
+        #expect(presenter.plansOpen)
+        presenter.closePlans()
+        presenter.sheetDismissed()
+        #expect(!presenter.plansOpen)
+    }
 }

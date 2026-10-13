@@ -61,7 +61,11 @@ enum AppGraph {
 
         // La sincronización vuelve a leer la base en Inicio y en la biblioteca cada vez que la cambia.
         let refs = ScreenRefs()
-        let pass = positions.map { libraryPass(store: store, bookFiles: bookFiles, positions: $0, removals: removals) }
+        // PRF-006, PLN-009: la última cuota leída, que cada pasada actualiza.
+        let quotaCache = UserDefaultsQuotaCache()
+        let pass = positions.map {
+            libraryPass(store: store, bookFiles: bookFiles, positions: $0, removals: removals, quotaCache: quotaCache)
+        }
         // SYN-015: un libro agregado en otro dispositivo pide una pasada (la app a la vista).
         let watcher = firebase
             ? LibraryWatcher(remote: FirestoreRemoteLibrary(), known: store, account: FirebaseAccountRepository()) {
@@ -73,7 +77,9 @@ enum AppGraph {
             await refs.library?.load()
         }
         let library = LibraryViewModel(library: store, sync: sync)
-        let home = HomeViewModel(library: store, importer: reader?.importer) { sync.request() }
+        let home = HomeViewModel(
+            library: store, importer: reader?.importer, quotaCheck: ImportQuotaCheck(uploads: store, cache: quotaCache)
+        ) { sync.request() }
         refs.home = home
         refs.library = library
         refs.sync = sync
@@ -94,7 +100,6 @@ enum AppGraph {
             notify: { [weak home] in home?.show($0) }
         )
         let account = firebase ? FirebaseAccountRepository() : nil
-        let quotaCache = UserDefaultsQuotaCache()
         let appearance = AppearanceSettings(repository: UserDefaultsAppearance())
         return Screens(
             home: home,
@@ -146,7 +151,7 @@ enum AppGraph {
 
     /// Una pasada de sincronización de la biblioteca con Firebase (SYN-001), como `SyncLibraryUseCase` de Android.
     private static func libraryPass(
-        store: LibraryStore, bookFiles: BookFiles, positions: PositionSync, removals: RemovalSync?
+        store: LibraryStore, bookFiles: BookFiles, positions: PositionSync, removals: RemovalSync?, quotaCache: QuotaCache
     ) -> SyncCoordinator.Pass {
         let remote = FirestoreRemoteLibrary()
         let books = FirebaseBookStore()
@@ -156,7 +161,7 @@ enum AppGraph {
             remote: remote,
             covers: covers,
             cloud: store,
-            upload: UploadBooks(uploads: store, files: books, covers: covers, library: remote, quota: FirestoreQuotaSource()),
+            upload: UploadBooks(uploads: store, files: books, covers: covers, library: remote, quota: FirestoreQuotaSource(), cache: quotaCache),
             download: DownloadBook(files: bookFiles, store: books),
             positions: positions,
             removals: removals
