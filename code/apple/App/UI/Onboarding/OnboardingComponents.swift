@@ -6,7 +6,7 @@ import SwiftUI
 
 /// Colores del onboarding que no están en `MarginColors`.
 enum OnbColors {
-    static let line = Color(hex: 0xDAD6CA)
+    static let line = MarginColors.off
     static let soft = Color(hex: 0x3A3830)
     static let softOnYellow = Color(hex: 0x3A3115)
     static let error = Color(hex: 0x8B1E1E)
@@ -201,7 +201,7 @@ struct PrimaryButton: View {
             }
             .foregroundStyle(content)
             .frame(maxWidth: .infinity, minHeight: 56)
-            .background(lit ? MarginColors.ink : OnbColors.line, in: Capsule())
+            .background(lit ? MarginColors.inkFill : OnbColors.line, in: Capsule())
             .contentShape(Capsule())
         }
         .buttonStyle(.plain)
@@ -413,7 +413,7 @@ struct RuleRow: View {
                     .font(.system(size: 10, weight: .bold))
                     .foregroundStyle(MarginColors.yellow)
                     .frame(width: 18, height: 18)
-                    .background(MarginColors.ink, in: Circle())
+                    .background(MarginColors.inkFill, in: Circle())
             } else {
                 Circle().strokeBorder(MarginColors.muted, lineWidth: 1.5).frame(width: 18, height: 18)
             }
@@ -532,14 +532,14 @@ struct ConfirmationToast: View {
                 .frame(width: 28, height: 28)
                 .background(MarginColors.yellow, in: Circle())
             VStack(alignment: .leading, spacing: 2) {
-                Text(title).font(.app(14, .semibold)).foregroundStyle(MarginColors.field)
+                Text(title).font(.app(14, .semibold)).foregroundStyle(MarginColors.onInk)
                 Text(detail).font(.app(12)).foregroundStyle(OnbColors.caption)
             }
             Spacer(minLength: 0)
         }
         .padding(.horizontal, 16)
         .padding(.vertical, 14)
-        .background(MarginColors.ink, in: RoundedRectangle(cornerRadius: 16))
+        .background(MarginColors.inkFill, in: RoundedRectangle(cornerRadius: 16))
         .padding(.horizontal, 12)
         .accessibilityElement(children: .combine)
     }

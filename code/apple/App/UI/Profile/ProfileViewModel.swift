@@ -44,12 +44,15 @@ final class ProfileViewModel {
     private let settings: ReaderSettingsRepository
     private let signOut: SignOut?
     private let passwords: PasswordRepository?
+    private let appearanceSettings: AppearanceSettings?
 
     /// `account` y `quota` son nil sin Firebase (ADR 0015).
     init(
         account: AccountRepository?, quota: QuotaSource?, cache: QuotaCache, deviceName: String,
-        settings: ReaderSettingsRepository, passwords: PasswordRepository? = nil, signOut: SignOut? = nil
+        settings: ReaderSettingsRepository, passwords: PasswordRepository? = nil, appearance: AppearanceSettings? = nil,
+        signOut: SignOut? = nil
     ) {
+        appearanceSettings = appearance
         self.signOut = signOut
         self.passwords = passwords
         self.account = account
@@ -90,6 +93,13 @@ final class ProfileViewModel {
     /// PRF-020: la pantalla de cambiar la contraseña; nil sin cuenta (sin Firebase).
     func makeChangePassword() -> ChangePasswordViewModel? {
         passwords.map { ChangePasswordViewModel(passwords: $0) }
+    }
+
+    /// PRF-021: la apariencia elegida; nil si la app no la maneja (avisa que llega más adelante).
+    var appearance: Appearance? { appearanceSettings?.appearance }
+
+    func setAppearance(_ appearance: Appearance) {
+        appearanceSettings?.select(appearance)
     }
 
     /// Sin cuenta (sin Firebase) no hay sesión que cerrar.
