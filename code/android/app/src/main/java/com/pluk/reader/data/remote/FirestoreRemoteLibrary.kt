@@ -31,7 +31,7 @@ class FirestoreRemoteLibrary @Inject constructor(
             val title = doc.getString(TITLE) ?: return@mapNotNull null
             @Suppress("UNCHECKED_CAST")
             val authors = (doc.get(AUTHORS) as? List<String>).orEmpty()
-            RemoteBook(doc.id, title, authors, doc.getLong(SIZE_BYTES) ?: 0L)
+            RemoteBook(doc.id, title, authors, doc.getLong(SIZE_BYTES) ?: 0L, doc.getTimestamp(CREATED_AT)?.toDate()?.time)
         }
     }.onSuccess { Log.i(TAG, "Libros en la nube: ${it.size}") }
         .onFailure { Log.w(TAG, "No se pudo listar la nube: $it") }

@@ -8,6 +8,7 @@ import com.pluk.reader.data.remote.toCloudOnlyEntity
 import com.pluk.reader.domain.model.BookOpenException
 import com.pluk.reader.domain.model.ImportOutcome
 import com.pluk.reader.domain.remote.RemoteBook
+import com.pluk.reader.domain.remote.cloudAddedAt
 import com.pluk.reader.domain.repository.CloudBooksRepository
 import com.pluk.reader.domain.repository.CoverFile
 import com.pluk.reader.domain.repository.KnownBooks
@@ -26,10 +27,11 @@ class CloudBooksRepositoryImpl @Inject constructor(
         // la nube lo lista vivo, alguien lo volvió a importar: se olvida la marca y vuelve.
         dao.deleteCompletedRemovals(books.map { it.id })
         val removed = dao.getPendingCloudRemovals().toSet()
-        // El orden de la nube se conserva: el primero de la lista queda como el más reciente.
-        dao.insertAll(
-            books.mapIndexedNotNull { index, book -> book.takeIf { it.id !in removed }?.toCloudOnlyEntity(now - index) },
-        )
+        val alive = books.filter { it.id !in removed }
+        val known = dao.getAddedAts().associate { it.id to it.addedAt }
+        val addedAt = cloudAddedAt(alive, known, now)
+        dao.insertAll(alive.filter { it.id in addedAt.inserts }.map { it.toCloudOnlyEntity(now, addedAt.inserts.getValue(it.id)) })
+        addedAt.updates.forEach { (id, date) -> dao.updateAddedAt(id, date) }
     }
 
     override suspend fun markCoverUploaded(bookId: String) = dao.markCoverUploaded(bookId)

@@ -41,7 +41,6 @@ Plan de referencia: `specs/plans/2026-10-06-android-epub-viewer.md`
 
 ## Listo
 
-- **K-212** Orden de la biblioteca, iOS: la fecha de la nube reemplaza también la de libros ya guardados. LIB-021. Rama `feature/library-order`.
 - **K-213** Orden de la biblioteca, cierre: docs, verificación a mano en el teléfono y el iPhone, PR único contra `develop`. Rama `feature/library-order`.
 - **K-134** Lector iOS, Tarea 7: cierre de docs y verificación a mano en el simulador. Rama `feature/ios-reader`. Era K-125 hasta el merge con `master`.
 - **K-038** Inicio, Tarea 4: cierre de docs y verificación a mano. Rama `feature/home`.
@@ -49,11 +48,12 @@ Plan de referencia: `specs/plans/2026-10-06-android-epub-viewer.md`
 
 ## En curso
 
-- **K-211** Orden de la biblioteca, Android: `createdAt` de la nube como fecha de entrada, también para libros ya guardados. LIB-021. Rama `feature/library-order`. Plan `2026-10-13-library-order.md`.
+- **K-212** Orden de la biblioteca, iOS: la fecha de la nube reemplaza también la de libros ya guardados. LIB-021. Rama `feature/library-order`.
 - **K-176** Posición exacta, Tarea 5: verificación a mano entre el teléfono y el iPhone, cierre de docs. SYN-014.
 
 ## Revisión
 
+- **K-211** Orden de la biblioteca, Android: `createdAt` de la nube como fecha de entrada, también para libros ya guardados. LIB-021. Rama `feature/library-order`. Plan `2026-10-13-library-order.md`. Hecho: `RemoteBook.createdAt` (leído de Firestore), `cloudAddedAt` en `domain/remote`, `BookDao.getAddedAts`/`updateAddedAt`, `addCloudOnly` inserta y corrige fechas. 414 tests JVM pasan (4 nuevos en `CloudAddedAtTest`); `CloudBooksOrderTest` (2 casos, emulador) compila, sin correr.
 - **K-207** Perfil: sincronizar solo con Wi-Fi en Android. PRF-023. Rama `feature/profile-wifi-android`. Hecho: `canSync`/`SyncGate`/`NetworkSyncGate`, `ConnectivityNetworkMonitor`, preferencia `sync_wifi_only` (se conserva al cerrar sesión), puerta en la pasada, posiciones, borrados, escuchas y descarga al abrir ("Este libro se descarga con Wi-Fi…"), `SyncIssue.WaitingForWifi` en Estantes, `SyncGateWatcher`, interruptor de Perfil con su estado. 400 tests JVM pasan (15 nuevos); `ProfileScreenTest` (1 caso nuevo) y `LocalDataWiperTest` compilan, sin correr. Sin verificar a mano: el teléfono SM-S711B no estaba conectado.
 - **K-208** Perfil: sincronizar solo con Wi-Fi en iOS. PRF-023. Rama `feature/profile-wifi-ios`. Hecho: `NetworkType`/`canSync` en `ReaderDomain`; `SyncScheduler` con `allowed` y `waitingForWifi`; `DownloadBook` con aviso de Wi-Fi; `PathNetworkMonitor` (`NWPathMonitor`) y `SyncNetworkGate` (`sync.wifiOnly`, se conserva al cerrar sesión); `SyncCoordinator` sin pasadas, envíos ni escuchas sin red apta; posición local al abrir; interruptor real en Perfil. Tests: dominio 198 (+6), iPhone 174 (+7). Mac compila. Renders de la línea de estado y del interruptor. Instalada en el iPhone; falta probar a mano con datos móviles y al volver al Wi-Fi.
 - **K-206** Perfil: apariencia y tema oscuro en iOS. PRF-021, PRF-022. Rama `feature/profile-appearance-ios`. Hecho: `Appearance`/`AppearanceRepository` en `ReaderDomain`; `UserDefaultsAppearance` y `AppearanceSettings`; `MarginColors` dinámicos según la tabla del plan (`inkFill`, `onYellow`, `onInk`, `onInkMuted`); `preferredColorScheme` en la raíz; onboarding, O9 y lector forzados claros (verificado con un render: los colores dinámicos respetan `.environment(\.colorScheme, .light)`). Tests: dominio 194 (+2), iPhone 172 (+5). Mac compila (queda clara). Renders de Inicio, Buscar, Estantes, Perfil, preguntas, aviso y onboarding en los dos modos. Instalada en el iPhone; falta probar a mano el cambio de modo del sistema con Sistema elegido.

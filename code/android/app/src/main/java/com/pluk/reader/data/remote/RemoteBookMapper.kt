@@ -11,13 +11,16 @@ fun BookEntity.toRemoteBook(sizeBytes: Long): RemoteBook = RemoteBook(
     sizeBytes = sizeBytes,
 )
 
-/** Un libro que existe en la nube pero no en este dispositivo (LIB-007). Sin archivo ni portada hasta descargarlo. */
-fun RemoteBook.toCloudOnlyEntity(now: Long): BookEntity = BookEntity(
+/**
+ * Un libro que existe en la nube pero no en este dispositivo (LIB-007). Sin archivo ni portada hasta descargarlo.
+ * [addedAt] es cuándo entró a la biblioteca (LIB-021, ver `cloudAddedAt`).
+ */
+fun RemoteBook.toCloudOnlyEntity(now: Long, addedAt: Long = now): BookEntity = BookEntity(
     id = id,
     title = title,
     author = authors.filter { it.isNotBlank() }.joinToString(", ").ifBlank { null },
     hasCover = false,
-    addedAt = now,
+    addedAt = addedAt,
     sizeBytes = sizeBytes,
     isDownloaded = false,
     uploadedAt = now,

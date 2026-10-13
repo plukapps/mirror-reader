@@ -2,12 +2,16 @@ package com.pluk.reader.domain.remote
 
 import java.io.File
 
-/** Metadatos de un libro en la nube. [id] es el hash del contenido, igual que el identificador local (LIB-003). */
+/**
+ * Metadatos de un libro en la nube. [id] es el hash del contenido, igual que el identificador local (LIB-003).
+ * [createdAt] es cuándo entró a la cuenta (hora del servidor, en milisegundos), o null si el documento no la trae.
+ */
 data class RemoteBook(
     val id: String,
     val title: String,
     val authors: List<String>,
     val sizeBytes: Long,
+    val createdAt: Long? = null,
 )
 
 /** La nube no se pudo alcanzar (sin red, sin sesión, error del servicio). El libro queda pendiente, no se pierde (SYN-001). */
