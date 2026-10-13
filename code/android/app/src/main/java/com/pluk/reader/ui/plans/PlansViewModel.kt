@@ -21,7 +21,8 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
 
 data class PlansUiState(
-    val billing: Billing = Billing.ANNUAL,
+    /** PLN-004: arranca en Mensual. */
+    val billing: Billing = Billing.MONTHLY,
     /** Plan pago elegido con el radio (PLN-005). */
     val selected: PlanId = PlanId.READER,
     val tableOpen: Boolean = false,
@@ -33,6 +34,9 @@ data class PlansUiState(
     val isOnFreePlan: Boolean = true,
 ) {
     val cta: PlanCta get() = ctaFor(selected, billing)
+
+    /** PLN-005: la tarjeta elegida va en amarillo; Gratis nunca. */
+    fun isHighlighted(plan: PlanId): Boolean = plan != PlanId.FREE && plan == selected
 }
 
 /** "15 MB", "5 GB": el espacio de un plan en su propia unidad (PRF-006). */

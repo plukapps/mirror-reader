@@ -40,24 +40,25 @@ class PlansViewModelTest {
         return vm to { vm.uiState.value }
     }
 
-    // PLN-004, PLN-005: arranca en anual, con Lector elegido y la tabla cerrada
+    // PLN-004, PLN-005: arranca en mensual, con Lector elegido (en amarillo) y la tabla cerrada
     @Test
-    fun startsAnnualWithReaderSelected() = runTest(dispatcher) {
+    fun startsMonthlyWithReaderSelected() = runTest(dispatcher) {
         val (_, state) = start()
-        assertEquals(Billing.ANNUAL, state().billing)
+        assertEquals(Billing.MONTHLY, state().billing)
         assertEquals(PlanId.READER, state().selected)
         assertFalse(state().tableOpen)
-        assertEquals("$24.99", state().cta.price)
+        assertEquals("$2.99", state().cta.price)
+        assertEquals(listOf(false, true, false), PlanId.entries.map { state().isHighlighted(it) })
     }
 
     // PLN-004, PLN-006: el selector cambia la forma de pago y el botón
     @Test
     fun billingChangesTheCta() = runTest(dispatcher) {
         val (vm, state) = start()
-        vm.onBilling(Billing.MONTHLY)
+        vm.onBilling(Billing.ANNUAL)
         advanceUntilIdle()
-        assertEquals(Billing.MONTHLY, state().billing)
-        assertEquals("$2.99", state().cta.price)
+        assertEquals(Billing.ANNUAL, state().billing)
+        assertEquals("$24.99", state().cta.price)
     }
 
     // PLN-005: Lector y Biblioteca se eligen; Gratis no
@@ -68,6 +69,8 @@ class PlansViewModelTest {
         advanceUntilIdle()
         assertEquals(PlanId.LIBRARY, state().selected)
         assertEquals(PlanId.LIBRARY, state().cta.plan.id)
+        // La tarjeta amarilla sigue a la elegida.
+        assertEquals(listOf(false, false, true), PlanId.entries.map { state().isHighlighted(it) })
         vm.onSelect(PlanId.FREE)
         advanceUntilIdle()
         assertEquals(PlanId.LIBRARY, state().selected)

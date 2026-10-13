@@ -306,11 +306,11 @@ private fun BillingToggle(billing: Billing, onBilling: (Billing) -> Unit, height
     }
 }
 
-/** Colores de una tarjeta: Lector va en amarillo (PLN-005). */
+/** Colores de una tarjeta: la elegida va en amarillo con borde tinta (PLN-005). */
 private data class CardColors(val background: Color, val border: Color, val borderWidth: Dp, val ink: Color, val muted: Color, val rule: Color)
 
 @Composable
-private fun cardColors(plan: PlanId): CardColors = if (plan == PlanId.READER) {
+private fun cardColors(highlighted: Boolean): CardColors = if (highlighted) {
     CardColors(MarginColors.Yellow, MarginColors.OnYellow, 2.dp, MarginColors.OnYellow, MarginColors.OnYellowMuted, MarginColors.OnYellow.copy(alpha = 0.2f))
 } else {
     CardColors(MarginColors.Field, MarginColors.Off, 1.5.dp, MarginColors.Ink, MarginColors.Ink2, MarginColors.Line)
@@ -319,7 +319,8 @@ private fun cardColors(plan: PlanId): CardColors = if (plan == PlanId.READER) {
 /** PLN-005, PLN-013: tarjeta de un plan. Lector y Biblioteca se eligen tocándola; se anuncia nombre, espacio, precio. */
 @Composable
 private fun PlanCard(plan: PlanId, state: PlansUiState, onSelect: (PlanId) -> Unit, tablet: Boolean) {
-    val colors = cardColors(plan)
+    val highlighted = state.isHighlighted(plan)
+    val colors = cardColors(highlighted)
     val radius = if (tablet) 28.dp else 24.dp
     val name = planName(plan)
     val info = PlanCatalog.of(plan)
@@ -378,7 +379,7 @@ private fun PlanCard(plan: PlanId, state: PlansUiState, onSelect: (PlanId) -> Un
                     state.billing == Billing.ANNUAL -> stringResource(R.string.plans_annual_equivalent, info.annualPerMonth)
                     else -> stringResource(R.string.plans_monthly_note)
                 },
-                style = planText(if (tablet) 13 else 12, FontWeight.Medium, if (plan == PlanId.READER) colors.muted else MarginColors.Muted),
+                style = planText(if (tablet) 13 else 12, FontWeight.Medium, if (highlighted) colors.muted else MarginColors.Muted),
             )
         }
     }
@@ -402,7 +403,8 @@ private fun CardHeader(plan: PlanId, name: String, state: PlansUiState, selected
                     style = planText(if (tablet) 12 else 11, FontWeight.Bold, MarginColors.Yellow),
                     modifier = Modifier
                         .clip(RoundedCornerShape(99.dp))
-                        .background(MarginColors.OnYellow)
+                        // Sobre amarillo, tinta fija; sobre la tarjeta normal, el relleno tinta de la paleta (se ve en oscuro).
+                        .background(if (selected) MarginColors.OnYellow else MarginColors.InkFill)
                         .padding(horizontal = if (tablet) 9.dp else 8.dp, vertical = 4.dp),
                 )
             }

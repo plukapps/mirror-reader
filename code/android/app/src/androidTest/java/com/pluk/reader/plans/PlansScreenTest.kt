@@ -63,21 +63,21 @@ class PlansScreenTest {
         compose.onNodeWithTag("plans-usage").assertDoesNotExist()
     }
 
-    // PLN-004, PLN-006: arranca en anual, sin prueba gratis; en mensual cambia el botón
+    // PLN-004, PLN-006: arranca en mensual, sin prueba gratis; en anual cambia el botón
     @Test
     fun billingChangesTheButton() {
         show()
-        compose.onNodeWithTag("billing-ANNUAL").assertIsSelected()
+        compose.onNodeWithTag("billing-MONTHLY").assertIsSelected()
         compose.onNodeWithTag("plans-cta").assertExists()
-        compose.onNodeWithText("Elegir Lector · $24.99 por año").assertExists()
-        compose.onNodeWithText("Se renueva cada año. Cancelás cuando quieras.").assertExists()
-
-        // PLN-005: Gratis con la misma estructura de precio
-        compose.onNodeWithContentDescription("Gratis, 15 MB en la nube, $0 por año").assertExists()
-        compose.onNodeWithTag("billing-MONTHLY").performClick()
-        compose.onNodeWithContentDescription("Gratis, 15 MB en la nube, $0 por mes").assertExists()
         compose.onNodeWithText("Elegir Lector · $2.99 por mes").assertExists()
         compose.onNodeWithText("Se renueva cada mes. Cancelás cuando quieras.").assertExists()
+
+        // PLN-005: Gratis con la misma estructura de precio
+        compose.onNodeWithContentDescription("Gratis, 15 MB en la nube, $0 por mes").assertExists()
+        compose.onNodeWithTag("billing-ANNUAL").performClick()
+        compose.onNodeWithContentDescription("Gratis, 15 MB en la nube, $0 por año").assertExists()
+        compose.onNodeWithText("Elegir Lector · $24.99 por año").assertExists()
+        compose.onNodeWithText("Se renueva cada año. Cancelás cuando quieras.").assertExists()
     }
 
     // PLN-005, PLN-013: Lector elegido al empezar; tocar Biblioteca la elige
@@ -88,7 +88,7 @@ class PlansScreenTest {
         compose.onNodeWithTag("plan-LIBRARY").performScrollTo().performClick()
         compose.onNodeWithTag("plan-LIBRARY").assertIsSelected()
         compose.onNodeWithTag("plan-READER").assertIsNotSelected()
-        compose.onNodeWithText("Elegir Biblioteca · $49.99 por año").assertExists()
+        compose.onNodeWithText("Elegir Biblioteca · $5.99 por mes").assertExists()
     }
 
     // PLN-006: la tabla se despliega y se lee por fila
