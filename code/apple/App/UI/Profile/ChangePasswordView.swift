@@ -38,7 +38,10 @@ struct ChangePasswordView: View {
                     label: "Contraseña actual", text: $vm.current, kind: .password, error: vm.currentError,
                     visible: $vm.currentVisible
                 )
-                OnbTextField(label: "Contraseña nueva", text: $vm.password, kind: .newPassword, visible: $vm.passwordVisible)
+                OnbTextField(
+                    label: "Contraseña nueva", text: $vm.password, kind: .newPassword, error: vm.newPasswordError,
+                    visible: $vm.passwordVisible
+                )
                 let check = vm.passwordCheck
                 VStack(alignment: .leading, spacing: 8) {
                     StrengthMeter(check: check).foregroundStyle(MarginColors.ink)

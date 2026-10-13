@@ -87,4 +87,15 @@ struct ChangePasswordViewModelTests {
         await viewModel.save()
         #expect(passwords.changes.isEmpty)
     }
+
+    @Test("PRF-020: si la nueva es igual a la actual, lo dice bajo la nueva")
+    func sameAsCurrent() {
+        let viewModel = ChangePasswordViewModel(passwords: StubPasswords())
+        viewModel.current = "Nueva-123"
+        #expect(viewModel.newPasswordError == nil)
+        viewModel.password = "Nueva-123"
+        #expect(viewModel.newPasswordError == "Tiene que ser distinta de la actual.")
+        viewModel.password = "Otra-1234"
+        #expect(viewModel.newPasswordError == nil)
+    }
 }

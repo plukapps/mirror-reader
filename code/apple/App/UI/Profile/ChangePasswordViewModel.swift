@@ -27,6 +27,10 @@ final class ChangePasswordViewModel {
 
     var passwordCheck: PasswordCheck { checkPassword(password) }
     var mismatch: Bool { !confirm.isEmpty && confirm != password }
+    /// PRF-020: la nueva no puede ser la actual; se avisa bajo la nueva, como Android.
+    var newPasswordError: String? {
+        !password.isEmpty && password == current ? String(localized: "Tiene que ser distinta de la actual.") : nil
+    }
     var canSave: Bool { !busy && canSaveNewPassword(current: current, new: password, confirm: confirm) }
 
     func save() async {
