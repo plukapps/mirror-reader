@@ -90,6 +90,15 @@ class ProfileScreenTest {
         assertEquals(2, notices)
     }
 
+    // PRF-006, PLN-012: tocar el bloque del espacio abre Mi plan
+    @Test
+    fun storageOpensMyPlan() {
+        var opened = 0
+        show(actions = ProfileActions(onOpenPlan = { opened++ }))
+        compose.onNodeWithText("1,2 GB de 2 GB usados").performClick()
+        assertEquals(1, opened)
+    }
+
     // PRF-006, PLN-002: "Mejorar plan" abre Planes, no el aviso
     @Test
     fun upgradeOpensPlans() {

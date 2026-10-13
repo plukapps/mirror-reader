@@ -49,6 +49,7 @@ import com.pluk.reader.ui.profile.FaqAnswerScreen
 import com.pluk.reader.ui.profile.FaqListScreen
 import com.pluk.reader.ui.profile.ProfileScreen
 import com.pluk.reader.ui.plans.PlansScreen
+import com.pluk.reader.ui.plans.MyPlanScreen
 import com.pluk.reader.ui.plans.PlanPromptHost
 import com.pluk.reader.ui.search.SearchScreen
 import com.pluk.reader.ui.welcome.WelcomeScreen
@@ -87,6 +88,9 @@ object Routes {
 
     /** P01 Planes (PLN-002): pantalla completa, sin barra inferior. */
     const val PLANS = "plans"
+
+    /** P04 Mi plan (PLN-012), sin barra inferior. */
+    const val MY_PLAN = "profile/plan"
     fun faqAnswer(key: String): String = "profile/faq/$key"
 
     fun reader(bookId: String): String = "reader/$bookId"
@@ -255,6 +259,14 @@ fun AppNavHost(
                             onAllFaq = { navController.navigate(Routes.FAQ_LIST) },
                             onChangePassword = { navController.navigate(Routes.CHANGE_PASSWORD) },
                             onUpgrade = { navController.navigate(Routes.PLANS) },
+                            onOpenPlan = { navController.navigate(Routes.MY_PLAN) },
+                        )
+                    }
+                    // PLN-012: Mi plan, sin barra inferior; "Cambiar de plan" abre Planes.
+                    composable(Routes.MY_PLAN) {
+                        MyPlanScreen(
+                            onBack = { navController.popBackStack() },
+                            onChangePlan = { navController.navigate(Routes.PLANS) },
                         )
                     }
                     // PLN-002: Planes, sin barra inferior; la cruz vuelve a donde estaba.

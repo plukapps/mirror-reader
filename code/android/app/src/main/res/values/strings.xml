@@ -381,4 +381,12 @@
     <!-- Aviso suave del 80 % (PLN-011). -->
     <string name="plans_notice_free">Te quedan %1$s en la nube.</string>
     <string name="plans_notice_close">Cerrar aviso</string>
+    <!-- P04 Mi plan (PLN-012). -->
+    <string name="plans_my_plan">Mi plan</string>
+    <string name="plans_back_profile">Perfil</string>
+    <string name="plans_my_plan_usage">%1$s de %2$s</string>
+    <string name="plans_devices">Dispositivos</string>
+    <string name="plans_devices_value">Todos, sin límite</string>
+    <string name="plans_my_plan_upsell">Y exportás tus notas a Obsidian o Notion.</string>
+    <string name="plans_change_plan">Cambiar de plan</string>
 </resources>

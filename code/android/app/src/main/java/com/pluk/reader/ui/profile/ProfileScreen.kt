@@ -65,6 +65,8 @@ data class ProfileActions(
     val onChangePassword: () -> Unit = onComingSoon,
     /** "Mejorar plan": abre Planes (PRF-006, PLN-002). */
     val onUpgrade: () -> Unit = onComingSoon,
+    /** Tocar el bloque del espacio: abre Mi plan (PRF-006, PLN-012). */
+    val onOpenPlan: () -> Unit = onComingSoon,
     val onFaq: (FaqId) -> Unit = { onComingSoon() },
     val onAllFaq: () -> Unit = onComingSoon,
     val onFont: (ReaderFont) -> Unit = {},
@@ -84,6 +86,7 @@ fun ProfileScreen(
     onAllFaq: () -> Unit,
     onChangePassword: () -> Unit,
     onUpgrade: () -> Unit,
+    onOpenPlan: () -> Unit,
     viewModel: ProfileViewModel = hiltViewModel()) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     val context = LocalContext.current
@@ -105,6 +108,7 @@ fun ProfileScreen(
             onSignOut = viewModel::onSignOutRequested,
             onChangePassword = onChangePassword,
             onUpgrade = onUpgrade,
+            onOpenPlan = onOpenPlan,
             onFaq = onFaq,
             onAllFaq = onAllFaq,
             onFont = viewModel::onFont,
@@ -238,7 +242,7 @@ private fun Header(state: ProfileUiState, onClick: () -> Unit) {
 @Composable
 private fun AccountCard(state: ProfileUiState, isTablet: Boolean, actions: ProfileActions) {
     ProfileCard {
-        Storage(state, actions.onUpgrade)
+        Storage(state, actions.onUpgrade, actions.onOpenPlan)
         CardDivider()
         Text(
             stringResource(R.string.profile_devices),
@@ -258,10 +262,11 @@ private fun AccountCard(state: ProfileUiState, isTablet: Boolean, actions: Profi
 }
 
 @Composable
-private fun Storage(state: ProfileUiState, onUpgrade: () -> Unit) {
+private fun Storage(state: ProfileUiState, onUpgrade: () -> Unit, onOpenPlan: () -> Unit) {
     val storage = state.storage
     Column(
         Modifier
+            .clickable(role = Role.Button, onClickLabel = stringResource(R.string.plans_my_plan), onClick = onOpenPlan)
             .padding(16.dp)
             .testTag("profile-storage"),
         verticalArrangement = Arrangement.spacedBy(10.dp),

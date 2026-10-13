@@ -40,7 +40,6 @@ Plan de referencia: `specs/plans/2026-10-06-android-epub-viewer.md`
 
 ## Listo
 
-- **K-222** Planes, Android: P04 Mi plan y accesos desde Perfil. PLN-012, PRF-006. Rama `feature/subscription-plans-android`.
 - **K-223** Planes, iOS: catálogo y P01 Planes. PLN-001 a PLN-006, PLN-013. Rama `feature/subscription-plans-ios`. Plan `2026-10-13-subscription-plans.md`.
 - **K-224** Planes, iOS: P02 hojas de cuota al importar, caché de cuota en cada pasada. PLN-007 a PLN-009. Rama `feature/subscription-plans-ios`.
 - **K-225** Planes, iOS: P03 hoja "Importar libros" con Drive y Calibre como funciones pagas. PLN-010. Rama `feature/subscription-plans-ios`.
@@ -56,6 +55,7 @@ Plan de referencia: `specs/plans/2026-10-06-android-epub-viewer.md`
 
 ## Revisión
 
+- **K-222** Planes, Android: P04 Mi plan y accesos desde Perfil. PLN-012, PRF-006. Rama `feature/subscription-plans-android`. Hecho: `MyPlanViewModel` (caché de cuota y refresco con `QuotaSource`, que guarda en la caché) y `MyPlanScreen` (ruta `profile/plan`, sin barra inferior, "Perfil" para volver, "Cambiar de plan" abre P01, "Restaurar compras" avisa); en Perfil tocar el bloque del espacio abre Mi plan. 454 tests JVM pasan (3 nuevos); `MyPlanScreenTest` (1 caso) y `ProfileScreenTest` (1 caso nuevo) compilan, sin correr.
 - **K-221** Planes, Android: aviso del 80 % en la Biblioteca. PLN-011. Rama `feature/subscription-plans-android`. Hecho: `shouldShowUsageNotice` (80 % o más sin llenar), `UsageNoticePreference` (DataStore `plans_usage_notice_dismissed`, fuera de `RETAINED_KEYS`: se borra al cerrar sesión), tarjeta en la Biblioteca debajo de la línea de sincronización con "Ver planes" (descarta y abre P01) y cruz. 451 tests JVM pasan (6 nuevos); `LibraryScreenTest` (2 casos nuevos, uno de la hoja de K-220) compila, sin correr.
 - **K-220** Planes, Android: P03 hoja "Importar libros" con Drive y Calibre como funciones pagas. PLN-010. Rama `feature/subscription-plans-android`. Hecho: `ImportSource` y `PlanPrompts.onImportSource`; "Importar" de la Biblioteca (cabecera y biblioteca vacía) e Inicio (biblioteca vacía) abre la hoja "Importar libros"; "Desde este dispositivo" abre el selector de siempre; Drive y Calibre abren la hoja de función paga (`PaidContent`, reutilizable para P03a). "Importar mis libros" del onboarding (ONB-013) sigue yendo directo al selector. La bajada de Calibre no está en el diseño: texto propio. 445 tests JVM pasan (2 nuevos); `ImportSheetTest` (2 casos) compila, sin correr.
 - **K-219** Planes, Android: P02 hojas de cuota al importar (lleno, no entra), caché de cuota en cada pasada, pasada tras importar desde Inicio. PLN-007 a PLN-009. Rama `feature/subscription-plans-android`. Hecho: `quotaBlock` (lleno / no entra, descontando los pendientes), `ImportQuotaCheck` y `PlanPrompts` (una hoja a la vez), `UploadBooksUseCase` guarda la cuota de cada pasada (y la suma de lo subido) en `QuotaCache`; la Biblioteca, Inicio y "Abrir con" comprueban después de importar; Inicio pide la pasada tras importar; `PlanPromptHost` en la raíz con P02a y P02b ("Ver planes" abre P01). 443 tests JVM pasan (16 nuevos); `PlanSheetsTest` (2 casos) compila, sin correr.
