@@ -51,7 +51,7 @@ struct AppRootView: View {
             }
         case .home:
             RootView(
-                home: screens.home, search: screens.search, library: screens.library, sync: screens.sync,
+                home: screens.home, search: screens.search, library: screens.library, sync: screens.sync, profile: screens.profile,
                 bookActions: screens.bookActions, makeReader: screens.makeReader,
                 importOnAppear: start.pendingImport, onImportOpened: start.importOpened
             )

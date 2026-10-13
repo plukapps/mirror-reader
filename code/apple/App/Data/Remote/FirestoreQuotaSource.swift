@@ -2,7 +2,7 @@ import FirebaseFirestore
 import Foundation
 import ReaderDomain
 
-/// Lee `users/{uid}`: `usedBytes` lo mantiene el servidor y `quotaBytes` lo define el plan (ADR 0008).
+/// Lee `users/{uid}`: `usedBytes` lo mantiene el servidor y `quotaBytes` y `plan` los define el plan (ADR 0008).
 struct FirestoreQuotaSource: QuotaSource {
     func current() async throws -> StorageQuota {
         let uid = try currentUid()
@@ -18,6 +18,6 @@ struct FirestoreQuotaSource: QuotaSource {
               let used = (snapshot.get("usedBytes") as? NSNumber)?.int64Value,
               let quota = (snapshot.get("quotaBytes") as? NSNumber)?.int64Value
         else { throw RemoteUnavailableError("La cuenta todavía no está lista.") }
-        return StorageQuota(usedBytes: used, quotaBytes: quota)
+        return StorageQuota(usedBytes: used, quotaBytes: quota, plan: snapshot.get("plan") as? String ?? StorageQuota.freePlan)
     }
 }

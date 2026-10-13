@@ -113,7 +113,10 @@ struct FirebaseAccountRepository: AccountRepository, AuthRepository {
             // Solo las cuentas de email verifican; Google ya llega verificada (ONB-006).
             needsEmailVerification: !user.isEmailVerified
                 && providers.contains(EmailAuthProvider.id)
-                && !providers.contains(GoogleAuthProvider.id)
+                && !providers.contains(GoogleAuthProvider.id),
+            signInMethod: providers.contains(EmailAuthProvider.id)
+                ? .password
+                : providers.contains(GoogleAuthProvider.id) ? .google : .other
         )
     }
 }

@@ -15,6 +15,18 @@ enum MarginColors {
     static let field = Color(hex: 0xFDFDFD)
     /// Punto de "Leyendo" en los resultados de la búsqueda.
     static let readingDot = Color(hex: 0xC9A100)
+    /// Acción destructiva: "Eliminar cuenta" (09 Profile), como `Danger` de Android.
+    static let danger = Color(hex: 0xB3261E)
+    /// Separadores de tarjeta y pista de la barra de espacio (09 Profile).
+    static let hairline = Color(hex: 0xE7E4DC)
+    /// Texto e íconos secundarios oscuros: candado, valores de fila, segmentos sin elegir (09).
+    static let ink2 = Color(hex: 0x3A3830)
+    /// Texto secundario sobre amarillo: el email de la cabecera (09).
+    static let onYellowMuted = Color(hex: 0x3A3115)
+    /// Interruptor apagado y borde del círculo del tema Clásico (09).
+    static let off = Color(hex: 0xDAD6CA)
+    /// Separadores dentro de una tarjeta tinta: la de ayuda (09).
+    static let inkLine = Color(hex: 0x33322D)
 
     /// Fondos de las portadas generadas cuando el EPUB no trae una.
     static let covers: [(color: Color, isLight: Bool)] = [

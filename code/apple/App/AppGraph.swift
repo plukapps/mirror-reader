@@ -12,6 +12,8 @@ enum AppGraph {
         let search: SearchViewModel
         let library: LibraryViewModel
         let sync: SyncCoordinator
+        /// Perfil (PRF-001): cuenta, espacio y ajustes.
+        let profile: ProfileViewModel
         /// Menú de un libro con mantener presionado (LIB-016).
         let bookActions: BookActionsViewModel
         /// nil en la Mac: Readium Swift solo soporta iOS (ADR 0013).
@@ -85,6 +87,12 @@ enum AppGraph {
             search: search,
             library: library,
             sync: sync,
+            profile: ProfileViewModel(
+                account: account,
+                quota: firebase ? FirestoreQuotaSource() : nil,
+                cache: UserDefaultsQuotaCache(),
+                deviceName: UserDefaultsSyncPreferences.model
+            ),
             bookActions: bookActions,
             makeReader: reader?.makeReader,
             start: AppStartViewModel(account: account),

@@ -5,17 +5,24 @@ public struct QuotaExceededError: Error, Equatable, Sendable {
     public init() {}
 }
 
-/// Espacio de la cuenta (`users/{uid}`, ACC-003). `usedBytes` lo mantiene el servidor (ADR 0008).
+/// Espacio de la cuenta (`users/{uid}`, ACC-003). `usedBytes` lo mantiene el servidor (ADR 0008). `plan` es el id del
+/// plan (`free`).
 public struct StorageQuota: Equatable, Sendable {
+    /// Id del plan gratuito, el mismo que escribe el backend en `users/{uid}.plan`.
+    public static let freePlan = "free"
+
     public let usedBytes: Int64
     public let quotaBytes: Int64
+    public let plan: String
 
-    public init(usedBytes: Int64, quotaBytes: Int64) {
+    public init(usedBytes: Int64, quotaBytes: Int64, plan: String = StorageQuota.freePlan) {
         self.usedBytes = usedBytes
         self.quotaBytes = quotaBytes
+        self.plan = plan
     }
 
     public var freeBytes: Int64 { max(quotaBytes - usedBytes, 0) }
+    public var isFreePlan: Bool { plan == Self.freePlan }
 }
 
 /// Cuota de la cuenta, leída del servidor. Lanza `RemoteUnavailableError` sin conexión, sin sesión o si la cuenta

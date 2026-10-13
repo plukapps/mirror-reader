@@ -1,5 +1,10 @@
 import Foundation
 
+/// Cómo entra la cuenta. Define si se puede cambiar la contraseña desde Perfil (PRF-008).
+public enum SignInMethod: Sendable {
+    case password, google, other
+}
+
 /// Usuario con sesión iniciada. `id` es el `uid` del backend (ACC-004). `needsEmailVerification` es verdadero para una
 /// cuenta de email que todavía no confirmó su dirección (ONB-019).
 public struct AccountUser: Equatable, Sendable {
@@ -7,12 +12,17 @@ public struct AccountUser: Equatable, Sendable {
     public let email: String?
     public let displayName: String?
     public let needsEmailVerification: Bool
+    public let signInMethod: SignInMethod
 
-    public init(id: String, email: String?, displayName: String? = nil, needsEmailVerification: Bool = false) {
+    public init(
+        id: String, email: String?, displayName: String? = nil, needsEmailVerification: Bool = false,
+        signInMethod: SignInMethod = .password
+    ) {
         self.id = id
         self.email = email
         self.displayName = displayName
         self.needsEmailVerification = needsEmailVerification
+        self.signInMethod = signInMethod
     }
 }
 

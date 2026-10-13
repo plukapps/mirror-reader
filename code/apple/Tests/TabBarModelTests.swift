@@ -15,18 +15,18 @@ struct TabBarModelTests {
         #expect(MainDestination.allCases == [.home, .search, .shelves, .profile])
     }
 
-    @Test("HOM-006: un destino que aún no existe muestra el aviso y no navega", arguments: [MainDestination.profile])
-    func unavailableDestinationShowsNotice(destination: MainDestination) {
+    @Test("PRF-001: Perfil abre su pantalla, sin aviso")
+    func profileNavigates() {
         let model = TabBarModel()
-        model.select(destination)
-        #expect(model.selected == .home)
-        #expect(model.showsComingSoon)
+        model.select(.profile)
+        #expect(model.selected == .profile)
+        #expect(!model.showsComingSoon)
     }
 
     @Test("HOM-006: el aviso es breve")
     func noticeHidesAfterItsDuration() async throws {
         let model = TabBarModel(noticeDuration: .milliseconds(20))
-        model.select(.profile)
+        model.showComingSoon()
         try await Task.sleep(for: .milliseconds(200))
         #expect(!model.showsComingSoon)
     }

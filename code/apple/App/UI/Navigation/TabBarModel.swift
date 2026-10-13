@@ -34,9 +34,6 @@ enum MainDestination: CaseIterable, Identifiable {
         case .profile: "NavPersonFilled"
         }
     }
-
-    /// En Apple existen Inicio, Buscar y la biblioteca (Estantes, como en Android). Perfil, después.
-    var isAvailable: Bool { self != .profile }
 }
 
 /// Estado de la barra: destino actual y el aviso de los destinos que aún no existen (HOM-006).
@@ -53,11 +50,10 @@ final class TabBarModel {
     }
 
     func select(_ destination: MainDestination) {
-        guard destination.isAvailable else { return showComingSoon() }
         selected = destination
     }
 
-    /// Aviso de HOM-006, también para acciones que aún no existen (Importar).
+    /// Aviso de HOM-006 y PRF-003 para lo que aún no existe (Importar en la Mac, filas de Perfil).
     /// Un toque más reinicia el tiempo del aviso en lugar de apilar otro.
     func showComingSoon() {
         showsComingSoon = true

@@ -3,7 +3,7 @@ import ReaderDomain
 import SwiftUI
 import UniformTypeIdentifiers
 
-/// Pantalla raíz. En iPhone, Inicio, Buscar y la biblioteca (Estantes) con la barra inferior flotante (HOM-005), y el
+/// Pantalla raíz. En iPhone, Inicio, Buscar, la biblioteca (Estantes) y Perfil con la barra inferior flotante (HOM-005), y el
 /// lector a pantalla completa (RDR-007); en la Mac, sin barra hasta que su navegación tenga diseño (K-078): la
 /// biblioteca se abre desde Inicio y se vuelve atrás, y no hay lector (ADR 0013).
 struct RootView: View {
@@ -11,6 +11,7 @@ struct RootView: View {
     let search: SearchViewModel
     let library: LibraryViewModel
     let sync: SyncCoordinator
+    let profile: ProfileViewModel
     @Bindable var bookActions: BookActionsViewModel
     let makeReader: ((String) -> ReaderViewModel)?
     /// ONB-013: al llegar desde "Importar mis libros" abre el selector de Archivos.
@@ -153,6 +154,7 @@ struct RootView: View {
         switch tabs.selected {
         case .search: SearchView(viewModel: search, onOpen: home.open(bookId:))
         case .shelves: LibraryView(viewModel: library, onImport: importAction ?? tabs.showComingSoon, onOpen: home.open(bookId:))
+        case .profile: ProfileView(viewModel: profile, actions: ProfileActions(comingSoon: tabs.showComingSoon))
         default: HomeView(viewModel: home, onOpenLibrary: openLibrary, onImport: importAction)
         }
     }
