@@ -373,33 +373,26 @@ private struct PlanCard: View {
         .foregroundStyle(text)
     }
 
-    @ViewBuilder
+    /// PLN-005: las tres tarjetas con la misma estructura: separador, precio grande con el período y una línea chica.
     private var price: some View {
-        if isFree {
-            VStack(alignment: .leading, spacing: 0) {
-                if wide { MarginColors.line.frame(height: 1).padding(.bottom, 12) }
-                Text(plan.price(viewModel.billing)).font(.app(wide ? 28 : 18, .bold)).foregroundStyle(text)
+        VStack(alignment: .leading, spacing: 2) {
+            HStack(alignment: .firstTextBaseline, spacing: 6) {
+                Text(plan.price(viewModel.billing)).font(.app(wide ? 28 : 26, .bold)).tracking(-0.02 * 26)
+                Text(viewModel.billing.perLabel).font(.app(wide ? 15 : 14, .semibold))
             }
-        } else {
-            VStack(alignment: .leading, spacing: 2) {
-                HStack(alignment: .firstTextBaseline, spacing: 6) {
-                    Text(plan.price(viewModel.billing)).font(.app(wide ? 28 : 26, .bold)).tracking(-0.02 * 26)
-                    Text(viewModel.billing.perLabel).font(.app(wide ? 15 : 14, .semibold))
-                }
-                .foregroundStyle(text)
-                Text(plan.periodNote(viewModel.billing))
-                    .font(.app(wide ? 13 : 12, .medium))
-                    .foregroundStyle(isReader ? MarginColors.onYellowMuted : MarginColors.muted)
-            }
-            .padding(.top, wide ? 12 : (isReader ? 12 : 8))
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .overlay(alignment: .top) { (isReader ? MarginColors.onYellowLine : MarginColors.line).frame(height: 1) }
+            .foregroundStyle(text)
+            Text(plan.periodNote(viewModel.billing))
+                .font(.app(wide ? 13 : 12, .medium))
+                .foregroundStyle(isReader ? MarginColors.onYellowMuted : MarginColors.muted)
         }
+        .padding(.top, 12)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .overlay(alignment: .top) { (isReader ? MarginColors.onYellowLine : MarginColors.line).frame(height: 1) }
     }
 
     private var accessibilityText: String {
         let storage = "\(viewModel.storage(plan.id)) en la nube"
-        let price = isFree ? plan.price(viewModel.billing) : "\(plan.price(viewModel.billing)) \(viewModel.billing.perLabel)"
+        let price = "\(plan.price(viewModel.billing)) \(viewModel.billing.perLabel), \(plan.periodNote(viewModel.billing))"
         var parts = [plan.name, plan.tagline, storage, price]
         if isReader { parts.insert("Más elegido", at: 1) }
         if isFree, viewModel.isOnFreePlan { parts.append("Tu plan") }

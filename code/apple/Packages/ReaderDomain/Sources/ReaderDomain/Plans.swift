@@ -44,10 +44,12 @@ public struct Plan: Equatable, Sendable {
         billing == .annual ? annualPrice : monthlyPrice
     }
 
-    /// PLN-004: "Equivale a $2.08 por mes" en anual, "Pagás mes a mes" en mensual.
+    /// PLN-004, PLN-005: "Equivale a $2.08 por mes" en anual, "Pagás mes a mes" en mensual; en Gratis, "Sin costo, para
+    /// siempre".
     public func periodNote(_ billing: Billing) -> String {
-        switch billing {
-        case .annual: annualPerMonth.map { "Equivale a \($0) por mes" } ?? ""
+        guard let annualPerMonth else { return "Sin costo, para siempre" }
+        return switch billing {
+        case .annual: "Equivale a \(annualPerMonth) por mes"
         case .monthly: "Pagás mes a mes"
         }
     }

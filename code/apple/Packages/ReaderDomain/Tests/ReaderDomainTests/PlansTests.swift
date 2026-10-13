@@ -16,7 +16,7 @@ func catalog() {
     #expect(PlanCatalog.storageText(.library, quota: nil) == "50 GB")
 }
 
-@Test("PLN-001, PLN-004: precio, período y equivalencia por mes según la forma de pago")
+@Test("PLN-001, PLN-004, PLN-005: precio, período y equivalencia por mes según la forma de pago")
 func prices() {
     let reader = PlanCatalog.plan(.reader)
     #expect(reader.price(.annual) == "$24.99")
@@ -28,6 +28,8 @@ func prices() {
     #expect(library.price(.monthly) == "$5.99")
     #expect(library.periodNote(.annual) == "Equivale a $4.17 por mes")
     #expect(PlanCatalog.plan(.free).price(.annual) == "$0")
+    #expect(PlanCatalog.plan(.free).periodNote(.annual) == "Sin costo, para siempre")
+    #expect(PlanCatalog.plan(.free).periodNote(.monthly) == "Sin costo, para siempre")
     #expect(Billing.annual.perLabel == "por año")
     #expect(Billing.monthly.perLabel == "por mes")
 }
