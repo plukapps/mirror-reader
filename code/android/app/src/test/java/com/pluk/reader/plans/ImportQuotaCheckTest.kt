@@ -48,9 +48,17 @@ class ImportQuotaCheckTest {
     fun planComesFromTheQuota() {
         assertEquals(QuotaBlock.TooLarge(3 * MIB, 2 * MIB, PlanId.FREE), quotaBlock(null, 0, 3 * MIB))
         assertEquals(QuotaBlock.TooLarge(3 * MIB, 2 * MIB, PlanId.FREE), quotaBlock(StorageQuota(0, 15 * MIB, plan = "gold"), 0, 3 * MIB))
-        val reader = StorageQuota(0, 5L * 1024 * MIB, plan = "reader")
+        val reader = StorageQuota(0, 5L * 1024 * MIB, plan = "plus")
         assertNull(quotaBlock(reader, 0, 50 * MIB))
         assertEquals(QuotaBlock.TooLarge(51 * MIB, 50 * MIB, PlanId.READER), quotaBlock(reader, 0, 51 * MIB))
+    }
+
+    // ACC-010: si el servidor informa el máximo, vale ese y no el fijo del plan
+    @Test
+    fun serverMaxFileBytesWins() {
+        val server = StorageQuota(0, 15 * MIB, maxFileBytes = 1 * MIB)
+        assertNull(quotaBlock(server, 0, 1 * MIB))
+        assertEquals(QuotaBlock.TooLarge(1 * MIB + 1, 1 * MIB, PlanId.FREE), quotaBlock(server, 0, 1 * MIB + 1))
     }
 
     // PLN-008: justo entra

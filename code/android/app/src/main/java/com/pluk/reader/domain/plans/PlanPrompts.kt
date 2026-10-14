@@ -23,13 +23,13 @@ sealed interface QuotaBlock {
 }
 
 /**
- * PLN-014: primero el tamaño máximo por archivo del plan (sin cuota, el de Gratis). PLN-009: después, con la última
+ * PLN-014, ACC-010: primero el tamaño máximo por archivo (el del servidor si se conoce; sin cuota, el de Gratis). PLN-009: después, con la última
  * cuota conocida, descontando [pendingBytes] de los libros de este dispositivo que esperan subirse, ¿entra un libro
  * de [bookBytes]? Null si entra, o si nunca se leyó la cuota (vale el aviso de LIB-009).
  */
 fun quotaBlock(quota: StorageQuota?, pendingBytes: Long, bookBytes: Long): QuotaBlock? {
     val plan = PlanCatalog.planOf(quota)
-    val maxBytes = PlanCatalog.of(plan).maxFileBytes
+    val maxBytes = PlanCatalog.maxFileBytes(quota)
     if (bookBytes > maxBytes) return QuotaBlock.TooLarge(bookBytes, maxBytes, plan)
     if (quota == null) return null
     val available = quota.freeBytes - pendingBytes

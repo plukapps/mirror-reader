@@ -47,14 +47,25 @@ class PlanCatalogTest {
         assertEquals(PlanId.LIBRARY, monthly.plan.id)
     }
 
-    // PLN-014: el plan sale de la cuota; desconocido o sin dato, Gratis
+    // PLN-014, ACC-007: el plan sale de la cuota con los ids del backend (`plus` y `pro`); desconocido o sin dato, Gratis
     @Test
     fun planOfQuota() {
         assertEquals(PlanId.FREE, PlanCatalog.planOf(null))
         assertEquals(PlanId.FREE, PlanCatalog.planOf(StorageQuota(0, 1)))
-        assertEquals(PlanId.FREE, PlanCatalog.planOf(StorageQuota(0, 1, plan = "plus")))
-        assertEquals(PlanId.READER, PlanCatalog.planOf(StorageQuota(0, 1, plan = "reader")))
-        assertEquals(PlanId.LIBRARY, PlanCatalog.planOf(StorageQuota(0, 1, plan = "library")))
+        assertEquals(PlanId.READER, PlanCatalog.planOf(StorageQuota(0, 1, plan = "plus")))
+        assertEquals(PlanId.LIBRARY, PlanCatalog.planOf(StorageQuota(0, 1, plan = "pro")))
+        assertEquals(PlanId.FREE, PlanCatalog.planOf(StorageQuota(0, 1, plan = "reader")))
+        assertEquals(PlanId.FREE, PlanCatalog.planOf(StorageQuota(0, 1, plan = "library")))
+    }
+
+    // ACC-008, ACC-010: el máximo por archivo que vale es el del servidor; sin dato, el fijo del plan
+    @Test
+    fun maxFileBytesComesFromTheServer() {
+        assertEquals(2 * mib, PlanCatalog.maxFileBytes(null))
+        assertEquals(2 * mib, PlanCatalog.maxFileBytes(StorageQuota(0, 1)))
+        assertEquals(50 * mib, PlanCatalog.maxFileBytes(StorageQuota(0, 1, plan = "plus")))
+        assertEquals(7 * mib, PlanCatalog.maxFileBytes(StorageQuota(0, 1, maxFileBytes = 7 * mib)))
+        assertEquals(7 * mib, PlanCatalog.maxFileBytes(StorageQuota(0, 1, plan = "plus", maxFileBytes = 7 * mib)))
     }
 
     // PLN-001, PLN-014: tamaño máximo por archivo de cada plan

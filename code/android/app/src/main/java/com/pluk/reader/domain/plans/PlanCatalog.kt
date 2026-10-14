@@ -15,7 +15,7 @@ enum class Billing { MONTHLY, ANNUAL }
 data class Plan(
     val id: PlanId,
     val cloudBytes: Long?,
-    /** Tamaño máximo por archivo (PLN-014). Por ahora lo controla solo la app. */
+    /** Tamaño máximo por archivo (PLN-014). Vale mientras no se conoce el del servidor (ACC-008, ACC-010). */
     val maxFileBytes: Long,
     val monthlyPrice: String,
     val annualPrice: String,
@@ -41,14 +41,14 @@ object PlanCatalog {
 
     fun of(id: PlanId): Plan = all.first { it.id == id }
 
-    /** Id de cada plan en `users/{uid}.plan` (el backend hoy solo escribe `free`). */
-    private val BACKEND_IDS = mapOf("free" to PlanId.FREE, "reader" to PlanId.READER, "library" to PlanId.LIBRARY)
+    /** Id de cada plan en `users/{uid}.plan` y en el catálogo del backend (ACC-007, ADR 0017). */
+    private val BACKEND_IDS = mapOf("free" to PlanId.FREE, "plus" to PlanId.READER, "pro" to PlanId.LIBRARY)
 
     /** PLN-014, PLN-015: plan de la cuenta según la cuota; sin dato o desconocido, Gratis. */
     fun planOf(quota: StorageQuota?): PlanId = quota?.plan?.let(BACKEND_IDS::get) ?: PlanId.FREE
 
-    /** PLN-014: tamaño máximo por archivo del plan de la cuenta. */
-    fun maxFileBytes(quota: StorageQuota?): Long = of(planOf(quota)).maxFileBytes
+    /** PLN-014, ACC-008: tamaño máximo por archivo de la cuenta; el del servidor si se conoce, si no el fijo del plan. */
+    fun maxFileBytes(quota: StorageQuota?): Long = quota?.maxFileBytes ?: of(planOf(quota)).maxFileBytes
 
     /** PLN-001: espacio del plan; el de Gratis es la cuota de la cuenta. */
     fun cloudBytes(plan: Plan, quota: StorageQuota?): Long = plan.cloudBytes ?: quota?.quotaBytes ?: FREE_QUOTA_BYTES

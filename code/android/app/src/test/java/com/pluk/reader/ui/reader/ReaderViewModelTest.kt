@@ -103,7 +103,7 @@ class ReaderViewModelTest {
 
     /** Por defecto, una cuenta Lector: los temas y fuentes se eligen libremente (PLN-015 se prueba aparte). */
     private val quotaCache = com.pluk.reader.plans.FakeQuotaCache(
-        com.pluk.reader.domain.account.StorageQuota(0, 1L shl 30, plan = "reader"),
+        com.pluk.reader.domain.account.StorageQuota(0, 1L shl 30, plan = "plus"),
     )
     private val prompts = com.pluk.reader.domain.plans.PlanPrompts()
     private val positions = FakePositions()

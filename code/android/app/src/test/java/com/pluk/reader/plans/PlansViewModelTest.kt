@@ -110,7 +110,7 @@ class PlansViewModelTest {
         val cache = FakeQuotaCache(StorageQuota(0, 15 * mib))
         val (_, state) = start(cache)
         assertTrue(state().isOnFreePlan)
-        cache.quota.value = StorageQuota(0, 15 * mib, plan = "reader")
+        cache.quota.value = StorageQuota(0, 15 * mib, plan = "plus")
         advanceUntilIdle()
         assertFalse(state().isOnFreePlan)
     }

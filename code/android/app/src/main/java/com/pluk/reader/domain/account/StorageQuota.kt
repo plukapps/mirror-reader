@@ -1,7 +1,15 @@
 package com.pluk.reader.domain.account
 
-/** Espacio del plan del usuario en la nube, en bytes (ACC-002, ACC-003). [plan] es el id del plan (`free`). */
-data class StorageQuota(val usedBytes: Long, val quotaBytes: Long, val plan: String = FREE_PLAN) {
+/**
+ * Espacio del plan del usuario en la nube, en bytes (ACC-002, ACC-003). [plan] es el id del plan (`free`, `plus`, `pro`).
+ * [maxFileBytes] es el máximo por archivo que aplica el servidor (ACC-010), o null si el documento todavía no lo tiene.
+ */
+data class StorageQuota(
+    val usedBytes: Long,
+    val quotaBytes: Long,
+    val plan: String = FREE_PLAN,
+    val maxFileBytes: Long? = null,
+) {
     val freeBytes: Long get() = (quotaBytes - usedBytes).coerceAtLeast(0)
     val isFreePlan: Boolean get() = plan == FREE_PLAN
 
