@@ -22,9 +22,9 @@ describe("Storage", () => {
   beforeEach(async () => {
     HASH = randomHash();
     OTHER_HASH = randomHash();
-    // Subir exige que exista el documento del usuario (cuota). Por defecto, con espacio de sobra.
+    // Subir exige que exista el documento del usuario (cuota y máximo por archivo). Por defecto, con espacio de sobra.
     await env.withSecurityRulesDisabled((ctx) =>
-      setDoc(doc(ctx.firestore(), "users/alice"), { plan: "free", quotaBytes: 1024 * MB, usedBytes: 0, createdAt: new Date() }),
+      setDoc(doc(ctx.firestore(), "users/alice"), { plan: "free", quotaBytes: 1024 * MB, maxFileBytes: 100 * MB, usedBytes: 0, createdAt: new Date() }),
     );
   });
   after(async () => {
@@ -86,9 +86,40 @@ describe("Storage", () => {
       await assertFails(uploadBytes(ref(storage("alice"), path("alice")), bytes(0), { contentType: EPUB }));
     });
 
-    it("acepta 100 MB y rechaza más de 100 MB", async () => {
-      await assertSucceeds(uploadBytes(ref(storage("alice"), path("alice")), bytes(100 * MB), { contentType: EPUB }));
-      await assertFails(uploadBytes(ref(storage("alice"), path("alice", OTHER_HASH)), bytes(100 * MB + 1), { contentType: EPUB }));
+  });
+
+  describe("ACC-010: máximo por archivo del plan", () => {
+    // El documento del usuario lo mantiene el servidor (ADR 0017): aquí se siembra con las reglas apagadas.
+    const seedLimits = (uid, maxFileBytes) =>
+      env.withSecurityRulesDisabled((ctx) =>
+        setDoc(doc(ctx.firestore(), `users/${uid}`), {
+          plan: "free", quotaBytes: 1024 * MB, usedBytes: 0, createdAt: new Date(),
+          ...(maxFileBytes === undefined ? {} : { maxFileBytes }),
+        }),
+      );
+    const upload = (uid, size, hash = HASH) =>
+      uploadBytes(ref(storage(uid), path(uid, hash)), bytes(size), { contentType: EPUB });
+
+    it("acepta un archivo del tamaño exacto del máximo", async () => {
+      await seedLimits("alice", 2 * MB);
+      await assertSucceeds(upload("alice", 2 * MB));
+    });
+
+    it("rechaza un archivo más grande que el máximo aunque haya espacio", async () => {
+      await seedLimits("alice", 2 * MB);
+      await assertFails(upload("alice", 2 * MB + 1));
+    });
+
+    it("cada usuario tiene el máximo de su plan", async () => {
+      await seedLimits("alice", 2 * MB);
+      await seedLimits("bob", 5 * MB);
+      await assertFails(upload("alice", 3 * MB));
+      await assertSucceeds(upload("bob", 3 * MB));
+    });
+
+    it("rechaza subir si el documento no tiene máximo por archivo", async () => {
+      await seedLimits("alice", undefined);
+      await assertFails(upload("alice", 10));
     });
   });
 
@@ -178,7 +209,7 @@ describe("Storage", () => {
     it("no depende de la cuota: con la cuota llena se sigue subiendo", async () => {
       await seedBookDoc("alice");
       await env.withSecurityRulesDisabled((ctx) =>
-        setDoc(doc(ctx.firestore(), "users/alice"), { plan: "free", quotaBytes: 1000, usedBytes: 1000, createdAt: new Date() }),
+        setDoc(doc(ctx.firestore(), "users/alice"), { plan: "free", quotaBytes: 1000, maxFileBytes: 100 * MB, usedBytes: 1000, createdAt: new Date() }),
       );
       await assertSucceeds(uploadCover("alice"));
     });
@@ -188,7 +219,7 @@ describe("Storage", () => {
     // El documento del usuario lo mantiene el servidor (ADR 0008): aquí se siembra con las reglas apagadas.
     const seedUser = (uid, { usedBytes = 0, quotaBytes = 1000 } = {}) =>
       env.withSecurityRulesDisabled((ctx) =>
-        setDoc(doc(ctx.firestore(), `users/${uid}`), { plan: "free", quotaBytes, usedBytes, createdAt: new Date() }),
+        setDoc(doc(ctx.firestore(), `users/${uid}`), { plan: "free", quotaBytes, maxFileBytes: 100 * MB, usedBytes, createdAt: new Date() }),
       );
     const upload = (uid, size, hash = HASH) =>
       uploadBytes(ref(storage(uid), path(uid, hash)), bytes(size), { contentType: EPUB });

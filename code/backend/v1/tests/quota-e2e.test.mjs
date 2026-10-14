@@ -38,7 +38,7 @@ describe("cuota punta a punta (ACC-003, LIB-009)", () => {
   it("subir suma el tamaño real y borrar lo libera", async () => {
     const uid = `e2e-${randomBytes(4).toString("hex")}`;
     await env.withSecurityRulesDisabled((ctx) =>
-      setDoc(doc(ctx.firestore(), `users/${uid}`), { plan: "free", quotaBytes: 100000, usedBytes: 0, createdAt: new Date() }),
+      setDoc(doc(ctx.firestore(), `users/${uid}`), { plan: "free", quotaBytes: 100000, maxFileBytes: 100000, usedBytes: 0, createdAt: new Date() }),
     );
     const file = ref(env.authenticatedContext(uid).storage(DEFAULT_BUCKET), `users/${uid}/books/${randomBytes(32).toString("hex")}.epub`);
 
