@@ -6,7 +6,6 @@ Plan de referencia: `specs/plans/2026-10-06-android-epub-viewer.md`
 ## Backlog
 
 - **K-321** Notas iOS (#41): interruptores con Remote Config en iOS (`FirebaseRemoteConfig`, `FeatureFlags`, `FeatureTemplateTests`). ACC-011.
-- **K-326** Notas iOS (#37): detalle del libro y "Ver detalle" en el menú contextual. LIB-022, ANN-010.
 - **K-327** Notas iOS (#37): cierre de docs y verificación en el iPhone.
 - **K-328** Sync de notas iOS (#38): `deletedAt`, `syncedAt` y `NoteSyncStore` en `LibraryStore`. SYN-007, SYN-016.
 - **K-329** Sync de notas iOS (#38): `FirestoreNotes`, `NoteSync`, cursor, paso en `LibrarySync` y listener en `SyncCoordinator`. SYN-016, SYN-005, SYN-017.
@@ -58,6 +57,7 @@ Plan de referencia: `specs/plans/2026-10-06-android-epub-viewer.md`
 
 ## Revisión
 
+- **K-326** Notas iOS (#37): detalle del libro y "Ver detalle" en el menú contextual. LIB-022, ANN-010. Hecho: `BookDetailView` y `BookDetailViewModel` (pantalla completa en el iPhone, hoja en la Mac), `BookAction.details` "Ver detalle"; tocar una nota abre el lector encima del detalle. 3 tests nuevos y el orden del menú; app 223 en el simulador, Mac compila.
 - **K-325** Notas iOS (#37): abrir el lector en una nota. ANN-010. Hecho: `noteId` en `ReaderViewModel` y en la fábrica del lector; abre en la nota sin el aviso de otro dispositivo. Tests (ANN-010). App 220 en el simulador, Mac compila.
 - **K-324** Notas iOS (#37): subrayados con decoraciones; ver, editar y borrar. ANN-009, ANN-005. Hecho: subrayados con `apply(decorations:in: \"notes\")` y `observeDecorationInteractions`; editar y borrar con confirmación. Tests (ANN-009).
 - **K-323** Notas iOS (#37): "Nota" en el menú de selección (`EditingAction`) y editor. ANN-008. Hecho: `EditingAction` "Nota" junto a las del sistema, `NavigatorContainer` que la recibe por la cadena de respuesta, `NoteEditorSheet`. Tests de `ReaderViewModel` (ANN-008). Falta probar a mano en el iPhone.

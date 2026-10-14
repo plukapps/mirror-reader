@@ -18,6 +18,8 @@ enum AppGraph {
         let bookActions: BookActionsViewModel
         /// nil en la Mac: Readium Swift solo soporta iOS (ADR 0013).
         let makeReader: ((_ bookId: String, _ noteId: String?) -> ReaderViewModel)?
+        /// LIB-022: el detalle de un libro con sus notas.
+        let makeDetail: (_ bookId: String) -> BookDetailViewModel
         /// Planes (PLN-002): quién lo abre y su estado.
         let plans: PlansPresenter
         /// Apariencia de la app (PRF-021).
@@ -132,6 +134,7 @@ enum AppGraph {
             ),
             bookActions: bookActions,
             makeReader: reader?.makeReader,
+            makeDetail: { BookDetailViewModel(bookId: $0, library: store, notes: store) },
             plans: PlansPresenter(cache: quotaCache),
             appearance: appearance,
             network: network,

@@ -14,6 +14,8 @@ struct RootView: View {
     let profile: ProfileViewModel
     @Bindable var bookActions: BookActionsViewModel
     let makeReader: ((_ bookId: String, _ noteId: String?) -> ReaderViewModel)?
+    /// LIB-022: el detalle de un libro.
+    let makeDetail: (_ bookId: String) -> BookDetailViewModel
     /// P01 Planes (PLN-002), a pantalla completa sobre todo lo demás.
     @Bindable var plans: PlansPresenter
     /// ONB-013: al llegar desde "Importar mis libros" abre el selector de Archivos.
@@ -83,6 +85,8 @@ struct RootView: View {
             }
             // LIB-016 a LIB-020: el menú de cada portada usa estas acciones.
             .environment(bookActions)
+            // LIB-022: el detalle, a pantalla completa en el iPhone y como hoja en la Mac.
+            .background { detailPresentation }
             .photosPicker(isPresented: $bookActions.isPickingCover, selection: $coverPhoto, matching: .images)
             .onChange(of: coverPhoto) { _, item in
                 guard let item else { return }
@@ -204,6 +208,26 @@ struct RootView: View {
         }
     }
     #endif
+
+    @ViewBuilder
+    private var detailPresentation: some View {
+        // Va en su propia vista: dos presentaciones a pantalla completa no comparten la misma.
+        #if os(iOS)
+        Color.clear.fullScreenCover(item: $bookActions.detailBook) { book in detail(book) }
+        #else
+        Color.clear.sheet(item: $bookActions.detailBook) { book in detail(book).frame(minWidth: 420, minHeight: 600) }
+        #endif
+    }
+
+    private func detail(_ book: LibraryBook) -> some View {
+        BookDetailView(viewModel: makeDetail(book.id), makeReader: makeReader) {
+            bookActions.detailBook = nil
+            Task {
+                await home.reload()
+                await library.load()
+            }
+        }
+    }
 
     /// Abre el selector de Archivos, o nil donde no se importa (la Mac, ADR 0013).
     private var importAction: (() -> Void)? {
