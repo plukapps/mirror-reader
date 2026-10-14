@@ -36,8 +36,10 @@ private extension Theme {
 /// Navegador de EPUB de Readium dentro de SwiftUI (guía `Navigator/SwiftUI.md` de Readium, ADR 0013).
 ///
 /// Toques (RDR-011): el 20 % izquierdo y derecho pasan de página, el resto muestra u oculta los controles. Una
-/// pulsación larga selecciona texto y no pasa de página (lo resuelve Readium). El menú de la selección suma "Nota"
-/// (ANN-008) y las notas se ven subrayadas (guía `Navigator/Highlights.md` de Readium 3.9.0).
+/// pulsación larga selecciona texto y no pasa de página (lo resuelve Readium). Sobre la selección se muestra un menú
+/// propio con Nota, Copiar y Compartir (ANN-008, diseño 06) en lugar del del sistema: Readium 3.9 agrega las acciones
+/// propias con `UIMenuController`, que iOS 26 ya no muestra (K-332). Las notas se ven subrayadas (guía
+/// `Navigator/Highlights.md` de Readium 3.9.0).
 struct ReaderNavigator: UIViewControllerRepresentable {
     let publication: Publication
     let initialLocatorJson: String?
@@ -59,22 +61,18 @@ struct ReaderNavigator: UIViewControllerRepresentable {
         var config = EPUBNavigatorViewController.Configuration()
         config.preferences = EPUBPreferences(viewModel.settings)
         config.fontFamilyDeclarations = Self.fontFamilies
-        // ANN-008: "Nota" se suma a las acciones del sistema (copiar, compartir, buscar, traducir).
-        config.editingActions = EditingAction.defaultActions + [
-            EditingAction(title: "Nota", action: #selector(NavigatorContainer.addNote(_:))),
-        ]
         guard let navigator = try? EPUBNavigatorViewController(publication: publication, initialLocation: initial, config: config) else {
             return UIViewController()
         }
         context.coordinator.attach(to: navigator, initial: initial)
-        // La acción sube por la cadena de respuesta: la recibe el contenedor del navegador.
-        return NavigatorContainer(navigator: navigator, onAddNote: { [weak coordinator = context.coordinator] in
-            coordinator?.addNoteFromSelection()
-        })
+        return navigator
     }
 
     func updateUIViewController(_ controller: UIViewController, context: Context) {
-        context.coordinator.update(settings: viewModel.settings, jump: viewModel.jump, notes: viewModel.bookNotes)
+        context.coordinator.update(
+            settings: viewModel.settings, jump: viewModel.jump, notes: viewModel.bookNotes,
+            clearSelection: viewModel.clearSelectionRequest
+        )
     }
 
     /// Amarillo del subrayado, el del diseño (pantalla 06). Readium le baja la opacidad al dibujarlo.
@@ -111,6 +109,9 @@ struct ReaderNavigator: UIViewControllerRepresentable {
         private var appliedSettings: ReaderSettings?
         private var appliedJump: ReaderViewModel.Jump?
         private var appliedNotes: [Note] = []
+        private var appliedClearSelection = 0
+        /// K-332: mientras se muestra el menú propio, se mira si la selección sigue (tocar afuera la quita).
+        private var watchingSelection: Task<Void, Never>?
         private var edgeTaps: DirectionalNavigationAdapter?
         private var tapToken: InputObservableToken?
         /// SYN-014: texto que ancla la posición actual; se reemplaza cuando sale de la página visible.
@@ -150,16 +151,28 @@ struct ReaderNavigator: UIViewControllerRepresentable {
             apply(notes: viewModel.bookNotes)
         }
 
-        /// ANN-008: "Nota" en el menú de la selección. La selección se lee y después se quita.
-        func addNoteFromSelection() {
-            guard let navigator, let selection = navigator.currentSelection else { return }
+        /// K-332: la selección se queda con el menú propio, no con el del sistema. El menú se va cuando la selección
+        /// desaparece (tocar afuera, pasar de página) o cuando el usuario elige una acción.
+        private func show(_ selection: Selection) {
             let locator = selection.locator
-            viewModel.onTextSelected(
-                locatorJson: (try? locator.jsonString()) ?? "{}",
-                quote: locator.text.highlight ?? "",
-                progression: locator.locations.totalProgression
+            viewModel.selectionChanged(
+                ReaderViewModel.TextSelection(
+                    locatorJson: (try? locator.jsonString()) ?? "{}",
+                    quote: locator.text.highlight ?? "",
+                    progression: locator.locations.totalProgression,
+                    frame: selection.frame ?? .zero
+                )
             )
-            navigator.clearSelection()
+            watchingSelection?.cancel()
+            watchingSelection = Task { [weak self] in
+                while !Task.isCancelled {
+                    try? await Task.sleep(for: .milliseconds(300))
+                    guard let self else { return }
+                    guard self.navigator?.currentSelection == nil else { continue }
+                    self.viewModel.selectionChanged(nil)
+                    return
+                }
+            }
         }
 
         /// ANN-008: las notas se dibujan subrayadas. Readium compara con la lista anterior y aplica solo lo que cambió.
@@ -173,9 +186,14 @@ struct ReaderNavigator: UIViewControllerRepresentable {
             navigator?.apply(decorations: decorations, in: ReaderNavigator.notesGroup)
         }
 
-        func update(settings: ReaderSettings, jump: ReaderViewModel.Jump?, notes: [Note]) {
+        func update(settings: ReaderSettings, jump: ReaderViewModel.Jump?, notes: [Note], clearSelection: Int) {
             guard let navigator else { return }
             if notes != appliedNotes { apply(notes: notes) }
+            if clearSelection != appliedClearSelection {
+                appliedClearSelection = clearSelection
+                watchingSelection?.cancel()
+                navigator.clearSelection()
+            }
             if settings != appliedSettings {
                 appliedSettings = settings
                 navigator.submitPreferences(EPUBPreferences(settings))
@@ -193,6 +211,12 @@ struct ReaderNavigator: UIViewControllerRepresentable {
         }
 
         // MARK: EPUBNavigatorDelegate
+
+        /// ANN-008, K-332: en lugar del menú del sistema, el menú propio con Nota, Copiar y Compartir.
+        func navigator(_ navigator: SelectableNavigator, shouldShowMenuForSelection selection: Selection) -> Bool {
+            show(selection)
+            return false
+        }
 
         /// SYN-014: el locator guarda además el texto del comienzo de la página. El de la posición desde la que se abrió
         /// se conserva mientras siga a la vista.
@@ -230,35 +254,6 @@ struct ReaderNavigator: UIViewControllerRepresentable {
             guard ["http", "https"].contains(url.scheme?.lowercased()) else { return }
             UIApplication.shared.open(url)
         }
-    }
-}
-/// Envuelve al navegador para recibir "Nota" del menú de la selección: iOS manda las acciones propias por la cadena de
-/// respuesta, y el contenedor está justo arriba del navegador (guía `Navigator/Highlights.md` de Readium).
-final class NavigatorContainer: UIViewController {
-    private let navigator: UIViewController
-    private let onAddNote: () -> Void
-
-    init(navigator: UIViewController, onAddNote: @escaping () -> Void) {
-        self.navigator = navigator
-        self.onAddNote = onAddNote
-        super.init(nibName: nil, bundle: nil)
-    }
-
-    @available(*, unavailable)
-    required init?(coder: NSCoder) { fatalError("init(coder:) no se usa") }
-
-    override func viewDidLoad() {
-        super.viewDidLoad()
-        addChild(navigator)
-        navigator.view.frame = view.bounds
-        navigator.view.autoresizingMask = [.flexibleWidth, .flexibleHeight]
-        view.addSubview(navigator.view)
-        navigator.didMove(toParent: self)
-    }
-
-    /// ANN-008
-    @objc func addNote(_ sender: Any?) {
-        onAddNote()
     }
 }
 #endif
