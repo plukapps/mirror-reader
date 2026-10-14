@@ -1,7 +1,14 @@
 import ReaderDomain
 import SwiftUI
 
-/// P04 Mi plan (PLN-012), como `MyPlanViewModel` de Android: primero la cuota guardada, después la del servidor.
+/// Tarjeta amarilla de Mi plan con el plan siguiente (PLN-012, PLN-017).
+struct MyPlanOffer: Equatable {
+    let title: String
+    let body: String
+}
+
+/// P04 Mi plan (PLN-012 en Gratis, PLN-017 en Lector y Biblioteca), como `MyPlanViewModel` de Android: primero la cuota
+/// guardada, después la del servidor.
 @MainActor @Observable
 final class MyPlanViewModel {
     /// nil mientras no hay ningún valor (ni leído ni guardado).
@@ -26,16 +33,37 @@ final class MyPlanViewModel {
         show(current)
     }
 
-    /// En esta rebanada solo existe la variante Gratis.
-    var planName: String { PlanId.free.name }
+    /// Plan de la cuenta (PLN-014); sin dato, Gratis.
+    var plan: PlanId { PlanCatalog.planOf(quota) }
+
+    var planName: String { plan.name }
 
     /// "12 MB de 15 MB".
     var storageText: String? { usage.map { "\($0.used) de \($0.total)" } }
 
-    var readerStorage: String { PlanCatalog.storageText(.plus, quota: quota) }
+    /// PLN-012, PLN-017, ACC-010: "2 MB", el máximo por archivo de la cuenta (el del servidor si se conoce).
+    var maxFile: String {
+        let bytes = PlanCatalog.maxFileBytes(quota)
+        return formatStorage(bytes, unit: StorageUnit.forTotal(bytes))
+    }
 
-    /// PLN-012: "2 MB", el tamaño máximo por archivo de Gratis.
-    var maxFile: String { PlanCatalog.maxFileText(.free) }
+    /// La oferta del plan siguiente, con sus valores por defecto (`DefaultPlans`); en Biblioteca no hay.
+    var offer: MyPlanOffer? {
+        switch plan {
+        case .free:
+            MyPlanOffer(
+                title: String(localized: "Con Lector: \(PlanCatalog.storageText(.plus, quota: quota)) en la nube"),
+                body: String(localized: "Archivos de hasta \(PlanCatalog.maxFileText(.plus)), temas y fuentes.")
+            )
+        case .plus:
+            MyPlanOffer(
+                title: String(localized: "Con Biblioteca: \(PlanCatalog.storageText(.pro, quota: quota)) en la nube"),
+                body: String(localized: "Archivos de hasta \(PlanCatalog.maxFileText(.pro)).")
+            )
+        case .pro:
+            nil
+        }
+    }
 
     private func show(_ quota: StorageQuota) {
         self.quota = quota
@@ -43,7 +71,7 @@ final class MyPlanViewModel {
     }
 }
 
-/// P04 Mi plan (Gratis), dentro del tab Perfil y sin barra inferior. Diseño: "P04 Mi plan Gratis".
+/// P04 Mi plan, dentro del tab Perfil y sin barra inferior. Diseños: "P04 Mi plan Gratis" y "P04 Mi plan · Biblioteca".
 struct MyPlanView: View {
     let viewModel: MyPlanViewModel
     var onBack: () -> Void = {}
@@ -90,7 +118,7 @@ struct MyPlanContent: View {
                 .padding(EdgeInsets(top: 10, leading: 20, bottom: 0, trailing: 20))
                 .accessibilityAddTraits(.isHeader)
             planCard
-            upsell
+            if let offer = viewModel.offer { upsell(offer) }
         }
         .frame(maxWidth: .infinity, alignment: .leading)
     }
@@ -133,10 +161,10 @@ struct MyPlanContent: View {
         .accessibilityElement(children: .combine)
     }
 
-    private var upsell: some View {
+    private func upsell(_ offer: MyPlanOffer) -> some View {
         VStack(alignment: .leading, spacing: 4) {
-            Text("Con Lector: \(viewModel.readerStorage) en la nube").font(.app(15, .bold)).foregroundStyle(MarginColors.onYellow)
-            Text("Archivos de hasta \(PlanCatalog.maxFileText(.plus)), temas y fuentes.")
+            Text(offer.title).font(.app(15, .bold)).foregroundStyle(MarginColors.onYellow)
+            Text(offer.body)
                 .font(.app(13, .medium))
                 .foregroundStyle(MarginColors.onYellowMuted)
         }

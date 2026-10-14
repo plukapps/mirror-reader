@@ -28,8 +28,8 @@ final class PlansViewModel {
     /// PLN-003: nil si nunca se leyó la cuota; entonces se oculta la fila.
     var usage: PlanUsage? { PlanUsage(quota) }
 
-    /// PLN-005: "Tu plan" va en Gratis si es el plan de la cuenta. Sin dato se asume Gratis (no hay otro todavía).
-    var isOnFreePlan: Bool { quota?.isFreePlan ?? true }
+    /// PLN-005, PLN-017: el plan de la cuenta, que lleva "Tu plan". Sin dato, Gratis.
+    var accountPlan: PlanId { PlanCatalog.planOf(quota) }
 
     func select(_ plan: PlanId) {
         guard plan != .free else { return }

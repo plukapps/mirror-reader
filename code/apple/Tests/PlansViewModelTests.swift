@@ -66,7 +66,18 @@ struct PlansViewModelTests {
         viewModel.load()
         #expect(viewModel.usage?.text == "Usás 12 MB de 15 MB")
         #expect(viewModel.storage(.free) == "15 MB")
-        #expect(viewModel.isOnFreePlan)
+        #expect(viewModel.accountPlan == .free)
+    }
+
+    @Test("PLN-005, PLN-017: \"Tu plan\" va en el plan de la cuenta")
+    func accountPlan() {
+        let cache = PlansMemoryQuotaCache(StorageQuota(usedBytes: 0, quotaBytes: 15 * mib, plan: "pro"))
+        let viewModel = PlansViewModel(cache: cache)
+        viewModel.load()
+        #expect(viewModel.accountPlan == .pro)
+        cache.saved = StorageQuota(usedBytes: 0, quotaBytes: 15 * mib, plan: "plus")
+        viewModel.load()
+        #expect(viewModel.accountPlan == .plus)
     }
 
     @Test("PLN-002: se abre y se cierra; cada vez arranca de nuevo")

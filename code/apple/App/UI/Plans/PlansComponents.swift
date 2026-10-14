@@ -39,20 +39,21 @@ struct PlanUsageBar: View {
     }
 }
 
-/// "Tu plan": alto 28, radio 14, borde tinta de 1,5, con o sin tilde.
+/// "Tu plan": alto 28, radio 14, borde de 1,5 del color del texto (tinta por defecto), con o sin tilde.
 struct YourPlanChip: View {
     var check = true
     var height: CGFloat = 28
     var fontSize: CGFloat = 12
+    var color: Color = MarginColors.ink
 
     var body: some View {
         HStack(spacing: 4) {
-            if check { PlanIcon(name: "Check", size: 16) }
-            Text("Tu plan").font(.app(fontSize, .bold)).foregroundStyle(MarginColors.ink)
+            if check { PlanIcon(name: "Check", size: 16, color: color) }
+            Text("Tu plan").font(.app(fontSize, .bold)).foregroundStyle(color)
         }
         .padding(.horizontal, height == 28 ? 10 : 12)
         .frame(height: height)
-        .overlay(Capsule().strokeBorder(MarginColors.ink, lineWidth: 1.5))
+        .overlay(Capsule().strokeBorder(color, lineWidth: 1.5))
     }
 }
 

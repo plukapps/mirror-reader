@@ -289,6 +289,8 @@ private struct PlanCard: View {
     let wide: Bool
 
     private var isReader: Bool { plan.id == .plus }
+    /// PLN-017: el plan pago de la cuenta lleva "Tu plan".
+    private var isAccountPaidPlan: Bool { plan.id != .free && plan.id == viewModel.accountPlan }
     /// PLN-005: la tarjeta elegida va en amarillo con borde tinta; las demás, con el fondo y el borde de siempre.
     private var highlighted: Bool { viewModel.isHighlighted(plan.id) }
     private var isFree: Bool { plan.id == .free }
@@ -345,7 +347,10 @@ private struct PlanCard: View {
         HStack {
             HStack(spacing: 8) {
                 Text(plan.id.name).font(.app(wide ? 24 : 20, .bold)).tracking(-0.02 * (wide ? 24 : 20)).foregroundStyle(text)
-                if isReader {
+                // PLN-005, PLN-017: en un plan pago de la cuenta, "Tu plan" junto al nombre (en Lector, en lugar de "Más elegido").
+                if isAccountPaidPlan {
+                    YourPlanChip(check: false, height: wide ? 30 : 28, fontSize: wide ? 13 : 12, color: text)
+                } else if isReader {
                     Text("Más elegido")
                         .font(.app(wide ? 12 : 11, .bold))
                         .foregroundStyle(MarginColors.yellow)
@@ -356,7 +361,7 @@ private struct PlanCard: View {
             }
             Spacer(minLength: 8)
             if isFree {
-                if viewModel.isOnFreePlan {
+                if viewModel.accountPlan == .free {
                     YourPlanChip(height: wide ? 30 : 28, fontSize: wide ? 13 : 12)
                 }
             } else {
@@ -396,8 +401,12 @@ private struct PlanCard: View {
         let storage = "\(viewModel.storage(plan.id)) en la nube"
         let price = "\(plan.price(viewModel.billing)) \(viewModel.billing.perLabel), \(plan.periodNote(viewModel.billing))"
         var parts = [plan.id.name, plan.id.tagline, storage, price]
-        if isReader { parts.insert("Más elegido", at: 1) }
-        if isFree, viewModel.isOnFreePlan { parts.append("Tu plan") }
+        if isAccountPaidPlan {
+            parts.insert(String(localized: "Tu plan"), at: 1)
+        } else if isReader {
+            parts.insert(String(localized: "Más elegido"), at: 1)
+        }
+        if isFree, viewModel.accountPlan == .free { parts.append(String(localized: "Tu plan")) }
         return parts.joined(separator: ", ")
     }
 }
