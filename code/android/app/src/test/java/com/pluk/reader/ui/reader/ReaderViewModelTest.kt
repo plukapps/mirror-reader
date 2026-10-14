@@ -36,6 +36,7 @@ import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.advanceTimeBy
 import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runTest
+import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.setMain
 import org.junit.After
 import org.junit.Assert.assertEquals
@@ -101,6 +102,12 @@ class ReaderViewModelTest {
     }
 
     private val settings = FakeSettings()
+
+    /** Por defecto, una cuenta Lector: los temas y fuentes se eligen libremente (PLN-015 se prueba aparte). */
+    private val quotaCache = com.pluk.reader.plans.FakeQuotaCache(
+        com.pluk.reader.domain.account.StorageQuota(0, 1L shl 30, plan = "reader"),
+    )
+    private val prompts = com.pluk.reader.domain.plans.PlanPrompts()
     private val positions = FakePositions()
     private val host = FakeHost()
     private val notes = FakeNotes()
@@ -163,7 +170,7 @@ class ReaderViewModelTest {
 
     private fun viewModel(books: FakeBooks, noteId: String? = null) = ReaderViewModel(
         SavedStateHandle(mapOf(ReaderViewModel.ARG_BOOK_ID to "hash-del-libro", ReaderViewModel.ARG_NOTE_ID to noteId)), books, settings, positions, host,
-        DownloadBookUseCase(cloud, files), positionSync, resolveOpening, ReadingSession(), notes, { noteFlushes++ },
+        DownloadBookUseCase(cloud, files), positionSync, resolveOpening, ReadingSession(), quotaCache, prompts, notes, { noteFlushes++ },
     )
 
     private suspend fun ReaderViewModel.awaitReady(predicate: (ReaderUiState.Ready) -> Boolean = { true }) =
@@ -206,7 +213,7 @@ class ReaderViewModelTest {
         val books = FakeBooks(Result.success(book()))
         val vm = ReaderViewModel(
             SavedStateHandle(mapOf(ReaderViewModel.ARG_BOOK_ID to "hash-del-libro")), books, settings, positions, host,
-            DownloadBookUseCase(cloud, failing), positionSync, resolveOpening, ReadingSession(), notes, { noteFlushes++ },
+            DownloadBookUseCase(cloud, failing), positionSync, resolveOpening, ReadingSession(), quotaCache, prompts, notes, { noteFlushes++ },
         )
         val state = vm.uiState.first { it !is ReaderUiState.Loading }
         assertEquals(ReaderUiState.Failed("Sin conexión. No se pudo descargar el libro."), state)
@@ -307,6 +314,38 @@ class ReaderViewModelTest {
         val expected = ReaderSettings(font = ReaderFont.MONO, lineSpacing = LineSpacing.WIDE)
         assertEquals(expected, vm.awaitReady { it.settings == expected }.settings)
         assertEquals(expected, settings.state.value)
+    }
+
+    // PLN-015: en Gratis se lee con Clásico y serifa aunque lo guardado sea otro, y lo guardado no cambia
+    @Test
+    fun freePlanReadsWithClassicAndSerif() = runTest(dispatcher) {
+        quotaCache.quota.value = com.pluk.reader.domain.account.StorageQuota(0, 15L shl 20)
+        settings.state.value = ReaderSettings(theme = ReadingTheme.DARK, font = ReaderFont.MONO, fontScale = 1.2)
+        val vm = viewModel(FakeBooks(Result.success(book())))
+        val ready = vm.awaitReady { it.readingOptionsLocked }
+        assertEquals(ReaderSettings(fontScale = 1.2), ready.settings)
+        assertEquals(ReadingTheme.LIGHT, host.installedSettings?.theme)
+        assertEquals(ReadingTheme.DARK, settings.state.value.theme)
+    }
+
+    // PLN-015: en Gratis, tocar Sepia o una letra paga no cambia la preferencia y pide la hoja de función paga
+    @Test
+    fun freePlanPaidOptionsShowThePaidSheet() = runTest(dispatcher) {
+        quotaCache.quota.value = null
+        val vm = viewModel(FakeBooks(Result.success(book())))
+        vm.awaitReady()
+        vm.setTheme(ReadingTheme.SEPIA)
+        vm.setFont(ReaderFont.SANS)
+        advanceUntilIdle()
+        assertEquals(ReaderSettings(), settings.state.value)
+        assertEquals(
+            com.pluk.reader.domain.plans.PlanPrompt.Paid(com.pluk.reader.domain.plans.PaidFeature.THEMES_FONTS),
+            prompts.current.value,
+        )
+        // Tamaño e interlineado siguen libres.
+        vm.setLineSpacing(LineSpacing.WIDE)
+        advanceUntilIdle()
+        assertEquals(LineSpacing.WIDE, settings.state.value.lineSpacing)
     }
 
     // El título que sigue al capítulo se prueba en `ChapterTitleTest`: aquí no se pueden armar enlaces de Readium (usan android.net.Uri).

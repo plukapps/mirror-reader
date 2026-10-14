@@ -14,6 +14,8 @@ struct RootView: View {
     let profile: ProfileViewModel
     @Bindable var bookActions: BookActionsViewModel
     let makeReader: ((String) -> ReaderViewModel)?
+    /// P01 Planes (PLN-002), a pantalla completa sobre todo lo demás.
+    @Bindable var plans: PlansPresenter
     /// ONB-013: al llegar desde "Importar mis libros" abre el selector de Archivos.
     var importOnAppear = false
     var onImportOpened: () -> Void = {}
@@ -59,6 +61,20 @@ struct RootView: View {
                         await library.load()
                     }
                 }
+            }
+            // P02 (PLN-007 a PLN-009): el libro importado no entra en la nube.
+            .sheet(
+                item: Binding(get: { home.quotaBlock }, set: { if $0 == nil { home.dismissQuotaBlock() } }),
+                onDismiss: plans.sheetDismissed
+            ) { notice in
+                QuotaBlockSheet(
+                    notice: notice,
+                    onSeePlans: {
+                        plans.openPlansAfterSheet()
+                        home.dismissQuotaBlock()
+                    },
+                    onNotNow: home.dismissQuotaBlock
+                )
             }
             // LIB-020: un libro abierto no se quita aunque lo borren desde otro dispositivo; al cerrarlo, sí.
             .onChange(of: home.readerBookId) { old, new in
@@ -130,9 +146,15 @@ struct RootView: View {
             .onChange(of: tabs.showsComingSoon) { _, shows in
                 if shows { AccessibilityNotification.Announcement(String(localized: "Llega más adelante.")).post() }
             }
+            .background {
+                // Va en su propia vista: dos presentaciones a pantalla completa no comparten la misma.
+                Color.clear.fullScreenCover(isPresented: $plans.plansOpen) {
+                    PlansScreen(presenter: plans, tabs: tabs, onClose: plans.closePlans)
+                }
+            }
             .fullScreenCover(item: readerBinding) { opened in
                 if let makeReader {
-                    ReaderView(viewModel: makeReader(opened.id)) {
+                    ReaderView(viewModel: makeReader(opened.id), plans: plans, tabs: tabs) {
                         home.closeReader()
                         Task {
                             await home.reload()
@@ -161,12 +183,18 @@ struct RootView: View {
     private var destination: some View {
         switch tabs.selected {
         case .search: SearchView(viewModel: search, onOpen: home.open(bookId:))
-        case .shelves: LibraryView(viewModel: library, onImport: importAction ?? tabs.showComingSoon, onOpen: home.open(bookId:))
+        case .shelves: LibraryView(
+            viewModel: library, onImport: importAction ?? tabs.showComingSoon, onOpen: home.open(bookId:),
+            onSeePlans: plans.openPlans
+        )
         case .profile:
             ProfileView(
                 viewModel: profile,
                 actions: ProfileActions(
                     comingSoon: tabs.showComingSoon,
+                    openPlans: plans.openPlans,
+                    openPlansAfterSheet: plans.openPlansAfterSheet,
+                    sheetDismissed: plans.sheetDismissed,
                     notify: { home.show($0) },
                     setTabBarHidden: { tabs.barHidden = $0 }
                 ),

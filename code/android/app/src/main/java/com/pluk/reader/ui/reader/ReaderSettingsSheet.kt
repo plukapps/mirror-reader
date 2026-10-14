@@ -36,6 +36,13 @@ import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.selected
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.clearAndSetSemantics
+import androidx.compose.ui.semantics.stateDescription
+import androidx.compose.foundation.layout.offset
+import androidx.compose.ui.res.stringResource
+import com.pluk.reader.R
+import com.pluk.reader.domain.plans.isPaid
+import com.pluk.reader.ui.plans.LectorMark
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
@@ -118,7 +125,7 @@ class ReaderSettingsActions(
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ReaderSettingsSheet(settings: ReaderSettings, actions: ReaderSettingsActions) {
+fun ReaderSettingsSheet(settings: ReaderSettings, actions: ReaderSettingsActions, locked: Boolean = false) {
     ModalBottomSheet(
         onDismissRequest = actions.onDismiss,
         sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
@@ -135,10 +142,10 @@ fun ReaderSettingsSheet(settings: ReaderSettings, actions: ReaderSettingsActions
             Modifier.fillMaxWidth().padding(horizontal = 20.dp).navigationBarsPadding().padding(bottom = 12.dp),
             verticalArrangement = Arrangement.spacedBy(18.dp),
         ) {
-            FontChips(settings.font, actions.onFont)
+            FontChips(settings.font, actions.onFont, locked = locked)
             SizeButtons(actions.onSmallerFont, actions.onBiggerFont)
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
-                ThemeSwatches(settings.theme, actions.onTheme)
+                ThemeSwatches(settings.theme, actions.onTheme, locked)
                 SpacingToggle(settings.lineSpacing, actions.onLineSpacing)
             }
             ReadingSection(settings, actions)
@@ -147,25 +154,36 @@ fun ReaderSettingsSheet(settings: ReaderSettings, actions: ReaderSettingsActions
 }
 
 @Composable
-internal fun FontChips(selected: ReaderFont, onSelect: (ReaderFont) -> Unit, palette: FontControlsPalette = FontControlsPalette.Dark) {
+internal fun FontChips(
+    selected: ReaderFont,
+    onSelect: (ReaderFont) -> Unit,
+    palette: FontControlsPalette = FontControlsPalette.Dark,
+    locked: Boolean = false,
+) {
+    val paidSuffix = stringResource(R.string.reader_paid_option)
     Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
         ReaderFont.entries.forEach { font ->
             val isSelected = font == selected
-            Box(
+            // PLN-015: en Gratis, las letras pagas llevan la marca "Lector".
+            val marked = locked && font.isPaid
+            Row(
                 Modifier
                     .height(40.dp)
                     .clip(RoundedCornerShape(20.dp))
                     .then(if (isSelected) Modifier.background(palette.accent) else Modifier.border(BorderStroke(1.5.dp, palette.line), RoundedCornerShape(20.dp)))
                     .selectableOption(isSelected) { onSelect(font) }
-                    .padding(horizontal = 16.dp)
+                    .then(if (marked) Modifier.semantics { stateDescription = paidSuffix } else Modifier)
+                    .padding(horizontal = if (marked) 12.dp else 16.dp)
                     .testTag("reader-font-${font.name}"),
-                contentAlignment = Alignment.Center,
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(6.dp),
             ) {
                 Text(
                     font.label(),
                     color = if (isSelected) palette.onAccent else palette.ink,
                     style = TextStyle(fontFamily = font.labelFamily(), fontSize = 15.sp, fontWeight = FontWeight.Medium),
                 )
+                if (marked) LectorMark(Modifier.clearAndSetSemantics {})
             }
         }
     }
@@ -193,12 +211,18 @@ private fun SizeButton(text: String, size: androidx.compose.ui.unit.TextUnit, de
 }
 
 @Composable
-private fun ThemeSwatches(selected: ReadingTheme, onSelect: (ReadingTheme) -> Unit) {
+private fun ThemeSwatches(selected: ReadingTheme, onSelect: (ReadingTheme) -> Unit, locked: Boolean) {
+    val paidSuffix = stringResource(R.string.reader_paid_option)
     Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
         listOf(ReadingTheme.LIGHT, ReadingTheme.SEPIA, ReadingTheme.DARK).forEach { theme ->
             val isSelected = theme == selected
+            // PLN-015: en Gratis, Sepia y Noche llevan la marca "Lector".
+            val marked = locked && theme.isPaid
             Column(
-                Modifier.selectableOption(isSelected) { onSelect(theme) }.testTag("reader-theme-${theme.name}"),
+                Modifier
+                    .selectableOption(isSelected) { onSelect(theme) }
+                    .then(if (marked) Modifier.semantics { stateDescription = paidSuffix } else Modifier)
+                    .testTag("reader-theme-${theme.name}"),
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.spacedBy(4.dp),
             ) {
@@ -214,6 +238,7 @@ private fun ThemeSwatches(selected: ReadingTheme, onSelect: (ReadingTheme) -> Un
                             .background(theme.swatch())
                             .then(if (theme == ReadingTheme.DARK && !isSelected) Modifier.border(1.5.dp, SheetLine, CircleShape) else Modifier),
                     )
+                    if (marked) LectorMark(Modifier.align(Alignment.TopEnd).offset(x = 6.dp, y = (-6).dp).clearAndSetSemantics {})
                 }
                 Text(
                     theme.label(),

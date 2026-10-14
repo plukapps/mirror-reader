@@ -6,6 +6,9 @@ import com.pluk.reader.domain.home.HomeContent
 import com.pluk.reader.domain.home.homeContent
 import com.pluk.reader.domain.repository.LibraryRepository
 import com.pluk.reader.domain.usecase.ImportBooksUseCase
+import com.pluk.reader.domain.usecase.LibrarySyncRequester
+import com.pluk.reader.domain.model.ImportOutcome
+import com.pluk.reader.domain.plans.ImportQuotaCheck
 import com.pluk.reader.ui.library.LibraryMessage
 import com.pluk.reader.ui.library.toMessages
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -30,6 +33,8 @@ data class HomeUiState(
 class HomeViewModel @Inject constructor(
     library: LibraryRepository,
     private val importBooks: ImportBooksUseCase,
+    private val librarySync: LibrarySyncRequester,
+    private val importQuotaCheck: ImportQuotaCheck,
 ) : ViewModel() {
     private val _messages = MutableSharedFlow<LibraryMessage>(extraBufferCapacity = MESSAGE_BUFFER)
     val messages: SharedFlow<LibraryMessage> = _messages.asSharedFlow()
@@ -41,7 +46,14 @@ class HomeViewModel @Inject constructor(
     /** HOM-003 con LIB-001: importa desde Inicio cuando la biblioteca está vacía. */
     fun onImport(uris: List<String>) {
         if (uris.isEmpty()) return
-        viewModelScope.launch { importBooks(uris).toMessages().forEach { _messages.tryEmit(it) } }
+        viewModelScope.launch {
+            val outcomes = importBooks(uris)
+            outcomes.toMessages().forEach { _messages.tryEmit(it) }
+            // PLN-007 a PLN-009: si lo importado no entra en la nube, la hoja de planes.
+            importQuotaCheck(outcomes)
+            // SYN-001: lo importado se sube solo, igual que desde la Biblioteca.
+            if (outcomes.any { it is ImportOutcome.Imported }) librarySync.request()
+        }
     }
 
     private companion object {

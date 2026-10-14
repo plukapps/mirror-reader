@@ -17,11 +17,11 @@ struct ReaderSettingsSheet: View {
                 .padding(.top, 10)
                 .accessibilityHidden(true)
 
-            FontChips(selected: settings.font, onSelect: viewModel.setFont)
+            FontChips(selected: settings.font, onSelect: viewModel.setFont, locked: viewModel.isLocked)
             SizeButtons(onSmaller: viewModel.smallerFont, onBigger: viewModel.biggerFont)
 
             HStack(alignment: .top) {
-                ThemeSwatches(selected: settings.theme, onSelect: viewModel.setTheme)
+                ThemeSwatches(selected: settings.theme, onSelect: viewModel.setTheme, locked: viewModel.isLocked)
                 Spacer(minLength: 12)
                 LineSpacingPicker(selected: settings.lineSpacing, onSelect: viewModel.setLineSpacing)
             }
@@ -65,6 +65,8 @@ struct FontControlsPalette {
 struct FontChips: View {
     let selected: ReaderFont
     let onSelect: (ReaderFont) -> Void
+    /// PLN-015: las letras de Lector llevan su marca y abren la hoja de función paga.
+    var locked: (ReaderFont) -> Bool = { _ in false }
     var palette = FontControlsPalette.dark
 
     var body: some View {
@@ -72,8 +74,13 @@ struct FontChips: View {
             ForEach(ReaderFont.allCases, id: \.self) { font in
                 let isSelected = font == selected
                 Button { onSelect(font) } label: {
-                    Text(font.chipLabel)
-                        .font(.custom(font.familyName, size: 15))
+                    HStack(spacing: 5) {
+                        Text(font.chipLabel)
+                            .font(.custom(font.familyName, size: 15))
+                            .lineLimit(1)
+                            .minimumScaleFactor(0.8)
+                        if locked(font) { PlanMark() }
+                    }
                         .foregroundStyle(isSelected ? palette.onAccent : palette.ink)
                         .frame(maxWidth: .infinity)
                         .frame(height: 40)
@@ -83,6 +90,7 @@ struct FontChips: View {
                 }
                 .buttonStyle(.plain)
                 .accessibilityAddTraits(isSelected ? .isSelected : [])
+                .accessibilityHint(locked(font) ? Text("Incluido en Lector") : Text(""))
             }
         }
     }
@@ -131,6 +139,7 @@ struct SizeButtons: View {
 private struct ThemeSwatches: View {
     let selected: ReadingTheme
     let onSelect: (ReadingTheme) -> Void
+    var locked: (ReadingTheme) -> Bool = { _ in false }
 
     var body: some View {
         HStack(spacing: 10) {
@@ -144,6 +153,9 @@ private struct ThemeSwatches: View {
                             .frame(width: 44, height: 44)
                             .padding(5)
                             .overlay(Circle().stroke(isSelected ? SheetColors.accent : .clear, lineWidth: 2))
+                            .overlay(alignment: .topTrailing) {
+                                if locked(theme) { PlanMark().offset(x: 6, y: -2) }
+                            }
                         Text(theme.label)
                             .font(.app(11, isSelected ? .semibold : .regular))
                             .foregroundStyle(isSelected ? SheetColors.accent : SheetColors.label)
@@ -153,6 +165,7 @@ private struct ThemeSwatches: View {
                 .buttonStyle(.plain)
                 .accessibilityLabel(theme.label)
                 .accessibilityAddTraits(isSelected ? .isSelected : [])
+                .accessibilityHint(locked(theme) ? Text("Incluido en Lector") : Text(""))
             }
         }
     }

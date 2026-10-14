@@ -14,6 +14,8 @@ Identidad para sincronizar, y base para un modelo de pago futuro.
 - **ACC-006** Debe permitir cerrar sesión y ver los dispositivos vinculados.
 - **ACC-011** Las funciones que dependen del plan (por ahora, la sincronización de notas, SYN-017) se pueden prender o apagar desde la administración del producto, para todas las cuentas o por plan, sin publicar una versión nueva de la app. Mientras no haya cobro, todas las cuentas tienen todo prendido.
 
+- La pantalla de planes, los avisos de cuota y Mi plan están en `12-plans.md` (PLN).
+
 ## Escenarios
 
 - Dado que inicio sesión en un dispositivo nuevo, cuando termina el login, entonces veo mi biblioteca completa (libros "solo en la nube").

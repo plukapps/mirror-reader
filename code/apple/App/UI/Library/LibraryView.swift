@@ -8,12 +8,25 @@ struct LibraryView: View {
     /// nil: sin botón "Importar" (la Mac no tiene dónde mostrar el aviso hasta K-078).
     var onImport: (() -> Void)?
     var onOpen: (String) -> Void = { _ in }
+    /// PLN-011: "Ver planes" del aviso del 80 %.
+    var onSeePlans: () -> Void = {}
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
             Header(onImport: onImport)
             if let status = viewModel.syncStatus {
                 SyncStatusView(status: status, onRetry: viewModel.retrySync)
+            }
+            if let usage = viewModel.usageNotice {
+                UsageNoticeCard(
+                    usage: usage,
+                    onSeePlans: {
+                        viewModel.dismissUsageNotice()
+                        onSeePlans()
+                    },
+                    onClose: viewModel.dismissUsageNotice
+                )
+                .padding(EdgeInsets(top: 16, leading: WindowLayout.horizontalPadding, bottom: 0, trailing: WindowLayout.horizontalPadding))
             }
             Tabs(viewModel: viewModel)
             if viewModel.isLibraryEmpty {

@@ -30,8 +30,70 @@ private let importer = FakeImporter(outcomes: [
 
 private func file(_ name: String) -> URL { URL(fileURLWithPath: "/tmp/\(name)") }
 
+private let mib: Int64 = 1024 * 1024
+
+private struct PendingBooks: BookUploadRepository {
+    let items: [PendingUpload]
+    func pending() async throws -> [PendingUpload] { items }
+    func markUploaded(bookId: String, sizeBytes: Int64, coverUploaded: Bool) async throws {}
+}
+
+private func pendingBook(_ id: String, _ title: String, _ size: Int64) -> PendingUpload {
+    PendingUpload(book: RemoteBook(id: id, title: title, authors: [], sizeBytes: size), file: URL(filePath: "/\(id).epub"))
+}
+
+private func quotaCheck(used: Int64?, _ items: [PendingUpload], plan: String = "library") -> ImportQuotaCheck {
+    ImportQuotaCheck(
+        uploads: PendingBooks(items: items),
+        cache: PlansMemoryQuotaCache(used.map { StorageQuota(usedBytes: $0, quotaBytes: 15 * mib, plan: plan) })
+    )
+}
+
 @MainActor
 struct HomeImportTests {
+    @Test("PLN-008: si el libro importado no entra, se importa igual y aparece la hoja; Ahora no la cierra")
+    func importedBookDoesNotFit() async {
+        let check = quotaCheck(used: 12 * mib, [pendingBook("a", "Walden", 8 * mib)])
+        let viewModel = HomeViewModel(library: CountingLibrary(), importer: importer, quotaCheck: check)
+        await viewModel.importBooks([file("a.epub")])
+        #expect(viewModel.messages == ["Se importó 1 libro."])
+        #expect(viewModel.quotaBlock?.title == "Walden")
+        #expect(viewModel.quotaBlock?.block == .doesNotFit(bookBytes: 8 * mib, freeBytes: 3 * mib))
+        viewModel.dismissQuotaBlock()
+        #expect(viewModel.quotaBlock == nil)
+    }
+
+    @Test("PLN-014: en Gratis un libro de 3 MB se importa igual y aparece la hoja de archivo muy grande")
+    func importedBookTooLarge() async {
+        let check = quotaCheck(used: 0, [pendingBook("a", "Walden", 3 * mib)], plan: "free")
+        let viewModel = HomeViewModel(library: CountingLibrary(), importer: importer, quotaCheck: check)
+        await viewModel.importBooks([file("a.epub")])
+        #expect(viewModel.messages == ["Se importó 1 libro."])
+        #expect(viewModel.quotaBlock?.block == .tooLarge(bookBytes: 3 * mib, maxBytes: 2 * mib))
+    }
+
+    @Test("PLN-007: con el espacio lleno aparece la hoja de espacio lleno")
+    func importedWithFullSpace() async {
+        let check = quotaCheck(used: 15 * mib, [pendingBook("a", "Walden", mib)])
+        let viewModel = HomeViewModel(library: CountingLibrary(), importer: importer, quotaCheck: check)
+        await viewModel.importBooks([file("a.epub")])
+        #expect(viewModel.quotaBlock?.block == .full)
+    }
+
+    @Test("PLN-009: sin cuota conocida y dentro de los 2 MB de Gratis, o si el libro ya estaba, no hay hoja")
+    func noSheet() async {
+        let unknown = HomeViewModel(
+            library: CountingLibrary(), importer: importer, quotaCheck: quotaCheck(used: nil, [pendingBook("a", "Walden", 2 * mib)])
+        )
+        await unknown.importBooks([file("a.epub")])
+        #expect(unknown.quotaBlock == nil)
+        let repeated = HomeViewModel(
+            library: CountingLibrary(), importer: importer, quotaCheck: quotaCheck(used: 15 * mib, [pendingBook("c", "Meditaciones", mib)])
+        )
+        await repeated.importBooks([file("c.epub")])
+        #expect(repeated.quotaBlock == nil)
+    }
+
     @Test("SYN-001: importar pide una sincronización para subir lo importado")
     func importRequestsSync() async {
         var requests = 0

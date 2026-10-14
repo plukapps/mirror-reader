@@ -85,8 +85,15 @@ private struct FakeQuota: QuotaSource {
 
 private struct Boom: Error {}
 
-private func quota(used: Int64 = 0, limit: Int64 = 15 * mib) -> FakeQuota {
-    FakeQuota(quota: StorageQuota(usedBytes: used, quotaBytes: limit))
+private final class SavedQuota: QuotaCache, @unchecked Sendable {
+    var saved: StorageQuota?
+    func last() -> StorageQuota? { saved }
+    func save(_ quota: StorageQuota) { saved = quota }
+}
+
+/// Biblioteca por defecto: estos tests miran el espacio; el tope por archivo (PLN-014) tiene los suyos.
+private func quota(used: Int64 = 0, limit: Int64 = 15 * mib, plan: String = "library") -> FakeQuota {
+    FakeQuota(quota: StorageQuota(usedBytes: used, quotaBytes: limit, plan: plan))
 }
 
 private func useCase(
@@ -192,6 +199,28 @@ struct UploadBooksTests {
         #expect(report.unreachable)
         #expect(await uploads.marked.isEmpty)
         #expect(await !calls.all.contains("archivo:b"))
+    }
+
+    @Test("PLN-009: la cuota leída en cada pasada queda guardada")
+    func savesQuota() async {
+        let cache = SavedQuota()
+        let uploads = FakeUploads([pending("a", mib)], calls: calls)
+        _ = await UploadBooks(
+            uploads: uploads, files: FakeFiles(calls: calls), covers: FakeFiles(calls: calls), library: FakeRemote(calls: calls),
+            quota: quota(used: 2 * mib), cache: cache
+        )()
+        #expect(cache.saved == StorageQuota(usedBytes: 2 * mib, quotaBytes: 15 * mib, plan: "library"))
+    }
+
+    @Test("PLN-014: en Gratis no se sube lo que supera 2 MB y cuenta como sin espacio; justo 2 MB sí")
+    func maxFileSize() async {
+        let uploads = FakeUploads([pending("grande", 3 * mib), pending("justo", 2 * mib)], calls: calls)
+        let report = await useCase(
+            uploads, files: FakeFiles(calls: calls), remote: FakeRemote(calls: calls), quota: quota(plan: "free")
+        )()
+        #expect(report == UploadReport(uploaded: 1, notEnoughSpace: 1))
+        #expect(await uploads.markedOrder == ["justo"])
+        #expect(await !calls.all.contains("archivo:grande"))
     }
 
     @Test("LIB-009: si no se puede leer la cuota no se sube nada")

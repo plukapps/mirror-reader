@@ -23,8 +23,8 @@ Primera rebanada: Android (teléfono y tablet) e iPhone. La Mac queda afuera has
 
 ### Cuenta
 
-- **PRF-006** Sección "Cuenta". Primero el espacio (ACC-003): "Espacio", la etiqueta del plan ("GRATIS"), una barra con la proporción usada, "X GB de Y GB usados" y "Z GB libres". Los tres tamaños usan la unidad del total (GB si el total es de 1 GB o más; si no, MB), con un decimal como máximo y coma decimal ("2 GB", "1,2 GB", "3,4 MB"). "Mejorar plan" aparece solo en el plan gratuito y avisa (PRF-003). Sin conexión o si no se puede leer, muestra el último valor conocido; si nunca se leyó, la barra vacía y "No se pudo cargar el espacio".
-- **PRF-007** "Dispositivos vinculados" (ACC-006): por ahora lista solo este dispositivo, con su ícono (teléfono o tablet), su nombre y "· este dispositivo". La lista de los otros dispositivos y "Desvincular" llegan con el registro de dispositivos.
+- **PRF-006** Sección "Cuenta". Primero el espacio (ACC-003): "Espacio", la etiqueta del plan ("GRATIS"), una barra con la proporción usada, "X GB de Y GB usados" y "Z GB libres". Los tres tamaños usan la unidad del total (GB si el total es de 1 GB o más; si no, MB), con un decimal como máximo y coma decimal ("2 GB", "1,2 GB", "3,4 MB"). "Mejorar plan" aparece solo en el plan gratuito y abre Planes (PLN-002). Tocar el bloque del espacio abre Mi plan (PLN-012). Sin conexión o si no se puede leer, muestra el último valor conocido; si nunca se leyó, la barra vacía y "No se pudo cargar el espacio".
+- **PRF-007** "Dispositivos vinculados" (ACC-006): por ahora lista solo este dispositivo, con su ícono (teléfono o tablet), su nombre y "· este dispositivo". La lista de los otros dispositivos y "Desvincular" llegan con el registro de dispositivos. Mientras tanto la sección no se muestra: después del espacio sigue directamente "Cambiar contraseña" (o "Cerrar sesión").
 - **PRF-008** "Cambiar contraseña" se muestra solo si la cuenta entra con email y contraseña; con Google (o Apple) no aparece. Tocarla abre la pantalla de PRF-020.
 - **PRF-009** "Cerrar sesión" pide confirmación. Si hay cambios de este dispositivo que todavía no se subieron (libros importados sin subir, progreso, libros quitados o notas), la confirmación lo dice y avisa que se pierden. Al confirmar: se cierra la sesión, se borran de este dispositivo los libros, portadas, progreso y preferencias de esta cuenta (siguen en la nube), y la app vuelve a la bienvenida (ONB-001). Al volver a entrar con la misma cuenta, la biblioteca vuelve desde la nube (escenario de ACC).
 - **PRF-010** "Eliminar cuenta", debajo de "Cerrar sesión", en rojo (CMP-001). En esta rebanada avisa (PRF-003); el borrado real llega en su propia rebanada, antes de publicar.
@@ -33,8 +33,8 @@ Primera rebanada: Android (teléfono y tablet) e iPhone. La Mac queda afuera has
 
 - **PRF-011** Sección "Ajustes de lectura" con la bajada "Se aplican a todos tus libros." Los ajustes son los mismos del panel del lector (RDR-014) y se guardan en el mismo lugar: cambiar uno aquí cambia el lector y viceversa.
 - **PRF-012** Una vista previa con un párrafo de muestra que usa en el momento la letra, el tamaño, el tema y el interlineado elegidos.
-- **PRF-013** "Letra" muestra el tipo y el tamaño (por ejemplo "Newsreader · 18", escrito en esa letra). Tocarla abre un panel con el tipo de letra y los botones "A−" y "A+" del panel del lector.
-- **PRF-014** "Tema": tres círculos (Clásico, Sepia, Noche) con el elegido resaltado como en el diseño; tocar uno lo elige.
+- **PRF-013** "Letra" muestra el tipo y el tamaño (por ejemplo "Newsreader · 18", escrito en esa letra). Tocarla abre un panel con el tipo de letra y los botones "A−" y "A+" del panel del lector. En Gratis, las opciones pagas abren la hoja de función paga (PLN-015).
+- **PRF-014** "Tema": tres círculos (Clásico, Sepia, Noche) con el elegido resaltado como en el diseño; tocar uno lo elige. En Gratis, las opciones pagas abren la hoja de función paga (PLN-015).
 - **PRF-015** "Interlineado": botones con ícono para las opciones del lector, el elegido en negro con el ícono amarillo; tocar uno lo elige.
 
 ### App
@@ -85,4 +85,4 @@ Primera rebanada: Android (teléfono y tablet) e iPhone. La Mac queda afuera has
 
 ## Fuera de alcance en esta rebanada
 
-Pantalla de cuenta (editar nombre), planes pagos y "Mejorar plan", registro de dispositivos y "Desvincular", borrado real de la cuenta (CMP-001, rebanada propia antes de publicar), descarga automática, tema oscuro del onboarding, idioma, ajustes de lectura por libro, exportar datos (CMP-008), páginas de Términos y Privacidad (CMP-002, CMP-003), contacto (CMP-004), meta diaria e intereses del onboarding, Mac.
+Pantalla de cuenta (editar nombre), planes pagos (Planes y Mi plan están en `12-plans.md`), registro de dispositivos y "Desvincular", borrado real de la cuenta (CMP-001, rebanada propia antes de publicar), descarga automática, tema oscuro del onboarding, idioma, ajustes de lectura por libro, exportar datos (CMP-008), páginas de Términos y Privacidad (CMP-002, CMP-003), contacto (CMP-004), meta diaria e intereses del onboarding, Mac.
