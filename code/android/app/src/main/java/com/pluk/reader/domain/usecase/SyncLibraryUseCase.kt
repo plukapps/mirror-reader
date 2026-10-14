@@ -31,7 +31,7 @@ data class SyncReport(
 /**
  * Deja la biblioteca igual en la nube y en este dispositivo (SYN-001, LIB-007): trae los libros que hay en la nube,
  * sube los importados que faltan (LIB-009 decide cuáles entran en la cuota), sincroniza las portadas (LIB-012) y baja
- * los archivos que aún no están aquí, y envía las posiciones de lectura pendientes. Antes envía los libros quitados aquí y
+ * los archivos que aún no están aquí, y envía las posiciones de lectura y las notas pendientes. Antes envía los libros quitados aquí y
  * quita los borrados en otros dispositivos (LIB-020). Cada paso se puede repetir sin duplicar nada. Sin conexión corta la pasada.
  */
 class SyncLibraryUseCase @Inject constructor(
@@ -42,6 +42,7 @@ class SyncLibraryUseCase @Inject constructor(
     private val cloud: CloudBooksRepository,
     private val positions: PositionFlusher,
     private val removals: CloudRemovals,
+    private val notes: NoteFlusher,
     private val gate: SyncGate = SyncGate.ALWAYS_OPEN,
 ) {
     suspend operator fun invoke(): SyncReport {
@@ -77,6 +78,8 @@ class SyncLibraryUseCase @Inject constructor(
         // Los libros recién subidos ya existen en la nube: ahora puede salir la posición de lectura que estaba
         // esperándolos (SYN-011).
         positions.flush()
+        // SYN-016: igual con las notas de los libros recién subidos. Si la función está apagada, no hace nada (SYN-017).
+        notes.flush()
         return SyncReport(upload, downloaded, failed)
     }
 }

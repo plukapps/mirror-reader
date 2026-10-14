@@ -121,10 +121,12 @@ class CloudListeners @Inject constructor(
     private val library: LibraryWatcher,
     private val gate: SyncGateWatcher,
     private val flags: RemoteFeatureFlags,
+    private val notes: NoteSync,
 ) : CloudListener {
     override fun startListening() {
         // ACC-011, SYN-017: primero los interruptores, que deciden qué más se sincroniza.
         flags.startListening()
+        notes.startListening()
         removals.startListening()
         library.startListening()
         gate.startListening()
@@ -132,6 +134,7 @@ class CloudListeners @Inject constructor(
 
     override fun stopListening() {
         flags.stopListening()
+        notes.stopListening()
         removals.stopListening()
         library.stopListening()
         gate.stopListening()

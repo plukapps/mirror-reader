@@ -5,7 +5,6 @@ Plan de referencia: `specs/plans/2026-10-06-android-epub-viewer.md`
 
 ## Backlog
 
-- **K-274** Sync de notas, Tarea 5: subir y bajar notas, gana la última edición, listener con la app a la vista. SYN-016, SYN-005.
 - **K-275** Sync de notas, Tarea 6: cerrar sesión avisa por notas sin subir. PRF-009.
 - **K-276** Sync de notas, Tarea 7: parámetro en Remote Config y deploy de reglas (acciones sobre el proyecto real, las aprueba el usuario).
 - **K-277** Sync de notas, Tarea 8: cierre de docs y verificación a mano en el teléfono y la tablet.
@@ -54,6 +53,7 @@ Plan de referencia: `specs/plans/2026-10-06-android-epub-viewer.md`
 
 ## Revisión
 
+- **K-274** Sync de notas, Tarea 5: subir y bajar notas, gana la última edición, listener con la app a la vista. SYN-016, SYN-005. Hecho: `RemoteNotes`/`FirestoreNotes` (transacción que no pisa una edición más nueva), `NoteSyncCursor` en DataStore, `NoteSync` (sube pendientes, escucha con la app a la vista, solo con la función prendida y la red permitida; al prenderse sube y escucha). Paso en `SyncLibraryUseCase`, listener en `CloudListeners`, el lector sube al guardar o borrar. 9 tests JVM nuevos; 441 pasan.
 - **K-273** Sync de notas, Tarea 4: Room v9 con marcas de borrado y pendientes en `notes`. SYN-007, SYN-016. Hecho: Room v9 (`MIGRATION_8_9`, esquema 9) con `deletedAt` y `syncedAt` (la versión que la nube tiene); `NoteSyncStore` (pendientes, `markSynced`, `applyRemote` solo si es más nueva, purga). Borrar una nota que la nube nunca tuvo la elimina; si no, la marca. Quitar un libro marca sus notas subidas. 432 JVM pasan; `NoteRepositoryTest` (7 casos nuevos) y `MigrationTest` 8→9 compilados, sin correr.
 - **K-272** Sync de notas, Tarea 3: interruptor `notes_sync_enabled` con Remote Config y señal `plan` (Android). SYN-017, ACC-011. Hecho: `Feature`, `FeatureFlags`, `RemoteFeatureFlags` (dominio) y `FirebaseRemoteFlagSource` (Remote Config 24.0.0 por el BoM 35; API verificada con `javap`). Señal `plan` desde `QuotaCache`. Arranca dentro de `CloudListeners`. 4 tests JVM; 432 pasan.
 - **K-271** Sync de notas, Tarea 2: reglas de `users/{uid}/notes` y tests con emuladores. SYN-016, SYN-005, SYN-007. Deploy pedido al usuario. Hecho: reglas de `users/{uid}/notes/{noteId}` y 10 tests (107 pasan con emuladores; verificado por mutación). `backend.md` actualizado. Falta el deploy a `mirror-reading-staging` (K-276, lo aprueba el usuario).

@@ -43,9 +43,9 @@
 
 - Room v9 (`MIGRATION_8_9`). `notes` suma:
   - `deletedAt INTEGER NULL`;
-  - `isSynced INTEGER NOT NULL DEFAULT 0`;
-  - `editedAt` (hoy `updatedAt`, se renombra en el modelo).
-- Borrar una nota pasa a marcarla (`deletedAt`) y dejarla pendiente. Las pantallas no ven las borradas.
+  - `syncedAt INTEGER NULL`: el `updatedAt` que la nube ya tiene, o null si nunca llegó. Pendiente = `syncedAt` null o menor que `updatedAt`. Reemplaza al `isSynced` pensado al principio: además dice si la nube tuvo la nota alguna vez (K-273).
+  - `updatedAt` se queda con su nombre en la base y el modelo; en la nube se llama `editedAt`.
+- Borrar una nota que la nube nunca tuvo la elimina. Si la tuvo, la marca (`deletedAt`) y la deja pendiente. Las pantallas no ven las borradas.
 - Una nota borrada y ya subida se elimina de la base en la siguiente pasada.
 - Con el flag apagado se conservan, para subirlas al prender (SYN-017).
 - Quitar un libro (ANN-011) marca sus notas como borradas en lugar de eliminarlas, así el borrado llega a los otros dispositivos. El documento del libro sigue existiendo con su `deletedAt`, así que la regla las acepta. Si el libro nunca se subió, se eliminan como hoy.
@@ -67,7 +67,7 @@
 - `NoteSync` (dominio) detrás de `RemoteNotes` (data: `FirestoreNotes`):
   - **Subir:** las pendientes cuyo libro ya está en la nube. Al terminar, `markSynced(id, editedAt)`. Si hubo otra edición en el medio, sigue pendiente, como las posiciones.
   - **Bajar:** las que cambiaron desde el último `updatedAt` visto, cursor guardado en DataStore por cuenta. Se aplican solo si su `editedAt` es mayor que el local; una nota borrada en la nube se marca o se elimina acá.
-  - **Lógica pura en JVM:** `mergeRemoteNote(local, remote)` devuelve qué hacer.
+  - **Quién gana:** lo decide la base con escrituras condicionales (`replaceIfOlder`, `deleteIfNotNewer`), como las posiciones; así una edición local que llega en el medio no se pisa. `NoteSync` se prueba en JVM con dobles que siguen las mismas reglas.
 - Cuándo corre:
   - un paso más de `SyncLibraryUseCase`, después de las posiciones (SYN-001);
   - un listener de `notes` con la app a la vista (`CloudListeners`, SYN-016 "en segundos");

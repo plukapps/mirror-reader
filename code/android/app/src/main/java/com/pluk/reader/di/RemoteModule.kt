@@ -2,6 +2,13 @@ package com.pluk.reader.di
 
 import com.pluk.reader.data.flags.FirebaseRemoteFlagSource
 import com.pluk.reader.data.remote.FirebaseBookFileStore
+import com.pluk.reader.data.remote.FirestoreNotes
+import com.pluk.reader.data.repository.NoteSyncCursorImpl
+import com.pluk.reader.domain.remote.NoteSyncCursor
+import com.pluk.reader.domain.remote.RemoteNotes
+import com.pluk.reader.domain.usecase.NoteFlushRequester
+import com.pluk.reader.domain.usecase.NoteFlusher
+import com.pluk.reader.domain.usecase.NoteSync
 import com.pluk.reader.domain.flags.FeatureFlags
 import com.pluk.reader.domain.flags.RemoteFeatureFlags
 import com.pluk.reader.domain.flags.RemoteFlagSource
@@ -71,6 +78,12 @@ abstract class RemoteModule {
     // ACC-011, SYN-017, ADR 0016: funciones que se prenden y apagan con Remote Config.
     @Binds @Singleton abstract fun bindFeatureFlags(impl: RemoteFeatureFlags): FeatureFlags
     @Binds @Singleton abstract fun bindRemoteFlagSource(impl: FirebaseRemoteFlagSource): RemoteFlagSource
+
+    // SYN-016: notas.
+    @Binds @Singleton abstract fun bindRemoteNotes(impl: FirestoreNotes): RemoteNotes
+    @Binds @Singleton abstract fun bindNoteSyncCursor(impl: NoteSyncCursorImpl): NoteSyncCursor
+    @Binds @Singleton abstract fun bindNoteFlusher(impl: NoteSync): NoteFlusher
+    @Binds @Singleton abstract fun bindNoteFlushRequester(impl: NoteSync): NoteFlushRequester
 
     // PRF-023: sincronizar solo con Wi-Fi.
     @Binds @Singleton abstract fun bindSyncGate(impl: NetworkSyncGate): SyncGate

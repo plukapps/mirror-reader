@@ -22,6 +22,7 @@ import com.pluk.reader.domain.repository.NoteRepository
 import com.pluk.reader.domain.repository.PositionRepository
 import com.pluk.reader.domain.repository.SettingsRepository
 import com.pluk.reader.domain.usecase.DownloadBookUseCase
+import com.pluk.reader.domain.usecase.NoteFlushRequester
 import com.pluk.reader.domain.usecase.OpeningPosition
 import com.pluk.reader.domain.usecase.PositionSync
 import com.pluk.reader.domain.usecase.ReadingSession
@@ -57,6 +58,7 @@ class ReaderViewModel @Inject constructor(
     private val resolveOpeningPosition: ResolveOpeningPositionUseCase,
     private val readingSession: ReadingSession,
     private val notes: NoteRepository,
+    private val noteUploads: NoteFlushRequester,
 ) : ViewModel() {
 
     private data class PendingPosition(val locatorJson: String, val totalProgression: Double?)
@@ -271,6 +273,8 @@ class ReaderViewModel @Inject constructor(
                 existing?.copy(text = body, updatedAt = now)
                     ?: Note(UUID.randomUUID().toString(), bookId, editor.locatorJson, editor.quote, body, editor.progression, now, now),
             )
+            // SYN-016: sale enseguida, así llega a los otros dispositivos en segundos.
+            noteUploads.requestFlush()
         }
     }
 
@@ -286,7 +290,10 @@ class ReaderViewModel @Inject constructor(
     fun deleteNote() {
         val id = _noteEditor.value?.noteId ?: return
         _noteEditor.value = null
-        viewModelScope.launch { notes.delete(id) }
+        viewModelScope.launch {
+            notes.delete(id)
+            noteUploads.requestFlush()
+        }
     }
 
     /** ANN-008: cancelar no guarda nada. */
