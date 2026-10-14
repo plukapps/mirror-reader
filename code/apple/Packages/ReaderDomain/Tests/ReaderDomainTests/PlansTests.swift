@@ -16,6 +16,12 @@ func catalog() {
     #expect(PlanCatalog.storageText(.library, quota: nil) == "50 GB")
 }
 
+@Test("PLN-001 (K-291): en una cuenta paga, Gratis muestra la cuota de Gratis y no la de la cuenta")
+func freeStorageOfAPaidAccount() {
+    #expect(PlanCatalog.storageBytes(.free, quota: StorageQuota(usedBytes: 0, quotaBytes: 50 * gib, plan: "pro")) == 15 * mib)
+    #expect(PlanCatalog.storageText(.free, quota: StorageQuota(usedBytes: 0, quotaBytes: 5 * gib, plan: "plus")) == "15 MB")
+}
+
 @Test("PLN-001, PLN-004, PLN-005: precio, período y equivalencia por mes según la forma de pago")
 func prices() {
     let reader = PlanCatalog.plan(.reader)

@@ -140,9 +140,10 @@ public enum PlanCatalog {
         }
     }
 
-    /// PLN-001: espacio del plan; el de Gratis es la cuota de la cuenta.
+    /// PLN-001: espacio del plan; el de Gratis es la cuota de la cuenta si la cuenta está en Gratis.
     public static func storageBytes(_ id: PlanId, quota: StorageQuota?) -> Int64 {
-        plan(id).storageBytes ?? quota?.quotaBytes ?? freeQuotaBytes
+        // En una cuenta paga, Gratis no es la cuota de la cuenta sino la de Gratis de hoy (K-291).
+        plan(id).storageBytes ?? quota.flatMap { $0.isFreePlan ? $0.quotaBytes : nil } ?? freeQuotaBytes
     }
 
     /// "15 MB", "5 GB": con la unidad de su propio total (PRF-006).

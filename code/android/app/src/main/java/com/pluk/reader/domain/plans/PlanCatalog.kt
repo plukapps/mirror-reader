@@ -50,8 +50,12 @@ object PlanCatalog {
     /** PLN-014, ACC-008: tamaño máximo por archivo de la cuenta; el del servidor si se conoce, si no el fijo del plan. */
     fun maxFileBytes(quota: StorageQuota?): Long = quota?.maxFileBytes ?: of(planOf(quota)).maxFileBytes
 
-    /** PLN-001: espacio del plan; el de Gratis es la cuota de la cuenta. */
-    fun cloudBytes(plan: Plan, quota: StorageQuota?): Long = plan.cloudBytes ?: quota?.quotaBytes ?: FREE_QUOTA_BYTES
+    /**
+     * PLN-001: espacio del plan. El de Gratis es la cuota de la cuenta si la cuenta está en Gratis; en una cuenta paga
+     * (o sin dato), la de Gratis de hoy (K-291).
+     */
+    fun cloudBytes(plan: Plan, quota: StorageQuota?): Long =
+        plan.cloudBytes ?: quota?.takeIf { it.isFreePlan }?.quotaBytes ?: FREE_QUOTA_BYTES
 }
 
 /** Botón de compra de P01 (PLN-006): "Elegir {plan} · {precio} por {año|mes}". Sin prueba gratis por ahora. */

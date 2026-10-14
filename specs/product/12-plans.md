@@ -19,7 +19,7 @@ Primera rebanada: Android (teléfono y tablet) e iPhone. La Mac queda afuera has
 
 ### Catálogo
 
-- **PLN-001** Hay tres planes: Gratis, Lector y Biblioteca (en el servidor y en el catálogo, `free`, `plus` y `pro`, ACC-007). Cada uno tiene nombre, bajada, espacio en la nube, tamaño máximo por archivo, lista de lo que incluye y precio mensual y anual. Gratis usa la cuota real de la cuenta (ACC-002). El espacio de Lector y Biblioteca lo confirmó el usuario por ahora (2026-10-13); los precios son de ejemplo hasta definirlos (open-questions #1):
+- **PLN-001** Hay tres planes: Gratis, Lector y Biblioteca (en el servidor y en el catálogo, `free`, `plus` y `pro`, ACC-007). Cada uno tiene nombre, bajada, espacio en la nube, tamaño máximo por archivo, lista de lo que incluye y precio mensual y anual. Gratis usa la cuota real de la cuenta (ACC-002) si la cuenta está en Gratis; en una cuenta paga muestra la de Gratis (15 MB) y no la de la cuenta (K-291). El espacio de Lector y Biblioteca lo confirmó el usuario por ahora (2026-10-13); los precios son de ejemplo hasta definirlos (open-questions #1):
 
   | | Gratis | Lector | Biblioteca |
   |---|---|---|---|

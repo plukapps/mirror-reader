@@ -35,6 +35,13 @@ class PlanCatalogTest {
         assertEquals(5 * gib, PlanCatalog.cloudBytes(PlanCatalog.reader, StorageQuota(0, 20 * mib)))
     }
 
+    // PLN-001 (K-291): en una cuenta paga, Gratis no muestra la cuota de la cuenta sino la de Gratis (15 MB)
+    @Test
+    fun freeCloudSpaceOfAPaidAccountIsTheFreeQuota() {
+        assertEquals(15 * mib, PlanCatalog.cloudBytes(PlanCatalog.free, StorageQuota(0, 50 * gib, plan = "pro")))
+        assertEquals(15 * mib, PlanCatalog.cloudBytes(PlanCatalog.free, StorageQuota(0, 5 * gib, plan = "plus")))
+    }
+
     // PLN-006: sin prueba gratis; el botón lleva el precio del período elegido
     @Test
     fun ctaUsesThePriceOfTheBilling() {
