@@ -1,5 +1,6 @@
 package com.pluk.reader.remote
 
+import com.pluk.reader.domain.usecase.NoteFlusher
 import com.pluk.reader.domain.account.QuotaSource
 import com.pluk.reader.domain.account.StorageQuota
 import com.pluk.reader.domain.remote.BookFileStore
@@ -65,8 +66,12 @@ class FakeSyncBackend : BookUploadRepository, BookFileStore, RemoteLibrary, Quot
             removalSyncs++
             if (offline) Result.failure(unavailable()) else Result.success(Unit)
         },
+        NoteFlusher { noteFlushes++ },
         gate,
     )
+
+    /** Cuántas veces la pasada pidió subir las notas pendientes (SYN-016). */
+    var noteFlushes = 0
 
     /** Cuántas veces la pasada envió y aplicó borrados (LIB-020). */
     var removalSyncs = 0

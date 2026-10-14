@@ -16,6 +16,7 @@ Identidad para sincronizar, y base para un modelo de pago futuro.
 - **ACC-008** Los límites que valen son los del servidor. La app usa y muestra los que el servidor le informa. Solo mientras todavía no los obtuvo usa valores propios por defecto, y estos nunca habilitan algo que el servidor rechace.
 - **ACC-009** Al cambiar los valores de un plan, se aplican a todos los usuarios de ese plan. Nunca se borra nada: si el espacio usado queda por encima del nuevo total, se bloquean nuevas subidas (LIB-009) y se sigue leyendo.
 - **ACC-010** Un archivo más grande que el máximo por archivo del plan se rechaza al subir, con una explicación que dice el máximo.
+- **ACC-011** Las funciones que dependen del plan (por ahora, la sincronización de notas, SYN-017) se pueden prender o apagar desde la administración del producto, para todas las cuentas o por plan, sin publicar una versión nueva de la app. Mientras no haya cobro, todas las cuentas tienen todo prendido.
 
 - La pantalla de planes, los avisos de cuota y Mi plan están en `12-plans.md` (PLN).
 

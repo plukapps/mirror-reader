@@ -60,6 +60,8 @@ import androidx.navigation.NamedNavArgument
 import androidx.navigation.NavBackStackEntry
 import androidx.navigation.NavGraphBuilder
 import com.pluk.reader.ui.theme.LightPalette
+import com.pluk.reader.ui.detail.BookDetailScreen
+import com.pluk.reader.ui.detail.BookDetailViewModel
 import com.pluk.reader.ui.theme.ReaderTheme
 import com.pluk.reader.ui.theme.LocalMarginPalette
 import com.pluk.reader.ui.theme.SystemBarsEffect
@@ -79,12 +81,14 @@ object Routes {
     const val FORGOT = "forgot?${ForgotPasswordViewModel.ARG_EMAIL}={${ForgotPasswordViewModel.ARG_EMAIL}}"
     const val RESET = "reset?${ResetPasswordViewModel.ARG_CODE}={${ResetPasswordViewModel.ARG_CODE}}"
     const val LIBRARY = "library?${LibraryViewModel.ARG_FILTER}={${LibraryViewModel.ARG_FILTER}}"
-    const val READER = "reader/{${ReaderViewModel.ARG_BOOK_ID}}"
+    const val READER = "reader/{${ReaderViewModel.ARG_BOOK_ID}}?${ReaderViewModel.ARG_NOTE_ID}={${ReaderViewModel.ARG_NOTE_ID}}"
     const val SEARCH = "search"
     const val PROFILE = "profile"
     const val FAQ_LIST = "profile/faq"
     const val FAQ_ANSWER = "profile/faq/{key}"
     const val CHANGE_PASSWORD = "profile/password"
+    const val BOOK_DETAIL = "book/{${BookDetailViewModel.ARG_BOOK_ID}}"
+    fun bookDetail(bookId: String): String = "book/$bookId"
 
     /** P01 Planes (PLN-002): pantalla completa, sin barra inferior. */
     const val PLANS = "plans"
@@ -93,7 +97,9 @@ object Routes {
     const val MY_PLAN = "profile/plan"
     fun faqAnswer(key: String): String = "profile/faq/$key"
 
-    fun reader(bookId: String): String = "reader/$bookId"
+    /** El lector en la última posición del libro o, con [noteId], en el lugar de esa nota (ANN-010). */
+    fun reader(bookId: String, noteId: String? = null): String =
+        if (noteId == null) "reader/$bookId" else "reader/$bookId?${ReaderViewModel.ARG_NOTE_ID}=${Uri.encode(noteId)}"
 
     fun signUp(name: String = "", email: String = ""): String =
         "signup?${SignUpViewModel.ARG_NAME}=${Uri.encode(name)}&${SignUpViewModel.ARG_EMAIL}=${Uri.encode(email)}"
@@ -288,9 +294,23 @@ fun AppNavHost(
                         val id = Faq.byKey(entry.arguments?.getString("key").orEmpty())
                         if (id != null) FaqAnswerScreen(id, onBack = { navController.popBackStack() })
                     }
+                    // LIB-022: detalle del libro, sin barra inferior. Tocar una nota abre el lector en ella (ANN-010).
+                    composable(
+                        Routes.BOOK_DETAIL,
+                        arguments = listOf(navArgument(BookDetailViewModel.ARG_BOOK_ID) { type = NavType.StringType }),
+                    ) {
+                        BookDetailScreen(
+                            onBack = { navController.popBackStack() },
+                            onRead = { navController.navigate(Routes.reader(it)) },
+                            onOpenNote = { bookId, noteId -> navController.navigate(Routes.reader(bookId, noteId)) },
+                        )
+                    }
                     lightComposable(
                         route = Routes.READER,
-                        arguments = listOf(navArgument(ReaderViewModel.ARG_BOOK_ID) { type = NavType.StringType }),
+                        arguments = listOf(
+                            navArgument(ReaderViewModel.ARG_BOOK_ID) { type = NavType.StringType },
+                            navArgument(ReaderViewModel.ARG_NOTE_ID) { type = NavType.StringType; nullable = true; defaultValue = null },
+                        ),
                     ) {
                         ReaderScreen(onBack = { navController.popBackStack() })
                     }
@@ -308,7 +328,12 @@ fun AppNavHost(
             }
         }
         if (selected != null) {
-            BookActionsHost(bookActions, onRead = { navController.navigate(Routes.reader(it)) }, bottomPadding = bottomPadding)
+            BookActionsHost(
+                bookActions,
+                onRead = { navController.navigate(Routes.reader(it)) },
+                onDetails = { navController.navigate(Routes.bookDetail(it)) },
+                bottomPadding = bottomPadding,
+            )
         }
         // P02, P03: hojas de planes pedidas por cualquier pantalla (también tras "Abrir con", sobre el lector).
         if (routeName != null && routeName !in LightOnlyRoutes) {

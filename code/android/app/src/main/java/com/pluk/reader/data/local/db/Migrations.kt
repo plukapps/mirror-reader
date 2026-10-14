@@ -70,3 +70,26 @@ val MIGRATION_6_7 = object : Migration(6, 7) {
         db.execSQL("UPDATE `removed_books` SET `cloudDeleted` = 1")
     }
 }
+
+/** Notas sobre un texto del libro (ANN-003). */
+val MIGRATION_7_8 = object : Migration(7, 8) {
+    override fun migrate(db: SupportSQLiteDatabase) {
+        db.execSQL(
+            "CREATE TABLE IF NOT EXISTS `notes` (`id` TEXT NOT NULL, `bookId` TEXT NOT NULL, `locatorJson` TEXT NOT NULL, " +
+                "`quote` TEXT NOT NULL, `text` TEXT NOT NULL, `progression` REAL NOT NULL, `createdAt` INTEGER NOT NULL, " +
+                "`updatedAt` INTEGER NOT NULL, PRIMARY KEY(`id`))",
+        )
+        db.execSQL("CREATE INDEX IF NOT EXISTS `index_notes_bookId` ON `notes` (`bookId`)")
+    }
+}
+
+/**
+ * Sincronizar notas (SYN-016): marca de borrado (SYN-007) y la versión que la nube ya tiene. Las notas de antes nunca
+ * llegaron a la nube: quedan pendientes y se suben una vez.
+ */
+val MIGRATION_8_9 = object : Migration(8, 9) {
+    override fun migrate(db: SupportSQLiteDatabase) {
+        db.execSQL("ALTER TABLE `notes` ADD COLUMN `deletedAt` INTEGER")
+        db.execSQL("ALTER TABLE `notes` ADD COLUMN `syncedAt` INTEGER")
+    }
+}

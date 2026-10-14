@@ -81,7 +81,7 @@ struct ProfileView: View {
         } message: { dialog in
             Text(
                 dialog.hasPendingChanges
-                    ? "Hay libros o progreso de lectura que todavía no se subieron. Si cerrás sesión ahora, se pierden."
+                    ? "Hay libros, progreso de lectura o notas que todavía no se subieron. Si cerrás sesión ahora, se pierden."
                     : "Tus libros siguen en tu cuenta. En este dispositivo se borran hasta que vuelvas a entrar."
             )
         }

@@ -54,7 +54,7 @@ Opción 2.
 
 ## Consecuencias
 
-- **Un solo template para todo el proyecto.** `firebase deploy --only remoteconfig` reemplaza el template entero. Todos los parámetros de Remote Config, también `notes_sync_enabled` del ADR 0016 con sus condiciones, tienen que estar en `remoteconfig.template.json`; si no, el próximo deploy los borra. La rama que llegue segunda los junta en ese archivo.
+- **Un solo template para todo el proyecto.** `firebase deploy --only remoteconfig` reemplaza el template entero. Todos los parámetros de Remote Config, también `notes_sync_enabled` del ADR 0016 con sus condiciones, tienen que estar en `remoteconfig.template.json`; si no, el próximo deploy los borra. Pasó el 2026-10-14: la publicación de este trabajo (K-285) borró `notes_sync_enabled`, y el #41 lo restauró con un template único y `tests/remoteconfig.test.mjs`, que falla si falta un parámetro.
 
 - El template vive en `code/backend/v1/remoteconfig.template.json` y se publica con el CLI. Un cambio desde la consola funciona igual (dispara `onPlansUpdated`), pero deja el repo desactualizado: hay que traerlo de vuelta.
 - Orden de despliegue la primera vez: funciones, después el template (el trigger completa `maxFileBytes` en los usuarios existentes) y por último las reglas. Si las reglas salieran antes, un usuario sin `maxFileBytes` no podría subir.

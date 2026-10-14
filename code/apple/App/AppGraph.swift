@@ -17,7 +17,9 @@ enum AppGraph {
         /// Menú de un libro con mantener presionado (LIB-016).
         let bookActions: BookActionsViewModel
         /// nil en la Mac: Readium Swift solo soporta iOS (ADR 0013).
-        let makeReader: ((_ bookId: String) -> ReaderViewModel)?
+        let makeReader: ((_ bookId: String, _ noteId: String?) -> ReaderViewModel)?
+        /// LIB-022: el detalle de un libro con sus notas.
+        let makeDetail: (_ bookId: String) -> BookDetailViewModel
         /// Planes (PLN-002): quién lo abre y su estado.
         let plans: PlansPresenter
         /// Apariencia de la app (PRF-021).
@@ -45,6 +47,19 @@ enum AppGraph {
         let positions = firebase ? positionSync(store: store) : nil
         // PRF-006, PLN-009: la última cuota leída, que cada pasada actualiza. De ella sale el plan (PLN-014, PLN-015).
         let quotaCache = UserDefaultsQuotaCache()
+        // ACC-011, ADR 0016: interruptores remotos. Sin Firebase (y en los tests) quedan los valores por defecto.
+        let flags = FeatureFlags(
+            source: firebase ? FirebaseRemoteFlagSource() : nil,
+            plan: { quotaCache.last()?.plan ?? StorageQuota.freePlan }
+        )
+        // SYN-016, SYN-017: las notas, solo con la función prendida y la red permitida.
+        let notes = firebase
+            ? NoteSync(
+                remote: FirestoreNotes(), store: store,
+                cursor: UserDefaultsSyncPreferences(deviceName: UserDefaultsSyncPreferences.model),
+                flags: flags, account: FirebaseAccountRepository(), allowed: cloudAllowed
+            )
+            : nil
         // LIB-020: quitar un libro lo borra de la cuenta y de los otros dispositivos.
         let removals = firebase ? RemovalSync(remote: FirebaseRemovals(), local: store, account: FirebaseAccountRepository()) : nil
         #if os(iOS)
@@ -52,19 +67,19 @@ enum AppGraph {
         let loader = PublicationLoader()
         let importer = EpubImporter(store: store, files: files, loader: loader)
         let bookFiles: BookFiles = CoverExtractingBookFiles(store: store, importer: importer)
-        let reader: (importer: BookImporter, makeReader: (String) -> ReaderViewModel)? = readerParts(
+        let reader: (importer: BookImporter, makeReader: (String, String?) -> ReaderViewModel)? = readerParts(
             store: store, files: files, loader: loader, importer: importer, bookFiles: bookFiles, firebase: firebase, positions: positions,
-            cloudAllowed: cloudAllowed, quotaCache: quotaCache
+            cloudAllowed: cloudAllowed, quotaCache: quotaCache, noteSync: notes
         )
         #else
         let bookFiles: BookFiles = store
-        let reader: (importer: BookImporter, makeReader: (String) -> ReaderViewModel)? = nil
+        let reader: (importer: BookImporter, makeReader: (String, String?) -> ReaderViewModel)? = nil
         #endif
 
         // La sincronización vuelve a leer la base en Inicio y en la biblioteca cada vez que la cambia.
         let refs = ScreenRefs()
         let pass = positions.map {
-            libraryPass(store: store, bookFiles: bookFiles, positions: $0, removals: removals, quotaCache: quotaCache)
+            libraryPass(store: store, bookFiles: bookFiles, positions: $0, removals: removals, notes: notes, quotaCache: quotaCache)
         }
         // SYN-015: un libro agregado en otro dispositivo pide una pasada (la app a la vista).
         let watcher = firebase
@@ -72,7 +87,9 @@ enum AppGraph {
                 await MainActor.run { refs.sync?.request() }
             }
             : nil
-        let sync = SyncCoordinator(pass: pass, positions: positions, removals: removals, watcher: watcher, gate: gate) {
+        let sync = SyncCoordinator(
+            pass: pass, positions: positions, removals: removals, watcher: watcher, gate: gate, flags: flags, notes: notes
+        ) {
             await refs.home?.reload()
             await refs.library?.load()
         }
@@ -125,13 +142,16 @@ enum AppGraph {
                             let uploads = (try? await store.pending()) ?? []
                             let positions = await store.pendingPositions()
                             let removals = await store.pendingCloudRemovals()
-                            return !uploads.isEmpty || !positions.isEmpty || !removals.isEmpty
+                            // PRF-009, SYN-017: con la sincronización de notas apagada, cuentan todas las notas.
+                            let notes = await store.hasUnsyncedNotes(syncOn: await flags.isEnabled(.notesSync))
+                            return !uploads.isEmpty || !positions.isEmpty || !removals.isEmpty || notes
                         }
                     )
                 }
             ),
             bookActions: bookActions,
             makeReader: reader?.makeReader,
+            makeDetail: { BookDetailViewModel(bookId: $0, library: store, notes: store) },
             plans: PlansPresenter(cache: quotaCache),
             appearance: appearance,
             network: network,
@@ -151,7 +171,8 @@ enum AppGraph {
 
     /// Una pasada de sincronización de la biblioteca con Firebase (SYN-001), como `SyncLibraryUseCase` de Android.
     private static func libraryPass(
-        store: LibraryStore, bookFiles: BookFiles, positions: PositionSync, removals: RemovalSync?, quotaCache: QuotaCache
+        store: LibraryStore, bookFiles: BookFiles, positions: PositionSync, removals: RemovalSync?, notes: NoteSync?,
+        quotaCache: QuotaCache
     ) -> SyncCoordinator.Pass {
         let remote = FirestoreRemoteLibrary()
         let books = FirebaseBookStore()
@@ -164,7 +185,8 @@ enum AppGraph {
             upload: UploadBooks(uploads: store, files: books, covers: covers, library: remote, quota: FirestoreQuotaSource(), cache: quotaCache),
             download: DownloadBook(files: bookFiles, store: books),
             positions: positions,
-            removals: removals
+            removals: removals,
+            notes: notes
         )
         let log = Logger(subsystem: "com.pluk.reader", category: "LibrarySync")
         return { onChange in
@@ -188,8 +210,9 @@ enum AppGraph {
     #if os(iOS)
     private static func readerParts(
         store: LibraryStore, files: LibraryFiles, loader: PublicationLoader, importer: EpubImporter, bookFiles: BookFiles,
-        firebase: Bool, positions: PositionSync?, cloudAllowed: @escaping @Sendable () async -> Bool, quotaCache: QuotaCache
-    ) -> (importer: BookImporter, makeReader: (String) -> ReaderViewModel) {
+        firebase: Bool, positions: PositionSync?, cloudAllowed: @escaping @Sendable () async -> Bool, quotaCache: QuotaCache,
+        noteSync: NoteSync?
+    ) -> (importer: BookImporter, makeReader: (String, String?) -> ReaderViewModel) {
         let bookStore: BookFileStore = firebase ? FirebaseBookStore() : OfflineBookStore()
         // PRF-023: un libro solo en la nube no se baja sin Wi-Fi si así se eligió.
         let download = DownloadBook(files: bookFiles, store: bookStore, allowed: cloudAllowed)
@@ -206,10 +229,14 @@ enum AppGraph {
         }
         return (
             importer,
-            { bookId in
+            { bookId, noteId in
                 ReaderViewModel(
                     bookId: bookId, source: source, positions: store, settings: settings, sync: readerSync,
-                    plan: { PlanCatalog.planOf(quotaCache.last()) }
+                    plan: { PlanCatalog.planOf(quotaCache.last()) },
+                    notes: store,
+                    noteId: noteId,
+                    // SYN-016: una nota guardada o borrada sale enseguida.
+                    notesChanged: { noteSync?.requestFlush() }
                 )
             }
         )

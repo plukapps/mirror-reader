@@ -51,6 +51,21 @@ Estos pasos se hacen una vez por proyecto de Firebase, en la consola web:
 
 Al registrarse (email o Google), la función `onUserCreated` crea `users/{uid}` con el plan gratuito. Los límites de cada plan (espacio, máximo por archivo, precio) están en el parámetro `plans` de Remote Config, versionado en `remoteconfig.template.json` y publicado con `firebase deploy --only remoteconfig` (ADR 0017). Si Remote Config no responde, y siempre en el emulador, se usan los valores por defecto de `functions/src/plans.ts`, que un test mantiene iguales al template.
 
+## Remote Config
+
+El template de Remote Config del proyecto se versiona en `remoteconfig.template.json` (ADR 0016) y se publica con `firebase deploy --only remoteconfig --project mirror-reading-staging`, a pedido del usuario. Publicar **reemplaza el template entero**: un parámetro o una condición que no esté en el archivo desaparece del proyecto. Por eso:
+
+- Todo cambio de Remote Config se hace en este archivo y se publica desde aquí. Si se cambió algo en la consola, primero se trae con `firebase remoteconfig:get -o remoteconfig.template.json`.
+- Antes de publicar, `firebase remoteconfig:get` para comparar con lo que está publicado.
+- `tests/remoteconfig.test.mjs` exige que estén los parámetros que usan las apps, y en Android `FeatureTemplateTest` exige que cada `Feature` tenga su parámetro con el mismo valor por defecto.
+
+Parámetros:
+
+| Parámetro | Tipo | Para qué |
+|---|---|---|
+| `plans` | JSON | Catálogo de planes (ACC-007, ADR 0017, otra rama). |
+| `notes_sync_enabled` | booleano | Sincronización de notas (ACC-011, SYN-017). Por defecto `true`. |
+
 ## Despliegue
 
 Se despliega con el MCP de Firebase o con `firebase deploy` desde esta carpeta, siempre a pedido del usuario. Las portadas (`users/{uid}/covers/`, LIB-012) solo funcionan después de desplegar `storage.rules` (`firebase deploy --only storage --project mirror-reading-staging`). Las funciones de Storage van en `us-east1` y la de cuentas en `us-central1`.

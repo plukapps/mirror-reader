@@ -6,7 +6,7 @@ import UIKit
 
 /// Datos de este dispositivo para sincronizar la posición (SYN-011, SYN-012), en `UserDefaults`, como
 /// `SyncPreferencesImpl` de Android.
-struct UserDefaultsSyncPreferences: SyncPreferences, @unchecked Sendable {
+struct UserDefaultsSyncPreferences: SyncPreferences, NoteSyncCursor, @unchecked Sendable {
     // `UserDefaults` es seguro entre hilos, aunque no se declare `Sendable`.
     private let defaults: UserDefaults
     private let name: String
@@ -37,9 +37,19 @@ struct UserDefaultsSyncPreferences: SyncPreferences, @unchecked Sendable {
         defaults.set(NSNumber(value: value), forKey: Key.lastPositionsSeenAt)
     }
 
-    private enum Key {
+    /// SYN-016: desde dónde pedir los cambios de notas.
+    func lastNotesSeenAt() async -> Int64? {
+        (defaults.object(forKey: Key.lastNotesSeenAt) as? NSNumber)?.int64Value
+    }
+
+    func setLastNotesSeenAt(_ value: Int64) async {
+        defaults.set(NSNumber(value: value), forKey: Key.lastNotesSeenAt)
+    }
+
+    enum Key {
         static let deviceId = "sync.deviceId"
         static let lastPositionsSeenAt = "sync.lastPositionsSeenAt"
+        static let lastNotesSeenAt = "sync.lastNotesSeenAt"
     }
 
     #if os(iOS)

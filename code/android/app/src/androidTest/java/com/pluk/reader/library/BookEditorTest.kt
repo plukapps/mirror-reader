@@ -12,7 +12,9 @@ import com.pluk.reader.data.library.LibraryFiles
 import com.pluk.reader.data.local.db.ReaderDatabase
 import com.pluk.reader.data.repository.BookEditorImpl
 import com.pluk.reader.data.repository.CloudBooksRepositoryImpl
+import com.pluk.reader.data.repository.NoteRepositoryImpl
 import com.pluk.reader.data.repository.PositionRepositoryImpl
+import com.pluk.reader.domain.model.Note
 import com.pluk.reader.domain.model.ImportOutcome
 import com.pluk.reader.domain.remote.RemoteBook
 import java.io.File
@@ -81,6 +83,17 @@ class BookEditorTest {
     }
 
     // LIB-020: la sincronización no vuelve a traer un libro quitado
+    // ANN-011: quitar el libro borra sus notas y deja las de los demás
+    @Test
+    fun removeDeletesTheBookNotes() = runBlocking {
+        val notes = NoteRepositoryImpl(db.noteDao())
+        notes.save(Note("n1", "quitado", "{}", "cita", "nota", 0.1, 1, 1))
+        notes.save(Note("n2", "otro", "{}", "cita", "nota", 0.1, 1, 1))
+        editor.remove("quitado")
+        assertNull(notes.get("n1"))
+        assertEquals("otro", notes.get("n2")?.bookId)
+    }
+
     @Test
     fun cloudDoesNotBringBackARemovedBook() = runBlocking {
         cloud.addCloudOnly(listOf(remote("quitado"), remote("otro")))

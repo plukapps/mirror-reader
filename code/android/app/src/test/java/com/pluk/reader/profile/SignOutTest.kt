@@ -7,6 +7,13 @@ import com.pluk.reader.domain.onboarding.ReminderScheduler
 import com.pluk.reader.domain.usecase.CloudListener
 import com.pluk.reader.domain.usecase.LibraryPassGate
 import com.pluk.reader.domain.usecase.SignOut
+import com.pluk.reader.domain.usecase.notesAtRisk
+import com.pluk.reader.domain.flags.Feature
+import com.pluk.reader.domain.flags.FeatureFlags
+import com.pluk.reader.domain.repository.NoteSyncStore
+import com.pluk.reader.domain.repository.SyncNote
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import com.pluk.reader.onboarding.FakeAuth
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
@@ -98,5 +105,32 @@ class SignOutTest {
     fun reportsSignOutFailure() = runTest {
         auth.signOutResult = Result.failure(IllegalStateException("sin red"))
         assertTrue(signOut()().isFailure)
+    }
+
+    private class NotesStore(private val unsyncedWhenOn: Boolean, private val alive: Boolean) : NoteSyncStore {
+        override suspend fun pending() = emptyList<SyncNote>()
+        override suspend fun hasUnsynced(syncOn: Boolean) = if (syncOn) unsyncedWhenOn else alive
+        override suspend fun markSynced(id: String, editedAt: Long) = Unit
+        override suspend fun applyRemote(remote: SyncNote) = Unit
+        override suspend fun purgeSyncedDeletions() = Unit
+    }
+
+    private class Flags(on: Boolean) : FeatureFlags {
+        private val state = MutableStateFlow(on)
+        override fun state(feature: Feature): StateFlow<Boolean> = state
+    }
+
+    // PRF-009: notas que no llegaron a la nube avisan al cerrar sesión
+    @Test
+    fun unsyncedNotesAreAtRisk() = runTest {
+        assertTrue(notesAtRisk(NotesStore(unsyncedWhenOn = true, alive = true), Flags(on = true)))
+        assertFalse(notesAtRisk(NotesStore(unsyncedWhenOn = false, alive = true), Flags(on = true)))
+    }
+
+    // PRF-009, SYN-017: con la sincronización de notas apagada, cualquier nota de este dispositivo se perdería
+    @Test
+    fun withNotesSyncOffEveryNoteIsAtRisk() = runTest {
+        assertTrue(notesAtRisk(NotesStore(unsyncedWhenOn = false, alive = true), Flags(on = false)))
+        assertFalse(notesAtRisk(NotesStore(unsyncedWhenOn = false, alive = false), Flags(on = false)))
     }
 }

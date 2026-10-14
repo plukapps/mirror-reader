@@ -2,6 +2,7 @@
 @preconcurrency import ReadiumShared
 import ReaderDomain
 import SwiftUI
+import UIKit
 
 /// Pantalla del lector (RDR-001 a RDR-015, sin la animación de RDR-009), con los controles de las pantallas 06 a 08
 /// del diseño, como `ReaderScreen` de Android.
@@ -92,6 +93,20 @@ private struct ReadyReader: View {
     var body: some View {
         ReaderNavigator(publication: publication, initialLocatorJson: book.initialLocatorJson, viewModel: viewModel)
             .ignoresSafeArea()
+            // ANN-008, K-332: el menú de la selección, sobre el texto elegido.
+            .overlay {
+                if let selection = viewModel.selection {
+                    SelectionMenu(
+                        selection: selection,
+                        onNote: viewModel.noteFromSelection,
+                        onCopy: {
+                            UIPasteboard.general.string = selection.quote
+                            viewModel.dismissSelection()
+                        }
+                    )
+                    .ignoresSafeArea()
+                }
+            }
             .overlay(alignment: .top) {
                 if viewModel.controlsVisible {
                     ReaderTopBar(
@@ -138,6 +153,19 @@ private struct ReadyReader: View {
             .sheet(isPresented: tocBinding) {
                 TableOfContentsSheet(items: book.toc, onSelect: viewModel.select)
             }
+            // ANN-008, ANN-009: el editor de la nota nueva o de la tocada.
+            .sheet(item: noteBinding) { editor in
+                NoteEditorSheet(
+                    editor: editor,
+                    onSave: { text in Task { await viewModel.saveNote(text) } },
+                    onCancel: viewModel.closeNote,
+                    onDelete: { Task { await viewModel.deleteNote() } }
+                )
+                .presentationDetents([.medium, .large])
+                .presentationCornerRadius(28)
+                .presentationBackground(SheetColors.background)
+                .presentationDragIndicator(.hidden)
+            }
             .onChange(of: viewModel.tocOpen) { _, open in
                 if !open { tocPresented = false }
             }
@@ -146,6 +174,10 @@ private struct ReadyReader: View {
     /// RDR-014: el panel se cierra tocando el libro, arrastrándolo hacia abajo o con "Aa".
     private var settingsBinding: Binding<Bool> {
         Binding(get: { viewModel.settingsOpen }, set: { if !$0 { viewModel.closeSettings() } })
+    }
+
+    private var noteBinding: Binding<ReaderViewModel.NoteEditor?> {
+        Binding(get: { viewModel.noteEditor }, set: { if $0 == nil { viewModel.closeNote() } })
     }
 
     private var tocBinding: Binding<Bool> {
@@ -255,6 +287,62 @@ private struct FailedReader: View {
                 .background(MarginColors.inkFill, in: Capsule())
         }
         .padding(24)
+    }
+}
+/// ANN-008, K-332: menú propio de la selección, como el del diseño 06 y el de Android: Nota, Copiar y Compartir.
+/// Va arriba del texto elegido; si no entra, abajo. Se reemplaza el del sistema porque iOS 26 no muestra las acciones
+/// propias que agrega Readium 3.9. Compartir no cierra el menú al tocarlo (la hoja de compartir se presenta desde él);
+/// se va cuando la selección desaparece.
+private struct SelectionMenu: View {
+    let selection: ReaderViewModel.TextSelection
+    let onNote: () -> Void
+    let onCopy: () -> Void
+
+    private static let size = CGSize(width: 268, height: 44)
+    private static let gap: CGFloat = 10
+
+    var body: some View {
+        GeometryReader { proxy in
+            let frame = selection.frame
+            let width = proxy.size.width
+            let x = min(max(frame.midX, Self.size.width / 2 + 12), width - Self.size.width / 2 - 12)
+            let above = frame.minY - Self.gap - Self.size.height / 2
+            let y = above > Self.size.height ? above : frame.maxY + Self.gap + Self.size.height / 2
+            HStack(spacing: 0) {
+                item("Nota", systemImage: "square.and.pencil", id: "selection-note", action: onNote)
+                divider
+                item("Copiar", systemImage: "doc.on.doc", id: "selection-copy", action: onCopy)
+                divider
+                ShareLink(item: selection.quote) {
+                    label("Compartir", systemImage: "square.and.arrow.up")
+                }
+                .accessibilityIdentifier("selection-share")
+            }
+            .frame(width: Self.size.width, height: Self.size.height)
+            .background(Capsule().fill(SheetColors.background))
+            .shadow(color: .black.opacity(0.25), radius: 10, y: 4)
+            .position(x: x, y: y)
+        }
+    }
+
+    private var divider: some View {
+        Rectangle().fill(SheetColors.border).frame(width: 1, height: 22)
+    }
+
+    private func item(_ title: String, systemImage: String, id: String, action: @escaping () -> Void) -> some View {
+        Button(action: action) { label(title, systemImage: systemImage) }
+            .buttonStyle(.plain)
+            .accessibilityIdentifier(id)
+    }
+
+    private func label(_ title: String, systemImage: String) -> some View {
+        HStack(spacing: 5) {
+            Image(systemName: systemImage).font(.system(size: 13, weight: .semibold))
+            Text(title).font(.app(13, .semibold))
+        }
+        .foregroundStyle(SheetColors.ink)
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .contentShape(Rectangle())
     }
 }
 #endif

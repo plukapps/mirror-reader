@@ -70,6 +70,7 @@ class BookActionsMenuTest {
 
         compose.onNodeWithText("Bram Stoker · Sin empezar").assertIsDisplayed()
         compose.onNodeWithTag("action-Read").assertIsDisplayed()
+        compose.onNodeWithTag("action-Details").assertIsDisplayed()
         compose.onNodeWithTag("action-MarkFinished").assertIsDisplayed()
         compose.onNodeWithTag("action-ChangeCover").assertIsDisplayed()
         compose.onNodeWithTag("action-Remove").assertIsDisplayed()

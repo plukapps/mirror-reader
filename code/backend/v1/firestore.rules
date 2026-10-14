@@ -122,5 +122,53 @@ service cloud.firestore {
         && validPosition()
         && request.resource.data.readAt >= resource.data.readAt;
     }
+
+    // SYN-016, SYN-005, SYN-007: notas sobre un texto del libro (ANN-003). noteId = UUID de la nota.
+    // Gana la edición más reciente (editedAt, reloj del dispositivo), no la que llega último; updatedAt es del
+    // servidor y solo sirve para pedir lo que cambió. El libro tiene que existir (acota la cantidad).
+    // Borrar es poner deletedAt. Una nota borrada revive solo con una edición posterior al borrado: gana el último
+    // cambio también entre borrar y editar (SYN-005, SYN-010).
+    match /users/{uid}/notes/{noteId} {
+      function isDeviceTime(value) {
+        // Un reloj adelantado no puede bloquear para siempre a los demás dispositivos.
+        return value is int && value > 0 && value <= request.time.toMillis() + 3600000;
+      }
+
+      function validNote() {
+        let data = request.resource.data;
+        return data.keys().hasAll(['bookId', 'locatorJson', 'quote', 'text', 'progression', 'createdAt', 'editedAt', 'deletedAt', 'updatedAt'])
+          && data.keys().hasOnly(['bookId', 'locatorJson', 'quote', 'text', 'progression', 'createdAt', 'editedAt', 'deletedAt', 'updatedAt'])
+          && data.bookId is string && data.bookId.matches('^[a-f0-9]{64}$')
+          && data.locatorJson is string && data.locatorJson.size() >= 1 && data.locatorJson.size() <= 8192
+          && data.quote is string && data.quote.size() >= 1 && data.quote.size() <= 4000
+          && data.text is string && data.text.size() <= 10000
+          // Una nota viva tiene texto; una borrada puede llegar vacía.
+          && (data.deletedAt != null || data.text.size() >= 1)
+          && data.progression is number && data.progression >= 0 && data.progression <= 1
+          && isDeviceTime(data.createdAt)
+          && isDeviceTime(data.editedAt)
+          && (data.deletedAt == null || isDeviceTime(data.deletedAt))
+          && isServerTime(data.updatedAt);
+      }
+
+      allow read: if isOwner(uid);
+
+      allow create: if isOwner(uid)
+        && noteId.matches('^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$')
+        && validNote()
+        && exists(/databases/$(database)/documents/users/$(uid)/books/$(request.resource.data.bookId))
+        && request.resource.data.deletedAt == null;
+
+      // Un dispositivo atrasado no pisa una edición más nueva (SYN-005, SYN-010). Repetir el mismo editedAt se
+      // acepta (reenvío), pero no sirve para revivir una nota borrada. No hay delete.
+      allow update: if isOwner(uid)
+        && validNote()
+        && !request.resource.data.diff(resource.data).affectedKeys()
+             .hasAny(['bookId', 'locatorJson', 'quote', 'progression', 'createdAt'])
+        && request.resource.data.editedAt >= resource.data.editedAt
+        && (resource.data.deletedAt == null
+              || request.resource.data.deletedAt == resource.data.deletedAt
+              || request.resource.data.editedAt > resource.data.editedAt);
+    }
   }
 }
