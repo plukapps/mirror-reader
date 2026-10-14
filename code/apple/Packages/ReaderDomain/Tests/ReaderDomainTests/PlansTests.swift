@@ -63,9 +63,9 @@ func maxFile() {
 
 @Test("PLN-001, PLN-016: lo que incluye cada tarjeta, sin funciones en definición")
 func includes() {
-    #expect(PlanCatalog.free.includes == ["Lectura y notas sin tope", "Sincroniza en todos tus dispositivos", "Archivos de hasta 2 MB"])
-    #expect(PlanCatalog.plus.includes == ["Temas y fuentes", "Exportá notas a Markdown, Obsidian y Notion", "Archivos de hasta 50 MB"])
-    #expect(PlanCatalog.pro.includes == ["Todo lo de Lector", "Archivos de hasta 100 MB"])
+    #expect(DefaultPlans.free.includes == ["Lectura y notas sin tope", "Sincroniza en todos tus dispositivos", "Archivos de hasta 2 MB"])
+    #expect(DefaultPlans.plus.includes == ["Temas y fuentes", "Exportá notas a Markdown, Obsidian y Notion", "Archivos de hasta 50 MB"])
+    #expect(DefaultPlans.pro.includes == ["Todo lo de Lector", "Archivos de hasta 100 MB"])
 }
 
 @Test("PLN-003: uso con la unidad del total, proporción y barra; sin cuota no hay fila")

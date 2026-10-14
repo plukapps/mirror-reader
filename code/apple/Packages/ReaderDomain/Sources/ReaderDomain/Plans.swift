@@ -104,46 +104,24 @@ public struct PlanUsage: Equatable, Sendable {
     public var ratio: String { "\(Int((fraction * 100).rounded())) %" }
 }
 
-/// Catálogo de planes (PLN-001). Valores provisionales hasta definir precios (open-questions #1).
+/// Reglas de los planes sobre la cuenta (PLN-001). Los valores de cada plan, por ahora, son los de `DefaultPlans`.
 public enum PlanCatalog {
-    private static let mib: Int64 = 1024 * 1024
-    private static let gib: Int64 = 1024 * mib
-
-    /// Cuota de Gratis de hoy (backend `FREE_PLAN`), para cuando nunca se leyó la de la cuenta.
-    public static let freeQuotaBytes: Int64 = 15 * mib
     public static let annualSavingPercent = 30
 
-    public static let free = Plan(
-        id: .free, name: "Gratis", tagline: "Para leer de vez en cuando", storageBytes: nil, maxFileBytes: 2 * mib,
-        includes: ["Lectura y notas sin tope", "Sincroniza en todos tus dispositivos", "Archivos de hasta 2 MB"],
-        monthlyPrice: "$0", annualPrice: "$0", annualPerMonth: nil
-    )
-    public static let plus = Plan(
-        id: .plus, name: "Lector", tagline: "Para quien lee siempre", storageBytes: 5 * gib, maxFileBytes: 50 * mib,
-        includes: ["Temas y fuentes", "Exportá notas a Markdown, Obsidian y Notion", "Archivos de hasta 50 MB"],
-        monthlyPrice: "$2.99", annualPrice: "$24.99", annualPerMonth: "$2.08"
-    )
-    public static let pro = Plan(
-        id: .pro, name: "Biblioteca", tagline: "Para quien tiene una biblioteca", storageBytes: 50 * gib,
-        maxFileBytes: 100 * mib,
-        includes: ["Todo lo de Lector", "Archivos de hasta 100 MB"],
-        monthlyPrice: "$5.99", annualPrice: "$49.99", annualPerMonth: "$4.17"
-    )
-
-    public static let all = [free, plus, pro]
+    public static var all: [Plan] { DefaultPlans.all }
 
     public static func plan(_ id: PlanId) -> Plan {
         switch id {
-        case .free: free
-        case .plus: plus
-        case .pro: pro
+        case .free: DefaultPlans.free
+        case .plus: DefaultPlans.plus
+        case .pro: DefaultPlans.pro
         }
     }
 
     /// PLN-001: espacio del plan; el de Gratis es la cuota de la cuenta si la cuenta está en Gratis.
     public static func storageBytes(_ id: PlanId, quota: StorageQuota?) -> Int64 {
         // En una cuenta paga, Gratis no es la cuota de la cuenta sino la de Gratis de hoy (K-291).
-        plan(id).storageBytes ?? quota.flatMap { $0.isFreePlan ? $0.quotaBytes : nil } ?? freeQuotaBytes
+        plan(id).storageBytes ?? quota.flatMap { $0.isFreePlan ? $0.quotaBytes : nil } ?? DefaultPlans.freeQuotaBytes
     }
 
     /// "15 MB", "5 GB": con la unidad de su propio total (PRF-006).

@@ -10,7 +10,7 @@ enum class Billing { MONTHLY, ANNUAL }
 
 /**
  * Un plan: espacio en la nube y precios. [cloudBytes] es null en Gratis, que usa la cuota de la cuenta (ACC-002).
- * Los precios son de ejemplo y fijos (open-questions #1): la rebanada de compras los toma de la tienda.
+ * Los precios son informativos (open-questions #1): la rebanada de compras los toma de la tienda.
  */
 data class Plan(
     val id: PlanId,
@@ -25,21 +25,11 @@ data class Plan(
     fun price(billing: Billing): String = if (billing == Billing.ANNUAL) annualPrice else monthlyPrice
 }
 
+/** Reglas de los planes sobre la cuenta. Los valores de cada plan, por ahora, son los de [DefaultPlans]. */
 object PlanCatalog {
-    private const val MIB = 1024L * 1024
-    private const val GIB = 1024L * MIB
-
-    /** Cuota de Gratis de hoy (backend `FREE_PLAN`), para cuando nunca se leyó la de la cuenta. */
-    const val FREE_QUOTA_BYTES = 15 * MIB
     const val ANNUAL_SAVING_PERCENT = 30
 
-    val free = Plan(PlanId.FREE, null, 2 * MIB, "$0", "$0", "$0")
-    val plus = Plan(PlanId.PLUS, 5 * GIB, 50 * MIB, "$2.99", "$24.99", "$2.08")
-    val pro = Plan(PlanId.PRO, 50 * GIB, 100 * MIB, "$5.99", "$49.99", "$4.17")
-
-    val all: List<Plan> = listOf(free, plus, pro)
-
-    fun of(id: PlanId): Plan = all.first { it.id == id }
+    fun of(id: PlanId): Plan = DefaultPlans.all.first { it.id == id }
 
     /** Id de cada plan en `users/{uid}.plan` y en el catálogo del backend (ACC-007, ADR 0017). */
     private val BACKEND_IDS = mapOf("free" to PlanId.FREE, "plus" to PlanId.PLUS, "pro" to PlanId.PRO)
@@ -55,7 +45,7 @@ object PlanCatalog {
      * (o sin dato), la de Gratis de hoy (K-291).
      */
     fun cloudBytes(plan: Plan, quota: StorageQuota?): Long =
-        plan.cloudBytes ?: quota?.takeIf { it.isFreePlan }?.quotaBytes ?: FREE_QUOTA_BYTES
+        plan.cloudBytes ?: quota?.takeIf { it.isFreePlan }?.quotaBytes ?: DefaultPlans.FREE_QUOTA_BYTES
 }
 
 /** Botón de compra de P01 (PLN-006): "Elegir {plan} · {precio} por {año|mes}". Sin prueba gratis por ahora. */

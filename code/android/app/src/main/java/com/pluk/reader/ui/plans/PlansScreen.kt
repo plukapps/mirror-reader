@@ -58,6 +58,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.pluk.reader.R
 import com.pluk.reader.domain.plans.Billing
+import com.pluk.reader.domain.plans.DefaultPlans
 import com.pluk.reader.domain.plans.PlanCatalog
 import com.pluk.reader.domain.plans.PlanCta
 import com.pluk.reader.domain.plans.PlanId
@@ -656,8 +657,8 @@ private fun comparisonRows(freeCloud: String): List<ComparisonRow> {
     fun cloud(plan: com.pluk.reader.domain.plans.Plan) = Cell.Plain(formatCloud(plan.cloudBytes ?: 0))
     fun file(plan: com.pluk.reader.domain.plans.Plan) = Cell.Plain(formatCloud(plan.maxFileBytes))
     return listOf(
-        ComparisonRow(R.string.plans_row_cloud, listOf(Cell.Plain(freeCloud), cloud(PlanCatalog.plus), cloud(PlanCatalog.pro))),
-        ComparisonRow(R.string.plans_row_file_size, listOf(file(PlanCatalog.free), file(PlanCatalog.plus), file(PlanCatalog.pro))),
+        ComparisonRow(R.string.plans_row_cloud, listOf(Cell.Plain(freeCloud), cloud(DefaultPlans.plus), cloud(DefaultPlans.pro))),
+        ComparisonRow(R.string.plans_row_file_size, listOf(file(DefaultPlans.free), file(DefaultPlans.plus), file(DefaultPlans.pro))),
         ComparisonRow(R.string.plans_row_reading, listOf(unlimited, unlimited, unlimited)),
         ComparisonRow(R.string.plans_row_sync, listOf(Cell.Yes, Cell.Yes, Cell.Yes)),
         ComparisonRow(R.string.plans_row_themes, listOf(Cell.No, Cell.Yes, Cell.Yes)),

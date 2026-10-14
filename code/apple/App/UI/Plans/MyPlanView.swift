@@ -27,7 +27,7 @@ final class MyPlanViewModel {
     }
 
     /// En esta rebanada solo existe la variante Gratis.
-    var planName: String { PlanCatalog.free.name }
+    var planName: String { DefaultPlans.free.name }
 
     /// "12 MB de 15 MB".
     var storageText: String? { usage.map { "\($0.used) de \($0.total)" } }

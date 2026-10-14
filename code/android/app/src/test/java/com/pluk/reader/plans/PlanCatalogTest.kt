@@ -2,6 +2,7 @@ package com.pluk.reader.plans
 
 import com.pluk.reader.domain.account.StorageQuota
 import com.pluk.reader.domain.plans.Billing
+import com.pluk.reader.domain.plans.DefaultPlans
 import com.pluk.reader.domain.plans.PlanCatalog
 import com.pluk.reader.domain.plans.PlanId
 import com.pluk.reader.domain.plans.ctaFor
@@ -16,30 +17,30 @@ class PlanCatalogTest {
     // PLN-001: tres planes, en orden, con el espacio y los precios provisionales
     @Test
     fun catalogHasThreePlans() {
-        assertEquals(listOf(PlanId.FREE, PlanId.PLUS, PlanId.PRO), PlanCatalog.all.map { it.id })
-        assertEquals(5 * gib, PlanCatalog.plus.cloudBytes)
-        assertEquals(50 * gib, PlanCatalog.pro.cloudBytes)
-        assertEquals("$2.99", PlanCatalog.plus.price(Billing.MONTHLY))
-        assertEquals("$24.99", PlanCatalog.plus.price(Billing.ANNUAL))
-        assertEquals("$2.08", PlanCatalog.plus.annualPerMonth)
-        assertEquals("$5.99", PlanCatalog.pro.price(Billing.MONTHLY))
-        assertEquals("$49.99", PlanCatalog.pro.price(Billing.ANNUAL))
-        assertEquals("$4.17", PlanCatalog.pro.annualPerMonth)
+        assertEquals(listOf(PlanId.FREE, PlanId.PLUS, PlanId.PRO), DefaultPlans.all.map { it.id })
+        assertEquals(5 * gib, DefaultPlans.plus.cloudBytes)
+        assertEquals(50 * gib, DefaultPlans.pro.cloudBytes)
+        assertEquals("$2.99", DefaultPlans.plus.price(Billing.MONTHLY))
+        assertEquals("$24.99", DefaultPlans.plus.price(Billing.ANNUAL))
+        assertEquals("$2.08", DefaultPlans.plus.annualPerMonth)
+        assertEquals("$5.99", DefaultPlans.pro.price(Billing.MONTHLY))
+        assertEquals("$49.99", DefaultPlans.pro.price(Billing.ANNUAL))
+        assertEquals("$4.17", DefaultPlans.pro.annualPerMonth)
     }
 
     // PLN-001: Gratis usa la cuota real de la cuenta; sin dato, la de hoy (15 MB)
     @Test
     fun freeCloudSpaceIsTheAccountQuota() {
-        assertEquals(20 * mib, PlanCatalog.cloudBytes(PlanCatalog.free, StorageQuota(0, 20 * mib)))
-        assertEquals(15 * mib, PlanCatalog.cloudBytes(PlanCatalog.free, null))
-        assertEquals(5 * gib, PlanCatalog.cloudBytes(PlanCatalog.plus, StorageQuota(0, 20 * mib)))
+        assertEquals(20 * mib, PlanCatalog.cloudBytes(DefaultPlans.free, StorageQuota(0, 20 * mib)))
+        assertEquals(15 * mib, PlanCatalog.cloudBytes(DefaultPlans.free, null))
+        assertEquals(5 * gib, PlanCatalog.cloudBytes(DefaultPlans.plus, StorageQuota(0, 20 * mib)))
     }
 
     // PLN-001 (K-291): en una cuenta paga, Gratis no muestra la cuota de la cuenta sino la de Gratis (15 MB)
     @Test
     fun freeCloudSpaceOfAPaidAccountIsTheFreeQuota() {
-        assertEquals(15 * mib, PlanCatalog.cloudBytes(PlanCatalog.free, StorageQuota(0, 50 * gib, plan = "pro")))
-        assertEquals(15 * mib, PlanCatalog.cloudBytes(PlanCatalog.free, StorageQuota(0, 5 * gib, plan = "plus")))
+        assertEquals(15 * mib, PlanCatalog.cloudBytes(DefaultPlans.free, StorageQuota(0, 50 * gib, plan = "pro")))
+        assertEquals(15 * mib, PlanCatalog.cloudBytes(DefaultPlans.free, StorageQuota(0, 5 * gib, plan = "plus")))
     }
 
     // PLN-006: sin prueba gratis; el botón lleva el precio del período elegido
@@ -78,9 +79,9 @@ class PlanCatalogTest {
     // PLN-001, PLN-014: tamaño máximo por archivo de cada plan
     @Test
     fun maxFileSizePerPlan() {
-        assertEquals(2 * mib, PlanCatalog.free.maxFileBytes)
-        assertEquals(50 * mib, PlanCatalog.plus.maxFileBytes)
-        assertEquals(100 * mib, PlanCatalog.pro.maxFileBytes)
+        assertEquals(2 * mib, DefaultPlans.free.maxFileBytes)
+        assertEquals(50 * mib, DefaultPlans.plus.maxFileBytes)
+        assertEquals(100 * mib, DefaultPlans.pro.maxFileBytes)
     }
 
     // PLN-003: "Usás X de Y" con la unidad y el formato de PRF-006, y la proporción
