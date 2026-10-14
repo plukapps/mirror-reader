@@ -2,9 +2,12 @@ package com.pluk.reader.domain.usecase
 
 import com.pluk.reader.domain.account.AuthRepository
 import com.pluk.reader.domain.account.LocalAccountData
+import com.pluk.reader.domain.flags.Feature
+import com.pluk.reader.domain.flags.FeatureFlags
 import com.pluk.reader.domain.onboarding.ReminderScheduler
 import com.pluk.reader.domain.repository.BookRemovals
 import com.pluk.reader.domain.repository.BookUploadRepository
+import com.pluk.reader.domain.repository.NoteSyncStore
 import com.pluk.reader.domain.repository.PositionSyncStore
 import javax.inject.Inject
 import kotlinx.coroutines.CancellationException
@@ -37,6 +40,8 @@ class SignOut internal constructor(
         uploads: BookUploadRepository,
         positions: PositionSyncStore,
         removals: BookRemovals,
+        notes: NoteSyncStore,
+        flags: FeatureFlags,
     ) : this(
         listeners = listOf(positionSync, cloud),
         gate = librarySync,
@@ -44,11 +49,12 @@ class SignOut internal constructor(
         auth = auth,
         reminders = reminders,
         hasPending = {
-            uploads.pending().isNotEmpty() || positions.pending().isNotEmpty() || removals.pendingCloudRemovals().isNotEmpty()
+            uploads.pending().isNotEmpty() || positions.pending().isNotEmpty() || removals.pendingCloudRemovals().isNotEmpty() ||
+                notesAtRisk(notes, flags)
         },
     )
 
-    /** Hay libros importados sin subir, progreso o libros quitados que todavía no llegaron a la nube. */
+    /** Hay libros importados sin subir, progreso, libros quitados o notas que todavía no llegaron a la nube. */
     suspend fun hasPendingChanges(): Boolean = hasPending()
 
     suspend operator fun invoke(): Result<Unit> {
@@ -70,3 +76,10 @@ class SignOut internal constructor(
         return result
     }
 }
+
+/**
+ * PRF-009, SYN-017: notas que se perderían al cerrar sesión. Con la sincronización de notas apagada no se suben, así
+ * que cuentan todas las de este dispositivo.
+ */
+internal suspend fun notesAtRisk(notes: NoteSyncStore, flags: FeatureFlags): Boolean =
+    notes.hasUnsynced(syncOn = flags.isEnabled(Feature.NotesSync))

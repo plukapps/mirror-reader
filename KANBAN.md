@@ -5,7 +5,6 @@ Plan de referencia: `specs/plans/2026-10-06-android-epub-viewer.md`
 
 ## Backlog
 
-- **K-275** Sync de notas, Tarea 6: cerrar sesión avisa por notas sin subir. PRF-009.
 - **K-276** Sync de notas, Tarea 7: parámetro en Remote Config y deploy de reglas (acciones sobre el proyecto real, las aprueba el usuario).
 - **K-277** Sync de notas, Tarea 8: cierre de docs y verificación a mano en el teléfono y la tablet.
 - **K-209** Android, modo oscuro: en "Cambiar contraseña" (PRF-020) los campos conservan el borde claro del onboarding y "Guardar" deshabilitado se ve gris claro sobre el fondo oscuro. Se lee, pero desentona con el resto. Pasar `OnbTextField` y `PrimaryButton` a los tokens de la paleta fuera del onboarding (PRF-022). Visto en el SM-S711B el 2026-10-13.
@@ -53,6 +52,7 @@ Plan de referencia: `specs/plans/2026-10-06-android-epub-viewer.md`
 
 ## Revisión
 
+- **K-275** Sync de notas, Tarea 6: cerrar sesión avisa por notas sin subir. PRF-009. Hecho: `SignOut` suma `notesAtRisk` (pendientes con la función prendida; todas las vivas con la función apagada) y el texto del aviso nombra las notas. 2 tests JVM; 443 pasan.
 - **K-274** Sync de notas, Tarea 5: subir y bajar notas, gana la última edición, listener con la app a la vista. SYN-016, SYN-005. Hecho: `RemoteNotes`/`FirestoreNotes` (transacción que no pisa una edición más nueva), `NoteSyncCursor` en DataStore, `NoteSync` (sube pendientes, escucha con la app a la vista, solo con la función prendida y la red permitida; al prenderse sube y escucha). Paso en `SyncLibraryUseCase`, listener en `CloudListeners`, el lector sube al guardar o borrar. 9 tests JVM nuevos; 441 pasan.
 - **K-273** Sync de notas, Tarea 4: Room v9 con marcas de borrado y pendientes en `notes`. SYN-007, SYN-016. Hecho: Room v9 (`MIGRATION_8_9`, esquema 9) con `deletedAt` y `syncedAt` (la versión que la nube tiene); `NoteSyncStore` (pendientes, `markSynced`, `applyRemote` solo si es más nueva, purga). Borrar una nota que la nube nunca tuvo la elimina; si no, la marca. Quitar un libro marca sus notas subidas. 432 JVM pasan; `NoteRepositoryTest` (7 casos nuevos) y `MigrationTest` 8→9 compilados, sin correr.
 - **K-272** Sync de notas, Tarea 3: interruptor `notes_sync_enabled` con Remote Config y señal `plan` (Android). SYN-017, ACC-011. Hecho: `Feature`, `FeatureFlags`, `RemoteFeatureFlags` (dominio) y `FirebaseRemoteFlagSource` (Remote Config 24.0.0 por el BoM 35; API verificada con `javap`). Señal `plan` desde `QuotaCache`. Arranca dentro de `CloudListeners`. 4 tests JVM; 432 pasan.
