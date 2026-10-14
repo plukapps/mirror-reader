@@ -5,7 +5,6 @@ Plan de referencia: `specs/plans/2026-10-06-android-epub-viewer.md`
 
 ## Backlog
 
-- **K-290** Apps: precios y espacio de los planes desde el catálogo de Remote Config (`plans`, ADR 0017) en lugar de los valores fijos de `PlanCatalog` (Android) y `Plans.swift` (iOS), con valores por defecto propios. Reusar la configuración de Remote Config que agrega la sincronización de notas (ADR 0016, PR #38): empezar cuando ese PR esté en `develop`. ACC-007, ACC-008, PLN-001. Requiere plan propio.
 - **K-288** Uso sin cuenta: definir qué plan y qué límites tiene quien usa la app sin registrarse, y qué pasa con sus libros al crear la cuenta. Hoy ACC-001 exige cuenta y el onboarding deja "Explorar sin cuenta" fuera de alcance (open-questions #7). Opciones: solo local con los límites de `free` aplicados por la app, o Firebase Anonymous Auth. Requiere spec, ADR y plan propios; va en otra rama, no en la del catálogo de planes (ADR 0017).
 - **K-240** Planes, iOS: al importar con "Abrir con" desde otra app, la comprobación de cuota (P02) no corre porque el lector se abre enseguida a pantalla completa. Mostrar la hoja al cerrar el lector, o antes de abrirlo. PLN-007 a PLN-009. Encontrado en K-224.
 - **K-209** Android, modo oscuro: en "Cambiar contraseña" (PRF-020) los campos conservan el borde claro del onboarding y "Guardar" deshabilitado se ve gris claro sobre el fondo oscuro. Se lee, pero desentona con el resto. Pasar `OnbTextField` y `PrimaryButton` a los tokens de la paleta fuera del onboarding (PRF-022). Visto en el SM-S711B el 2026-10-13.
@@ -43,12 +42,17 @@ Plan de referencia: `specs/plans/2026-10-06-android-epub-viewer.md`
 
 ## Listo
 
+- **K-303** Catálogo en las apps, Tarea 3: Android, Remote Config y pantallas. ACC-008, PLN-001. Plan `2026-10-14-plans-catalog-apps.md`.
+- **K-304** Catálogo en las apps, Tarea 4: iOS, dominio. ACC-007, ACC-008, PLN-001. Plan `2026-10-14-plans-catalog-apps.md`.
+- **K-305** Catálogo en las apps, Tarea 5: iOS, Remote Config y pantallas. ACC-008, PLN-001. Plan `2026-10-14-plans-catalog-apps.md`.
+- **K-306** Catálogo en las apps, Tarea 6: verificación a mano y PR. Plan `2026-10-14-plans-catalog-apps.md`.
 - **K-134** Lector iOS, Tarea 7: cierre de docs y verificación a mano en el simulador. Rama `feature/ios-reader`. Era K-125 hasta el merge con `master`.
 - **K-038** Inicio, Tarea 4: cierre de docs y verificación a mano. Rama `feature/home`.
 - **K-024** Quitar el padding vertical de Readium (40 dp arriba y abajo en modo paginado) y reservar la barra de estado desde la pantalla. RDR-002. Rama `feat/page-turn-animation`.
 
 ## En curso
 
+- **K-302** Catálogo en las apps, Tarea 2: Android, dominio (precios numéricos, `parsePlans`, `RemotePlans`). ACC-007, ACC-008, PLN-001. Plan `2026-10-14-plans-catalog-apps.md`.
 - **K-176** Posición exacta, Tarea 5: verificación a mano entre el teléfono y el iPhone, cierre de docs. SYN-014.
 
 ## Revisión
@@ -218,6 +222,7 @@ Plan de referencia: `specs/plans/2026-10-06-android-epub-viewer.md`
 
 ## Hecho
 
+- **K-301** Catálogo en las apps, Tarea 1: PLN-001, ADR 0017 y plan `2026-10-14-plans-catalog-apps.md`. Cierra K-290. Rama `feature/plans-catalog-apps`. Aprobado por el usuario (2026-10-14). Precios fijos "$2.99".
 - **K-296** Mi plan en planes pagos, Tarea 1: PLN-017 y plan `2026-10-14-my-plan-paid.md`. Cierra K-292. Rama `feature/my-plan-paid`. Aprobado por el usuario (2026-10-14), con "Tu plan" en Planes (cambia PLN-005).
 - **K-280** Catálogo de planes configurable (Remote Config): spec ACC-007 a ACC-010, ADR 0017, plan `2026-10-14-plan-catalog-remote-config.md` y template `remoteconfig.template.json`. Aprobado por el usuario (2026-10-14). Valores: los de PLN-001 (decisión del usuario, 2026-10-14), ids `free`/`plus`/`pro`. Template publicado en `mirror-reading-staging` con los valores de PLN-001 (versión 2 en adelante; hoy la 5).
 - **K-321** Notas iOS (#41): interruptores con Remote Config en iOS (`FirebaseRemoteConfig`, `FeatureFlags`, `FeatureTemplateTests`). ACC-011. Aprobado por el usuario e integrado a `develop` (2026-10-14).

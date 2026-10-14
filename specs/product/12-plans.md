@@ -21,6 +21,8 @@ Primera rebanada: Android (teléfono y tablet) e iPhone. La Mac queda afuera has
 
 - **PLN-001** Hay tres planes: Free, Plus y Pro, con los mismos ids en el servidor y en el catálogo (`free`, `plus` y `pro`, ACC-007). Antes se llamaban Gratis, Lector y Biblioteca; el cambio de nombres es decisión del usuario (2026-10-14). Cada uno tiene nombre, bajada, espacio en la nube, tamaño máximo por archivo, lista de lo que incluye y precio mensual y anual. Free usa la cuota real de la cuenta (ACC-002) si la cuenta está en Free; en una cuenta paga muestra la de Free (15 MB) y no la de la cuenta (K-291). El espacio de Plus y Pro lo confirmó el usuario por ahora (2026-10-13); los precios son de ejemplo hasta definirlos (open-questions #1):
 
+  Los números de cada plan (espacio, máximo por archivo, precio mensual y anual) salen del catálogo de planes (ACC-007); mientras la app no lo obtuvo, o si el catálogo es inválido, valen los por defecto (ACC-008), que son los de esta tabla. Los textos (nombre, bajada, lo que incluye) son de la app. El precio se muestra con "$" y dos decimales ("$2.99"), con el número del catálogo; la equivalencia por mes del anual es el anual dividido 12, redondeado al centavo ("$2.08"). Decisión del usuario (2026-10-14).
+
   | | Free | Plus | Pro |
   |---|---|---|---|
   | Bajada | Para leer de vez en cuando | Para quien lee siempre | Para quien tiene una biblioteca |
