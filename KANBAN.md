@@ -51,6 +51,9 @@ Plan de referencia: `specs/plans/2026-10-06-android-epub-viewer.md`
 
 ## Revisión
 
+- **K-312** Remote Config base, Tarea 3: interruptores en Android (`FeatureFlags`, `RemoteFeatureFlags`, `FirebaseRemoteFlagSource`, `firebase-config`) y `FeatureTemplateTest`. ACC-011.
+- **K-311** Remote Config base, Tarea 2: template compartido `remoteconfig.template.json` (`plans` y `notes_sync_enabled`), `firebase.json`, README y `tests/remoteconfig.test.mjs`. ADR 0016.
+- **K-310** Remote Config base, Tarea 1: plan `2026-10-14-remote-config-base.md` y rama `feature/remote-config`, separada de #38 a pedido del usuario (2026-10-14).
 - **K-217** Perfil: ocultar "Dispositivos vinculados" en Android e iOS hasta el registro de dispositivos. PRF-007. Rama `claude/linked-devices-profile-10dbda`. Hecho: la sección queda comentada en `ProfileScreen.kt` y `ProfileView.swift`; PRF-007 lo dice; `ProfileScreenTest` comprueba que no aparece.
 - **K-216** Volver a importar, iOS: `saveBook` escribe `addedAt` y el listado lo usa como fecha de entrada. LIB-021. Rama `feature/library-order`. Hecho: `listBooks` lee `addedAt ?? createdAt`; `saveBook` escribe `addedAt` al crear y al revivir. Tests: dominio 205, iPhone 189 (+1). Falta desplegar las reglas y probar a mano.
 - **K-215** Volver a importar, Android: `saveBook` escribe `addedAt` y el listado lo usa como fecha de entrada. LIB-021. Rama `feature/library-order`. Hecho: `listBooks` lee `addedAt ?: createdAt`; `saveBook` escribe `addedAt` al crear y al revivir. 415 tests JVM pasan (1 nuevo); los de emulador compilan.
