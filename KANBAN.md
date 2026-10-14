@@ -6,7 +6,6 @@ Plan de referencia: `specs/plans/2026-10-06-android-epub-viewer.md`
 ## Backlog
 
 - **K-321** Notas iOS (#41): interruptores con Remote Config en iOS (`FirebaseRemoteConfig`, `FeatureFlags`, `FeatureTemplateTests`). ACC-011.
-- **K-327** Notas iOS (#37): cierre de docs y verificación en el iPhone.
 - **K-328** Sync de notas iOS (#38): `deletedAt`, `syncedAt` y `NoteSyncStore` en `LibraryStore`. SYN-007, SYN-016.
 - **K-329** Sync de notas iOS (#38): `FirestoreNotes`, `NoteSync`, cursor, paso en `LibrarySync` y listener en `SyncCoordinator`. SYN-016, SYN-005, SYN-017.
 - **K-330** Sync de notas iOS (#38): cerrar sesión avisa por notas sin subir. PRF-009.
@@ -53,6 +52,7 @@ Plan de referencia: `specs/plans/2026-10-06-android-epub-viewer.md`
 
 ## En curso
 
+- **K-327** Notas iOS (#37): cierre de docs y verificación en el iPhone.
 - **K-176** Posición exacta, Tarea 5: verificación a mano entre el teléfono y el iPhone, cierre de docs. SYN-014.
 
 ## Revisión
