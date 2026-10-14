@@ -55,6 +55,11 @@ Stack y capas en `specs/adr/0010-apple-stack-and-architecture.md` (provisional):
   - **Cambiar contraseña (PRF-020, K-204):** destino `ProfileRoute.changePassword` del `NavigationStack` del tab, sin barra inferior, con los campos del onboarding. `PasswordRepository` y `canSaveNewPassword` en `ReaderDomain`; `FirebaseAccountRepository` reautentica con `EmailAuthProvider.credential` y llama a `updatePassword(to:)`. Una actual incorrecta (`.invalidCredentials`) se muestra bajo ese campo.
   - **Tests de la Mac:** no arrancan por la firma del framework del paquete (K-201).
   - Plan `specs/plans/2026-10-12-profile.md`.
+- Interruptores de funciones (ACC-011, ADR 0016, K-321):
+  - **Dominio:** `Feature`, `RemoteFlagSource` y el actor `FeatureFlags` en `ReaderDomain`.
+  - **App:** `FirebaseRemoteFlagSource` (`FirebaseRemoteConfig` 12.14.0). Señal `plan` desde `QuotaCache`.
+  - **Cuándo escucha:** con la app a la vista (`SyncCoordinator.appBecameActive` y `appWentToBackground`). Sin Firebase y en los tests, los valores por defecto.
+  - **Template:** `FeatureTemplateTests` exige cada `Feature` en `remoteconfig.template.json`.
 
 - Notas sobre texto y detalle del libro (ANN-003 a ANN-011 en parte, LIB-022, K-322 a K-327; plan `2026-10-14-ios-notes.md`):
   - **Datos:** `Note` y `NoteRepository` en `ReaderDomain`; `NoteRecord` en SwiftData (modelo nuevo, migración automática) y la API de notas en `LibraryStore`. Quitar un libro y cerrar sesión borran sus notas.

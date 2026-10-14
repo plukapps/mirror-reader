@@ -19,6 +19,8 @@ final class SyncCoordinator {
     @ObservationIgnored private let positions: PositionSync?
     @ObservationIgnored private let removals: RemovalSync?
     @ObservationIgnored private let watcher: LibraryWatcher?
+    /// ACC-011: interruptores remotos; escuchan mientras la app se ve.
+    @ObservationIgnored let flags: FeatureFlags
     /// PRF-023: si la red permite sincronizar ("Sincronizar solo con Wi-Fi"). nil: siempre.
     @ObservationIgnored private let gate: SyncNetworkGate?
     @ObservationIgnored private var removalUpdates: Task<Void, Never>?
@@ -37,6 +39,7 @@ final class SyncCoordinator {
         removals: RemovalSync? = nil,
         watcher: LibraryWatcher? = nil,
         gate: SyncNetworkGate? = nil,
+        flags: FeatureFlags = FeatureFlags(source: nil),
         ttl: Duration = SyncScheduler.defaultTTL,
         reload: @escaping @MainActor () async -> Void
     ) {
@@ -45,6 +48,7 @@ final class SyncCoordinator {
         self.removals = removals
         self.watcher = watcher
         self.gate = gate
+        self.flags = flags
         guard let pass else { return }
         state = SyncState()
         let onChange: @Sendable () async -> Void = { [weak self] in await self?.changed() }
@@ -70,6 +74,8 @@ final class SyncCoordinator {
     /// 5 minutos.
     func appBecameActive() {
         isActive = true
+        // ACC-011: primero los interruptores, que deciden qué más se sincroniza.
+        Task { await flags.startListening() }
         startListening()
         guard let scheduler else { return }
         Task { await scheduler.requestIfStale() }
@@ -78,6 +84,7 @@ final class SyncCoordinator {
     /// La app dejó de verse: deja de escuchar y envía las posiciones pendientes (SYN-011). Sin trabajo en segundo plano.
     func appWentToBackground() {
         isActive = false
+        Task { await flags.stopListening() }
         if let removals { Task { await removals.stopListening() } }
         if let watcher { Task { await watcher.stopListening() } }
         guard let positions, cloudAllowed else {

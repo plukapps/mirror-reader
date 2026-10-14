@@ -44,6 +44,9 @@ targets:
         product: FirebaseFirestore
       - package: Firebase
         product: FirebaseStorage
+      # ACC-011, ADR 0016: funciones que se prenden y apagan.
+      - package: Firebase
+        product: FirebaseRemoteConfig
       - package: GoogleSignIn
         product: GoogleSignIn
       - package: Readium

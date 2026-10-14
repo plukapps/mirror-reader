@@ -74,7 +74,14 @@ enum AppGraph {
                 await MainActor.run { refs.sync?.request() }
             }
             : nil
-        let sync = SyncCoordinator(pass: pass, positions: positions, removals: removals, watcher: watcher, gate: gate) {
+        // ACC-011, ADR 0016: interruptores remotos. Sin Firebase (y en los tests) quedan los valores por defecto.
+        let flags = FeatureFlags(
+            source: firebase ? FirebaseRemoteFlagSource() : nil,
+            plan: { quotaCache.last()?.plan ?? StorageQuota.freePlan }
+        )
+        let sync = SyncCoordinator(
+            pass: pass, positions: positions, removals: removals, watcher: watcher, gate: gate, flags: flags
+        ) {
             await refs.home?.reload()
             await refs.library?.load()
         }
