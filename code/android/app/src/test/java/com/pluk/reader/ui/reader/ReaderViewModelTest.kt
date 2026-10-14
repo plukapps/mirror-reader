@@ -160,8 +160,8 @@ class ReaderViewModelTest {
         ResolveOpeningPositionUseCase(positionBackend, positionBackend, positions, FakeSession(AccountUser("u1", null)))
     }
 
-    private fun viewModel(books: FakeBooks) = ReaderViewModel(
-        SavedStateHandle(mapOf(ReaderViewModel.ARG_BOOK_ID to "hash-del-libro")), books, settings, positions, host,
+    private fun viewModel(books: FakeBooks, noteId: String? = null) = ReaderViewModel(
+        SavedStateHandle(mapOf(ReaderViewModel.ARG_BOOK_ID to "hash-del-libro", ReaderViewModel.ARG_NOTE_ID to noteId)), books, settings, positions, host,
         DownloadBookUseCase(cloud, files), positionSync, resolveOpening, ReadingSession(), notes,
     )
 
@@ -735,6 +735,37 @@ class ReaderViewModelTest {
         dispatcher.scheduler.advanceUntilIdle()
         assertEquals(listOf("mia"), vm.bookNotes.value.map { it.id })
         collected.cancel()
+        vm.release()
+    }
+
+    // ANN-010: abrir desde una nota abre en su lugar, no en la última posición, y no pregunta por otro dispositivo
+    @Test
+    fun opensAtTheNoteInsteadOfTheLastPosition() = runTest(dispatcher) {
+        localAt(0.10)
+        remoteAt(0.60)
+        notes.all.value = listOf(note("n1", progression = 0.3))
+        val vm = viewModel(FakeBooks(Result.success(book(resume = "ultima"))), noteId = "n1")
+        vm.awaitReady()
+        assertEquals(note("n1").locatorJson, host.installedFor?.resumeLocatorJson)
+        vm.release()
+    }
+
+    // ANN-010: si la nota ya no existe, el libro abre en su última posición
+    @Test
+    fun aMissingNoteOpensAtTheLastPosition() = runTest(dispatcher) {
+        val vm = viewModel(FakeBooks(Result.success(book(resume = "ultima"))), noteId = "borrada")
+        vm.awaitReady()
+        assertEquals("ultima", host.installedFor?.resumeLocatorJson)
+        vm.release()
+    }
+
+    // ANN-010: una nota de otro libro no mueve este
+    @Test
+    fun aNoteOfAnotherBookIsIgnored() = runTest(dispatcher) {
+        notes.all.value = listOf(note("ajena", bookId = "otro-libro"))
+        val vm = viewModel(FakeBooks(Result.success(book(resume = "ultima"))), noteId = "ajena")
+        vm.awaitReady()
+        assertEquals("ultima", host.installedFor?.resumeLocatorJson)
         vm.release()
     }
 }

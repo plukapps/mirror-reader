@@ -71,6 +71,8 @@ class ReaderViewModel @Inject constructor(
     }
 
     private val bookId: String = checkNotNull(savedStateHandle[ARG_BOOK_ID]) { "Falta el argumento $ARG_BOOK_ID" }
+    /** ANN-010: se abrió desde una nota; el libro abre en su lugar y no en la última posición. */
+    private val noteId: String? = savedStateHandle[ARG_NOTE_ID]
     private val phase = MutableStateFlow<Phase>(Phase.Loading)
     private val progress = MutableStateFlow<Int?>(null)
     private val pageNumber = MutableStateFlow<Int?>(null)
@@ -167,6 +169,12 @@ class ReaderViewModel @Inject constructor(
                 phase.value = Phase.Failed(it.message ?: "No se pudo descargar el libro.")
                 return@launch
             }
+            // ANN-010: abrir en una nota no pregunta por la posición de otro dispositivo: el usuario eligió el lugar.
+            val note = noteId?.let { notes.get(it) }?.takeIf { it.bookId == bookId }
+            if (note != null) {
+                openBook(startAt = note.locatorJson)
+                return@launch
+            }
             // SYN-003, SYN-012: antes de mostrar el libro se consulta su posición más reciente en la nube.
             val resolved = resolveOpeningPosition(bookId)
             if (resolved is OpeningPosition.Confirm) {
@@ -190,9 +198,11 @@ class ReaderViewModel @Inject constructor(
         }
     }
 
-    private suspend fun openBook() {
+    /** [startAt]: locator donde abrir en lugar de la última posición (ANN-010). */
+    private suspend fun openBook(startAt: String? = null) {
         books.open(bookId).fold(
-            onSuccess = { book ->
+            onSuccess = { opened ->
+                val book = if (startAt != null) opened.copy(resumeLocatorJson = startAt) else opened
                 val settings: ReaderSettings = settingsRepository.settings.first()
                 navigatorHost.install(book, settings) { url ->
                     _events.tryEmit(ReaderEvent.OpenExternalLink(url))
@@ -341,6 +351,7 @@ class ReaderViewModel @Inject constructor(
 
     companion object {
         const val ARG_BOOK_ID = "bookId"
+        const val ARG_NOTE_ID = "noteId"
         private const val STOP_TIMEOUT_MS = 5_000L
         private const val SAVE_DEBOUNCE_MS = 250L
     }

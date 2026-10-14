@@ -76,7 +76,7 @@ object Routes {
     const val FORGOT = "forgot?${ForgotPasswordViewModel.ARG_EMAIL}={${ForgotPasswordViewModel.ARG_EMAIL}}"
     const val RESET = "reset?${ResetPasswordViewModel.ARG_CODE}={${ResetPasswordViewModel.ARG_CODE}}"
     const val LIBRARY = "library?${LibraryViewModel.ARG_FILTER}={${LibraryViewModel.ARG_FILTER}}"
-    const val READER = "reader/{${ReaderViewModel.ARG_BOOK_ID}}"
+    const val READER = "reader/{${ReaderViewModel.ARG_BOOK_ID}}?${ReaderViewModel.ARG_NOTE_ID}={${ReaderViewModel.ARG_NOTE_ID}}"
     const val SEARCH = "search"
     const val PROFILE = "profile"
     const val FAQ_LIST = "profile/faq"
@@ -84,7 +84,9 @@ object Routes {
     const val CHANGE_PASSWORD = "profile/password"
     fun faqAnswer(key: String): String = "profile/faq/$key"
 
-    fun reader(bookId: String): String = "reader/$bookId"
+    /** El lector en la última posición del libro o, con [noteId], en el lugar de esa nota (ANN-010). */
+    fun reader(bookId: String, noteId: String? = null): String =
+        if (noteId == null) "reader/$bookId" else "reader/$bookId?${ReaderViewModel.ARG_NOTE_ID}=${Uri.encode(noteId)}"
 
     fun signUp(name: String = "", email: String = ""): String =
         "signup?${SignUpViewModel.ARG_NAME}=${Uri.encode(name)}&${SignUpViewModel.ARG_EMAIL}=${Uri.encode(email)}"
@@ -265,7 +267,10 @@ fun AppNavHost(
                     }
                     lightComposable(
                         route = Routes.READER,
-                        arguments = listOf(navArgument(ReaderViewModel.ARG_BOOK_ID) { type = NavType.StringType }),
+                        arguments = listOf(
+                            navArgument(ReaderViewModel.ARG_BOOK_ID) { type = NavType.StringType },
+                            navArgument(ReaderViewModel.ARG_NOTE_ID) { type = NavType.StringType; nullable = true; defaultValue = null },
+                        ),
                     ) {
                         ReaderScreen(onBack = { navController.popBackStack() })
                     }
