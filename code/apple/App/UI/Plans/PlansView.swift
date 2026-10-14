@@ -309,13 +309,13 @@ private struct PlanCard: View {
     private var card: some View {
         VStack(alignment: .leading, spacing: wide ? 14 : 12) {
             header
-            Text(plan.tagline)
+            Text(plan.id.tagline)
                 .font(.app(wide ? 15 : 14))
                 .foregroundStyle(secondary)
                 .padding(.top, wide ? -10 : -8)
             storage
             VStack(alignment: .leading, spacing: 0) {
-                ForEach(plan.includes, id: \.self) { item in
+                ForEach(plan.id.includes, id: \.self) { item in
                     HStack(alignment: .firstTextBaseline, spacing: 8) {
                         PlanIcon(name: "Check", size: wide ? 19 : 18, color: text).alignmentGuide(.firstTextBaseline) { $0.height * 0.78 }
                         Text(item)
@@ -344,7 +344,7 @@ private struct PlanCard: View {
     private var header: some View {
         HStack {
             HStack(spacing: 8) {
-                Text(plan.name).font(.app(wide ? 24 : 20, .bold)).tracking(-0.02 * (wide ? 24 : 20)).foregroundStyle(text)
+                Text(plan.id.name).font(.app(wide ? 24 : 20, .bold)).tracking(-0.02 * (wide ? 24 : 20)).foregroundStyle(text)
                 if isReader {
                     Text("Más elegido")
                         .font(.app(wide ? 12 : 11, .bold))
@@ -395,7 +395,7 @@ private struct PlanCard: View {
     private var accessibilityText: String {
         let storage = "\(viewModel.storage(plan.id)) en la nube"
         let price = "\(plan.price(viewModel.billing)) \(viewModel.billing.perLabel), \(plan.periodNote(viewModel.billing))"
-        var parts = [plan.name, plan.tagline, storage, price]
+        var parts = [plan.id.name, plan.id.tagline, storage, price]
         if isReader { parts.insert("Más elegido", at: 1) }
         if isFree, viewModel.isOnFreePlan { parts.append("Tu plan") }
         return parts.joined(separator: ", ")

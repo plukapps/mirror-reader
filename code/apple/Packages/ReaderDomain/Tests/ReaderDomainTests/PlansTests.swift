@@ -22,34 +22,17 @@ func freeStorageOfAPaidAccount() {
     #expect(PlanCatalog.storageText(.free, quota: StorageQuota(usedBytes: 0, quotaBytes: 5 * gib, plan: "plus")) == "15 MB")
 }
 
-@Test("PLN-001, PLN-004, PLN-005: precio, período y equivalencia por mes según la forma de pago")
+@Test("PLN-001, PLN-004: precio según la forma de pago")
 func prices() {
-    let reader = PlanCatalog.plan(.plus)
-    #expect(reader.price(.annual) == "$24.99")
-    #expect(reader.price(.monthly) == "$2.99")
-    #expect(reader.periodNote(.annual) == "Equivale a $2.08 por mes")
-    #expect(reader.periodNote(.monthly) == "Pagás mes a mes")
-    let library = PlanCatalog.plan(.pro)
-    #expect(library.price(.annual) == "$49.99")
-    #expect(library.price(.monthly) == "$5.99")
-    #expect(library.periodNote(.annual) == "Equivale a $4.17 por mes")
+    let plus = PlanCatalog.plan(.plus)
+    #expect(plus.price(.annual) == "$24.99")
+    #expect(plus.price(.monthly) == "$2.99")
+    #expect(plus.annualPerMonth == "$2.08")
+    let pro = PlanCatalog.plan(.pro)
+    #expect(pro.price(.annual) == "$49.99")
+    #expect(pro.price(.monthly) == "$5.99")
     #expect(PlanCatalog.plan(.free).price(.annual) == "$0")
-    #expect(PlanCatalog.plan(.free).periodNote(.annual) == "Sin costo, para siempre")
-    #expect(PlanCatalog.plan(.free).periodNote(.monthly) == "Sin costo, para siempre")
-    #expect(Billing.annual.perLabel == "por año")
-    #expect(Billing.monthly.perLabel == "por mes")
-}
-
-@Test("PLN-006: sin prueba gratis, siempre Elegir con el precio del período")
-func cta() {
-    #expect(PlanCatalog.cta(.plus, .annual) == PlanCta(
-        title: "Elegir Lector · $24.99 por año", subtitle: "Se renueva cada año. Cancelás cuando quieras."
-    ))
-    #expect(PlanCatalog.cta(.plus, .monthly) == PlanCta(
-        title: "Elegir Lector · $2.99 por mes", subtitle: "Se renueva cada mes. Cancelás cuando quieras."
-    ))
-    #expect(PlanCatalog.cta(.pro, .annual).title == "Elegir Biblioteca · $49.99 por año")
-    #expect(PlanCatalog.cta(.pro, .monthly).title == "Elegir Biblioteca · $5.99 por mes")
+    #expect(PlanCatalog.plan(.free).annualPerMonth == nil)
 }
 
 @Test("PLN-001, PLN-014: tamaño máximo por archivo de cada plan")
@@ -61,38 +44,17 @@ func maxFile() {
     #expect(PlanCatalog.maxFileText(.pro) == "100 MB")
 }
 
-@Test("PLN-001, PLN-016: lo que incluye cada tarjeta, sin funciones en definición")
-func includes() {
-    #expect(DefaultPlans.free.includes == ["Lectura y notas sin tope", "Sincroniza en todos tus dispositivos", "Archivos de hasta 2 MB"])
-    #expect(DefaultPlans.plus.includes == ["Temas y fuentes", "Exportá notas a Markdown, Obsidian y Notion", "Archivos de hasta 50 MB"])
-    #expect(DefaultPlans.pro.includes == ["Todo lo de Lector", "Archivos de hasta 100 MB"])
-}
-
 @Test("PLN-003: uso con la unidad del total, proporción y barra; sin cuota no hay fila")
 func usage() {
     let line = PlanUsage(StorageQuota(usedBytes: 12 * mib, quotaBytes: 15 * mib))
-    #expect(line?.text == "Usás 12 MB de 15 MB")
-    #expect(line?.ratio == "80 %")
+    #expect(line?.used == "12 MB")
+    #expect(line?.total == "15 MB")
+    #expect(line?.percent == 80)
     #expect(line?.fraction == 0.8)
     #expect(line?.free == "3 MB")
-    #expect(PlanUsage(StorageQuota(usedBytes: 3 * gib / 2, quotaBytes: 5 * gib))?.text == "Usás 1,5 GB de 5 GB")
+    #expect(PlanUsage(StorageQuota(usedBytes: 3 * gib / 2, quotaBytes: 5 * gib))?.used == "1,5 GB")
     #expect(PlanUsage(StorageQuota(usedBytes: 20 * mib, quotaBytes: 15 * mib))?.fraction == 1)
     #expect(PlanUsage(nil) == nil)
-}
-
-@Test("PLN-001, PLN-016: la tabla comparativa tiene las seis filas de la tabla de funciones")
-func comparison() {
-    let rows = PlanCatalog.comparison(quota: StorageQuota(usedBytes: 0, quotaBytes: 15 * mib))
-    #expect(rows.map(\.feature) == [
-        "Espacio en la nube", "Tamaño por archivo", "Lectura, ajustes y anotaciones",
-        "Sincronización en todos tus dispositivos", "Temas y fuentes", "Exportar notas (Markdown, Obsidian, Notion)",
-    ])
-    #expect(rows[0] == PlanComparisonRow(feature: "Espacio en la nube", free: "15 MB", plus: "5 GB", pro: "50 GB"))
-    #expect(rows[1] == PlanComparisonRow(feature: "Tamaño por archivo", free: "2 MB", plus: "50 MB", pro: "100 MB"))
-    #expect(rows[4] == PlanComparisonRow(feature: "Temas y fuentes", free: "—", plus: "✓", pro: "✓"))
-    let hidden = ["Estadísticas", "Drive", "Calibre", "web", "Familia"]
-    let texts = rows.map(\.feature) + PlanCatalog.all.flatMap(\.includes)
-    #expect(!texts.contains { text in hidden.contains { text.contains($0) } })
 }
 
 @Test("PLN-015: en Gratis el lector usa Clásico y serifa; tamaño e interlineado siguen; en Lector, lo guardado")

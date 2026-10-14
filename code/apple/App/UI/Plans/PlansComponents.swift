@@ -83,7 +83,7 @@ struct PlanMark: View {
     var plan: PlanId = .plus
 
     var body: some View {
-        Text(PlanCatalog.plan(plan).name)
+        Text(plan.name)
             .font(.app(9, .bold))
             .foregroundStyle(MarginColors.onYellow)
             .padding(.horizontal, 5)

@@ -156,7 +156,7 @@ struct QuotaBlockContent: View {
         // En Lector se ofrece Biblioteca; en Biblioteca no hay tarjeta.
         let upsell = PlanCatalog.nextPlan(after: PlanCatalog.planOf(notice.quota)).map { next in
             String(localized: """
-                Con \(PlanCatalog.plan(next).name): archivos de hasta \(unbroken(PlanCatalog.maxFileText(next))) y \
+                Con \(next.name): archivos de hasta \(unbroken(PlanCatalog.maxFileText(next))) y \
                 \(unbroken(PlanCatalog.storageText(next, quota: notice.quota))) en la nube
                 """)
         }
@@ -272,7 +272,7 @@ struct PaidFeatureContent: View {
             Text(feature.body).sheetBody()
             HStack(spacing: 6) {
                 PlanIcon(name: "WorkspacePremium", size: 16, color: MarginColors.yellow)
-                Text("Incluido en \(PlanCatalog.plan(feature.plan).name)").font(.app(13, .bold)).foregroundStyle(MarginColors.yellow)
+                Text("Incluido en \(feature.plan.name)").font(.app(13, .bold)).foregroundStyle(MarginColors.yellow)
             }
             .padding(.horizontal, 12)
             .frame(height: 30)
