@@ -6,8 +6,6 @@ Plan de referencia: `specs/plans/2026-10-06-android-epub-viewer.md`
 ## Backlog
 
 - **K-321** Notas iOS (#41): interruptores con Remote Config en iOS (`FirebaseRemoteConfig`, `FeatureFlags`, `FeatureTemplateTests`). ACC-011.
-- **K-329** Sync de notas iOS (#38): `FirestoreNotes`, `NoteSync`, cursor, paso en `LibrarySync` y listener en `SyncCoordinator`. SYN-016, SYN-005, SYN-017.
-- **K-330** Sync de notas iOS (#38): cerrar sesión avisa por notas sin subir. PRF-009.
 - **K-331** Sync de notas iOS (#38): cierre y prueba cruzada Android ↔ iPhone.
 - **K-240** Planes, iOS: al importar con "Abrir con" desde otra app, la comprobación de cuota (P02) no corre porque el lector se abre enseguida a pantalla completa. Mostrar la hoja al cerrar el lector, o antes de abrirlo. PLN-007 a PLN-009. Encontrado en K-224.
 - **K-209** Android, modo oscuro: en "Cambiar contraseña" (PRF-020) los campos conservan el borde claro del onboarding y "Guardar" deshabilitado se ve gris claro sobre el fondo oscuro. Se lee, pero desentona con el resto. Pasar `OnbTextField` y `PrimaryButton` a los tokens de la paleta fuera del onboarding (PRF-022). Visto en el SM-S711B el 2026-10-13.
@@ -56,6 +54,8 @@ Plan de referencia: `specs/plans/2026-10-06-android-epub-viewer.md`
 
 ## Revisión
 
+- **K-330** Sync de notas iOS (#38): cerrar sesión avisa por notas sin subir. PRF-009. Hecho: `hasPending` de `SignOut` suma `hasUnsyncedNotes` (todas con la función apagada) y el texto del aviso nombra las notas. Cubierto por los tests de `NoteDataTests` (PRF-009).
+- **K-329** Sync de notas iOS (#38): `FirestoreNotes`, `NoteSync`, cursor, paso en `LibrarySync` y listener en `SyncCoordinator`. SYN-016, SYN-005, SYN-017. Hecho: `NoteSync` (actor de dominio: sube pendientes, escucha desde el cursor, sigue el interruptor; al prenderse sube y escucha), `FirestoreNotes`, cursor `sync.lastNotesSeenAt` (se borra al cerrar sesión), paso final en `LibrarySync`, escucha en `SyncCoordinator`, el lector sube al guardar o borrar. 9 tests de dominio (243); app 229 en el simulador; Mac compila.
 - **K-328** Sync de notas iOS (#38): `deletedAt`, `syncedAt` y `NoteSyncStore` en `LibraryStore`. SYN-007, SYN-016. Hecho: `NoteRecord.deletedAt` y `syncedAt` (migración automática), `NoteSyncStore` (dominio) en `LibraryStore`: pendientes, `markNoteSynced`, `applyRemote` solo si es más nueva, borrados y purga; quitar un libro marca sus notas subidas. 6 tests; app 229 en el simulador.
 - **K-276** Sync de notas, Tarea 7: parámetro en Remote Config y deploy de reglas (acciones sobre el proyecto real, las aprueba el usuario). Hecho por pedido del usuario (2026-10-14): reglas de Firestore desplegadas a `mirror-reading-staging` (las desplegadas eran las de `develop`; solo se sumó `notes`). Remote Config versión 4: `notes_sync_enabled = true` (booleano), `plans` de la otra rama sin cambios. Pendiente: sumar el parámetro a `remoteconfig.template.json` de la rama del catálogo, o su próximo deploy lo borra.
 - **K-277** Sync de notas, Tarea 8: cierre de docs y verificación a mano en el teléfono y la tablet. Hecho: notas en `android.md`, resultado en el plan. Falta la verificación a mano (lista en el plan), después de K-276.

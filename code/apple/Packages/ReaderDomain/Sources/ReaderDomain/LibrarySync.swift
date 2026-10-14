@@ -77,6 +77,7 @@ public struct LibrarySync: Sendable {
     private let download: DownloadBook
     private let positions: PositionFlusher
     private let removals: (any CloudRemovals)?
+    private let notes: (any NoteFlusher)?
 
     public init(
         account: AccountRepository,
@@ -86,9 +87,11 @@ public struct LibrarySync: Sendable {
         upload: UploadBooks,
         download: DownloadBook,
         positions: PositionFlusher,
-        removals: (any CloudRemovals)? = nil
+        removals: (any CloudRemovals)? = nil,
+        notes: (any NoteFlusher)? = nil
     ) {
         self.removals = removals
+        self.notes = notes
         self.account = account
         self.remote = remote
         self.covers = covers
@@ -142,6 +145,8 @@ public struct LibrarySync: Sendable {
         }
         // Los libros recién subidos ya existen en la nube: ahora puede salir la posición que los esperaba (SYN-011).
         await positions.flush()
+        // SYN-016: igual con las notas de los libros recién subidos. Apagada la función, no hace nada (SYN-017).
+        await notes?.flush()
         return .done(report)
     }
 

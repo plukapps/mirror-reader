@@ -145,6 +145,8 @@ final class ReaderViewModel {
     /// ANN-010: se abrió desde una nota; el libro abre en su lugar y no en la última posición.
     private let noteId: String?
     private let clock: @Sendable () -> Date
+    /// SYN-016: se guardó o borró una nota; la sincronización la sube enseguida.
+    private let notesChanged: @MainActor () -> Void
 
     /// - Parameters:
     ///   - sync: nil si la app funciona solo en local.
@@ -161,8 +163,10 @@ final class ReaderViewModel {
         plan: @escaping @MainActor () -> PlanId = { .free },
         notes: NoteRepository? = nil,
         noteId: String? = nil,
-        clock: @escaping @Sendable () -> Date = { .now }
+        clock: @escaping @Sendable () -> Date = { .now },
+        notesChanged: @escaping @MainActor () -> Void = {}
     ) {
+        self.notesChanged = notesChanged
         self.notes = notes
         self.noteId = noteId
         self.clock = clock
@@ -322,6 +326,7 @@ final class ReaderViewModel {
                 )
             )
         }
+        notesChanged()
         await reloadNotes()
     }
 
@@ -330,6 +335,7 @@ final class ReaderViewModel {
         guard let id = noteEditor?.noteId, let notes else { return }
         noteEditor = nil
         await notes.delete(id: id)
+        notesChanged()
         await reloadNotes()
     }
 
