@@ -23,7 +23,7 @@ sealed interface QuotaBlock {
 }
 
 /**
- * PLN-014, ACC-010: primero el tamaño máximo por archivo (el del servidor si se conoce; sin cuota, el de Gratis). PLN-009: después, con la última
+ * PLN-014, ACC-010: primero el tamaño máximo por archivo (el del servidor si se conoce; sin cuota, el de Free). PLN-009: después, con la última
  * cuota conocida, descontando [pendingBytes] de los libros de este dispositivo que esperan subirse, ¿entra un libro
  * de [bookBytes]? Null si entra, o si nunca se leyó la cuota (vale el aviso de LIB-009).
  */
@@ -42,7 +42,7 @@ fun quotaBlock(quota: StorageQuota?, pendingBytes: Long, bookBytes: Long): Quota
 
 /** Funciones pagas con su hoja (P03). Exportar notas (P03a) llega con las anotaciones. */
 enum class PaidFeature {
-    /** PLN-015: temas y fuentes, de Lector. */
+    /** PLN-015: temas y fuentes, de Plus. */
     THEMES_FONTS,
 }
 

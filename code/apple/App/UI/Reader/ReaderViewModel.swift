@@ -88,7 +88,7 @@ final class ReaderViewModel {
     }
 
     private(set) var phase: Phase = .loading
-    /// Lo guardado (RDR-014). El lector aplica `settings`, que en Gratis es Clásico y serifa (PLN-015).
+    /// Lo guardado (RDR-014). El lector aplica `settings`, que en Free es Clásico y serifa (PLN-015).
     private(set) var savedSettings: ReaderSettings
     /// PLN-015: la hoja de función paga a la vista, o nil.
     private(set) var paidFeature: PaidFeature?
@@ -129,7 +129,7 @@ final class ReaderViewModel {
 
     /// - Parameters:
     ///   - sync: nil si la app funciona solo en local.
-    ///   - plan: el plan de la cuenta (PLN-015); sin dato, Gratis.
+    ///   - plan: el plan de la cuenta (PLN-015); sin dato, Free.
     init(
         bookId: String,
         source: ReaderBookSource,
@@ -273,10 +273,10 @@ final class ReaderViewModel {
 
     // MARK: Ajustes (RDR-002, RDR-003, RDR-014)
 
-    /// Lo que el lector aplica: en Gratis, Clásico y serifa (PLN-015).
+    /// Lo que el lector aplica: en Free, Clásico y serifa (PLN-015).
     var settings: ReaderSettings { effectiveReaderSettings(savedSettings, plan: plan()) }
 
-    /// PLN-015: la opción lleva la marca "Lector" y abre la hoja de función paga.
+    /// PLN-015: la opción lleva la marca "Plus" y abre la hoja de función paga.
     func isLocked(_ theme: ReadingTheme) -> Bool { theme.isPaid && !plan().hasThemesAndFonts }
     func isLocked(_ font: ReaderFont) -> Bool { font.isPaid && !plan().hasThemesAndFonts }
 

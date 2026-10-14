@@ -63,7 +63,7 @@ struct HomeImportTests {
         #expect(viewModel.quotaBlock == nil)
     }
 
-    @Test("PLN-014: en Gratis un libro de 3 MB se importa igual y aparece la hoja de archivo muy grande")
+    @Test("PLN-014: en Free un libro de 3 MB se importa igual y aparece la hoja de archivo muy grande")
     func importedBookTooLarge() async {
         let check = quotaCheck(used: 0, [pendingBook("a", "Walden", 3 * mib)], plan: "free")
         let viewModel = HomeViewModel(library: CountingLibrary(), importer: importer, quotaCheck: check)
@@ -80,7 +80,7 @@ struct HomeImportTests {
         #expect(viewModel.quotaBlock?.block == .full)
     }
 
-    @Test("PLN-009: sin cuota conocida y dentro de los 2 MB de Gratis, o si el libro ya estaba, no hay hoja")
+    @Test("PLN-009: sin cuota conocida y dentro de los 2 MB de Free, o si el libro ya estaba, no hay hoja")
     func noSheet() async {
         let unknown = HomeViewModel(
             library: CountingLibrary(), importer: importer, quotaCheck: quotaCheck(used: nil, [pendingBook("a", "Walden", 2 * mib)])

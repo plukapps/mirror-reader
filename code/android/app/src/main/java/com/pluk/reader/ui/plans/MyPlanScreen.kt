@@ -47,7 +47,7 @@ import com.pluk.reader.domain.plans.DefaultPlans
 import com.pluk.reader.domain.plans.PlanId
 import com.pluk.reader.ui.theme.MarginColors
 
-/** PLN-012 (P04 Gratis): Mi plan, sin barra inferior, con "Perfil" para volver. */
+/** PLN-012 (P04 Free): Mi plan, sin barra inferior, con "Perfil" para volver. */
 @Composable
 fun MyPlanScreen(onBack: () -> Unit, onChangePlan: () -> Unit, viewModel: MyPlanViewModel = hiltViewModel()) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
@@ -87,14 +87,14 @@ fun MyPlanContent(state: MyPlanUiState, onBack: () -> Unit, onChangePlan: () -> 
                         .semantics { heading() },
                 )
                 PlanCard(state)
-                // PLN-012, PLN-017: la oferta del plan siguiente, con sus valores por defecto; en Biblioteca no hay.
+                // PLN-012, PLN-017: la oferta del plan siguiente, con sus valores por defecto; en Pro no hay.
                 when (state.plan) {
                     PlanId.FREE -> OfferCard(
-                        stringResource(R.string.plans_with_reader, formatCloud(DefaultPlans.plus.cloudBytes ?: 0)),
+                        stringResource(R.string.plans_with_plus, formatCloud(DefaultPlans.plus.cloudBytes ?: 0)),
                         stringResource(R.string.plans_my_plan_upsell, formatCloud(DefaultPlans.plus.maxFileBytes)),
                     )
                     PlanId.PLUS -> OfferCard(
-                        stringResource(R.string.plans_with_library, formatCloud(DefaultPlans.pro.cloudBytes ?: 0)),
+                        stringResource(R.string.plans_with_pro, formatCloud(DefaultPlans.pro.cloudBytes ?: 0)),
                         stringResource(R.string.plans_my_plan_upsell_pro, formatCloud(DefaultPlans.pro.maxFileBytes)),
                     )
                     PlanId.PRO -> Unit

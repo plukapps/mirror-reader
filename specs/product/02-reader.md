@@ -40,7 +40,7 @@ Leer cómodo, sin que la interfaz estorbe.
   - **Lectura:** acceso al índice (RDR-004) y la animación de paso de página (RDR-009).
   Cada cambio se aplica en el momento sobre el libro que se ve detrás y se guarda como preferencia de lectura. El panel se cierra tocando el libro fuera de él, arrastrándolo hacia abajo, con el gesto o botón atrás del sistema o volviendo a tocar "Aa". Mientras está abierto, tocar el libro no pasa de página. Abrir el índice desde el panel lo cierra.
   Nota de alcance: el brillo propio y los márgenes no forman parte de este panel todavía.
-  Plan: en Gratis, solo Clásico y la letra con serifa; el resto abre la hoja de función paga (PLN-015).
+  Plan: en Free, solo Clásico y la letra con serifa; el resto abre la hoja de función paga (PLN-015).
 - **RDR-016** En pantallas anchas y en horizontal (tablet), el lector muestra dos páginas lado a lado, como un libro abierto. En cualquier otro caso (teléfono, tablet en vertical, ventana angosta) muestra una sola página.
   - Pasar de página avanza o retrocede el par completo. La animación (RDR-009) mueve el par como una sola pieza, y los toques en los bordes y el deslizar (RDR-011) funcionan igual sobre el par.
   - El pie (RDR-010) muestra las dos posiciones del par, por ejemplo "107–108". En la última posición del libro muestra solo una. Son posiciones del libro (RDR-010), no cuenta de páginas a la vista. Sigue sin mostrar el total.

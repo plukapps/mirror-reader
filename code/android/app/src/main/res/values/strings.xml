@@ -311,13 +311,13 @@
     <string name="plans_billing_monthly">Mensual</string>
     <string name="plans_billing_annual">Anual</string>
     <string name="plans_annual_saving">Ahorrás %1$d %%</string>
-    <string name="plans_free">Gratis</string>
-    <string name="plans_reader">Lector</string>
-    <string name="plans_library">Biblioteca</string>
-    <string name="plans_library_short">Biblio.</string>
+    <string name="plans_free">Free</string>
+    <string name="plans_plus">Plus</string>
+    <string name="plans_pro">Pro</string>
+    <string name="plans_pro_short">Pro</string>
     <string name="plans_free_tagline">Para leer de vez en cuando</string>
-    <string name="plans_reader_tagline">Para quien lee siempre</string>
-    <string name="plans_library_tagline">Para quien tiene una biblioteca</string>
+    <string name="plans_plus_tagline">Para quien lee siempre</string>
+    <string name="plans_pro_tagline">Para quien tiene una biblioteca</string>
     <string name="plans_your_plan">Tu plan</string>
     <string name="plans_most_chosen">Más elegido</string>
     <string name="plans_in_cloud">%1$s en la nube</string>
@@ -329,9 +329,9 @@
     <string name="plans_see_all">Ver todo lo que incluye</string>
     <string name="plans_free_includes_1">Lectura y notas sin tope</string>
     <string name="plans_free_includes_2">Sincroniza en todos tus dispositivos</string>
-    <string name="plans_reader_includes_1">Temas y fuentes</string>
-    <string name="plans_reader_includes_2">Exportá notas a Markdown, Obsidian y Notion</string>
-    <string name="plans_library_includes_1">Todo lo de Lector</string>
+    <string name="plans_plus_includes_1">Temas y fuentes</string>
+    <string name="plans_plus_includes_2">Exportá notas a Markdown, Obsidian y Notion</string>
+    <string name="plans_pro_includes_1">Todo lo de Plus</string>
     <string name="plans_includes_max_file">Archivos de hasta %1$s</string>
     <string name="plans_row_cloud">Espacio en la nube</string>
     <string name="plans_row_file_size">Tamaño por archivo</string>
@@ -342,7 +342,7 @@
     <string name="plans_value_unlimited">Sin tope</string>
     <string name="plans_value_yes">Sí</string>
     <string name="plans_value_no">No</string>
-    <string name="plans_row_description">%1$s: Gratis, %2$s; Lector, %3$s; Biblioteca, %4$s</string>
+    <string name="plans_row_description">%1$s: Free, %2$s; Plus, %3$s; Pro, %4$s</string>
     <string name="plans_card_description">%1$s, %2$s en la nube, %3$s %4$s</string>
     <string name="plans_reassurance">Si cancelás, no perdés nada: tus libros y notas quedan.</string>
     <string name="plans_restore">Restaurar compras</string>
@@ -352,7 +352,7 @@
     <!-- P02, bloqueos de cuota al importar (PLN-007 a PLN-009). -->
     <string name="plans_see_plans">Ver planes</string>
     <string name="plans_not_now">Ahora no</string>
-    <string name="plans_with_reader">Con Lector: %1$s en la nube</string>
+    <string name="plans_with_plus">Con Plus: %1$s en la nube</string>
     <string name="plans_sheet_full_title">Llegaste a tu espacio</string>
     <string name="plans_sheet_full_body">%1$s no se subió a la nube, pero podés leerlo en este dispositivo. Tus otros libros siguen intactos.</string>
     <string name="plans_sheet_too_big_title">Este libro pesa %1$s</string>
@@ -364,7 +364,7 @@
     <!-- P03, funciones pagas (PLN-015). -->
     <string name="plans_paid_themes_title">Leé con tus temas y fuentes</string>
     <string name="plans_paid_themes_body">Sepia, Noche y todas las letras del lector, en todos tus libros.</string>
-    <string name="reader_paid_option">Incluido en Lector</string>
+    <string name="reader_paid_option">Incluido en Plus</string>
     <string name="plans_paid_included">Incluido en %1$s</string>
     <!-- Aviso suave del 80 % (PLN-011). -->
     <string name="plans_notice_free">Te quedan %1$s en la nube.</string>
@@ -377,6 +377,6 @@
     <string name="plans_devices_value">Todos, sin límite</string>
     <string name="plans_change_plan">Cambiar de plan</string>
     <string name="plans_my_plan_upsell">Archivos de hasta %1$s, temas y fuentes.</string>
-    <string name="plans_with_library">Con Biblioteca: %1$s en la nube</string>
+    <string name="plans_with_pro">Con Pro: %1$s en la nube</string>
     <string name="plans_my_plan_upsell_pro">Archivos de hasta %1$s.</string>
 </resources>

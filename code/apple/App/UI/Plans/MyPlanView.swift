@@ -7,7 +7,7 @@ struct MyPlanOffer: Equatable {
     let body: String
 }
 
-/// P04 Mi plan (PLN-012 en Gratis, PLN-017 en Lector y Biblioteca), como `MyPlanViewModel` de Android: primero la cuota
+/// P04 Mi plan (PLN-012 en Free, PLN-017 en Plus y Pro), como `MyPlanViewModel` de Android: primero la cuota
 /// guardada, después la del servidor.
 @MainActor @Observable
 final class MyPlanViewModel {
@@ -33,7 +33,7 @@ final class MyPlanViewModel {
         show(current)
     }
 
-    /// Plan de la cuenta (PLN-014); sin dato, Gratis.
+    /// Plan de la cuenta (PLN-014); sin dato, Free.
     var plan: PlanId { PlanCatalog.planOf(quota) }
 
     var planName: String { plan.name }
@@ -47,17 +47,17 @@ final class MyPlanViewModel {
         return formatStorage(bytes, unit: StorageUnit.forTotal(bytes))
     }
 
-    /// La oferta del plan siguiente, con sus valores por defecto (`DefaultPlans`); en Biblioteca no hay.
+    /// La oferta del plan siguiente, con sus valores por defecto (`DefaultPlans`); en Pro no hay.
     var offer: MyPlanOffer? {
         switch plan {
         case .free:
             MyPlanOffer(
-                title: String(localized: "Con Lector: \(PlanCatalog.storageText(.plus, quota: quota)) en la nube"),
+                title: String(localized: "Con Plus: \(PlanCatalog.storageText(.plus, quota: quota)) en la nube"),
                 body: String(localized: "Archivos de hasta \(PlanCatalog.maxFileText(.plus)), temas y fuentes.")
             )
         case .plus:
             MyPlanOffer(
-                title: String(localized: "Con Biblioteca: \(PlanCatalog.storageText(.pro, quota: quota)) en la nube"),
+                title: String(localized: "Con Pro: \(PlanCatalog.storageText(.pro, quota: quota)) en la nube"),
                 body: String(localized: "Archivos de hasta \(PlanCatalog.maxFileText(.pro)).")
             )
         case .pro:
@@ -71,7 +71,7 @@ final class MyPlanViewModel {
     }
 }
 
-/// P04 Mi plan, dentro del tab Perfil y sin barra inferior. Diseños: "P04 Mi plan Gratis" y "P04 Mi plan · Biblioteca".
+/// P04 Mi plan, dentro del tab Perfil y sin barra inferior. Diseños: "P04 Mi plan Free" y "P04 Mi plan · Pro".
 struct MyPlanView: View {
     let viewModel: MyPlanViewModel
     var onBack: () -> Void = {}

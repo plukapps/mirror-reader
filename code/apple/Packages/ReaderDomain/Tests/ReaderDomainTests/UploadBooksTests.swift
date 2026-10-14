@@ -91,7 +91,7 @@ private final class SavedQuota: QuotaCache, @unchecked Sendable {
     func save(_ quota: StorageQuota) { saved = quota }
 }
 
-/// Biblioteca por defecto: estos tests miran el espacio; el tope por archivo (PLN-014) tiene los suyos.
+/// Pro por defecto: estos tests miran el espacio; el tope por archivo (PLN-014) tiene los suyos.
 private func quota(used: Int64 = 0, limit: Int64 = 15 * mib, plan: String = "pro", maxFileBytes: Int64? = nil) -> FakeQuota {
     FakeQuota(quota: StorageQuota(usedBytes: used, quotaBytes: limit, plan: plan, maxFileBytes: maxFileBytes))
 }
@@ -212,7 +212,7 @@ struct UploadBooksTests {
         #expect(cache.saved == StorageQuota(usedBytes: 2 * mib, quotaBytes: 15 * mib, plan: "pro"))
     }
 
-    @Test("PLN-014: en Gratis no se sube lo que supera 2 MB y cuenta como sin espacio; justo 2 MB sí")
+    @Test("PLN-014: en Free no se sube lo que supera 2 MB y cuenta como sin espacio; justo 2 MB sí")
     func maxFileSize() async {
         let uploads = FakeUploads([pending("grande", 3 * mib), pending("justo", 2 * mib)], calls: calls)
         let report = await useCase(

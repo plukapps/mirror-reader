@@ -9,9 +9,9 @@
 
 | Plan | Espacio | Máximo por archivo | Precio mensual / anual |
 |---|---|---|---|
-| `free` (Gratis) | 15 MiB (0,0146484375 GB, como hoy) | 2 MB (hoy 100 MB) | 0 / 0 USD |
-| `plus` (Lector) | 5 GB | 50 MB | 2,99 / 24,99 USD |
-| `pro` (Biblioteca) | 50 GB | 100 MB | 5,99 / 49,99 USD |
+| `free` (Free) | 15 MiB (0,0146484375 GB, como hoy) | 2 MB (hoy 100 MB) | 0 / 0 USD |
+| `plus` (Plus) | 5 GB | 50 MB | 2,99 / 24,99 USD |
+| `pro` (Pro) | 50 GB | 100 MB | 5,99 / 49,99 USD |
 
 Son los valores de PLN-001 (`specs/product/12-plans.md`), decisión del usuario (2026-10-14); los ids siguen siendo `free`, `plus` y `pro`. Nadie queda en `plus` o `pro` hasta que haya cobro. Para probar se puede cambiar `plan` a mano en la consola de Firestore.
 

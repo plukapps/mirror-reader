@@ -240,7 +240,7 @@ class ProfileViewModelTest {
 
     private val prompts = com.pluk.reader.domain.plans.PlanPrompts()
 
-    /** Por defecto una cuenta Lector: temas y fuentes libres. PLN-015 se prueba con `plan = "free"`. */
+    /** Por defecto una cuenta Plus: temas y fuentes libres. PLN-015 se prueba con `plan = "free"`. */
     private fun TestScope.readingViewModel(settings: FakeSettings, plan: String = "plus"): ProfileViewModel {
         val auth = FakeAuth().apply { user.value = AccountUser("u1", "a@mail.com") }
         val vm = ProfileViewModel(auth, FakeQuota(Result.success(StorageQuota(0, gib, plan = plan))), FakeCache(), FakeDevice(), settings, signOutOf(auth), appearancePrefs, wifiOnlyPref, prompts)

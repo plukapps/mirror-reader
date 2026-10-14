@@ -16,7 +16,7 @@ import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
-/** PLN-015: temas y fuentes solo en Lector y Biblioteca. */
+/** PLN-015: temas y fuentes solo en Plus y Pro. */
 class ReadingFeaturesTest {
     private val saved = ReaderSettings(theme = ReadingTheme.SEPIA, font = ReaderFont.MONO, fontScale = 1.3, lineSpacing = LineSpacing.WIDE)
 

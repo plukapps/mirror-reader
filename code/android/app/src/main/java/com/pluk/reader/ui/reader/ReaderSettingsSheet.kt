@@ -164,7 +164,7 @@ internal fun FontChips(
     Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
         ReaderFont.entries.forEach { font ->
             val isSelected = font == selected
-            // PLN-015: en Gratis, las letras pagas llevan la marca "Lector".
+            // PLN-015: en Free, las letras pagas llevan la marca "Plus".
             val marked = locked && font.isPaid
             Row(
                 Modifier
@@ -216,7 +216,7 @@ private fun ThemeSwatches(selected: ReadingTheme, onSelect: (ReadingTheme) -> Un
     Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
         listOf(ReadingTheme.LIGHT, ReadingTheme.SEPIA, ReadingTheme.DARK).forEach { theme ->
             val isSelected = theme == selected
-            // PLN-015: en Gratis, Sepia y Noche llevan la marca "Lector".
+            // PLN-015: en Free, Sepia y Noche llevan la marca "Plus".
             val marked = locked && theme.isPaid
             Column(
                 Modifier

@@ -140,7 +140,7 @@ private fun Preview(reading: ReaderSettings) {
 /** Círculo de 28; el elegido lleva un aro tinta separado por 2 dp, por fuera, sin mover nada. */
 @Composable
 private fun ThemeSwatch(theme: ReadingTheme, selected: Boolean, marked: Boolean, onClick: () -> Unit) {
-    // PLN-015: en Gratis, Sepia y Noche llevan la marca "Lector" debajo del círculo y se anuncian como pagas.
+    // PLN-015: en Free, Sepia y Noche llevan la marca "Plus" debajo del círculo y se anuncian como pagas.
     val name = stringResource(theme.label).let { if (marked) "$it, ${stringResource(R.string.reader_paid_option)}" else it }
     Box(contentAlignment = Alignment.Center) {
     // Se leen antes: la lambda de dibujo no es composable.

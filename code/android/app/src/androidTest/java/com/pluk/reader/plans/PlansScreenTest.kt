@@ -80,18 +80,18 @@ class PlansScreenTest {
         show()
         compose.onNodeWithTag("billing-MONTHLY").assertIsSelected()
         compose.onNodeWithTag("plans-cta").assertExists()
-        compose.onNodeWithText("Elegir Lector · $2.99 por mes").assertExists()
+        compose.onNodeWithText("Elegir Plus · $2.99 por mes").assertExists()
         compose.onNodeWithText("Se renueva cada mes. Cancelás cuando quieras.").assertExists()
 
-        // PLN-005: Gratis con la misma estructura de precio
-        compose.onNodeWithContentDescription("Gratis, 15 MB en la nube, $0 por mes").assertExists()
+        // PLN-005: Free con la misma estructura de precio
+        compose.onNodeWithContentDescription("Free, 15 MB en la nube, $0 por mes").assertExists()
         compose.onNodeWithTag("billing-ANNUAL").performClick()
-        compose.onNodeWithContentDescription("Gratis, 15 MB en la nube, $0 por año").assertExists()
-        compose.onNodeWithText("Elegir Lector · $24.99 por año").assertExists()
+        compose.onNodeWithContentDescription("Free, 15 MB en la nube, $0 por año").assertExists()
+        compose.onNodeWithText("Elegir Plus · $24.99 por año").assertExists()
         compose.onNodeWithText("Se renueva cada año. Cancelás cuando quieras.").assertExists()
     }
 
-    // PLN-005, PLN-013: Lector elegido al empezar; tocar Biblioteca la elige
+    // PLN-005, PLN-013: Plus elegido al empezar; tocar Pro la elige
     @Test
     fun selectingLibraryChangesTheButton() {
         show()
@@ -99,7 +99,7 @@ class PlansScreenTest {
         compose.onNodeWithTag("plan-PRO").performScrollTo().performClick()
         compose.onNodeWithTag("plan-PRO").assertIsSelected()
         compose.onNodeWithTag("plan-PLUS").assertIsNotSelected()
-        compose.onNodeWithText("Elegir Biblioteca · $5.99 por mes").assertExists()
+        compose.onNodeWithText("Elegir Pro · $5.99 por mes").assertExists()
     }
 
     // PLN-006: la tabla se despliega y se lee por fila
@@ -108,9 +108,9 @@ class PlansScreenTest {
         show()
         compose.onNodeWithTag("plans-table").assertDoesNotExist()
         compose.onNodeWithTag("plans-see-all").performScrollTo().performClick()
-        compose.onNodeWithContentDescription("Espacio en la nube: Gratis, 15 MB; Lector, 5 GB; Biblioteca, 50 GB")
+        compose.onNodeWithContentDescription("Espacio en la nube: Free, 15 MB; Plus, 5 GB; Pro, 50 GB")
             .performScrollTo().assertExists()
-        compose.onNodeWithContentDescription("Tamaño por archivo: Gratis, 2 MB; Lector, 50 MB; Biblioteca, 100 MB")
+        compose.onNodeWithContentDescription("Tamaño por archivo: Free, 2 MB; Plus, 50 MB; Pro, 100 MB")
             .performScrollTo().assertExists()
         // PLN-016: sin funciones en definición
         compose.onNodeWithText("Familia (hasta 5 cuentas)").assertDoesNotExist()

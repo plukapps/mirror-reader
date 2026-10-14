@@ -57,9 +57,9 @@ data class ProfileUiState(
     /** Verdadero si la lectura falló y no había valor guardado. */
     val storageFailed: Boolean = false,
     val deviceName: String = "",
-    /** Ajustes del lector: los mismos que cambia el panel "Aa" (PRF-011). En Gratis, los efectivos (PLN-015). */
+    /** Ajustes del lector: los mismos que cambia el panel "Aa" (PRF-011). En Free, los efectivos (PLN-015). */
     val reading: ReaderSettings = ReaderSettings(),
-    /** PLN-015: temas y fuentes pagos llevan la marca "Lector" y abren la hoja de función paga. */
+    /** PLN-015: temas y fuentes pagos llevan la marca "Plus" y abren la hoja de función paga. */
     val readingOptionsLocked: Boolean = true,
     /** Apariencia de la app en este dispositivo (PRF-021). */
     val appearance: Appearance = DEFAULT_APPEARANCE,
@@ -148,18 +148,18 @@ class ProfileViewModel @Inject constructor(
     }
 
     // PRF-011 a PRF-015: los cambios van al mismo lugar que los del panel del lector.
-    /** PLN-015: en Gratis, las letras pagas abren la hoja de función paga y no cambian la preferencia. */
+    /** PLN-015: en Free, las letras pagas abren la hoja de función paga y no cambian la preferencia. */
     fun onFont(font: ReaderFont) {
         if (planPrompts.allowReadingOption(currentPlan(), font.isPaid)) updateReading { it.withFont(font) }
     }
     fun onSmallerFont() = updateReading { it.smallerFont() }
     fun onBiggerFont() = updateReading { it.biggerFont() }
-    /** PLN-015: en Gratis, Sepia y Noche abren la hoja de función paga. */
+    /** PLN-015: en Free, Sepia y Noche abren la hoja de función paga. */
     fun onTheme(theme: ReadingTheme) {
         if (planPrompts.allowReadingOption(currentPlan(), theme.isPaid)) updateReading { it.withTheme(theme) }
     }
 
-    /** PLN-015: plan de la cuenta según el último espacio conocido; sin dato, Gratis. */
+    /** PLN-015: plan de la cuenta según el último espacio conocido; sin dato, Free. */
     private fun currentPlan(): PlanId = PlanCatalog.planOf(quota.value)
     fun onLineSpacing(spacing: LineSpacing) = updateReading { it.withLineSpacing(spacing) }
 

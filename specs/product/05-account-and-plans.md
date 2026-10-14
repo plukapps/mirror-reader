@@ -12,7 +12,7 @@ Identidad para sincronizar, y base para un modelo de pago futuro.
 - **ACC-004** Cada usuario solo accede a sus propios datos.
 - **ACC-005** El concepto de plan debe permitir agregar planes de pago sin cambiar el modelo de datos.
 - **ACC-006** Debe permitir cerrar sesión y ver los dispositivos vinculados.
-- **ACC-007** Hay un catálogo de planes (por ahora `free`, `plus` y `pro`). Cada plan define: espacio total (en GB), tamaño máximo por archivo (en MB) y precio mensual y anual con su moneda (USD). Los valores iniciales son los de PLN-001 (Gratis = `free`, Lector = `plus`, Biblioteca = `pro`). Los valores se cambian sin publicar una versión nueva de la app.
+- **ACC-007** Hay un catálogo de planes (por ahora `free`, `plus` y `pro`). Cada plan define: espacio total (en GB), tamaño máximo por archivo (en MB) y precio mensual y anual con su moneda (USD). Los valores iniciales son los de PLN-001 (los planes se llaman Free, Plus y Pro, con ids `free`, `plus` y `pro`). Los valores se cambian sin publicar una versión nueva de la app.
 - **ACC-008** Los límites que valen son los del servidor. La app usa y muestra los que el servidor le informa. Solo mientras todavía no los obtuvo usa valores propios por defecto, y estos nunca habilitan algo que el servidor rechace.
 - **ACC-009** Al cambiar los valores de un plan, se aplican a todos los usuarios de ese plan. Nunca se borra nada: si el espacio usado queda por encima del nuevo total, se bloquean nuevas subidas (LIB-009) y se sigue leyendo.
 - **ACC-010** Un archivo más grande que el máximo por archivo del plan se rechaza al subir, con una explicación que dice el máximo.

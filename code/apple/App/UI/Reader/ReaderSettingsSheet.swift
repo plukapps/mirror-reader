@@ -65,7 +65,7 @@ struct FontControlsPalette {
 struct FontChips: View {
     let selected: ReaderFont
     let onSelect: (ReaderFont) -> Void
-    /// PLN-015: las letras de Lector llevan su marca y abren la hoja de función paga.
+    /// PLN-015: las letras de Plus llevan su marca y abren la hoja de función paga.
     var locked: (ReaderFont) -> Bool = { _ in false }
     var palette = FontControlsPalette.dark
 
@@ -90,7 +90,7 @@ struct FontChips: View {
                 }
                 .buttonStyle(.plain)
                 .accessibilityAddTraits(isSelected ? .isSelected : [])
-                .accessibilityHint(locked(font) ? Text("Incluido en Lector") : Text(""))
+                .accessibilityHint(locked(font) ? Text("Incluido en Plus") : Text(""))
             }
         }
     }
@@ -165,7 +165,7 @@ private struct ThemeSwatches: View {
                 .buttonStyle(.plain)
                 .accessibilityLabel(theme.label)
                 .accessibilityAddTraits(isSelected ? .isSelected : [])
-                .accessibilityHint(locked(theme) ? Text("Incluido en Lector") : Text(""))
+                .accessibilityHint(locked(theme) ? Text("Incluido en Plus") : Text(""))
             }
         }
     }

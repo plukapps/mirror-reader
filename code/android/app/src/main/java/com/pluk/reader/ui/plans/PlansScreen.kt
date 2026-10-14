@@ -317,7 +317,7 @@ private fun cardColors(highlighted: Boolean): CardColors = if (highlighted) {
     CardColors(MarginColors.Field, MarginColors.Off, 1.5.dp, MarginColors.Ink, MarginColors.Ink2, MarginColors.Line)
 }
 
-/** PLN-005, PLN-013: tarjeta de un plan. Lector y Biblioteca se eligen tocándola; se anuncia nombre, espacio, precio. */
+/** PLN-005, PLN-013: tarjeta de un plan. Plus y Pro se eligen tocándola; se anuncia nombre, espacio, precio. */
 @Composable
 private fun PlanCard(plan: PlanId, state: PlansUiState, onSelect: (PlanId) -> Unit, tablet: Boolean) {
     val highlighted = state.isHighlighted(plan)
@@ -398,7 +398,7 @@ private fun CardHeader(plan: PlanId, name: String, state: PlansUiState, selected
     Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             Text(name, style = planText(if (tablet) 24 else 20, FontWeight.Bold, ink, (-0.02).em))
-            // PLN-005, PLN-017: en un plan pago de la cuenta, "Tu plan" junto al nombre (en Lector, en lugar de "Más elegido").
+            // PLN-005, PLN-017: en un plan pago de la cuenta, "Tu plan" junto al nombre (en Plus, en lugar de "Más elegido").
             if (plan != PlanId.FREE && plan == state.accountPlan) {
                 YourPlanChip(stringResource(R.string.plans_your_plan), large = tablet, withCheck = false, color = ink)
             } else if (plan == PlanId.PLUS) {
@@ -462,8 +462,8 @@ private fun ComparisonTable(freeCloud: String, tablet: Boolean, modifier: Modifi
             Spacer(Modifier.weight(1f))
             listOf(
                 stringResource(R.string.plans_free) to MarginColors.Muted,
-                stringResource(R.string.plans_reader) to MarginColors.Ink,
-                stringResource(if (tablet) R.string.plans_library else R.string.plans_library_short) to MarginColors.Muted,
+                stringResource(R.string.plans_plus) to MarginColors.Ink,
+                stringResource(if (tablet) R.string.plans_pro else R.string.plans_pro_short) to MarginColors.Muted,
             ).forEachIndexed { i, (text, color) ->
                 Text(text.uppercase(), style = header.copy(color = color, textAlign = TextAlign.Center), modifier = Modifier.width(widths[i]))
             }
@@ -607,15 +607,15 @@ private fun TabletPurchaseBar(cta: PlanCta, actions: PlansActions) {
 internal fun planName(plan: PlanId): String = stringResource(
     when (plan) {
         PlanId.FREE -> R.string.plans_free
-        PlanId.PLUS -> R.string.plans_reader
-        PlanId.PRO -> R.string.plans_library
+        PlanId.PLUS -> R.string.plans_plus
+        PlanId.PRO -> R.string.plans_pro
     },
 )
 
 private fun planTagline(plan: PlanId): Int = when (plan) {
     PlanId.FREE -> R.string.plans_free_tagline
-    PlanId.PLUS -> R.string.plans_reader_tagline
-    PlanId.PRO -> R.string.plans_library_tagline
+    PlanId.PLUS -> R.string.plans_plus_tagline
+    PlanId.PRO -> R.string.plans_pro_tagline
 }
 
 /** Lo que incluye cada tarjeta (PLN-001). Solo funciones hechas o en camino (PLN-016). */
@@ -624,8 +624,8 @@ private fun planIncludes(plan: PlanId): List<String> {
     val maxFile = stringResource(R.string.plans_includes_max_file, formatCloud(PlanCatalog.of(plan).maxFileBytes))
     return when (plan) {
         PlanId.FREE -> listOf(stringResource(R.string.plans_free_includes_1), stringResource(R.string.plans_free_includes_2), maxFile)
-        PlanId.PLUS -> listOf(stringResource(R.string.plans_reader_includes_1), stringResource(R.string.plans_reader_includes_2), maxFile)
-        PlanId.PRO -> listOf(stringResource(R.string.plans_library_includes_1), maxFile)
+        PlanId.PLUS -> listOf(stringResource(R.string.plans_plus_includes_1), stringResource(R.string.plans_plus_includes_2), maxFile)
+        PlanId.PRO -> listOf(stringResource(R.string.plans_pro_includes_1), maxFile)
     }
 }
 

@@ -282,7 +282,7 @@ private struct BillingToggle: View {
     }
 }
 
-/// Una tarjeta de plan (PLN-005). Lector va en amarillo; Lector y Biblioteca se eligen tocándolas.
+/// Una tarjeta de plan (PLN-005). Plus va en amarillo; Plus y Pro se eligen tocándolas.
 private struct PlanCard: View {
     let plan: Plan
     let viewModel: PlansViewModel
@@ -347,7 +347,7 @@ private struct PlanCard: View {
         HStack {
             HStack(spacing: 8) {
                 Text(plan.id.name).font(.app(wide ? 24 : 20, .bold)).tracking(-0.02 * (wide ? 24 : 20)).foregroundStyle(text)
-                // PLN-005, PLN-017: en un plan pago de la cuenta, "Tu plan" junto al nombre (en Lector, en lugar de "Más elegido").
+                // PLN-005, PLN-017: en un plan pago de la cuenta, "Tu plan" junto al nombre (en Plus, en lugar de "Más elegido").
                 if isAccountPaidPlan {
                     YourPlanChip(check: false, height: wide ? 30 : 28, fontSize: wide ? 13 : 12, color: text)
                 } else if isReader {
@@ -422,9 +422,9 @@ private struct ComparisonTable: View {
         VStack(spacing: 0) {
             HStack(spacing: 0) {
                 Spacer(minLength: 0)
-                header("Gratis", width: columns[0], color: MarginColors.muted)
-                header("Lector", width: columns[1], color: MarginColors.ink)
-                header(wide ? "Biblioteca" : "Biblio.", width: columns[2], color: MarginColors.muted)
+                header("Free", width: columns[0], color: MarginColors.muted)
+                header("Plus", width: columns[1], color: MarginColors.ink)
+                header("Pro", width: columns[2], color: MarginColors.muted)
             }
             .frame(height: wide ? 44 : 40)
             .accessibilityHidden(true)
@@ -447,7 +447,7 @@ private struct ComparisonTable: View {
                 }
                 .accessibilityElement(children: .ignore)
                 .accessibilityLabel(Text(row.feature))
-                .accessibilityValue(Text("Gratis: \(spoken(row.free)). Lector: \(spoken(row.plus)). Biblioteca: \(spoken(row.pro))."))
+                .accessibilityValue(Text("Free: \(spoken(row.free)). Plus: \(spoken(row.plus)). Pro: \(spoken(row.pro))."))
             }
         }
         .padding(EdgeInsets(top: wide ? 8 : 6, leading: wide ? 24 : 14, bottom: wide ? 12 : 8, trailing: wide ? 24 : 14))

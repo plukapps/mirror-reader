@@ -33,8 +33,8 @@ Primera rebanada: Android (teléfono y tablet) e iPhone. La Mac queda afuera has
 
 - **PRF-011** Sección "Ajustes de lectura" con la bajada "Se aplican a todos tus libros." Los ajustes son los mismos del panel del lector (RDR-014) y se guardan en el mismo lugar: cambiar uno aquí cambia el lector y viceversa.
 - **PRF-012** Una vista previa con un párrafo de muestra que usa en el momento la letra, el tamaño, el tema y el interlineado elegidos.
-- **PRF-013** "Letra" muestra el tipo y el tamaño (por ejemplo "Newsreader · 18", escrito en esa letra). Tocarla abre un panel con el tipo de letra y los botones "A−" y "A+" del panel del lector. En Gratis, las opciones pagas abren la hoja de función paga (PLN-015).
-- **PRF-014** "Tema": tres círculos (Clásico, Sepia, Noche) con el elegido resaltado como en el diseño; tocar uno lo elige. En Gratis, las opciones pagas abren la hoja de función paga (PLN-015).
+- **PRF-013** "Letra" muestra el tipo y el tamaño (por ejemplo "Newsreader · 18", escrito en esa letra). Tocarla abre un panel con el tipo de letra y los botones "A−" y "A+" del panel del lector. En Free, las opciones pagas abren la hoja de función paga (PLN-015).
+- **PRF-014** "Tema": tres círculos (Clásico, Sepia, Noche) con el elegido resaltado como en el diseño; tocar uno lo elige. En Free, las opciones pagas abren la hoja de función paga (PLN-015).
 - **PRF-015** "Interlineado": botones con ícono para las opciones del lector, el elegido en negro con el ícono amarillo; tocar uno lo elige.
 
 ### App

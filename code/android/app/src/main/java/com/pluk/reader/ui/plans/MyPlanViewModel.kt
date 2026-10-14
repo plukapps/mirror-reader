@@ -17,11 +17,11 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
-/** Mi plan (PLN-012 en Gratis, PLN-017 en Lector y Biblioteca). */
+/** Mi plan (PLN-012 en Free, PLN-017 en Plus y Pro). */
 data class MyPlanUiState(
     /** Uso del espacio, o null si nunca se leyó. */
     val usage: StorageUsage? = null,
-    /** Plan de la cuenta (PLN-014); sin dato, Gratis. */
+    /** Plan de la cuenta (PLN-014); sin dato, Free. */
     val plan: PlanId = PlanId.FREE,
     /** Máximo por archivo de la cuenta: el del servidor si se conoce (ACC-008, ACC-010). */
     val maxFileBytes: Long = DefaultPlans.free.maxFileBytes,

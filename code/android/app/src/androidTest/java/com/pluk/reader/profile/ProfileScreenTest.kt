@@ -171,8 +171,8 @@ class ProfileScreenTest {
     @Test
     fun paidThemesAreMarkedOnFree() {
         show(state.copy(readingOptionsLocked = true))
-        compose.onNodeWithContentDescription("Sepia, Incluido en Lector").performScrollTo().assertExists()
-        compose.onNodeWithContentDescription("Noche, Incluido en Lector").assertExists()
+        compose.onNodeWithContentDescription("Sepia, Incluido en Plus").performScrollTo().assertExists()
+        compose.onNodeWithContentDescription("Noche, Incluido en Plus").assertExists()
         compose.onNodeWithContentDescription("Clásico").assertExists()
     }
 

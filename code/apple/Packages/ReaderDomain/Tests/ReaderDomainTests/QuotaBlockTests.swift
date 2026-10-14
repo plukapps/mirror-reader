@@ -83,7 +83,7 @@ func tooLargeFirst() {
     #expect(quotaBlock(freeBytes: 10 * mib, bookBytes: 2 * mib, maxFileBytes: 2 * mib) == nil)
 }
 
-@Test("PLN-014: en Gratis un libro de 3 MB es muy grande; en Lector entra")
+@Test("PLN-014: en Free un libro de 3 MB es muy grande; en Plus entra")
 func tooLargeByPlan() async {
     #expect(await check(used: 0, [item("a", 3 * mib)])(imported: ["a"])?.block == .tooLarge(bookBytes: 3 * mib, maxBytes: 2 * mib))
     #expect(await check(used: 0, [item("a", 3 * mib)], plan: "plus")(imported: ["a"]) == nil)
@@ -91,7 +91,7 @@ func tooLargeByPlan() async {
         == .tooLarge(bookBytes: 51 * mib, maxBytes: 50 * mib))
 }
 
-@Test("PLN-014: un plan desconocido vale como Gratis; justo 2 MB entra")
+@Test("PLN-014: un plan desconocido vale como Free; justo 2 MB entra")
 func unknownPlanIsFree() async {
     #expect(PlanCatalog.planOf(StorageQuota(usedBytes: 0, quotaBytes: 1, plan: "premium")) == .free)
     #expect(PlanCatalog.planOf(nil) == .free)
@@ -120,7 +120,7 @@ func oversizePendingTakesNoSpace() async {
     #expect(notice == nil)
 }
 
-@Test("PLN-014: sin cuota leída, el tamaño se comprueba con el máximo de Gratis")
+@Test("PLN-014: sin cuota leída, el tamaño se comprueba con el máximo de Free")
 func tooLargeWithoutQuota() async {
     let check = ImportQuotaCheck(uploads: Pending(items: [item("a", 3 * mib)]), cache: Cache(nil))
     let notice = await check(imported: ["a"])
@@ -128,7 +128,7 @@ func tooLargeWithoutQuota() async {
     #expect(notice?.quota == nil)
 }
 
-@Test("PLN-014: se ofrece Lector desde Gratis, Biblioteca desde Lector y nada desde Biblioteca")
+@Test("PLN-014: se ofrece Plus desde Free, Pro desde Plus y nada desde Pro")
 func nextPlan() {
     #expect(PlanCatalog.nextPlan(after: .free) == .plus)
     #expect(PlanCatalog.nextPlan(after: .plus) == .pro)
