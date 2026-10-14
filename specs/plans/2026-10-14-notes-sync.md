@@ -146,3 +146,17 @@
 - **Relojes desfasados:** con más de una hora de adelanto, la nube rechaza la nota y queda pendiente. Es el mismo riesgo aceptado en ADR 0011.
 - **App modificada con el flag apagado:** puede escribir notas en su propia cuenta. Se acepta hasta que haya cobro (ADR 0016).
 - **Remote Config sin conexión la primera vez:** vale el valor por defecto, prendido. Apagarlo para una cuenta que nunca bajó la configuración no tiene efecto hasta que la baje.
+
+## Resultado (2026-10-14)
+
+- K-270 a K-275 hechos, en commits separados (más un arreglo de la regla de revivir y la renumeración a ACC-011).
+- Backend: 107 tests con emuladores pasan (las reglas, también con otros puertos mientras otra sesión usaba los de siempre). Las reglas de notas detectan las mutaciones de `editedAt` y de revivir.
+- Android: 443 tests JVM pasan (+11). Los instrumentados (`NoteRepositoryTest`, `MigrationTest` 8→9 y 1→9) están escritos y compilan, pero no se corrieron.
+- Cambios respecto del plan:
+  - `syncedAt` en lugar de `isSynced`;
+  - una nota borrada revive con una edición posterior;
+  - quién gana lo decide la base y no una función aparte;
+  - ACC-011 en lugar de ACC-007, por el choque con la rama del catálogo de planes.
+- **Falta, a cargo del usuario (K-276):** desplegar las reglas a `mirror-reading-staging` antes de instalar esta versión, y crear `notes_sync_enabled` en Remote Config (o en el template versionado si la rama del catálogo ya se integró).
+- **Falta (K-277):** la verificación a mano con el teléfono y la tablet.
+

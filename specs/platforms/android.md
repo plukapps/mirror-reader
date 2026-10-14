@@ -53,6 +53,12 @@ Stack y capas definidos en `specs/adr/0005-android-stack-and-architecture.md`: C
   - **Abrir en una nota:** ruta `reader/{bookId}?noteId={noteId}`; `ReaderViewModel` usa el locator de la nota en lugar de la última posición y no pregunta por otro dispositivo (SYN-003).
   - **Detalle:** ruta `book/{bookId}` sin barra (`ui/detail`), desde "Ver detalle" del menú del libro. Sin páginas, tiempo ni descripción: la app no los conoce.
   - Plan `specs/plans/2026-10-13-android-notes.md`.
+- Sincronización de notas con interruptor remoto (SYN-016, SYN-017, SYN-005, ACC-011, K-270 a K-277):
+  - **Interruptor:** `domain/flags` (`Feature`, `FeatureFlags`, `RemoteFeatureFlags`) y `data/flags/FirebaseRemoteFlagSource` con Remote Config (`firebase-config` por el BoM). Parámetro `notes_sync_enabled`, prendido por defecto; señal personalizada `plan` desde `QuotaCache`. Arranca con `CloudListeners` (app a la vista) y escucha cambios en tiempo real. ADR 0016.
+  - **Base:** Room v9 (`MIGRATION_8_9`): `notes.deletedAt` y `notes.syncedAt` (la versión que la nube tiene; null si nunca llegó). Borrar una nota que la nube nunca tuvo la elimina; si no, la marca. `NoteSyncStore` aplica lo de la nube con escrituras condicionales: gana la edición más reciente.
+  - **Sincronizar:** `NoteSync` sube las pendientes (al guardar en el lector, al terminar la pasada de `SyncLibraryUseCase` y al prenderse la función) y escucha `users/{uid}/notes` desde el cursor `sync_last_notes_seen_at` (`FirestoreNotes`). Apagada o sin red permitida (PRF-023), no hace nada.
+  - **Cerrar sesión:** `notesAtRisk` suma las notas al aviso de PRF-009; con la función apagada cuentan todas.
+  - Plan `specs/plans/2026-10-14-notes-sync.md`.
 
 ## Criterio de terminado
 
