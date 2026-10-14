@@ -7,7 +7,12 @@ import SwiftUI
 /// del diseño, como `ReaderScreen` de Android.
 struct ReaderView: View {
     @State var viewModel: ReaderViewModel
+    /// PLN-015: "Ver planes" abre P01 sobre el lector; nil donde no hay planes (tests).
+    var plans: PlansPresenter?
+    var tabs: TabBarModel?
     let onClose: () -> Void
+    /// La apariencia de la app, antes de que el lector fije la suya: P01 se ve con ella.
+    @Environment(\.colorScheme) private var appScheme
     @Environment(\.scenePhase) private var scenePhase
 
     var body: some View {
@@ -51,6 +56,20 @@ struct ReaderView: View {
         // PRF-021: el lector tiene su propio tema (RDR-003); los colores de la app adentro se ven siempre claros.
         .environment(\.colorScheme, .light)
         .preferredColorScheme(viewModel.settings.theme == .dark ? .dark : .light)
+        // PLN-015: la hoja de temas y fuentes y, con "Ver planes", P01 sobre el lector.
+        .sheet(
+            item: Binding(get: { viewModel.paidFeature.map(PaidFeatureItem.init) }, set: { if $0 == nil { viewModel.dismissPaidFeature() } }),
+            onDismiss: viewModel.paidFeatureDismissed
+        ) { item in
+            PaidFeatureSheet(feature: item.feature, onSeePlans: viewModel.seePlans, onNotNow: viewModel.dismissPaidFeature)
+        }
+        .fullScreenCover(isPresented: $viewModel.plansOpen) {
+            if let plans, let tabs {
+                PlansScreen(presenter: plans, tabs: tabs, onClose: { viewModel.plansOpen = false })
+                    .environment(\.colorScheme, appScheme)
+                    .preferredColorScheme(appScheme)
+            }
+        }
     }
 
     private func close() {
@@ -108,6 +127,7 @@ private struct ReadyReader: View {
             }
             .sheet(isPresented: settingsBinding, onDismiss: {
                 if viewModel.tocOpen { tocPresented = true }
+                viewModel.settingsDismissed()
             }) {
                 ReaderSettingsSheet(viewModel: viewModel)
                     .presentationDetents([.height(340)])

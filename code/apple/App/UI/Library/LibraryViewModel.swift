@@ -13,11 +13,28 @@ final class LibraryViewModel {
 
     private let library: LibraryRepository
     private let sync: SyncCoordinator?
+    private let quotaCache: QuotaCache?
+    private let usageNoticePreference: UsageNoticePreference?
+    /// PLN-011: el uso, si corresponde mostrar el aviso del 80 %; nil, sin aviso.
+    private(set) var usageNotice: PlanUsage?
 
-    /// - Parameter sync: nil si no se muestra el estado de la sincronización.
-    init(library: LibraryRepository, sync: SyncCoordinator? = nil) {
+    /// - Parameters:
+    ///   - sync: nil si no se muestra el estado de la sincronización.
+    ///   - quotaCache, usageNotice: la última cuota y si el aviso del 80 % ya se descartó (PLN-011); nil, sin aviso.
+    init(
+        library: LibraryRepository, sync: SyncCoordinator? = nil, quotaCache: QuotaCache? = nil,
+        usageNotice: UsageNoticePreference? = nil
+    ) {
         self.library = library
         self.sync = sync
+        self.quotaCache = quotaCache
+        usageNoticePreference = usageNotice
+    }
+
+    /// PLN-011: cerrar el aviso o tocar "Ver planes" lo descarta para siempre en esta cuenta y este dispositivo.
+    func dismissUsageNotice() {
+        usageNoticePreference?.dismiss()
+        usageNotice = nil
     }
 
     /// Libros importados en este dispositivo que aún no están en la nube (SYN-008).
@@ -51,5 +68,10 @@ final class LibraryViewModel {
     func load() async {
         allBooks = await library.books()
         loading = false
+        // La cuota guardada cambia con cada pasada de sincronización, que vuelve a llamar aquí.
+        if let quotaCache, let usageNoticePreference {
+            let quota = quotaCache.last()
+            usageNotice = shouldShowUsageNotice(quota, dismissed: usageNoticePreference.isDismissed()) ? PlanUsage(quota) : nil
+        }
     }
 }

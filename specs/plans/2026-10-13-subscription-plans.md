@@ -89,6 +89,23 @@ Rama `feature/subscription-plans-android`, K-218 a K-222 y, en la segunda parte,
   - P02b muestra un recuadro "EPUB" en lugar de la portada, como el diseño.
 - **Tests:** 466 JVM (51 nuevos en total). Compose, sin correr (no hay emulador): `PlansScreenTest`, `PlanSheetsTest`, `MyPlanScreenTest`, casos nuevos en `ProfileScreenTest` y `LibraryScreenTest`. `ImportSheetTest` se quitó con la hoja.
 
+## Notas de implementación (iOS)
+
+Rama `feature/subscription-plans-ios`, tarjetas K-223 a K-227.
+
+- **Dominio** (`ReaderDomain`): `Plans.swift` (`PlanCatalog`, `Plan`, `Billing`, `PlanCta`, `PlanUsage`, `PlanComparisonRow`) y `QuotaBlock.swift` (`quotaBlock`, `ImportQuotaCheck`, `QuotaBlockNotice`, `shouldShowUsageNotice`, `UsageNoticePreference`). Los textos del catálogo viven en el dominio para poder probarlos. `UploadBooks` recibe la `QuotaCache` y guarda la cuota en cada pasada.
+- **Proporción de P01:** porcentaje en monoespaciada ("80 %"), igual que Android.
+- **Presentación:** `PlansPresenter` (`@Observable`, en `AppGraph.Screens`) maneja P01 (`fullScreenCover` sobre la raíz, con su propio aviso "Llega más adelante." porque tapa la barra) y la hoja "Importar libros". "Ver planes" desde una hoja cierra la hoja y abre P01 en el `onDismiss`, para que dos presentaciones no se pisen. "Desde este dispositivo" abre el selector de la misma forma.
+- **P03:** ~~hoja "Importar libros" con Drive y Calibre~~ retirada en la segunda parte (PLN-010); ver abajo.
+- **P02:** la comprobación corre en `HomeViewModel.importBooks` (selector de Archivos). La fila del libro de P02b lleva el recuadro "EPUB" del diseño, no la portada (igual que Android). "Abrir con" no muestra la hoja: K-240.
+- **Tablet:** el target de iOS es solo iPhone (`TARGETED_DEVICE_FAMILY 1`, el iPad corre en modo compatible), así que las tres columnas (≥ 600 pt) solo se ven en un iPhone grande en horizontal. Se verificaron dibujando la pantalla a 1180 pt.
+- **Biblioteca:** el aviso del 80 % relee la cuota guardada en cada `load()`, que la sincronización llama al terminar cada pasada. La preferencia `plans_usage_notice_dismissed` se borra al cerrar sesión (`LocalAccountWiper`).
+- **Mi plan:** `ProfileRoute.myPlan`; el bloque del espacio de Perfil es tocable (y tiene una acción de VoiceOver) sin tapar "Mejorar plan", que abre P01.
+- **Colores nuevos** (`MarginColors`): `track` (pista del selector y separadores de la tabla), `onYellowLine` y `warn` (tamaño que no entra). En oscuro, el segmento elegido del selector se invierte (fondo claro), porque la tinta no se distinguía sobre la pista.
+- **Íconos:** Material Symbols Rounded oficiales en `Assets.xcassets/Plans` (SVG de plantilla, como Perfil).
+- **Verificación:** capturas claras y oscuras de P01 (teléfono, mensual con tabla, tablet), P02a, P02b, P03 (lista, Drive, Calibre), aviso del 80 % y P04, dibujadas desde un test local que no se commitea. Falta la prueba a mano en el iPhone.
+- **Build local:** la etiqueta 3.9.0 de Readium ya no está en GitHub (K-202): se compiló con una copia de los paquetes de un DerivedData anterior (`-clonedSourcePackagesDirPath`, sin resolver). Los tests de la Mac no arrancan por la firma (K-201); la Mac compila.
+
 ## Segunda parte: funciones por plan (2026-10-13)
 
 **Pedido del usuario:** una tabla de funciones por plan (prueba gratis no por ahora, tamaño máximo por archivo 2 MB / 50 MB / 100 MB, temas y fuentes y exportar notas en Lector y Biblioteca; estadísticas, Drive/Calibre/email, lector web y familia en definición). Decisiones: (1) en Gratis el lector usa solo Clásico y serifa, el resto abre la hoja de función paga; (2) el tope por archivo primero solo en las apps; (3) no mostrar funciones en definición.
@@ -102,3 +119,12 @@ Rama `feature/subscription-plans-android`, K-218 a K-222 y, en la segunda parte,
 | K-252 | K-255 | PLN-015: `effectiveReaderSettings(saved, plan)` pura (Gratis → Clásico y serifa, sin tocar lo guardado); el lector aplica la efectiva; en el panel del lector y en Ajustes de lectura de Perfil, las opciones pagas llevan la marca "Lector" y abren la hoja "Leé con tus temas y fuentes" (con "Ver planes" a P01, también desde el lector). Tests: función pura, ViewModel del lector y de Perfil (tocar Sepia en Gratis no cambia la preferencia y pide la hoja). |
 
 Riesgo: el plan de la cuenta sale de la caché de cuota; sin dato, todo se comporta como Gratis (el caso real de hoy: no hay planes pagos).
+
+### Notas de implementación (iOS), segunda parte
+
+Tarjetas K-253 a K-255, en la misma rama.
+
+- **Catálogo (K-253):** `Plan.maxFileBytes` y `PlanCatalog.maxFileText`; el botón siempre "Elegir…"; tarjetas y tabla de PLN-001 (seis filas). Se quitaron la hoja "Importar libros", `ImportSource` y los íconos de Drive y Calibre; "Importar" vuelve a abrir el selector. Las tres tarjetas comparten la estructura de precio (PLN-005; Gratis: "$0 por año/mes" y "Sin costo, para siempre"). Mi plan: "Archivos de hasta 2 MB" como una línea y la tarjeta "Archivos de hasta 50 MB, temas y fuentes."
+- **Tamaño por archivo (K-254):** `PlanCatalog.planOf` (ids `free`, `reader`, `library`; cualquier otro o sin cuota, Gratis) y `nextPlan` (nil en Biblioteca, que no lleva tarjeta amarilla). `quotaBlock` comprueba primero `.tooLarge`; `ImportQuotaCheck` lo hace aun sin cuota leída (con los 2 MB de Gratis) y no descuenta los pendientes que superan el máximo. `UploadBooks` los saltea y los cuenta en `notEnoughSpace`. Los tamaños del texto de la tarjeta amarilla no se parten entre líneas.
+- **Temas y fuentes (K-255):** `effectiveReaderSettings` en el dominio. `ReaderViewModel` y `ProfileViewModel` guardan lo elegido (`savedSettings`, `savedReading`) y exponen la efectiva; el plan sale de la cuota guardada. En el lector, tocar una opción paga cierra el panel y la hoja aparece en su `onDismiss`; "Ver planes" abre P01 con un `fullScreenCover` propio del lector (el de la raíz no puede presentar encima de otro), con la apariencia de la app. En Perfil, la hoja de letra y la de función paga son una sola `.sheet(item:)` que cambia de contenido. La marca "Lector" (`PlanMark`) va dentro del botón de letra y arriba a la derecha del círculo en el lector, y debajo del círculo en Perfil.
+- **Verificación:** capturas claras y oscuras de P01 (teléfono, mensual con tabla, tablet), archivo muy grande en Gratis, Lector y Biblioteca, la hoja de temas y fuentes, el panel del lector en Gratis, Ajustes de lectura y la hoja de letra de Perfil, y P04, desde un test local que no se commitea. Falta la prueba a mano en el iPhone, sobre todo P01 encima del lector.

@@ -17,6 +17,7 @@ struct LocalAccountWiper: LocalAccountData, @unchecked Sendable {
         "onboardingInterests", "readingGoalMinutes", "reminderEnabled", "reminderHour", "reminderMinute",
         "sync.lastPositionsSeenAt",
         UserDefaultsQuotaCache.Key.usedBytes, UserDefaultsQuotaCache.Key.quotaBytes, UserDefaultsQuotaCache.Key.plan,
+        UserDefaultsUsageNotice.key,
     ]
 
     func wipe() async throws {

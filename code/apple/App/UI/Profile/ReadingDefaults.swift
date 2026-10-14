@@ -55,7 +55,8 @@ struct ReadingDefaultsCard: View {
             ProfileRow(action: nil) {
                 Text("Tema").font(.app(15, .medium)).foregroundStyle(MarginColors.ink)
                 Spacer(minLength: 0)
-                HStack(spacing: 10) {
+                // Con las marcas de Lector debajo (PLN-015), los círculos se separan un poco más.
+                HStack(spacing: viewModel.isLocked(ReadingTheme.sepia) ? 16 : 10) {
                     ForEach([ReadingTheme.light, .sepia, .dark], id: \.self) { theme in
                         swatch(theme, selected: theme == reading.theme)
                     }
@@ -91,7 +92,8 @@ struct ReadingDefaultsCard: View {
 
     /// Círculo de 28; el elegido lleva un aro tinta separado por 2 pt, por fuera, sin mover nada.
     private func swatch(_ theme: ReadingTheme, selected: Bool) -> some View {
-        Button { viewModel.setTheme(theme) } label: {
+        let locked = viewModel.isLocked(theme)
+        return Button { viewModel.setTheme(theme) } label: {
             Circle()
                 .fill(theme.background)
                 .overlay(Circle().stroke(theme == .light ? MarginColors.off : .clear, lineWidth: 1.5))
@@ -102,11 +104,16 @@ struct ReadingDefaultsCard: View {
                             .overlay(Circle().fill(MarginColors.field).frame(width: 32, height: 32))
                     }
                 }
+                .overlay(alignment: .bottom) {
+                    // PLN-015: la marca va debajo del círculo, sin mover la fila.
+                    if locked { PlanMark().offset(y: 12) }
+                }
                 .contentShape(Circle())
         }
         .buttonStyle(.plain)
         .accessibilityLabel(theme.label)
         .accessibilityAddTraits(selected ? .isSelected : [])
+        .accessibilityHint(locked ? Text("Incluido en Lector") : Text(""))
     }
 
     /// Botón de 36, radio 10: el elegido en tinta con el ícono amarillo.
@@ -131,7 +138,7 @@ struct FontSheet: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 18) {
             Text("Letra").font(.app(15, .semibold)).foregroundStyle(MarginColors.ink)
-            FontChips(selected: viewModel.reading.font, onSelect: viewModel.setFont, palette: lightFontControls)
+            FontChips(selected: viewModel.reading.font, onSelect: viewModel.setFont, locked: viewModel.isLocked, palette: lightFontControls)
             SizeButtons(onSmaller: viewModel.smallerFont, onBigger: viewModel.biggerFont, palette: lightFontControls)
         }
         .padding(.horizontal, 20)

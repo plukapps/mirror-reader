@@ -21,9 +21,9 @@ struct SyncStatusLine: Equatable {
             case .offline:
                 String(localized: "Sin conexión con la nube. Tus libros siguen aquí y se sincronizarán más tarde.")
             case let .notEnoughSpace(count) where count == 1:
-                String(localized: "1 libro no entra en tu espacio. Podés seguir leyendo.")
+                String(localized: "1 libro no entra en tu plan. Podés seguir leyendo.")
             case let .notEnoughSpace(count):
-                String(localized: "\(count) libros no entran en tu espacio. Podés seguir leyendo.")
+                String(localized: "\(count) libros no entran en tu plan. Podés seguir leyendo.")
             case let .failed(count) where count == 1:
                 String(localized: "No se pudo sincronizar 1 libro.")
             case let .failed(count):
