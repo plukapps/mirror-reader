@@ -4,7 +4,8 @@
 
 **Specs que implementa:** SYN-016, SYN-017 (nuevos), SYN-005 (cambiado: gana el último cambio), ACC-011 (nuevo), PRF-009 (avisa también por notas sin subir), ANN-007 para notas. **Decisión técnica:** ADR 0016 (Remote Config). Modelo de datos: `specs/platforms/backend.md`.
 **Rama:** `feature/notes-sync`, desde `claude/notes-functionality-f6f30e`. PR aparte, apilado sobre el de notas (plukapps/mirror-reader#37); pasa a `develop` cuando ese se integre.
-**Aprobado por el usuario (2026-10-14).** **Tarjetas:** K-270 a K-277.
+**Aprobado por el usuario (2026-10-14).**
+**Base compartida:** el interruptor (K-272) y el template de Remote Config se separaron en `feature/remote-config` (plukapps/mirror-reader#41, plan `2026-10-14-remote-config-base.md`), que esta rama integra. **Tarjetas:** K-270 a K-277.
 **Pedido del usuario (2026-10-14):** Remote Config; prendida para todos por ahora; gana el último cambio; apagada, las notas siguen locales y se suben al prenderla.
 
 ## Fuera de esta rebanada

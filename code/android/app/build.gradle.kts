@@ -120,7 +120,7 @@ dependencies {
   implementation(libs.firebase.auth)
   implementation(libs.firebase.firestore)
   implementation(libs.firebase.storage)
-  // SYN-017, ACC-011, ADR 0016: funciones que se prenden y apagan.
+  // ACC-011, ADR 0016: funciones que se prenden y apagan con Remote Config.
   implementation(libs.firebase.config)
   implementation(libs.kotlinx.coroutines.play.services)
 

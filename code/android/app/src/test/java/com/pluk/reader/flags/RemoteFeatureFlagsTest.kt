@@ -7,6 +7,7 @@ import com.pluk.reader.domain.flags.RemoteFlagSource
 import com.pluk.reader.domain.profile.QuotaCache
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
@@ -44,10 +45,11 @@ class RemoteFeatureFlagsTest {
         }
     }
 
-    private class FakeQuota(var quota: StorageQuota?) : QuotaCache {
-        override suspend fun last() = quota
+    private class FakeQuota(initial: StorageQuota?) : QuotaCache {
+        override val quota = MutableStateFlow(initial)
+        override suspend fun last() = quota.value
         override suspend fun save(quota: StorageQuota) {
-            this.quota = quota
+            this.quota.value = quota
         }
     }
 
