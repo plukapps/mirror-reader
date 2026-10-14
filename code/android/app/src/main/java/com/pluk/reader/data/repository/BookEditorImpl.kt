@@ -58,6 +58,7 @@ class BookEditorImpl @Inject constructor(
             db.bookDao().insertRemoved(RemovedBookEntity(bookId, System.currentTimeMillis(), cloudDeleted))
             db.bookDao().delete(bookId)
             db.readingPositionDao().delete(bookId)
+            db.noteDao().deleteByBook(bookId)
         }
         files.bookFile(bookId).delete()
         files.coverFile(bookId).delete()
