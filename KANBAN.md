@@ -5,6 +5,12 @@ Plan de referencia: `specs/plans/2026-10-06-android-epub-viewer.md`
 
 ## Backlog
 
+- **K-261** Notas, Tarea 2: modelo `Note`, tabla `notes` (Room v8, `MIGRATION_7_8`), `NoteRepository`. ANN-006.
+- **K-262** Notas, Tarea 3: "Nota" en el menú de selección y editor. ANN-008.
+- **K-263** Notas, Tarea 4: subrayados en el lector; ver, editar y borrar la nota. ANN-009, ANN-005.
+- **K-264** Notas, Tarea 5: abrir el lector en una nota (`noteId` en la ruta). ANN-010, ANN-004.
+- **K-265** Notas, Tarea 6: detalle del libro con la lista de notas y "Ver detalle" en el menú; quitar el libro borra sus notas. LIB-022, ANN-010, ANN-011.
+- **K-266** Notas, Tarea 7: cierre de docs y verificación a mano en el teléfono.
 - **K-209** Android, modo oscuro: en "Cambiar contraseña" (PRF-020) los campos conservan el borde claro del onboarding y "Guardar" deshabilitado se ve gris claro sobre el fondo oscuro. Se lee, pero desentona con el resto. Pasar `OnbTextField` y `PrimaryButton` a los tokens de la paleta fuera del onboarding (PRF-022). Visto en el SM-S711B el 2026-10-13.
 - **K-202** Apple: la etiqueta 3.9.0 de Readium Swift ya no existe en GitHub (`git ls-remote` pasa de 3.8.0 a 3.10.0), y `project.yml` fija `exactVersion: 3.9.0`. Un clon o worktree nuevo no resuelve los paquetes ("no versions of 'swift-toolkit' match 3.9.0"). Hoy solo compila con una caché de Xcode que ya la tenía (`DerivedData/Reader-gbvs…`, commit `de07026e9`). Decidir: fijar por `revision: de07026e9…` en `project.yml` o pasar a 3.10 (exige Xcode 16.3, ADR 0013). Visto el 2026-10-12.
 - **K-201** Apple: los tests de la Mac no arrancan (`Early unexpected exit`): con `Signing.local.xcconfig` la app se firma con el equipo y el framework `ReaderDomain` del paquete queda firmado ad hoc, y dyld lo rechaza al cargarlo. Pasa también en `library-actions`, sin cambios de Perfil. Revisar la firma de los productos de paquete en Mac (o `disable-library-validation` solo en Debug). Visto el 2026-10-12.
@@ -29,7 +35,7 @@ Plan de referencia: `specs/plans/2026-10-06-android-epub-viewer.md`
 - **K-073** Pulir la rotación del lector: al girar el dispositivo (o redimensionar la ventana) hay un parpadeo visible y la rotación demora mucho (el usuario lo nota lento), porque Android recrea la actividad y el navegador se arma de nuevo (WebView, repaginado del libro). Medir primero cuánto tarda y en qué parte. Pedido del usuario (2026-10-08), para ver más adelante. Ideas a evaluar: que la actividad maneje `configChanges` (`orientation|screenSize|smallestScreenSize|screenLayout`) en vez de recrearse, o conservar una captura de la página hasta que el navegador nuevo esté listo. Criterio de terminado a definir con una medida (por ejemplo, tiempo hasta ver la página nueva). La posición ya se conserva (K-071). RDR-016.
 - **K-072** Posible bug no reproducido: en el emulador con tablet simulada, tras abrir *Dejar ir* y dar 6 toques seguidos en el borde derecho, el libro (con el pie) quedó desplazado ~390 px a la derecha y los toques no pasaban de página (posiciones 4–5). Al reiniciar la app no volvió a pasar, ni con ráfagas ni en esa misma página. Sospecha: controlador de animación (RDR-009) con los controles visibles al primer toque. Anotar si pasa de nuevo; sin repro no se arregla.
 - **K-008** Biblioteca, segunda rebanada: colecciones, búsqueda, nube, eliminar/quitar, cuota, edición de metadatos, "Compartir / Abrir con". LIB-005 a LIB-009. Requiere plan propio.
-- **K-009** Anotaciones: marcadores, subrayados, notas. Requiere plan propio. ANN-001 a ANN-007.
+- **K-009** Anotaciones: marcadores, subrayados, notas. Requiere plan propio. ANN-001 a ANN-007. Primera parte (notas sobre texto, Android) en `2026-10-13-android-notes.md` (K-260 a K-266).
 - **K-010** Cuenta y sincronización. Requiere plan propio. Backend Firebase (ADR 0007), código en `code/backend/v1`. SDK de Firebase en la app (decidido, ADR 0005 y 0007 ya actualizados), con caché local de Firestore desactivado. ACC, SYN. Primera parte en el plan `2026-10-08-android-remote-books.md` (K-051 a K-057); el resto (login, Google, eliminar, colecciones, posición, anotaciones) sigue aquí.
 - **K-056** Libros remotos, Tarea 6: espacio usado y disponible. ACC-003, LIB-009.
 - **K-057** Libros remotos, Tarea 7: cierre de docs y verificación a mano en el teléfono.
@@ -194,6 +200,7 @@ Plan de referencia: `specs/plans/2026-10-06-android-epub-viewer.md`
 
 ## Hecho
 
+- **K-260** Notas, Tarea 1: spec (ANN-008 a ANN-011, LIB-022) y plan `2026-10-13-android-notes.md`. Rama `claude/notes-functionality-f6f30e`. Plan aprobado por el usuario (2026-10-14).
 - **K-213** Orden de la biblioteca, cierre: docs, verificación a mano en el teléfono y el iPhone, PR único contra `develop`. Rama `feature/library-order`. Hecho: resultado en el plan, PR abierto. Falta la verificación a mano con la misma cuenta en las dos plataformas. Aprobado por el usuario tras probarlo en el teléfono y el iPhone (2026-10-13).
 - **K-212** Orden de la biblioteca, iOS: la fecha de la nube reemplaza también la de libros ya guardados. LIB-021. Rama `feature/library-order`. Hecho: `LibraryStore.addCloudOnly` corrige `addedAt` de los registros existentes con el `createdAt` de la nube. Tests: dominio 205, iPhone 188 (+2 en `LibraryStoreTests`). Mac compila (tests sin correr, K-201). Aprobado por el usuario tras probarlo en el teléfono y el iPhone (2026-10-13).
 - **K-211** Orden de la biblioteca, Android: `createdAt` de la nube como fecha de entrada, también para libros ya guardados. LIB-021. Rama `feature/library-order`. Plan `2026-10-13-library-order.md`. Hecho: `RemoteBook.createdAt` (leído de Firestore), `cloudAddedAt` en `domain/remote`, `BookDao.getAddedAts`/`updateAddedAt`, `addCloudOnly` inserta y corrige fechas. 414 tests JVM pasan (4 nuevos en `CloudAddedAtTest`); `CloudBooksOrderTest` (2 casos, emulador) compila, sin correr. Aprobado por el usuario tras probarlo en el teléfono y el iPhone (2026-10-13).
