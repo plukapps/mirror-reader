@@ -8,16 +8,22 @@ import androidx.datastore.preferences.core.stringPreferencesKey
 import com.pluk.reader.domain.account.StorageQuota
 import com.pluk.reader.domain.profile.QuotaCache
 import javax.inject.Inject
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.map
 
 class QuotaCacheImpl @Inject constructor(
     private val dataStore: DataStore<Preferences>,
 ) : QuotaCache {
-    override suspend fun last(): StorageQuota? {
-        val prefs = dataStore.data.first()
-        val used = prefs[USED_BYTES] ?: return null
-        val quota = prefs[QUOTA_BYTES] ?: return null
-        return StorageQuota(used, quota, prefs[PLAN] ?: StorageQuota.FREE_PLAN)
+    override val quota: Flow<StorageQuota?> = dataStore.data.map { it.toQuota() }.distinctUntilChanged()
+
+    override suspend fun last(): StorageQuota? = dataStore.data.first().toQuota()
+
+    private fun Preferences.toQuota(): StorageQuota? {
+        val used = this[USED_BYTES] ?: return null
+        val quota = this[QUOTA_BYTES] ?: return null
+        return StorageQuota(used, quota, this[PLAN] ?: StorageQuota.FREE_PLAN)
     }
 
     override suspend fun save(quota: StorageQuota) {

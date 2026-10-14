@@ -151,6 +151,7 @@ fun ReaderScreen(
             chapterTitle = current.chapterTitle,
             settingsOpen = current.settingsOpen,
             continueFrom = current.continueFrom,
+            readingOptionsLocked = current.readingOptionsLocked,
             jumps = viewModel.jumps,
             onBack = onBack,
             actions = ReaderActions.of(viewModel),
@@ -198,6 +199,7 @@ private fun ReaderContent(
     onBack: () -> Unit,
     actions: ReaderActions,
     continueFrom: ContinueFrom? = null,
+    readingOptionsLocked: Boolean = false,
     jumps: Flow<String> = emptyFlow(),
 ) {
     var showToc by remember { mutableStateOf(false) }
@@ -429,6 +431,7 @@ private fun ReaderContent(
                     },
                     onTogglePageAnimation = actions.onTogglePageAnimation,
                 ),
+                locked = readingOptionsLocked,
             )
         }
         // SYN-013: aviso discreto, sin mover la página; se toca para seguir o se descarta.

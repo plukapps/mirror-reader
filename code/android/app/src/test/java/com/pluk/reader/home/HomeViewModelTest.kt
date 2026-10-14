@@ -4,6 +4,13 @@ import com.pluk.reader.domain.model.ImportOutcome
 import com.pluk.reader.domain.model.LibraryBook
 import com.pluk.reader.domain.repository.LibraryRepository
 import com.pluk.reader.domain.usecase.ImportBooksUseCase
+import com.pluk.reader.domain.account.StorageQuota
+import com.pluk.reader.domain.plans.ImportQuotaCheck
+import com.pluk.reader.domain.plans.PlanPrompt
+import com.pluk.reader.domain.plans.PlanPrompts
+import com.pluk.reader.domain.plans.QuotaBlock
+import com.pluk.reader.plans.FakePendingUploads
+import com.pluk.reader.plans.FakeQuotaCache
 import com.pluk.reader.ui.home.HomeViewModel
 import com.pluk.reader.ui.library.LibraryMessage
 import kotlinx.coroutines.Dispatchers
@@ -43,7 +50,17 @@ class HomeViewModelTest {
     @After
     fun tearDown() = Dispatchers.resetMain()
 
-    private fun viewModel(library: FakeLibrary) = HomeViewModel(library, ImportBooksUseCase(library))
+    private var syncRequests = 0
+    private val prompts = PlanPrompts()
+    private val quotaCache = FakeQuotaCache()
+    private val pendingUploads = FakePendingUploads()
+
+    private fun viewModel(library: FakeLibrary) = HomeViewModel(
+        library,
+        ImportBooksUseCase(library),
+        { syncRequests++ },
+        ImportQuotaCheck(quotaCache, pendingUploads, prompts),
+    )
 
     // HOM-002, HOM-004
     @Test
@@ -82,5 +99,26 @@ class HomeViewModelTest {
         vm.onImport(listOf("content://x"))
         advanceUntilIdle()
         assertEquals(listOf<LibraryMessage>(LibraryMessage.Imported(1)), received)
+    }
+
+    // SYN-001: importar desde Inicio pide una pasada, como desde la Biblioteca
+    @Test
+    fun importFromHomeRequestsASync() = runTest(dispatcher) {
+        val vm = viewModel(FakeLibrary())
+        vm.onImport(listOf("content://x"))
+        advanceUntilIdle()
+        assertEquals(1, syncRequests)
+    }
+
+    // PLN-008: desde Inicio también se avisa si el libro no entra en la nube
+    @Test
+    fun importFromHomeChecksTheQuota() = runTest(dispatcher) {
+        val mib = 1024L * 1024
+        quotaCache.quota.value = StorageQuota(14 * mib, 15 * mib)
+        pendingUploads.items = FakePendingUploads("nuevo" to 2 * mib).items
+        val vm = viewModel(FakeLibrary())
+        vm.onImport(listOf("content://x"))
+        advanceUntilIdle()
+        assertEquals(PlanPrompt.Quota("Nuevo", QuotaBlock.DoesNotFit(2 * mib, 1 * mib), 15 * mib), prompts.current.value)
     }
 }
