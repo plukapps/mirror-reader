@@ -5,7 +5,6 @@ Plan de referencia: `specs/plans/2026-10-06-android-epub-viewer.md`
 
 ## Backlog
 
-- **K-276** Sync de notas, Tarea 7: parámetro en Remote Config y deploy de reglas (acciones sobre el proyecto real, las aprueba el usuario).
 - **K-209** Android, modo oscuro: en "Cambiar contraseña" (PRF-020) los campos conservan el borde claro del onboarding y "Guardar" deshabilitado se ve gris claro sobre el fondo oscuro. Se lee, pero desentona con el resto. Pasar `OnbTextField` y `PrimaryButton` a los tokens de la paleta fuera del onboarding (PRF-022). Visto en el SM-S711B el 2026-10-13.
 - **K-202** Apple: la etiqueta 3.9.0 de Readium Swift ya no existe en GitHub (`git ls-remote` pasa de 3.8.0 a 3.10.0), y `project.yml` fija `exactVersion: 3.9.0`. Un clon o worktree nuevo no resuelve los paquetes ("no versions of 'swift-toolkit' match 3.9.0"). Hoy solo compila con una caché de Xcode que ya la tenía (`DerivedData/Reader-gbvs…`, commit `de07026e9`). Decidir: fijar por `revision: de07026e9…` en `project.yml` o pasar a 3.10 (exige Xcode 16.3, ADR 0013). Visto el 2026-10-12.
 - **K-201** Apple: los tests de la Mac no arrancan (`Early unexpected exit`): con `Signing.local.xcconfig` la app se firma con el equipo y el framework `ReaderDomain` del paquete queda firmado ad hoc, y dyld lo rechaza al cargarlo. Pasa también en `library-actions`, sin cambios de Perfil. Revisar la firma de los productos de paquete en Mac (o `disable-library-validation` solo en Debug). Visto el 2026-10-12.
@@ -51,6 +50,7 @@ Plan de referencia: `specs/plans/2026-10-06-android-epub-viewer.md`
 
 ## Revisión
 
+- **K-276** Sync de notas, Tarea 7: parámetro en Remote Config y deploy de reglas (acciones sobre el proyecto real, las aprueba el usuario). Hecho por pedido del usuario (2026-10-14): reglas de Firestore desplegadas a `mirror-reading-staging` (las desplegadas eran las de `develop`; solo se sumó `notes`). Remote Config versión 4: `notes_sync_enabled = true` (booleano), `plans` de la otra rama sin cambios. Pendiente: sumar el parámetro a `remoteconfig.template.json` de la rama del catálogo, o su próximo deploy lo borra.
 - **K-277** Sync de notas, Tarea 8: cierre de docs y verificación a mano en el teléfono y la tablet. Hecho: notas en `android.md`, resultado en el plan. Falta la verificación a mano (lista en el plan), después de K-276.
 - **K-275** Sync de notas, Tarea 6: cerrar sesión avisa por notas sin subir. PRF-009. Hecho: `SignOut` suma `notesAtRisk` (pendientes con la función prendida; todas las vivas con la función apagada) y el texto del aviso nombra las notas. 2 tests JVM; 443 pasan.
 - **K-274** Sync de notas, Tarea 5: subir y bajar notas, gana la última edición, listener con la app a la vista. SYN-016, SYN-005. Hecho: `RemoteNotes`/`FirestoreNotes` (transacción que no pisa una edición más nueva), `NoteSyncCursor` en DataStore, `NoteSync` (sube pendientes, escucha con la app a la vista, solo con la función prendida y la red permitida; al prenderse sube y escucha). Paso en `SyncLibraryUseCase`, listener en `CloudListeners`, el lector sube al guardar o borrar. 9 tests JVM nuevos; 441 pasan.
