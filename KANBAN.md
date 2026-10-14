@@ -5,7 +5,6 @@ Plan de referencia: `specs/plans/2026-10-06-android-epub-viewer.md`
 
 ## Backlog
 
-- **K-272** Sync de notas, Tarea 3: interruptor `notes_sync_enabled` con Remote Config y señal `plan` (Android). SYN-017, ACC-007.
 - **K-273** Sync de notas, Tarea 4: Room v9 con marcas de borrado y pendientes en `notes`. SYN-007, SYN-016.
 - **K-274** Sync de notas, Tarea 5: subir y bajar notas, gana la última edición, listener con la app a la vista. SYN-016, SYN-005.
 - **K-275** Sync de notas, Tarea 6: cerrar sesión avisa por notas sin subir. PRF-009.
@@ -56,6 +55,7 @@ Plan de referencia: `specs/plans/2026-10-06-android-epub-viewer.md`
 
 ## Revisión
 
+- **K-272** Sync de notas, Tarea 3: interruptor `notes_sync_enabled` con Remote Config y señal `plan` (Android). SYN-017, ACC-007. Hecho: `Feature`, `FeatureFlags`, `RemoteFeatureFlags` (dominio) y `FirebaseRemoteFlagSource` (Remote Config 24.0.0 por el BoM 35; API verificada con `javap`). Señal `plan` desde `QuotaCache`. Arranca dentro de `CloudListeners`. 4 tests JVM; 432 pasan.
 - **K-271** Sync de notas, Tarea 2: reglas de `users/{uid}/notes` y tests con emuladores. SYN-016, SYN-005, SYN-007. Deploy pedido al usuario. Hecho: reglas de `users/{uid}/notes/{noteId}` y 10 tests (107 pasan con emuladores; verificado por mutación). `backend.md` actualizado. Falta el deploy a `mirror-reading-staging` (K-276, lo aprueba el usuario).
 - **K-266** Notas, Tarea 7: cierre de docs y verificación a mano en el teléfono. Hecho: notas en `android.md`, resultado en el plan. Falta la verificación a mano en el SM-S711B (crear, ver subrayada, editar, ver en el detalle, tocar y llegar al lugar, borrar, quitar el libro) y correr los instrumentados donde el usuario diga.
 - **K-265** Notas, Tarea 6: detalle del libro con la lista de notas y "Ver detalle" en el menú; quitar el libro borra sus notas. LIB-022, ANN-010, ANN-011. Hecho: `BookDetailScreen` y `BookDetailViewModel` (ruta `book/{bookId}`), "Ver detalle" en el menú de acciones, tocar una nota abre el lector en ella. 3 tests JVM nuevos y orden del menú actualizado (428 pasan); `BookEditorTest` (ANN-011) y `BookActionsMenuTest` compilados, sin correr.

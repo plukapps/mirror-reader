@@ -1,6 +1,10 @@
 package com.pluk.reader.di
 
+import com.pluk.reader.data.flags.FirebaseRemoteFlagSource
 import com.pluk.reader.data.remote.FirebaseBookFileStore
+import com.pluk.reader.domain.flags.FeatureFlags
+import com.pluk.reader.domain.flags.RemoteFeatureFlags
+import com.pluk.reader.domain.flags.RemoteFlagSource
 import com.pluk.reader.data.remote.FirebaseRemovals
 import com.pluk.reader.data.repository.BookEditorImpl
 import com.pluk.reader.data.remote.FirestoreQuotaSource
@@ -63,6 +67,10 @@ abstract class RemoteModule {
     @Binds @Singleton abstract fun bindRemoteBookChanges(impl: FirestoreRemoteLibrary): RemoteBookChanges
     @Binds @Singleton abstract fun bindKnownBooks(impl: CloudBooksRepositoryImpl): KnownBooks
     @Binds @Singleton abstract fun bindLibrarySyncRequester(impl: LibrarySync): LibrarySyncRequester
+
+    // ACC-007, SYN-017, ADR 0016: funciones que se prenden y apagan con Remote Config.
+    @Binds @Singleton abstract fun bindFeatureFlags(impl: RemoteFeatureFlags): FeatureFlags
+    @Binds @Singleton abstract fun bindRemoteFlagSource(impl: FirebaseRemoteFlagSource): RemoteFlagSource
 
     // PRF-023: sincronizar solo con Wi-Fi.
     @Binds @Singleton abstract fun bindSyncGate(impl: NetworkSyncGate): SyncGate

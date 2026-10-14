@@ -1,0 +1,37 @@
+package com.pluk.reader.domain.flags
+
+import kotlinx.coroutines.flow.StateFlow
+
+/**
+ * Funciones que se prenden y apagan sin publicar una versión nueva, para todos o por plan (ACC-007, ADR 0016).
+ * [key] es el nombre del parámetro remoto; [default] vale mientras no se sabe el valor remoto.
+ */
+enum class Feature(val key: String, val default: Boolean) {
+    /** SYN-017: sincronizar las notas. Si no se sabe, vale prendida. */
+    NotesSync("notes_sync_enabled", default = true),
+}
+
+interface FeatureFlags {
+    /** El valor actual de [feature] y sus cambios. */
+    fun state(feature: Feature): StateFlow<Boolean>
+
+    fun isEnabled(feature: Feature): Boolean = state(feature).value
+}
+
+/** Valores remotos de las funciones (Remote Config en `data`). Los tests usan un doble. */
+interface RemoteFlagSource {
+    /** Señal con el plan de la cuenta, para que las condiciones por plan elijan el valor (ADR 0016). */
+    suspend fun setPlan(plan: String)
+
+    /** Aplica lo último que se bajó. */
+    suspend fun activate()
+
+    /** Baja valores nuevos y los aplica. Falla sin conexión. */
+    suspend fun fetchAndActivate()
+
+    /** El valor aplicado de [key], o null si no hay ninguno remoto todavía. */
+    fun value(key: String): Boolean?
+
+    /** Avisa cuando cambian los valores en el servidor. Devuelve cómo dejar de escuchar. */
+    fun listen(onUpdate: () -> Unit): () -> Unit
+}
