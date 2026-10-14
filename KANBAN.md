@@ -47,12 +47,12 @@ Plan de referencia: `specs/plans/2026-10-06-android-epub-viewer.md`
 
 ## En curso
 
-- **K-331** Sync de notas iOS (#38): cierre y prueba cruzada Android ↔ iPhone.
-- **K-327** Notas iOS (#37): cierre de docs y verificación en el iPhone. Crear una nota en el iPhone 13 verificado por el usuario (2026-10-14, después de K-332); falta el resto de la lista.
 - **K-176** Posición exacta, Tarea 5: verificación a mano entre el teléfono y el iPhone, cierre de docs. SYN-014.
 
 ## Revisión
 
+- **K-331** Sync de notas iOS (#38): cierre y prueba cruzada Android ↔ iPhone.
+- **K-327** Notas iOS (#37): cierre de docs y verificación en el iPhone. Crear una nota en el iPhone 13 verificado por el usuario (2026-10-14, después de K-332); falta el resto de la lista.
 - **K-277** Sync de notas, Tarea 8: cierre de docs y verificación a mano en el teléfono y la tablet. Hecho: notas en `android.md`, resultado en el plan. Falta la verificación a mano (lista en el plan), después de K-276.
 - **K-266** Notas, Tarea 7: cierre de docs y verificación a mano en el teléfono. Hecho: notas en `android.md`, resultado en el plan. Falta la verificación a mano en el SM-S711B (crear, ver subrayada, editar, ver en el detalle, tocar y llegar al lugar, borrar, quitar el libro) y correr los instrumentados donde el usuario diga.
 - **K-217** Perfil: ocultar "Dispositivos vinculados" en Android e iOS hasta el registro de dispositivos. PRF-007. Rama `claude/linked-devices-profile-10dbda`. Hecho: la sección queda comentada en `ProfileScreen.kt` y `ProfileView.swift`; PRF-007 lo dice; `ProfileScreenTest` comprueba que no aparece.
