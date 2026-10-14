@@ -1,0 +1,104 @@
+import Foundation
+
+/// Funciones que se prenden y apagan sin publicar una versión nueva, para todos o por plan (ACC-011, ADR 0016).
+/// `rawValue` es el nombre del parámetro remoto. Como `Feature` de Android.
+public enum Feature: String, CaseIterable, Sendable {
+    /// SYN-017: sincronizar las notas.
+    case notesSync = "notes_sync_enabled"
+
+    public var key: String { rawValue }
+
+    /// Vale mientras no se sabe el valor remoto. SYN-017: si no se sabe, prendida.
+    public var defaultValue: Bool {
+        switch self {
+        case .notesSync: true
+        }
+    }
+}
+
+/// Valores remotos de las funciones (Remote Config en la app). Los tests usan un doble.
+public protocol RemoteFlagSource: Sendable {
+    /// Señal con el plan de la cuenta, para que las condiciones por plan elijan el valor (ADR 0016).
+    func setPlan(_ plan: String) async throws
+    /// Aplica lo último que se bajó.
+    func activate() async throws
+    /// Baja valores nuevos y los aplica. Falla sin conexión.
+    func fetchAndActivate() async throws
+    /// El valor aplicado de `key`, o nil si todavía no hay uno remoto.
+    func value(_ key: String) async -> Bool?
+    /// Avisa cada vez que cambian los valores en el servidor, mientras se recorre.
+    func updates() -> AsyncStream<Void>
+}
+
+/// Funciones prendidas o apagadas según la configuración remota (ACC-011, SYN-017, ADR 0016), como
+/// `RemoteFeatureFlags` de Android.
+///
+/// Arranca con los valores por defecto. Con la app a la vista ([startListening]): manda el plan de la cuenta, aplica
+/// lo último bajado, pide lo nuevo y escucha los cambios del servidor, así apagar o prender llega en segundos. Sin
+/// fuente (sin Firebase) quedan los valores por defecto.
+public actor FeatureFlags {
+    private let source: RemoteFlagSource?
+    private let plan: @Sendable () -> String
+    private var values: [Feature: Bool] = Dictionary(uniqueKeysWithValues: Feature.allCases.map { ($0, $0.defaultValue) })
+    private var subscribers: [UUID: (Feature, AsyncStream<Bool>.Continuation)] = [:]
+    private var listening: Task<Void, Never>?
+
+    /// - Parameter plan: el plan de la cuenta (`users/{uid}.plan`), o `free` si no se sabe.
+    public init(source: RemoteFlagSource?, plan: @escaping @Sendable () -> String = { StorageQuota.freePlan }) {
+        self.source = source
+        self.plan = plan
+    }
+
+    public func isEnabled(_ feature: Feature) -> Bool {
+        values[feature] ?? feature.defaultValue
+    }
+
+    /// El valor actual de `feature` y cada cambio.
+    public func changes(_ feature: Feature) -> AsyncStream<Bool> {
+        let id = UUID()
+        let (stream, continuation) = AsyncStream<Bool>.makeStream(bufferingPolicy: .bufferingNewest(1))
+        continuation.yield(isEnabled(feature))
+        subscribers[id] = (feature, continuation)
+        continuation.onTermination = { [weak self] _ in Task { await self?.unsubscribe(id) } }
+        return stream
+    }
+
+    /// Llamarlo otra vez no hace nada.
+    public func startListening() {
+        guard let source, listening == nil else { return }
+        let plan = plan()
+        listening = Task { [weak self] in
+            try? await source.setPlan(plan)
+            try? await source.activate()
+            await self?.publish()
+            // Sin conexión quedan los últimos valores conocidos (o los de por defecto).
+            try? await source.fetchAndActivate()
+            await self?.publish()
+            for await _ in source.updates() {
+                try? await source.activate()
+                await self?.publish()
+            }
+        }
+    }
+
+    public func stopListening() {
+        listening?.cancel()
+        listening = nil
+    }
+
+    private func publish() async {
+        guard let source else { return }
+        for feature in Feature.allCases {
+            let value = await source.value(feature.key) ?? feature.defaultValue
+            guard values[feature] != value else { continue }
+            values[feature] = value
+            for (wanted, continuation) in subscribers.values where wanted == feature {
+                continuation.yield(value)
+            }
+        }
+    }
+
+    private func unsubscribe(_ id: UUID) {
+        subscribers[id] = nil
+    }
+}
