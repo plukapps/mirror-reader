@@ -5,6 +5,17 @@ Plan de referencia: `specs/plans/2026-10-06-android-epub-viewer.md`
 
 ## Backlog
 
+- **K-321** Notas iOS (#41): interruptores con Remote Config en iOS (`FirebaseRemoteConfig`, `FeatureFlags`, `FeatureTemplateTests`). ACC-011.
+- **K-322** Notas iOS (#37): `Note`, `NoteRecord` (SwiftData) y notas en `LibraryStore`; quitar un libro borra sus notas. ANN-006, ANN-011.
+- **K-323** Notas iOS (#37): "Nota" en el menú de selección (`EditingAction`) y editor. ANN-008.
+- **K-324** Notas iOS (#37): subrayados con decoraciones; ver, editar y borrar. ANN-009, ANN-005.
+- **K-325** Notas iOS (#37): abrir el lector en una nota. ANN-010.
+- **K-326** Notas iOS (#37): detalle del libro y "Ver detalle" en el menú contextual. LIB-022, ANN-010.
+- **K-327** Notas iOS (#37): cierre de docs y verificación en el iPhone.
+- **K-328** Sync de notas iOS (#38): `deletedAt`, `syncedAt` y `NoteSyncStore` en `LibraryStore`. SYN-007, SYN-016.
+- **K-329** Sync de notas iOS (#38): `FirestoreNotes`, `NoteSync`, cursor, paso en `LibrarySync` y listener en `SyncCoordinator`. SYN-016, SYN-005, SYN-017.
+- **K-330** Sync de notas iOS (#38): cerrar sesión avisa por notas sin subir. PRF-009.
+- **K-331** Sync de notas iOS (#38): cierre y prueba cruzada Android ↔ iPhone.
 - **K-240** Planes, iOS: al importar con "Abrir con" desde otra app, la comprobación de cuota (P02) no corre porque el lector se abre enseguida a pantalla completa. Mostrar la hoja al cerrar el lector, o antes de abrirlo. PLN-007 a PLN-009. Encontrado en K-224.
 - **K-209** Android, modo oscuro: en "Cambiar contraseña" (PRF-020) los campos conservan el borde claro del onboarding y "Guardar" deshabilitado se ve gris claro sobre el fondo oscuro. Se lee, pero desentona con el resto. Pasar `OnbTextField` y `PrimaryButton` a los tokens de la paleta fuera del onboarding (PRF-022). Visto en el SM-S711B el 2026-10-13.
 - **K-202** Apple: la etiqueta 3.9.0 de Readium Swift ya no existe en GitHub (`git ls-remote` pasa de 3.8.0 a 3.10.0), y `project.yml` fija `exactVersion: 3.9.0`. Un clon o worktree nuevo no resuelve los paquetes ("no versions of 'swift-toolkit' match 3.9.0"). Hoy solo compila con una caché de Xcode que ya la tenía (`DerivedData/Reader-gbvs…`, commit `de07026e9`). Decidir: fijar por `revision: de07026e9…` en `project.yml` o pasar a 3.10 (exige Xcode 16.3, ADR 0013). Visto el 2026-10-12.
@@ -202,6 +213,7 @@ Plan de referencia: `specs/plans/2026-10-06-android-epub-viewer.md`
 
 ## Hecho
 
+- **K-320** Notas iOS, Tarea 1: plan `2026-10-14-ios-notes.md` para los tres PRs (#41, #37, #38). Plan aprobado por el usuario (2026-10-14); detalle en pantalla completa en el iPhone.
 - **K-260** Notas, Tarea 1: spec (ANN-008 a ANN-011, LIB-022) y plan `2026-10-13-android-notes.md`. Rama `claude/notes-functionality-f6f30e`. Plan aprobado por el usuario (2026-10-14).
 - **K-256** Planes de suscripción (era K-217 en esta rama): diseño importado (`Margin Planes.dc.html`), spec `12-plans.md` (PLN-001 a PLN-013, cambia PRF-006) y Plan `2026-10-13-subscription-plans.md`. Rama `feature/subscription-plans`. Decisiones del usuario (2026-10-13): sin compras, cuota en bytes, entran P02, P03 (importar), aviso del 80 % y P04 Gratis. Lector 5 GB y Biblioteca 50 GB confirmados por el usuario (por ahora). Segunda parte (2026-10-13): tabla de funciones por plan, PLN-014 a PLN-016, PLN-010 retirado.
 - **K-255** Planes, iOS: temas y fuentes solo en Lector: lector con Clásico y serifa en Gratis, marcas y hoja de función paga en el panel y en Perfil. PLN-015, RDR-014, PRF-013, PRF-014. Rama `feature/subscription-plans-ios`. Plan `2026-10-13-subscription-plans.md`, segunda parte. Hecho: `effectiveReaderSettings` (Gratis: Clásico y serifa, sin tocar lo guardado) y `isPaid` de temas y letras en el dominio; el lector y Perfil aplican la efectiva con el plan de la cuota guardada (desconocido: Gratis); Sepia, Noche, Grotesk y Mono llevan la marca "Lector" (dentro del botón de letra, arriba a la derecha del círculo en el lector, debajo del círculo en Perfil) y abren "Leé con tus temas y fuentes" (ícono palette): en el lector, al cerrarse el panel; en Perfil, la hoja de letra se cambia por la de la función paga. "Ver planes" abre P01 también sobre el lector (`fullScreenCover` propio del lector, con la apariencia de la app). Tamaño e interlineado siguen libres. Además, alineado con Android: sin cuota leída, el tamaño al importar se comprueba con los 2 MB de Gratis, y en Biblioteca la hoja de archivo muy grande va sin tarjeta amarilla. Tests: 228 de dominio (3 nuevos) y 209 de la app en iPhone 16 (5 nuevos); la Mac compila.
