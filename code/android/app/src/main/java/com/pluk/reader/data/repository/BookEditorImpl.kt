@@ -58,7 +58,9 @@ class BookEditorImpl @Inject constructor(
             db.bookDao().insertRemoved(RemovedBookEntity(bookId, System.currentTimeMillis(), cloudDeleted))
             db.bookDao().delete(bookId)
             db.readingPositionDao().delete(bookId)
-            db.noteDao().deleteByBook(bookId)
+            // ANN-011, SYN-007: las notas que la nube tiene se marcan borradas, así el borrado llega a los otros dispositivos.
+            db.noteDao().deleteNeverSyncedOfBook(bookId)
+            db.noteDao().markDeletedOfBook(bookId, System.currentTimeMillis())
         }
         files.bookFile(bookId).delete()
         files.coverFile(bookId).delete()

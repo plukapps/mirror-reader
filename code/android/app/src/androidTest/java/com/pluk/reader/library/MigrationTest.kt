@@ -11,6 +11,7 @@ import com.pluk.reader.data.local.db.MIGRATION_4_5
 import com.pluk.reader.data.local.db.MIGRATION_5_6
 import com.pluk.reader.data.local.db.MIGRATION_6_7
 import com.pluk.reader.data.local.db.MIGRATION_7_8
+import com.pluk.reader.data.local.db.MIGRATION_8_9
 import com.pluk.reader.data.local.db.ReaderDatabase
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
@@ -161,13 +162,33 @@ class MigrationTest {
         }
     }
 
+    // SYN-016: las notas de antes de la versión 9 quedan vivas y pendientes de subir
+    @Test
+    fun migrates8To9KeepingNotesPending() {
+        helper.createDatabase("migration-test-9", 8).apply {
+            execSQL(
+                "INSERT INTO notes (id, bookId, locatorJson, quote, text, progression, createdAt, updatedAt) " +
+                    "VALUES ('n', 'b', '{}', 'cita', 'nota', 0.5, 1, 2)",
+            )
+            close()
+        }
+        val db = helper.runMigrationsAndValidate("migration-test-9", 9, true, MIGRATION_8_9)
+        db.query("SELECT text, deletedAt, syncedAt FROM notes WHERE id = 'n'").use {
+            assertTrue(it.moveToFirst())
+            assertEquals("nota", it.getString(0))
+            assertTrue(it.isNull(1))
+            assertTrue(it.isNull(2))
+        }
+    }
+
     // La cadena completa desde la primera versión sigue funcionando
     @Test
-    fun migratesFrom1To8() {
+    fun migratesFrom1To9() {
         helper.createDatabase("migration-test-all", 1).close()
         helper.runMigrationsAndValidate(
-            "migration-test-all", 8, true,
+            "migration-test-all", 9, true,
             MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5, MIGRATION_5_6, MIGRATION_6_7, MIGRATION_7_8,
+            MIGRATION_8_9,
         )
     }
 }

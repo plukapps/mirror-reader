@@ -5,7 +5,6 @@ Plan de referencia: `specs/plans/2026-10-06-android-epub-viewer.md`
 
 ## Backlog
 
-- **K-273** Sync de notas, Tarea 4: Room v9 con marcas de borrado y pendientes en `notes`. SYN-007, SYN-016.
 - **K-274** Sync de notas, Tarea 5: subir y bajar notas, gana la última edición, listener con la app a la vista. SYN-016, SYN-005.
 - **K-275** Sync de notas, Tarea 6: cerrar sesión avisa por notas sin subir. PRF-009.
 - **K-276** Sync de notas, Tarea 7: parámetro en Remote Config y deploy de reglas (acciones sobre el proyecto real, las aprueba el usuario).
@@ -55,7 +54,8 @@ Plan de referencia: `specs/plans/2026-10-06-android-epub-viewer.md`
 
 ## Revisión
 
-- **K-272** Sync de notas, Tarea 3: interruptor `notes_sync_enabled` con Remote Config y señal `plan` (Android). SYN-017, ACC-007. Hecho: `Feature`, `FeatureFlags`, `RemoteFeatureFlags` (dominio) y `FirebaseRemoteFlagSource` (Remote Config 24.0.0 por el BoM 35; API verificada con `javap`). Señal `plan` desde `QuotaCache`. Arranca dentro de `CloudListeners`. 4 tests JVM; 432 pasan.
+- **K-273** Sync de notas, Tarea 4: Room v9 con marcas de borrado y pendientes en `notes`. SYN-007, SYN-016. Hecho: Room v9 (`MIGRATION_8_9`, esquema 9) con `deletedAt` y `syncedAt` (la versión que la nube tiene); `NoteSyncStore` (pendientes, `markSynced`, `applyRemote` solo si es más nueva, purga). Borrar una nota que la nube nunca tuvo la elimina; si no, la marca. Quitar un libro marca sus notas subidas. 432 JVM pasan; `NoteRepositoryTest` (7 casos nuevos) y `MigrationTest` 8→9 compilados, sin correr.
+- **K-272** Sync de notas, Tarea 3: interruptor `notes_sync_enabled` con Remote Config y señal `plan` (Android). SYN-017, ACC-011. Hecho: `Feature`, `FeatureFlags`, `RemoteFeatureFlags` (dominio) y `FirebaseRemoteFlagSource` (Remote Config 24.0.0 por el BoM 35; API verificada con `javap`). Señal `plan` desde `QuotaCache`. Arranca dentro de `CloudListeners`. 4 tests JVM; 432 pasan.
 - **K-271** Sync de notas, Tarea 2: reglas de `users/{uid}/notes` y tests con emuladores. SYN-016, SYN-005, SYN-007. Deploy pedido al usuario. Hecho: reglas de `users/{uid}/notes/{noteId}` y 10 tests (107 pasan con emuladores; verificado por mutación). `backend.md` actualizado. Falta el deploy a `mirror-reading-staging` (K-276, lo aprueba el usuario).
 - **K-266** Notas, Tarea 7: cierre de docs y verificación a mano en el teléfono. Hecho: notas en `android.md`, resultado en el plan. Falta la verificación a mano en el SM-S711B (crear, ver subrayada, editar, ver en el detalle, tocar y llegar al lugar, borrar, quitar el libro) y correr los instrumentados donde el usuario diga.
 - **K-265** Notas, Tarea 6: detalle del libro con la lista de notas y "Ver detalle" en el menú; quitar el libro borra sus notas. LIB-022, ANN-010, ANN-011. Hecho: `BookDetailScreen` y `BookDetailViewModel` (ruta `book/{bookId}`), "Ver detalle" en el menú de acciones, tocar una nota abre el lector en ella. 3 tests JVM nuevos y orden del menú actualizado (428 pasan); `BookEditorTest` (ANN-011) y `BookActionsMenuTest` compilados, sin correr.
@@ -207,7 +207,7 @@ Plan de referencia: `specs/plans/2026-10-06-android-epub-viewer.md`
 
 ## Hecho
 
-- **K-270** Sync de notas, Tarea 1: spec (SYN-005 cambiado, SYN-016, SYN-017, ACC-007, PRF-009), ADR 0016 (Remote Config) y plan `2026-10-14-notes-sync.md`. Plan aprobado por el usuario (2026-10-14), PR aparte.
+- **K-270** Sync de notas, Tarea 1: spec (SYN-005 cambiado, SYN-016, SYN-017, ACC-011, PRF-009), ADR 0016 (Remote Config) y plan `2026-10-14-notes-sync.md`. Plan aprobado por el usuario (2026-10-14), PR aparte.
 - **K-260** Notas, Tarea 1: spec (ANN-008 a ANN-011, LIB-022) y plan `2026-10-13-android-notes.md`. Rama `claude/notes-functionality-f6f30e`. Plan aprobado por el usuario (2026-10-14).
 - **K-213** Orden de la biblioteca, cierre: docs, verificación a mano en el teléfono y el iPhone, PR único contra `develop`. Rama `feature/library-order`. Hecho: resultado en el plan, PR abierto. Falta la verificación a mano con la misma cuenta en las dos plataformas. Aprobado por el usuario tras probarlo en el teléfono y el iPhone (2026-10-13).
 - **K-212** Orden de la biblioteca, iOS: la fecha de la nube reemplaza también la de libros ya guardados. LIB-021. Rama `feature/library-order`. Hecho: `LibraryStore.addCloudOnly` corrige `addedAt` de los registros existentes con el `createdAt` de la nube. Tests: dominio 205, iPhone 188 (+2 en `LibraryStoreTests`). Mac compila (tests sin correr, K-201). Aprobado por el usuario tras probarlo en el teléfono y el iPhone (2026-10-13).
