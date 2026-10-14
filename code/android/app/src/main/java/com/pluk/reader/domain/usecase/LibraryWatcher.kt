@@ -1,5 +1,6 @@
 package com.pluk.reader.domain.usecase
 
+import com.pluk.reader.domain.flags.RemoteFeatureFlags
 import com.pluk.reader.domain.ApplicationScope
 import com.pluk.reader.domain.account.AccountRepository
 import com.pluk.reader.domain.remote.RemoteBookChanges
@@ -119,14 +120,18 @@ class CloudListeners @Inject constructor(
     private val removals: RemovalSync,
     private val library: LibraryWatcher,
     private val gate: SyncGateWatcher,
+    private val flags: RemoteFeatureFlags,
 ) : CloudListener {
     override fun startListening() {
+        // ACC-011: primero los interruptores, que deciden qué más se sincroniza.
+        flags.startListening()
         removals.startListening()
         library.startListening()
         gate.startListening()
     }
 
     override fun stopListening() {
+        flags.stopListening()
         removals.stopListening()
         library.stopListening()
         gate.stopListening()
