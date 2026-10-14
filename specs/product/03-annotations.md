@@ -12,7 +12,7 @@ Marcar y comentar lo leído, sin perderlo nunca.
 - **ANN-004** Debe tener un panel por libro que lista marcadores, subrayados y notas. Tocar uno lleva al lugar exacto.
 - **ANN-005** Debe permitir editar y borrar anotaciones.
 - **ANN-006** Cada subrayado guarda su ubicación en el EPUB y el texto citado, para poder reubicarlo.
-- **ANN-007** Todo funciona sin conexión y se sincroniza después (ver SYN).
+- **ANN-007** Todo funciona sin conexión y se sincroniza después (ver SYN; las notas, SYN-016 y SYN-017).
 - **ANN-008** Al seleccionar texto en el lector, el menú de selección debe ofrecer "Nota". Elegirla abre un editor; al guardar, el texto queda subrayado y la nota guardada. Cancelar no guarda nada. Diseño: "06 — Reader · Classic + highlight".
 - **ANN-009** Tocar un subrayado con nota en el lector debe mostrar la nota con el texto citado, y permitir editarla o borrarla. Borrar pide confirmación y quita también el subrayado.
 - **ANN-010** Las notas de un libro se ven en su detalle (LIB-022), ordenadas por su lugar en el libro. Cada una muestra el texto citado, la nota y el porcentaje del libro donde está. Tocar una abre el libro en ese lugar (ANN-004). Diseño: "T04 — Reader · Night + notes panel" (la lista).

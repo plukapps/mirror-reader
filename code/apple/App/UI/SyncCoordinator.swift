@@ -19,6 +19,11 @@ final class SyncCoordinator {
     @ObservationIgnored private let positions: PositionSync?
     @ObservationIgnored private let removals: RemovalSync?
     @ObservationIgnored private let watcher: LibraryWatcher?
+    /// ACC-011: interruptores remotos; escuchan mientras la app se ve.
+    @ObservationIgnored let flags: FeatureFlags
+    /// SYN-016: notas entre dispositivos, o nil si la app funciona solo en local.
+    @ObservationIgnored private let notes: NoteSync?
+    @ObservationIgnored private var noteUpdates: Task<Void, Never>?
     /// PRF-023: si la red permite sincronizar ("Sincronizar solo con Wi-Fi"). nil: siempre.
     @ObservationIgnored private let gate: SyncNetworkGate?
     @ObservationIgnored private var removalUpdates: Task<Void, Never>?
@@ -37,6 +42,8 @@ final class SyncCoordinator {
         removals: RemovalSync? = nil,
         watcher: LibraryWatcher? = nil,
         gate: SyncNetworkGate? = nil,
+        flags: FeatureFlags = FeatureFlags(source: nil),
+        notes: NoteSync? = nil,
         ttl: Duration = SyncScheduler.defaultTTL,
         reload: @escaping @MainActor () async -> Void
     ) {
@@ -45,6 +52,8 @@ final class SyncCoordinator {
         self.removals = removals
         self.watcher = watcher
         self.gate = gate
+        self.flags = flags
+        self.notes = notes
         guard let pass else { return }
         state = SyncState()
         let onChange: @Sendable () async -> Void = { [weak self] in await self?.changed() }
@@ -70,6 +79,8 @@ final class SyncCoordinator {
     /// 5 minutos.
     func appBecameActive() {
         isActive = true
+        // ACC-011: primero los interruptores, que deciden qué más se sincroniza.
+        Task { await flags.startListening() }
         startListening()
         guard let scheduler else { return }
         Task { await scheduler.requestIfStale() }
@@ -78,6 +89,8 @@ final class SyncCoordinator {
     /// La app dejó de verse: deja de escuchar y envía las posiciones pendientes (SYN-011). Sin trabajo en segundo plano.
     func appWentToBackground() {
         isActive = false
+        Task { await flags.stopListening() }
+        if let notes { Task { await notes.stopListening() } }
         if let removals { Task { await removals.stopListening() } }
         if let watcher { Task { await watcher.stopListening() } }
         guard let positions, cloudAllowed else {
@@ -132,6 +145,7 @@ final class SyncCoordinator {
 
     /// Deja de escuchar la nube y espera a que cada escucha se haya detenido.
     func stopListeningForSignOut() async {
+        await notes?.stopListening()
         await positions?.stopListening()
         await removals?.stopListening()
         await watcher?.stopListening()
@@ -157,6 +171,7 @@ final class SyncCoordinator {
         // PRF-023: sin red apta no se escucha la nube.
         guard cloudAllowed else { return }
         startListeningForRemovals()
+        startListeningForNotes()
         guard let positions, isActive else { return }
         Task { await positions.startListening() }
         // SYN-012: lo que llega de otros dispositivos cambia los porcentajes de Inicio y la biblioteca.
@@ -177,6 +192,18 @@ final class SyncCoordinator {
         guard removalUpdates == nil else { return }
         removalUpdates = Task { [weak self] in
             for await _ in await removals.removals() {
+                await self?.reload()
+            }
+        }
+    }
+
+    /// SYN-016: con la app a la vista, las notas de otros dispositivos llegan solas.
+    private func startListeningForNotes() {
+        guard let notes, isActive else { return }
+        Task { await notes.startListening() }
+        guard noteUpdates == nil else { return }
+        noteUpdates = Task { [weak self] in
+            for await _ in await notes.changes() {
                 await self?.reload()
             }
         }

@@ -111,6 +111,7 @@ class ReaderViewModelTest {
     private val positions = FakePositions()
     private val host = FakeHost()
     private val notes = FakeNotes()
+    private var noteFlushes = 0
 
     @Before
     fun setUp() = Dispatchers.setMain(dispatcher)
@@ -169,7 +170,7 @@ class ReaderViewModelTest {
 
     private fun viewModel(books: FakeBooks, noteId: String? = null) = ReaderViewModel(
         SavedStateHandle(mapOf(ReaderViewModel.ARG_BOOK_ID to "hash-del-libro", ReaderViewModel.ARG_NOTE_ID to noteId)), books, settings, positions, host,
-        DownloadBookUseCase(cloud, files), positionSync, resolveOpening, ReadingSession(), quotaCache, prompts, notes,
+        DownloadBookUseCase(cloud, files), positionSync, resolveOpening, ReadingSession(), quotaCache, prompts, notes, { noteFlushes++ },
     )
 
     private suspend fun ReaderViewModel.awaitReady(predicate: (ReaderUiState.Ready) -> Boolean = { true }) =
@@ -212,7 +213,7 @@ class ReaderViewModelTest {
         val books = FakeBooks(Result.success(book()))
         val vm = ReaderViewModel(
             SavedStateHandle(mapOf(ReaderViewModel.ARG_BOOK_ID to "hash-del-libro")), books, settings, positions, host,
-            DownloadBookUseCase(cloud, failing), positionSync, resolveOpening, ReadingSession(), quotaCache, prompts, notes,
+            DownloadBookUseCase(cloud, failing), positionSync, resolveOpening, ReadingSession(), quotaCache, prompts, notes, { noteFlushes++ },
         )
         val state = vm.uiState.first { it !is ReaderUiState.Loading }
         assertEquals(ReaderUiState.Failed("Sin conexión. No se pudo descargar el libro."), state)
@@ -697,6 +698,7 @@ class ReaderViewModelTest {
         assertEquals("Para el lunes", saved.text)
         assertEquals("""{"href":"c2.xhtml"}""", saved.locatorJson)
         assertEquals(0.42, saved.progression, 0.0)
+        assertEquals(1, noteFlushes) // SYN-016: sale enseguida
         vm.release()
     }
 
@@ -761,6 +763,7 @@ class ReaderViewModelTest {
         dispatcher.scheduler.advanceUntilIdle()
         assertNull(vm.noteEditor.value)
         assertEquals(listOf("n2"), vm.bookNotes.value.map { it.id })
+        assertEquals(1, noteFlushes) // SYN-016: el borrado sale enseguida
         collected.cancel()
         vm.release()
     }

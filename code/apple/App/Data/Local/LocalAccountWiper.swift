@@ -15,7 +15,7 @@ struct LocalAccountWiper: LocalAccountData, @unchecked Sendable {
     /// dominio de la app también guarda claves del sistema que no se deben tocar. Una clave nueva de la cuenta se suma aquí.
     static let accountKeys = [
         "onboardingInterests", "readingGoalMinutes", "reminderEnabled", "reminderHour", "reminderMinute",
-        "sync.lastPositionsSeenAt",
+        "sync.lastPositionsSeenAt", UserDefaultsSyncPreferences.Key.lastNotesSeenAt,
         UserDefaultsQuotaCache.Key.usedBytes, UserDefaultsQuotaCache.Key.quotaBytes, UserDefaultsQuotaCache.Key.plan,
         UserDefaultsUsageNotice.key,
     ]

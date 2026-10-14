@@ -19,6 +19,7 @@ struct LocalAccountWiperTests {
         defaults.set("SEPIA", forKey: "reader.theme")
         defaults.set("d1", forKey: "sync.deviceId")
         defaults.set(5, forKey: "sync.lastPositionsSeenAt")
+        defaults.set(6, forKey: "sync.lastNotesSeenAt")
         defaults.set(20, forKey: "readingGoalMinutes")
         UserDefaultsQuotaCache(defaults: defaults).save(StorageQuota(usedBytes: 1, quotaBytes: 2))
         UserDefaultsUsageNotice(defaults: defaults).dismiss()
@@ -30,6 +31,8 @@ struct LocalAccountWiperTests {
         #expect(defaults.string(forKey: "reader.theme") == "SEPIA")
         #expect(defaults.string(forKey: "sync.deviceId") == "d1")
         #expect(defaults.object(forKey: "sync.lastPositionsSeenAt") == nil)
+        // SYN-016: el cursor de las notas también es de la cuenta.
+        #expect(defaults.object(forKey: "sync.lastNotesSeenAt") == nil)
         #expect(defaults.object(forKey: "readingGoalMinutes") == nil)
         #expect(UserDefaultsQuotaCache(defaults: defaults).last() == nil)
         #expect(!UserDefaultsUsageNotice(defaults: defaults).isDismissed())

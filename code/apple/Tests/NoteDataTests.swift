@@ -66,4 +66,92 @@ struct NoteDataTests {
         try await store.deleteAll()
         #expect(await store.notes(bookId: "libro").isEmpty)
     }
+
+    // MARK: Sincronizar (SYN-016, SYN-005, SYN-007)
+
+    private func withUpdated(_ note: Note, _ updatedAt: Int64, text: String? = nil) -> Note {
+        var copy = note
+        copy.updatedAt = updatedAt
+        if let text { copy.text = text }
+        return copy
+    }
+
+    @Test("SYN-007: borrar una nota que la nube nunca tuvo la elimina; una subida queda marcada y pendiente")
+    func deletingMarksOnlyNotesTheCloudHas() async throws {
+        let store = try makeStore()
+        try await store.addCloudOnly([RemoteBook(id: "libro", title: "T", authors: [], sizeBytes: 1)])
+        await store.save(note("local"))
+        await store.delete(id: "local")
+        #expect(await store.pendingNotes().isEmpty)
+        await store.save(note("subida"))
+        await store.markNoteSynced(id: "subida", editedAt: 1)
+        await store.delete(id: "subida")
+        #expect(await store.note(id: "subida") == nil)
+        let pending = await store.pendingNotes()
+        #expect(pending.map(\.note.id) == ["subida"])
+        #expect(pending.first?.deletedAt != nil)
+    }
+
+    @Test("SYN-016: pendientes solo si el libro está en la nube; subir las marca enviadas")
+    func pendingNeedsTheBookInTheCloud() async throws {
+        let store = try makeStore()
+        try await store.addCloudOnly([RemoteBook(id: "libro", title: "T", authors: [], sizeBytes: 1)])
+        await store.save(note("en-la-nube"))
+        await store.save(note("sin-libro", bookId: "otro-libro"))
+        #expect(await store.pendingNotes().map(\.note.id) == ["en-la-nube"])
+        await store.markNoteSynced(id: "en-la-nube", editedAt: 1)
+        #expect(await store.pendingNotes().isEmpty)
+        #expect(await store.hasUnsyncedNotes(syncOn: true)) // "sin-libro" todavía no subió
+    }
+
+    @Test("SYN-005: lo de la nube se aplica solo si es más reciente; una edición local más nueva no se pisa")
+    func appliesOnlyNewerRemoteNotes() async throws {
+        let store = try makeStore()
+        await store.save(withUpdated(note("n1"), 10, text: "local"))
+        await store.applyRemote(SyncNote(note: withUpdated(note("n1"), 5, text: "vieja")))
+        #expect(await store.note(id: "n1")?.text == "local")
+        await store.applyRemote(SyncNote(note: withUpdated(note("n1"), 20, text: "nueva")))
+        #expect(await store.note(id: "n1")?.text == "nueva")
+        #expect(await store.hasUnsyncedNotes(syncOn: true) == false) // vino de la nube: ya está allí
+        await store.applyRemote(SyncNote(note: withUpdated(note("n2"), 3)))
+        #expect(await store.note(id: "n2")?.text == "nota n2")
+    }
+
+    @Test("SYN-007: un borrado de la nube más reciente elimina la nota; uno más viejo que una edición local, no")
+    func appliesRemoteDeletions() async throws {
+        let store = try makeStore()
+        await store.save(withUpdated(note("n1"), 10))
+        await store.applyRemote(SyncNote(note: withUpdated(note("n1"), 5), deletedAt: 5))
+        #expect(await store.note(id: "n1") != nil)
+        await store.applyRemote(SyncNote(note: withUpdated(note("n1"), 30), deletedAt: 30))
+        #expect(await store.note(id: "n1") == nil)
+        #expect(await store.pendingNotes().isEmpty)
+    }
+
+    @Test("ANN-011, SYN-007: al quitar el libro, sus notas subidas quedan marcadas para borrar en la nube")
+    func removingABookMarksSyncedNotes() async throws {
+        let store = try makeStore()
+        try await store.addCloudOnly([RemoteBook(id: "libro", title: "T", authors: [], sizeBytes: 1)])
+        await store.save(note("subida"))
+        await store.markNoteSynced(id: "subida", editedAt: 1)
+        await store.save(note("local"))
+        await store.remove(bookId: "libro")
+        #expect(await store.notes(bookId: "libro").isEmpty)
+        let pending = await store.pendingNotes()
+        #expect(pending.map(\.note.id) == ["subida"])
+        #expect(pending.first?.deletedAt != nil)
+        await store.markNoteSynced(id: "subida", editedAt: pending[0].editedAt)
+        await store.purgeSyncedNoteDeletions()
+        #expect(await store.pendingNotes().isEmpty)
+        #expect(await store.hasUnsyncedNotes(syncOn: false) == false)
+    }
+
+    @Test("PRF-009: con la sincronización apagada, cualquier nota viva se perdería al cerrar sesión")
+    func unsyncedDependsOnTheSwitch() async throws {
+        let store = try makeStore()
+        await store.save(note("n1"))
+        await store.markNoteSynced(id: "n1", editedAt: 1)
+        #expect(await store.hasUnsyncedNotes(syncOn: true) == false)
+        #expect(await store.hasUnsyncedNotes(syncOn: false))
+    }
 }

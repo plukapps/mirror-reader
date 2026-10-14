@@ -254,10 +254,14 @@ struct ReaderViewModelTests {
 
     // MARK: Notas (ANN-008 a ANN-010)
 
+    /// SYN-016: cuántas veces el lector avisó que cambió una nota.
+    private final class Changes { var count = 0 }
+    private let changes = Changes()
+
     private func makeViewModel(notes: FakeNotes, noteId: String? = nil, source: FakeSource = FakeSource(book: book)) -> ReaderViewModel {
         ReaderViewModel(
             bookId: "a", source: source, positions: positions, settings: settings, saveDelay: .zero,
-            notes: notes, noteId: noteId, clock: { Date(timeIntervalSince1970: 50) }
+            notes: notes, noteId: noteId, clock: { Date(timeIntervalSince1970: 50) }, notesChanged: { changes.count += 1 }
         )
     }
 
@@ -278,6 +282,7 @@ struct ReaderViewModelTests {
         #expect(saved[0].progression == 0.42)
         #expect(saved[0].createdAt == 50_000)
         #expect(viewModel.bookNotes.map(\.id) == [saved[0].id])
+        #expect(changes.count == 1) // SYN-016: sale enseguida
     }
 
     @Test("ANN-008: cancelar no guarda nada; un texto vacío no se guarda; una selección vacía no abre el editor")
@@ -322,6 +327,7 @@ struct ReaderViewModelTests {
         await viewModel.deleteNote()
         #expect(viewModel.noteEditor == nil)
         #expect(viewModel.bookNotes.map(\.id) == ["n2"])
+        #expect(changes.count == 1) // SYN-016: el borrado sale enseguida
     }
 
     @Test("ANN-010: abrir desde una nota abre en su lugar, no en la última posición")

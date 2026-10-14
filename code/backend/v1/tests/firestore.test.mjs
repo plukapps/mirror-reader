@@ -37,6 +37,24 @@ const positionData = (extra = {}) => ({
   ...extra,
 });
 
+const NOTE_ID = "0b8f5a3e-1c2d-4e5f-8a9b-0c1d2e3f4a5b";
+
+// Fija: createdAt no cambia entre la nota sembrada y la editada.
+const NOTE_CREATED_AT = Date.now() - 60_000;
+
+const noteData = (extra = {}) => ({
+  bookId: HASH,
+  locatorJson: '{"href":"c2.xhtml","text":{"highlight":"Empieza la mañana"}}',
+  quote: "Empieza la mañana",
+  text: "Para el lunes",
+  progression: 0.42,
+  createdAt: NOTE_CREATED_AT,
+  editedAt: NOTE_CREATED_AT,
+  deletedAt: null,
+  updatedAt: serverTimestamp(),
+  ...extra,
+});
+
 describe("Firestore", () => {
   let env;
   let alice;
@@ -431,6 +449,121 @@ describe("Firestore", () => {
       const snap = await assertSucceeds(getDocs(query(collection(db("alice"), "users/alice/positions"), since)));
       assert.equal(snap.size, 1);
       await assertFails(getDocs(query(collection(db("bob"), "users/alice/positions"), since)));
+    });
+  });
+
+  describe("notas (SYN-016)", () => {
+    const ref = (uid = "alice", noteId = NOTE_ID) => doc(db(uid), `users/${uid}/notes/${noteId}`);
+    const seedNote = (uid, extra = {}) =>
+      env.withSecurityRulesDisabled((ctx) =>
+        setDoc(doc(ctx.firestore(), `users/${uid}/notes/${NOTE_ID}`), { ...noteData(), updatedAt: new Date(), ...extra }),
+      );
+
+    it("el dueño crea y lee una nota de un libro suyo", async () => {
+      await seedBook("alice");
+      await assertSucceeds(setDoc(ref(), noteData()));
+      const snap = await assertSucceeds(getDoc(ref()));
+      assert.equal(snap.get("text"), "Para el lunes");
+    });
+
+    it("otro usuario y sin sesión no leen ni escriben notas ajenas", async () => {
+      await seedBook("alice");
+      await seedNote("alice");
+      await assertFails(getDoc(doc(db("bob"), `users/alice/notes/${NOTE_ID}`)));
+      await assertFails(setDoc(doc(db("bob"), `users/alice/notes/${NOTE_ID}`), noteData()));
+      const anon = env.unauthenticatedContext().firestore();
+      await assertFails(getDoc(doc(anon, `users/alice/notes/${NOTE_ID}`)));
+    });
+
+    it("solo para libros que existen y con un id de nota válido", async () => {
+      await assertFails(setDoc(ref(), noteData()));
+      await seedBook("alice");
+      await assertFails(setDoc(ref("alice", "nota-1"), noteData()));
+      await assertFails(setDoc(ref(), noteData({ bookId: "libro-1" })));
+      await assertSucceeds(setDoc(ref(), noteData()));
+    });
+
+    it("rechaza campos de más o de menos y tamaños fuera de rango", async () => {
+      await seedBook("alice");
+      await assertFails(setDoc(ref(), noteData({ extra: 1 })));
+      const { quote, ...sinCita } = noteData();
+      await assertFails(setDoc(ref(), sinCita));
+      await assertFails(setDoc(ref(), noteData({ quote: "" })));
+      await assertFails(setDoc(ref(), noteData({ quote: "x".repeat(4001) })));
+      await assertFails(setDoc(ref(), noteData({ text: "" })));
+      await assertFails(setDoc(ref(), noteData({ text: "x".repeat(10001) })));
+      await assertFails(setDoc(ref(), noteData({ locatorJson: "x".repeat(8193) })));
+      await assertFails(setDoc(ref(), noteData({ progression: 1.5 })));
+      await assertSucceeds(setDoc(ref(), noteData({ text: "x".repeat(10000), progression: 1 })));
+    });
+
+    it("las fechas son del dispositivo, enteras y a lo sumo una hora en el futuro; updatedAt es del servidor", async () => {
+      await seedBook("alice");
+      await assertFails(setDoc(ref(), noteData({ editedAt: Date.now() + 2 * 3600 * 1000 })));
+      await assertFails(setDoc(ref(), noteData({ createdAt: "ayer" })));
+      await assertFails(setDoc(ref(), noteData({ editedAt: 0 })));
+      await assertFails(setDoc(ref(), noteData({ updatedAt: new Date() })));
+      await assertSucceeds(setDoc(ref(), noteData({ editedAt: Date.now() + 30 * 60 * 1000 })));
+    });
+
+    it("una nota nueva no llega borrada", async () => {
+      await seedBook("alice");
+      await assertFails(setDoc(ref(), noteData({ deletedAt: Date.now() })));
+    });
+
+    // SYN-005, SYN-010: gana la edición más reciente
+    it("editar: editedAt no retrocede; repetirlo se acepta", async () => {
+      await seedBook("alice");
+      const base = Date.now() - 10_000;
+      await seedNote("alice", { editedAt: base });
+      await assertFails(setDoc(ref(), noteData({ text: "vieja", editedAt: base - 1 })));
+      await assertSucceeds(setDoc(ref(), noteData({ text: "igual", editedAt: base })));
+      await assertSucceeds(setDoc(ref(), noteData({ text: "nueva", editedAt: base + 1 })));
+    });
+
+    it("el lugar, la cita, el libro y la fecha de creación no cambian", async () => {
+      await seedBook("alice");
+      await seedBook("alice", OTHER_HASH);
+      const base = Date.now() - 10_000;
+      await seedNote("alice", { editedAt: base, createdAt: base });
+      const edit = (extra) => setDoc(ref(), noteData({ editedAt: base + 1, createdAt: base, ...extra }));
+      await assertFails(edit({ quote: "otra" }));
+      await assertFails(edit({ locatorJson: "{}" }));
+      await assertFails(edit({ bookId: OTHER_HASH }));
+      await assertFails(edit({ progression: 0.9 }));
+      await assertFails(edit({ createdAt: base - 1 }));
+      await assertSucceeds(edit({ text: "otra nota" }));
+    });
+
+    // SYN-007: borrar es una marca y no se deshace
+    it("borrar es poner deletedAt; no hay borrado físico", async () => {
+      await seedBook("alice");
+      const base = Date.now() - 10_000;
+      await seedNote("alice", { editedAt: base });
+      await assertFails(deleteDoc(ref()));
+      const deletedAt = base + 1;
+      await assertSucceeds(setDoc(ref(), noteData({ text: "", editedAt: deletedAt, deletedAt })));
+      await assertSucceeds(setDoc(ref(), noteData({ text: "", editedAt: deletedAt, deletedAt }))); // reenvío
+    });
+
+    // SYN-005, SYN-010: entre borrar y editar también gana el último cambio
+    it("una nota borrada revive solo con una edición posterior al borrado", async () => {
+      await seedBook("alice");
+      const deletedAt = Date.now() - 10_000;
+      await seedNote("alice", { text: "", editedAt: deletedAt, deletedAt });
+      await assertFails(setDoc(ref(), noteData({ text: "vieja", editedAt: deletedAt - 1, deletedAt: null })));
+      await assertFails(setDoc(ref(), noteData({ text: "igual", editedAt: deletedAt, deletedAt: null })));
+      await assertSucceeds(setDoc(ref(), noteData({ text: "editada después", editedAt: deletedAt + 1, deletedAt: null })));
+    });
+
+    // SYN-016: el listener pide solo lo que cambió desde la última vez
+    it("el dueño consulta por updatedAt; otro usuario no", async () => {
+      await seedBook("alice");
+      await seedNote("alice");
+      const since = where("updatedAt", ">", new Date(0));
+      const snap = await assertSucceeds(getDocs(query(collection(db("alice"), "users/alice/notes"), since)));
+      assert.equal(snap.size, 1);
+      await assertFails(getDocs(query(collection(db("bob"), "users/alice/notes"), since)));
     });
   });
 });

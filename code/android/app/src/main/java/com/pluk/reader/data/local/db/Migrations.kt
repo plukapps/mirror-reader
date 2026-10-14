@@ -82,3 +82,14 @@ val MIGRATION_7_8 = object : Migration(7, 8) {
         db.execSQL("CREATE INDEX IF NOT EXISTS `index_notes_bookId` ON `notes` (`bookId`)")
     }
 }
+
+/**
+ * Sincronizar notas (SYN-016): marca de borrado (SYN-007) y la versión que la nube ya tiene. Las notas de antes nunca
+ * llegaron a la nube: quedan pendientes y se suben una vez.
+ */
+val MIGRATION_8_9 = object : Migration(8, 9) {
+    override fun migrate(db: SupportSQLiteDatabase) {
+        db.execSQL("ALTER TABLE `notes` ADD COLUMN `deletedAt` INTEGER")
+        db.execSQL("ALTER TABLE `notes` ADD COLUMN `syncedAt` INTEGER")
+    }
+}

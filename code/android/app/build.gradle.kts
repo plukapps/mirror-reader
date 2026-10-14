@@ -120,6 +120,8 @@ dependencies {
   implementation(libs.firebase.auth)
   implementation(libs.firebase.firestore)
   implementation(libs.firebase.storage)
+  // ACC-011, ADR 0016: funciones que se prenden y apagan con Remote Config.
+  implementation(libs.firebase.config)
   implementation(libs.kotlinx.coroutines.play.services)
 
   // Ingreso con Google (ADR 0014)
