@@ -17,7 +17,9 @@ enum AppGraph {
         /// Menú de un libro con mantener presionado (LIB-016).
         let bookActions: BookActionsViewModel
         /// nil en la Mac: Readium Swift solo soporta iOS (ADR 0013).
-        let makeReader: ((_ bookId: String) -> ReaderViewModel)?
+        let makeReader: ((_ bookId: String, _ noteId: String?) -> ReaderViewModel)?
+        /// LIB-022: el detalle de un libro con sus notas.
+        let makeDetail: (_ bookId: String) -> BookDetailViewModel
         /// Planes (PLN-002): quién lo abre y su estado.
         let plans: PlansPresenter
         /// Apariencia de la app (PRF-021).
@@ -52,13 +54,13 @@ enum AppGraph {
         let loader = PublicationLoader()
         let importer = EpubImporter(store: store, files: files, loader: loader)
         let bookFiles: BookFiles = CoverExtractingBookFiles(store: store, importer: importer)
-        let reader: (importer: BookImporter, makeReader: (String) -> ReaderViewModel)? = readerParts(
+        let reader: (importer: BookImporter, makeReader: (String, String?) -> ReaderViewModel)? = readerParts(
             store: store, files: files, loader: loader, importer: importer, bookFiles: bookFiles, firebase: firebase, positions: positions,
             cloudAllowed: cloudAllowed, quotaCache: quotaCache
         )
         #else
         let bookFiles: BookFiles = store
-        let reader: (importer: BookImporter, makeReader: (String) -> ReaderViewModel)? = nil
+        let reader: (importer: BookImporter, makeReader: (String, String?) -> ReaderViewModel)? = nil
         #endif
 
         // La sincronización vuelve a leer la base en Inicio y en la biblioteca cada vez que la cambia.
@@ -132,6 +134,7 @@ enum AppGraph {
             ),
             bookActions: bookActions,
             makeReader: reader?.makeReader,
+            makeDetail: { BookDetailViewModel(bookId: $0, library: store, notes: store) },
             plans: PlansPresenter(cache: quotaCache),
             appearance: appearance,
             network: network,
@@ -189,7 +192,7 @@ enum AppGraph {
     private static func readerParts(
         store: LibraryStore, files: LibraryFiles, loader: PublicationLoader, importer: EpubImporter, bookFiles: BookFiles,
         firebase: Bool, positions: PositionSync?, cloudAllowed: @escaping @Sendable () async -> Bool, quotaCache: QuotaCache
-    ) -> (importer: BookImporter, makeReader: (String) -> ReaderViewModel) {
+    ) -> (importer: BookImporter, makeReader: (String, String?) -> ReaderViewModel) {
         let bookStore: BookFileStore = firebase ? FirebaseBookStore() : OfflineBookStore()
         // PRF-023: un libro solo en la nube no se baja sin Wi-Fi si así se eligió.
         let download = DownloadBook(files: bookFiles, store: bookStore, allowed: cloudAllowed)
@@ -206,10 +209,12 @@ enum AppGraph {
         }
         return (
             importer,
-            { bookId in
+            { bookId, noteId in
                 ReaderViewModel(
                     bookId: bookId, source: source, positions: store, settings: settings, sync: readerSync,
-                    plan: { PlanCatalog.planOf(quotaCache.last()) }
+                    plan: { PlanCatalog.planOf(quotaCache.last()) },
+                    notes: store,
+                    noteId: noteId
                 )
             }
         )

@@ -5,7 +5,7 @@ import SwiftData
 /// Base local de la biblioteca (ADR 0002, ADR 0012): la fuente de verdad de lo que muestra la app.
 /// Es un `ModelActor`: todo acceso a SwiftData pasa por su propio contexto, fuera del hilo principal.
 actor LibraryStore: ModelActor, LibraryRepository, CloudBooksRepository, BookUploadRepository, BookFiles, PositionSyncStore,
-    ReadingPositionRepository, BookEditor, BookRemovals, KnownBooks {
+    ReadingPositionRepository, BookEditor, BookRemovals, KnownBooks, NoteRepository {
     nonisolated let modelContainer: ModelContainer
     nonisolated let modelExecutor: any ModelExecutor
     private let files: LibraryFiles
@@ -29,7 +29,7 @@ actor LibraryStore: ModelActor, LibraryRepository, CloudBooksRepository, BookUpl
         try ModelContainer(for: schema, configurations: ModelConfiguration(isStoredInMemoryOnly: true))
     }
 
-    private static let schema = Schema([BookRecord.self, PositionRecord.self, RemovedBookRecord.self])
+    private static let schema = Schema([BookRecord.self, PositionRecord.self, RemovedBookRecord.self, NoteRecord.self])
 
     // MARK: LibraryRepository
 
@@ -356,6 +356,8 @@ actor LibraryStore: ModelActor, LibraryRepository, CloudBooksRepository, BookUpl
             modelContext.insert(RemovedBookRecord(id: bookId, removedAt: now(), isCloudDeleted: isCloudDeleted))
             try modelContext.delete(model: BookRecord.self, where: #Predicate { $0.id == bookId })
             try modelContext.delete(model: PositionRecord.self, where: #Predicate { $0.bookId == bookId })
+            // ANN-011: las notas del libro se van con él.
+            try modelContext.delete(model: NoteRecord.self, where: #Predicate { $0.bookId == bookId })
             try modelContext.save()
         } catch {
             modelContext.rollback()
@@ -386,12 +388,65 @@ actor LibraryStore: ModelActor, LibraryRepository, CloudBooksRepository, BookUpl
 
     // MARK: Cerrar sesión (PRF-009)
 
-    /// Borra todos los libros, posiciones y quitados de la base. Los archivos los borra `LibraryFiles.deleteAll()`.
+    /// Borra todos los libros, posiciones, notas y quitados de la base. Los archivos los borra `LibraryFiles.deleteAll()`.
     func deleteAll() throws {
         try modelContext.delete(model: BookRecord.self)
+        try modelContext.delete(model: NoteRecord.self)
         try modelContext.delete(model: PositionRecord.self)
         try modelContext.delete(model: RemovedBookRecord.self)
         try modelContext.save()
+    }
+
+
+    // MARK: NoteRepository (ANN-003 a ANN-006, ANN-010)
+
+    func notes(bookId: String) async -> [Note] {
+        let records = try? modelContext.fetch(
+            FetchDescriptor<NoteRecord>(
+                predicate: #Predicate { $0.bookId == bookId },
+                sortBy: [SortDescriptor(\.progression), SortDescriptor(\.createdAt)]
+            )
+        )
+        return records?.map(note) ?? []
+    }
+
+    func note(id: String) async -> Note? {
+        (try? noteRecord(id)).flatMap { $0.map(note) }
+    }
+
+    func save(_ note: Note) async {
+        do {
+            if let record = try noteRecord(note.id) {
+                record.text = note.text
+                record.updatedAt = note.updatedAt
+            } else {
+                modelContext.insert(
+                    NoteRecord(
+                        id: note.id, bookId: note.bookId, locatorJson: note.locatorJson, quote: note.quote, text: note.text,
+                        progression: note.progression, createdAt: note.createdAt, updatedAt: note.updatedAt
+                    )
+                )
+            }
+            try modelContext.save()
+        } catch {
+            modelContext.rollback()
+        }
+    }
+
+    func delete(id: String) async {
+        try? modelContext.delete(model: NoteRecord.self, where: #Predicate { $0.id == id })
+        try? modelContext.save()
+    }
+
+    private func noteRecord(_ id: String) throws -> NoteRecord? {
+        try modelContext.fetch(FetchDescriptor<NoteRecord>(predicate: #Predicate { $0.id == id })).first
+    }
+
+    private func note(_ record: NoteRecord) -> Note {
+        Note(
+            id: record.id, bookId: record.bookId, locatorJson: record.locatorJson, quote: record.quote, text: record.text,
+            progression: record.progression, createdAt: record.createdAt, updatedAt: record.updatedAt
+        )
     }
 
 }

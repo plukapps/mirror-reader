@@ -72,3 +72,33 @@ final class RemovedBookRecord {
         self.isCloudDeleted = isCloudDeleted
     }
 }
+
+/// Nota sobre un texto del libro (ANN-003, ANN-006), como `NoteEntity` de Android. `id` es un UUID, el mismo que tendrá
+/// en la nube. Modelo nuevo: SwiftData lo agrega solo a la base existente (ADR 0012).
+@Model
+final class NoteRecord {
+    @Attribute(.unique) var id: String
+    var bookId: String
+    var locatorJson: String
+    var quote: String
+    var text: String
+    var progression: Double
+    /// Milisegundos desde 1970, reloj del dispositivo.
+    var createdAt: Int64
+    /// Última edición, en milisegundos desde 1970.
+    var updatedAt: Int64
+
+    init(
+        id: String, bookId: String, locatorJson: String, quote: String, text: String, progression: Double,
+        createdAt: Int64, updatedAt: Int64
+    ) {
+        self.id = id
+        self.bookId = bookId
+        self.locatorJson = locatorJson
+        self.quote = quote
+        self.text = text
+        self.progression = progression
+        self.createdAt = createdAt
+        self.updatedAt = updatedAt
+    }
+}

@@ -56,6 +56,12 @@ Stack y capas en `specs/adr/0010-apple-stack-and-architecture.md` (provisional):
   - **Tests de la Mac:** no arrancan por la firma del framework del paquete (K-201).
   - Plan `specs/plans/2026-10-12-profile.md`.
 
+- Notas sobre texto y detalle del libro (ANN-003 a ANN-011 en parte, LIB-022, K-322 a K-327; plan `2026-10-14-ios-notes.md`):
+  - **Datos:** `Note` y `NoteRepository` en `ReaderDomain`; `NoteRecord` en SwiftData (modelo nuevo, migración automática) y la API de notas en `LibraryStore`. Quitar un libro y cerrar sesión borran sus notas.
+  - **Lector (solo iOS):** `EditingAction` "Nota" junto a las acciones del sistema. La recibe `NavigatorContainer`, el view controller que envuelve al navegador, por la cadena de respuesta (guía `Highlights.md` de Readium 3.9.0). Subrayados con `apply(decorations:in: "notes")`; `observeDecorationInteractions` abre la nota. Editor en `NoteEditorSheet`.
+  - **Abrir en una nota:** la fábrica del lector recibe `noteId`; `ReaderViewModel` abre en su locator sin el aviso de otro dispositivo.
+  - **Detalle:** `BookDetailView` desde "Ver detalle" del menú contextual: pantalla completa en el iPhone, con el lector encima; hoja en la Mac, que avisa que el lector llega más adelante.
+
 ## Criterio de terminado
 
 Todos los requisitos "debe" de `product/` cumplidos y verificados en una Mac real, y la app aprobada en la Mac App Store.
