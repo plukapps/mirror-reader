@@ -24,7 +24,7 @@ data class PlansUiState(
     /** PLN-004: arranca en Mensual. */
     val billing: Billing = Billing.MONTHLY,
     /** Plan pago elegido con el radio (PLN-005). */
-    val selected: PlanId = PlanId.READER,
+    val selected: PlanId = PlanId.PLUS,
     val tableOpen: Boolean = false,
     /** Uso de la cuenta, o null si nunca se leyó la cuota: la fila se oculta (PLN-003). */
     val usage: StorageUsage? = null,

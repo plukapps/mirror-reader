@@ -397,7 +397,7 @@ private fun CardHeader(plan: PlanId, name: String, state: PlansUiState, selected
     Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             Text(name, style = planText(if (tablet) 24 else 20, FontWeight.Bold, ink, (-0.02).em))
-            if (plan == PlanId.READER) {
+            if (plan == PlanId.PLUS) {
                 Text(
                     stringResource(R.string.plans_most_chosen),
                     style = planText(if (tablet) 12 else 11, FontWeight.Bold, MarginColors.Yellow),
@@ -603,15 +603,15 @@ private fun TabletPurchaseBar(cta: PlanCta, actions: PlansActions) {
 internal fun planName(plan: PlanId): String = stringResource(
     when (plan) {
         PlanId.FREE -> R.string.plans_free
-        PlanId.READER -> R.string.plans_reader
-        PlanId.LIBRARY -> R.string.plans_library
+        PlanId.PLUS -> R.string.plans_reader
+        PlanId.PRO -> R.string.plans_library
     },
 )
 
 private fun planTagline(plan: PlanId): Int = when (plan) {
     PlanId.FREE -> R.string.plans_free_tagline
-    PlanId.READER -> R.string.plans_reader_tagline
-    PlanId.LIBRARY -> R.string.plans_library_tagline
+    PlanId.PLUS -> R.string.plans_reader_tagline
+    PlanId.PRO -> R.string.plans_library_tagline
 }
 
 /** Lo que incluye cada tarjeta (PLN-001). Solo funciones hechas o en camino (PLN-016). */
@@ -620,8 +620,8 @@ private fun planIncludes(plan: PlanId): List<String> {
     val maxFile = stringResource(R.string.plans_includes_max_file, formatCloud(PlanCatalog.of(plan).maxFileBytes))
     return when (plan) {
         PlanId.FREE -> listOf(stringResource(R.string.plans_free_includes_1), stringResource(R.string.plans_free_includes_2), maxFile)
-        PlanId.READER -> listOf(stringResource(R.string.plans_reader_includes_1), stringResource(R.string.plans_reader_includes_2), maxFile)
-        PlanId.LIBRARY -> listOf(stringResource(R.string.plans_library_includes_1), maxFile)
+        PlanId.PLUS -> listOf(stringResource(R.string.plans_reader_includes_1), stringResource(R.string.plans_reader_includes_2), maxFile)
+        PlanId.PRO -> listOf(stringResource(R.string.plans_library_includes_1), maxFile)
     }
 }
 
@@ -656,8 +656,8 @@ private fun comparisonRows(freeCloud: String): List<ComparisonRow> {
     fun cloud(plan: com.pluk.reader.domain.plans.Plan) = Cell.Plain(formatCloud(plan.cloudBytes ?: 0))
     fun file(plan: com.pluk.reader.domain.plans.Plan) = Cell.Plain(formatCloud(plan.maxFileBytes))
     return listOf(
-        ComparisonRow(R.string.plans_row_cloud, listOf(Cell.Plain(freeCloud), cloud(PlanCatalog.reader), cloud(PlanCatalog.library))),
-        ComparisonRow(R.string.plans_row_file_size, listOf(file(PlanCatalog.free), file(PlanCatalog.reader), file(PlanCatalog.library))),
+        ComparisonRow(R.string.plans_row_cloud, listOf(Cell.Plain(freeCloud), cloud(PlanCatalog.plus), cloud(PlanCatalog.pro))),
+        ComparisonRow(R.string.plans_row_file_size, listOf(file(PlanCatalog.free), file(PlanCatalog.plus), file(PlanCatalog.pro))),
         ComparisonRow(R.string.plans_row_reading, listOf(unlimited, unlimited, unlimited)),
         ComparisonRow(R.string.plans_row_sync, listOf(Cell.Yes, Cell.Yes, Cell.Yes)),
         ComparisonRow(R.string.plans_row_themes, listOf(Cell.No, Cell.Yes, Cell.Yes)),

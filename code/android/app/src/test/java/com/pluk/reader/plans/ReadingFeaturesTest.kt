@@ -30,8 +30,8 @@ class ReadingFeaturesTest {
 
     @Test
     fun paidPlansKeepWhatWasSaved() {
-        assertEquals(saved, effectiveReaderSettings(saved, PlanId.READER))
-        assertEquals(saved, effectiveReaderSettings(saved, PlanId.LIBRARY))
+        assertEquals(saved, effectiveReaderSettings(saved, PlanId.PLUS))
+        assertEquals(saved, effectiveReaderSettings(saved, PlanId.PRO))
     }
 
     @Test
@@ -46,7 +46,7 @@ class ReadingFeaturesTest {
     @Test
     fun paidOptionsOnReaderAreAllowed() {
         val prompts = PlanPrompts()
-        assertTrue(prompts.allowReadingOption(PlanId.READER, paidOption = true))
+        assertTrue(prompts.allowReadingOption(PlanId.PLUS, paidOption = true))
         assertNull(prompts.current.value)
     }
 }

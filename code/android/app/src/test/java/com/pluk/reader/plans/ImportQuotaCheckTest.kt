@@ -50,7 +50,7 @@ class ImportQuotaCheckTest {
         assertEquals(QuotaBlock.TooLarge(3 * MIB, 2 * MIB, PlanId.FREE), quotaBlock(StorageQuota(0, 15 * MIB, plan = "gold"), 0, 3 * MIB))
         val reader = StorageQuota(0, 5L * 1024 * MIB, plan = "plus")
         assertNull(quotaBlock(reader, 0, 50 * MIB))
-        assertEquals(QuotaBlock.TooLarge(51 * MIB, 50 * MIB, PlanId.READER), quotaBlock(reader, 0, 51 * MIB))
+        assertEquals(QuotaBlock.TooLarge(51 * MIB, 50 * MIB, PlanId.PLUS), quotaBlock(reader, 0, 51 * MIB))
     }
 
     // ACC-010: si el servidor informa el máximo, vale ese y no el fijo del plan

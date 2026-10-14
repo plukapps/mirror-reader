@@ -86,7 +86,7 @@ fun MyPlanContent(state: MyPlanUiState, onBack: () -> Unit, onChangePlan: () -> 
                         .semantics { heading() },
                 )
                 PlanCard(state)
-                val reader = formatCloud(PlanCatalog.reader.cloudBytes ?: 0)
+                val reader = formatCloud(PlanCatalog.plus.cloudBytes ?: 0)
                 Column(
                     Modifier
                         .padding(start = 20.dp, end = 20.dp, top = 12.dp)
@@ -99,7 +99,7 @@ fun MyPlanContent(state: MyPlanUiState, onBack: () -> Unit, onChangePlan: () -> 
                 ) {
                     Text(stringResource(R.string.plans_with_reader, reader), style = planText(15, FontWeight.Bold, MarginColors.OnYellow))
                     Text(
-                        stringResource(R.string.plans_my_plan_upsell, formatCloud(PlanCatalog.reader.maxFileBytes)),
+                        stringResource(R.string.plans_my_plan_upsell, formatCloud(PlanCatalog.plus.maxFileBytes)),
                         style = planText(13, FontWeight.Medium, MarginColors.OnYellowMuted).copy(lineHeight = 1.4.em),
                     )
                 }

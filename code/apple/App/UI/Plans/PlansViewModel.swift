@@ -8,7 +8,7 @@ final class PlansViewModel {
     /// PLN-004: arranca en mensual.
     var billing: Billing = .monthly
     /// PLN-005: arranca elegido Lector. Gratis no se elige.
-    private(set) var selected: PlanId = .reader
+    private(set) var selected: PlanId = .plus
     /// PLN-006: la tabla comparativa, desplegada o no.
     private(set) var tableOpen = false
     private(set) var quota: StorageQuota?

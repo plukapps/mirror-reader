@@ -95,8 +95,8 @@ func tooLargeByPlan() async {
 func unknownPlanIsFree() async {
     #expect(PlanCatalog.planOf(StorageQuota(usedBytes: 0, quotaBytes: 1, plan: "premium")) == .free)
     #expect(PlanCatalog.planOf(nil) == .free)
-    #expect(PlanCatalog.planOf(StorageQuota(usedBytes: 0, quotaBytes: 1, plan: "pro")) == .library)
-    #expect(PlanCatalog.planOf(StorageQuota(usedBytes: 0, quotaBytes: 1, plan: "plus")) == .reader)
+    #expect(PlanCatalog.planOf(StorageQuota(usedBytes: 0, quotaBytes: 1, plan: "pro")) == .pro)
+    #expect(PlanCatalog.planOf(StorageQuota(usedBytes: 0, quotaBytes: 1, plan: "plus")) == .plus)
     // ACC-007: los ids del backend son `plus` y `pro`; los viejos ya no valen.
     #expect(PlanCatalog.planOf(StorageQuota(usedBytes: 0, quotaBytes: 1, plan: "library")) == .free)
     #expect(PlanCatalog.planOf(StorageQuota(usedBytes: 0, quotaBytes: 1, plan: "reader")) == .free)
@@ -130,7 +130,7 @@ func tooLargeWithoutQuota() async {
 
 @Test("PLN-014: se ofrece Lector desde Gratis, Biblioteca desde Lector y nada desde Biblioteca")
 func nextPlan() {
-    #expect(PlanCatalog.nextPlan(after: .free) == .reader)
-    #expect(PlanCatalog.nextPlan(after: .reader) == .library)
-    #expect(PlanCatalog.nextPlan(after: .library) == nil)
+    #expect(PlanCatalog.nextPlan(after: .free) == .plus)
+    #expect(PlanCatalog.nextPlan(after: .plus) == .pro)
+    #expect(PlanCatalog.nextPlan(after: .pro) == nil)
 }

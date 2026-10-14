@@ -45,7 +45,7 @@ class PlansViewModelTest {
     fun startsMonthlyWithReaderSelected() = runTest(dispatcher) {
         val (_, state) = start()
         assertEquals(Billing.MONTHLY, state().billing)
-        assertEquals(PlanId.READER, state().selected)
+        assertEquals(PlanId.PLUS, state().selected)
         assertFalse(state().tableOpen)
         assertEquals("$2.99", state().cta.price)
         assertEquals(listOf(false, true, false), PlanId.entries.map { state().isHighlighted(it) })
@@ -65,15 +65,15 @@ class PlansViewModelTest {
     @Test
     fun onlyPaidPlansCanBeSelected() = runTest(dispatcher) {
         val (vm, state) = start()
-        vm.onSelect(PlanId.LIBRARY)
+        vm.onSelect(PlanId.PRO)
         advanceUntilIdle()
-        assertEquals(PlanId.LIBRARY, state().selected)
-        assertEquals(PlanId.LIBRARY, state().cta.plan.id)
+        assertEquals(PlanId.PRO, state().selected)
+        assertEquals(PlanId.PRO, state().cta.plan.id)
         // La tarjeta amarilla sigue a la elegida.
         assertEquals(listOf(false, false, true), PlanId.entries.map { state().isHighlighted(it) })
         vm.onSelect(PlanId.FREE)
         advanceUntilIdle()
-        assertEquals(PlanId.LIBRARY, state().selected)
+        assertEquals(PlanId.PRO, state().selected)
     }
 
     // PLN-006: "Ver todo lo que incluye" despliega y repliega la tabla

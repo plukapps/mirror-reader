@@ -85,7 +85,7 @@ struct QuotaBlockContent: View {
     var onSeePlans: () -> Void = {}
     var onNotNow: () -> Void = {}
 
-    private var readerStorage: String { PlanCatalog.storageText(.reader, quota: notice.quota) }
+    private var readerStorage: String { PlanCatalog.storageText(.plus, quota: notice.quota) }
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
@@ -113,7 +113,7 @@ struct QuotaBlockContent: View {
 
     private var comparison: some View {
         let free = PlanCatalog.storageBytes(.free, quota: notice.quota)
-        let reader = PlanCatalog.storageBytes(.reader, quota: notice.quota)
+        let reader = PlanCatalog.storageBytes(.plus, quota: notice.quota)
         return VStack(alignment: .leading, spacing: 10) {
             HStack(spacing: 10) {
                 Text("Gratis").font(.app(13, .medium)).foregroundStyle(MarginColors.muted).frame(width: 56, alignment: .leading)
@@ -285,7 +285,7 @@ struct PaidFeatureContent: View {
 }
 
 private extension PaidFeature {
-    var plan: PlanId { .reader }
+    var plan: PlanId { .plus }
 
     var icon: String { "Palette" }
 

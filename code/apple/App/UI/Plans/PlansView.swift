@@ -288,7 +288,7 @@ private struct PlanCard: View {
     let viewModel: PlansViewModel
     let wide: Bool
 
-    private var isReader: Bool { plan.id == .reader }
+    private var isReader: Bool { plan.id == .plus }
     /// PLN-005: la tarjeta elegida va en amarillo con borde tinta; las demás, con el fondo y el borde de siempre.
     private var highlighted: Bool { viewModel.isHighlighted(plan.id) }
     private var isFree: Bool { plan.id == .free }
@@ -430,15 +430,15 @@ private struct ComparisonTable: View {
                             .frame(maxWidth: .infinity, alignment: .leading)
                             .fixedSize(horizontal: false, vertical: true)
                         cell(row.free, width: columns[0])
-                        cell(row.reader, width: columns[1]).fontWeight(.bold).foregroundStyle(MarginColors.ink)
-                        cell(row.library, width: columns[2])
+                        cell(row.plus, width: columns[1]).fontWeight(.bold).foregroundStyle(MarginColors.ink)
+                        cell(row.pro, width: columns[2])
                     }
                     .font(.app(wide ? 14 : 13, .medium))
                     .frame(minHeight: 44)
                 }
                 .accessibilityElement(children: .ignore)
                 .accessibilityLabel(Text(row.feature))
-                .accessibilityValue(Text("Gratis: \(spoken(row.free)). Lector: \(spoken(row.reader)). Biblioteca: \(spoken(row.library))."))
+                .accessibilityValue(Text("Gratis: \(spoken(row.free)). Lector: \(spoken(row.plus)). Biblioteca: \(spoken(row.pro))."))
             }
         }
         .padding(EdgeInsets(top: wide ? 8 : 6, leading: wide ? 24 : 14, bottom: wide ? 12 : 8, trailing: wide ? 24 : 14))

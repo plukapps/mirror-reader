@@ -3,7 +3,7 @@ package com.pluk.reader.domain.plans
 import com.pluk.reader.domain.account.StorageQuota
 
 /** Planes de suscripción (PLN-001). Los textos (nombre, bajada, lo que incluye) están en la UI. */
-enum class PlanId { FREE, READER, LIBRARY }
+enum class PlanId { FREE, PLUS, PRO }
 
 /** Forma de pago elegida en Planes (PLN-004). */
 enum class Billing { MONTHLY, ANNUAL }
@@ -34,15 +34,15 @@ object PlanCatalog {
     const val ANNUAL_SAVING_PERCENT = 30
 
     val free = Plan(PlanId.FREE, null, 2 * MIB, "$0", "$0", "$0")
-    val reader = Plan(PlanId.READER, 5 * GIB, 50 * MIB, "$2.99", "$24.99", "$2.08")
-    val library = Plan(PlanId.LIBRARY, 50 * GIB, 100 * MIB, "$5.99", "$49.99", "$4.17")
+    val plus = Plan(PlanId.PLUS, 5 * GIB, 50 * MIB, "$2.99", "$24.99", "$2.08")
+    val pro = Plan(PlanId.PRO, 50 * GIB, 100 * MIB, "$5.99", "$49.99", "$4.17")
 
-    val all: List<Plan> = listOf(free, reader, library)
+    val all: List<Plan> = listOf(free, plus, pro)
 
     fun of(id: PlanId): Plan = all.first { it.id == id }
 
     /** Id de cada plan en `users/{uid}.plan` y en el catálogo del backend (ACC-007, ADR 0017). */
-    private val BACKEND_IDS = mapOf("free" to PlanId.FREE, "plus" to PlanId.READER, "pro" to PlanId.LIBRARY)
+    private val BACKEND_IDS = mapOf("free" to PlanId.FREE, "plus" to PlanId.PLUS, "pro" to PlanId.PRO)
 
     /** PLN-014, PLN-015: plan de la cuenta según la cuota; sin dato o desconocido, Gratis. */
     fun planOf(quota: StorageQuota?): PlanId = quota?.plan?.let(BACKEND_IDS::get) ?: PlanId.FREE
