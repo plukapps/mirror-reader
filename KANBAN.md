@@ -5,6 +5,13 @@ Plan de referencia: `specs/plans/2026-10-06-android-epub-viewer.md`
 
 ## Backlog
 
+- **K-271** Sync de notas, Tarea 2: reglas de `users/{uid}/notes` y tests con emuladores. SYN-016, SYN-005, SYN-007. Deploy pedido al usuario.
+- **K-272** Sync de notas, Tarea 3: interruptor `notes_sync_enabled` con Remote Config y señal `plan` (Android). SYN-017, ACC-007.
+- **K-273** Sync de notas, Tarea 4: Room v9 con marcas de borrado y pendientes en `notes`. SYN-007, SYN-016.
+- **K-274** Sync de notas, Tarea 5: subir y bajar notas, gana la última edición, listener con la app a la vista. SYN-016, SYN-005.
+- **K-275** Sync de notas, Tarea 6: cerrar sesión avisa por notas sin subir. PRF-009.
+- **K-276** Sync de notas, Tarea 7: parámetro en Remote Config y deploy de reglas (acciones sobre el proyecto real, las aprueba el usuario).
+- **K-277** Sync de notas, Tarea 8: cierre de docs y verificación a mano en el teléfono y la tablet.
 - **K-209** Android, modo oscuro: en "Cambiar contraseña" (PRF-020) los campos conservan el borde claro del onboarding y "Guardar" deshabilitado se ve gris claro sobre el fondo oscuro. Se lee, pero desentona con el resto. Pasar `OnbTextField` y `PrimaryButton` a los tokens de la paleta fuera del onboarding (PRF-022). Visto en el SM-S711B el 2026-10-13.
 - **K-202** Apple: la etiqueta 3.9.0 de Readium Swift ya no existe en GitHub (`git ls-remote` pasa de 3.8.0 a 3.10.0), y `project.yml` fija `exactVersion: 3.9.0`. Un clon o worktree nuevo no resuelve los paquetes ("no versions of 'swift-toolkit' match 3.9.0"). Hoy solo compila con una caché de Xcode que ya la tenía (`DerivedData/Reader-gbvs…`, commit `de07026e9`). Decidir: fijar por `revision: de07026e9…` en `project.yml` o pasar a 3.10 (exige Xcode 16.3, ADR 0013). Visto el 2026-10-12.
 - **K-201** Apple: los tests de la Mac no arrancan (`Early unexpected exit`): con `Signing.local.xcconfig` la app se firma con el equipo y el framework `ReaderDomain` del paquete queda firmado ad hoc, y dyld lo rechaza al cargarlo. Pasa también en `library-actions`, sin cambios de Perfil. Revisar la firma de los productos de paquete en Mac (o `disable-library-validation` solo en Debug). Visto el 2026-10-12.
@@ -200,6 +207,7 @@ Plan de referencia: `specs/plans/2026-10-06-android-epub-viewer.md`
 
 ## Hecho
 
+- **K-270** Sync de notas, Tarea 1: spec (SYN-005 cambiado, SYN-016, SYN-017, ACC-007, PRF-009), ADR 0016 (Remote Config) y plan `2026-10-14-notes-sync.md`. Plan aprobado por el usuario (2026-10-14), PR aparte.
 - **K-260** Notas, Tarea 1: spec (ANN-008 a ANN-011, LIB-022) y plan `2026-10-13-android-notes.md`. Rama `claude/notes-functionality-f6f30e`. Plan aprobado por el usuario (2026-10-14).
 - **K-213** Orden de la biblioteca, cierre: docs, verificación a mano en el teléfono y el iPhone, PR único contra `develop`. Rama `feature/library-order`. Hecho: resultado en el plan, PR abierto. Falta la verificación a mano con la misma cuenta en las dos plataformas. Aprobado por el usuario tras probarlo en el teléfono y el iPhone (2026-10-13).
 - **K-212** Orden de la biblioteca, iOS: la fecha de la nube reemplaza también la de libros ya guardados. LIB-021. Rama `feature/library-order`. Hecho: `LibraryStore.addCloudOnly` corrige `addedAt` de los registros existentes con el `createdAt` de la nube. Tests: dominio 205, iPhone 188 (+2 en `LibraryStoreTests`). Mac compila (tests sin correr, K-201). Aprobado por el usuario tras probarlo en el teléfono y el iPhone (2026-10-13).
