@@ -341,4 +341,39 @@ struct ReaderViewModelTests {
             #expect(opened.initialLocatorJson == book.initialLocatorJson)
         }
     }
+
+    // MARK: Menú de la selección (ANN-008, K-332)
+
+    private let selection = ReaderViewModel.TextSelection(
+        locatorJson: #"{"href":"c2.xhtml"}"#, quote: " Empieza la mañana ", progression: 0.42, frame: CGRect(x: 10, y: 200, width: 120, height: 20)
+    )
+
+    @Test("ANN-008, K-332: seleccionar muestra el menú; Nota abre el editor y quita la selección")
+    func selectionMenuOpensTheEditor() async {
+        let viewModel = makeViewModel(notes: FakeNotes())
+        await viewModel.load()
+        viewModel.selectionChanged(selection)
+        #expect(viewModel.selection == selection)
+        let before = viewModel.clearSelectionRequest
+        viewModel.noteFromSelection()
+        #expect(viewModel.selection == nil)
+        #expect(viewModel.clearSelectionRequest == before + 1)
+        #expect(viewModel.noteEditor?.quote == "Empieza la mañana")
+        #expect(viewModel.noteEditor?.locatorJson == #"{"href":"c2.xhtml"}"#)
+    }
+
+    @Test("K-332: cuando la selección desaparece se va el menú; Copiar cierra el menú y quita la selección")
+    func selectionMenuGoesAway() async {
+        let viewModel = makeViewModel(notes: FakeNotes())
+        await viewModel.load()
+        viewModel.selectionChanged(selection)
+        viewModel.selectionChanged(nil)
+        #expect(viewModel.selection == nil)
+        viewModel.selectionChanged(selection)
+        let before = viewModel.clearSelectionRequest
+        viewModel.dismissSelection()
+        #expect(viewModel.selection == nil)
+        #expect(viewModel.clearSelectionRequest == before + 1)
+        #expect(viewModel.noteEditor == nil)
+    }
 }

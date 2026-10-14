@@ -92,6 +92,15 @@ final class ReaderViewModel {
         var id: String { noteId ?? "nueva|\(locatorJson)" }
     }
 
+    /// ANN-008, K-332: el texto seleccionado en el libro y dónde está en la pantalla (coordenadas del navegador), para el
+    /// menú propio de la selección.
+    struct TextSelection: Equatable {
+        let locatorJson: String
+        let quote: String
+        let progression: Double?
+        let frame: CGRect
+    }
+
     /// SYN-013: lectura más adelantada de otro dispositivo que se ofrece seguir.
     struct ContinueFrom: Equatable {
         let deviceName: String
@@ -121,6 +130,10 @@ final class ReaderViewModel {
     private(set) var bookNotes: [Note] = []
     /// ANN-008, ANN-009: el editor de nota a la vista, o nil.
     private(set) var noteEditor: NoteEditor?
+    /// ANN-008, K-332: la selección con su menú a la vista, o nil.
+    private(set) var selection: TextSelection?
+    /// Cambia cada vez que hay que quitar la selección del libro.
+    private(set) var clearSelectionRequest = 0
 
     private let bookId: String
     private let source: ReaderBookSource
@@ -285,6 +298,25 @@ final class ReaderViewModel {
     func dismissNotice() { notice = nil }
 
     // MARK: Notas (ANN-008, ANN-009)
+
+    /// K-332: el navegador avisa la selección nueva, o nil cuando desapareció.
+    func selectionChanged(_ selection: TextSelection?) {
+        guard notes != nil || selection == nil else { return }
+        self.selection = selection
+    }
+
+    /// ANN-008: "Nota" en el menú de la selección.
+    func noteFromSelection() {
+        guard let selection else { return }
+        onTextSelected(locatorJson: selection.locatorJson, quote: selection.quote, progression: selection.progression)
+        dismissSelection()
+    }
+
+    /// Cierra el menú y quita la selección del libro (después de Nota, Copiar o Compartir).
+    func dismissSelection() {
+        selection = nil
+        clearSelectionRequest += 1
+    }
 
     /// ANN-008: el usuario eligió "Nota" sobre un texto seleccionado. Una selección vacía no abre nada.
     func onTextSelected(locatorJson: String, quote: String, progression: Double?) {
