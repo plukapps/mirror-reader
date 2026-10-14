@@ -60,3 +60,11 @@
 
 - El menú de selección del WebView varía según el fabricante; se prueba en el teléfono del usuario (Samsung).
 - Un locator de selección puede dejar de resolver si cambia el archivo; la nota se sigue viendo en el detalle con el texto citado (escenario de 03-annotations).
+
+## Resultado (2026-10-14)
+
+- K-260 a K-265 hechos, en commits separados. 428 tests JVM pasan (+12).
+- Instrumentados escritos y compilados, sin correr (no hay emulador; no se corren en el teléfono sin preguntar): `NoteRepositoryTest`, `MigrationTest` 7→8 y 1→8, `BookEditorTest.removeDeletesTheBookNotes` (ANN-011), `BookActionsMenuTest` con "Ver detalle".
+- Cambio respecto del plan: el menú propio reemplaza al del sistema, así que "Copiar" y "Compartir" los arma la app (como el diseño 06).
+- Falta la verificación a mano en el teléfono (lista en K-266). El celular no estaba conectado; solo la tablet, donde no se instala sin pedirlo.
+
