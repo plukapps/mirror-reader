@@ -67,6 +67,11 @@ Stack y capas en `specs/adr/0010-apple-stack-and-architecture.md` (provisional):
   - **Abrir en una nota:** la fábrica del lector recibe `noteId`; `ReaderViewModel` abre en su locator sin el aviso de otro dispositivo.
   - **Detalle:** `BookDetailView` desde "Ver detalle" del menú contextual: pantalla completa en el iPhone, con el lector encima; hoja en la Mac, que avisa que el lector llega más adelante.
 
+- Sincronización de notas (SYN-016, SYN-017, SYN-005, PRF-009, K-328 a K-331):
+  - **Base:** `NoteRecord.deletedAt` y `syncedAt` (la versión que la nube tiene; nil si nunca llegó), migración automática. Borrar una nota que la nube nunca tuvo la elimina; si no, la marca. `NoteSyncStore` aplica lo de la nube solo si es más nuevo.
+  - **Sincronizar:** actor `NoteSync` en `ReaderDomain`. Sube las pendientes al guardar en el lector, al final de `LibrarySync` y al prenderse la función, y escucha `users/{uid}/notes` desde `sync.lastNotesSeenAt` (`FirestoreNotes`) con la app a la vista (`SyncCoordinator`). Apagada (`notes_sync_enabled`) o sin red permitida, no hace nada.
+  - **Cerrar sesión:** `hasPending` cuenta las notas sin subir; con la función apagada, todas.
+
 ## Criterio de terminado
 
 Todos los requisitos "debe" de `product/` cumplidos y verificados en una Mac real, y la app aprobada en la Mac App Store.

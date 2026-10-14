@@ -6,7 +6,6 @@ Plan de referencia: `specs/plans/2026-10-06-android-epub-viewer.md`
 ## Backlog
 
 - **K-321** Notas iOS (#41): interruptores con Remote Config en iOS (`FirebaseRemoteConfig`, `FeatureFlags`, `FeatureTemplateTests`). ACC-011.
-- **K-331** Sync de notas iOS (#38): cierre y prueba cruzada Android ↔ iPhone.
 - **K-240** Planes, iOS: al importar con "Abrir con" desde otra app, la comprobación de cuota (P02) no corre porque el lector se abre enseguida a pantalla completa. Mostrar la hoja al cerrar el lector, o antes de abrirlo. PLN-007 a PLN-009. Encontrado en K-224.
 - **K-209** Android, modo oscuro: en "Cambiar contraseña" (PRF-020) los campos conservan el borde claro del onboarding y "Guardar" deshabilitado se ve gris claro sobre el fondo oscuro. Se lee, pero desentona con el resto. Pasar `OnbTextField` y `PrimaryButton` a los tokens de la paleta fuera del onboarding (PRF-022). Visto en el SM-S711B el 2026-10-13.
 - **K-202** Apple: la etiqueta 3.9.0 de Readium Swift ya no existe en GitHub (`git ls-remote` pasa de 3.8.0 a 3.10.0), y `project.yml` fija `exactVersion: 3.9.0`. Un clon o worktree nuevo no resuelve los paquetes ("no versions of 'swift-toolkit' match 3.9.0"). Hoy solo compila con una caché de Xcode que ya la tenía (`DerivedData/Reader-gbvs…`, commit `de07026e9`). Decidir: fijar por `revision: de07026e9…` en `project.yml` o pasar a 3.10 (exige Xcode 16.3, ADR 0013). Visto el 2026-10-12.
@@ -49,6 +48,7 @@ Plan de referencia: `specs/plans/2026-10-06-android-epub-viewer.md`
 
 ## En curso
 
+- **K-331** Sync de notas iOS (#38): cierre y prueba cruzada Android ↔ iPhone.
 - **K-327** Notas iOS (#37): cierre de docs y verificación en el iPhone.
 - **K-176** Posición exacta, Tarea 5: verificación a mano entre el teléfono y el iPhone, cierre de docs. SYN-014.
 
