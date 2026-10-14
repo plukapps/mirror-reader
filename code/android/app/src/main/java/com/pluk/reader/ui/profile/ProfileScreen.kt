@@ -63,6 +63,10 @@ data class ProfileActions(
     val onComingSoon: () -> Unit = {},
     val onSignOut: () -> Unit = onComingSoon,
     val onChangePassword: () -> Unit = onComingSoon,
+    /** "Mejorar plan": abre Planes (PRF-006, PLN-002). */
+    val onUpgrade: () -> Unit = onComingSoon,
+    /** Tocar el bloque del espacio: abre Mi plan (PRF-006, PLN-012). */
+    val onOpenPlan: () -> Unit = onComingSoon,
     val onFaq: (FaqId) -> Unit = { onComingSoon() },
     val onAllFaq: () -> Unit = onComingSoon,
     val onFont: (ReaderFont) -> Unit = {},
@@ -81,6 +85,8 @@ fun ProfileScreen(
     onFaq: (FaqId) -> Unit,
     onAllFaq: () -> Unit,
     onChangePassword: () -> Unit,
+    onUpgrade: () -> Unit,
+    onOpenPlan: () -> Unit,
     viewModel: ProfileViewModel = hiltViewModel()) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     val context = LocalContext.current
@@ -101,6 +107,8 @@ fun ProfileScreen(
             onComingSoon = { Toast.makeText(context, R.string.nav_coming_soon, Toast.LENGTH_SHORT).show() },
             onSignOut = viewModel::onSignOutRequested,
             onChangePassword = onChangePassword,
+            onUpgrade = onUpgrade,
+            onOpenPlan = onOpenPlan,
             onFaq = onFaq,
             onAllFaq = onAllFaq,
             onFont = viewModel::onFont,
@@ -148,7 +156,7 @@ fun ProfileContent(
                 style = profileText(12, color = MarginColors.Muted).copy(lineHeight = 1.4.em),
                 modifier = Modifier.padding(start = 24.dp, end = 24.dp, bottom = 10.dp),
             )
-            ReadingDefaultsCard(state.reading, actions, onOpenFont = { fontSheetOpen = true })
+            ReadingDefaultsCard(state.reading, actions, onOpenFont = { fontSheetOpen = true }, locked = state.readingOptionsLocked)
             SectionTitle(stringResource(R.string.profile_section_app))
             AppCard(state.appearance, state.wifiOnly, actions)
             SectionTitle(stringResource(R.string.profile_section_help))
@@ -156,7 +164,7 @@ fun ProfileContent(
             Footer(version, actions.onComingSoon, Modifier.padding(bottom = 24.dp + bottomBarPadding))
         }
     }
-    if (fontSheetOpen) FontSheet(state.reading, actions, onDismiss = { fontSheetOpen = false })
+    if (fontSheetOpen) FontSheet(state.reading, actions, onDismiss = { fontSheetOpen = false }, locked = state.readingOptionsLocked)
 }
 
 /** PRF-009: confirmación de cerrar sesión, con el mismo estilo que la de quitar un libro (LIB-020). */
@@ -234,7 +242,7 @@ private fun Header(state: ProfileUiState, onClick: () -> Unit) {
 @Composable
 private fun AccountCard(state: ProfileUiState, isTablet: Boolean, actions: ProfileActions) {
     ProfileCard {
-        Storage(state, actions.onComingSoon)
+        Storage(state, actions.onUpgrade, actions.onOpenPlan)
         // PRF-007: "Dispositivos vinculados" queda oculto hasta el registro de dispositivos (K-217).
         // CardDivider()
         // Text(
@@ -255,10 +263,11 @@ private fun AccountCard(state: ProfileUiState, isTablet: Boolean, actions: Profi
 }
 
 @Composable
-private fun Storage(state: ProfileUiState, onUpgrade: () -> Unit) {
+private fun Storage(state: ProfileUiState, onUpgrade: () -> Unit, onOpenPlan: () -> Unit) {
     val storage = state.storage
     Column(
         Modifier
+            .clickable(role = Role.Button, onClickLabel = stringResource(R.string.plans_my_plan), onClick = onOpenPlan)
             .padding(16.dp)
             .testTag("profile-storage"),
         verticalArrangement = Arrangement.spacedBy(10.dp),

@@ -55,10 +55,12 @@ class ProfileViewModelTest {
         override suspend fun current(): Result<StorageQuota> = result
     }
 
-    private class FakeCache(var saved: StorageQuota? = null) : QuotaCache {
-        override suspend fun last(): StorageQuota? = saved
+    private class FakeCache(initial: StorageQuota? = null) : QuotaCache {
+        override val quota = kotlinx.coroutines.flow.MutableStateFlow(initial)
+        val saved: StorageQuota? get() = quota.value
+        override suspend fun last(): StorageQuota? = quota.value
         override suspend fun save(quota: StorageQuota) {
-            saved = quota
+            this.quota.value = quota
         }
     }
 
@@ -126,7 +128,7 @@ class ProfileViewModelTest {
         cache: FakeCache = FakeCache(),
     ): ProfileUiState {
         val auth = FakeAuth().apply { this.user.value = user }
-        val vm = ProfileViewModel(auth, quota, cache, FakeDevice(), FakeSettings(), signOutOf(auth), appearancePrefs, wifiOnlyPref)
+        val vm = ProfileViewModel(auth, quota, cache, FakeDevice(), FakeSettings(), signOutOf(auth), appearancePrefs, wifiOnlyPref, prompts)
         backgroundScope.launch { vm.uiState.collect {} }
         advanceUntilIdle()
         return vm.uiState.value
@@ -221,7 +223,7 @@ class ProfileViewModelTest {
             }
         }
         val auth = FakeAuth().apply { user.value = AccountUser("u1", "a@mail.com") }
-        val vm = ProfileViewModel(auth, slow, FakeCache(StorageQuota(gib / 2, 2 * gib)), FakeDevice(), FakeSettings(), signOutOf(auth), appearancePrefs, wifiOnlyPref)
+        val vm = ProfileViewModel(auth, slow, FakeCache(StorageQuota(gib / 2, 2 * gib)), FakeDevice(), FakeSettings(), signOutOf(auth), appearancePrefs, wifiOnlyPref, prompts)
         backgroundScope.launch { vm.uiState.collect {} }
         advanceUntilIdle()
         assertEquals("0,5 GB", vm.uiState.value.storage?.used)
@@ -236,9 +238,12 @@ class ProfileViewModelTest {
         assertEquals("Pixel 8", state(AccountUser("u1", "a@mail.com")).deviceName)
     }
 
-    private fun TestScope.readingViewModel(settings: FakeSettings): ProfileViewModel {
+    private val prompts = com.pluk.reader.domain.plans.PlanPrompts()
+
+    /** Por defecto una cuenta Lector: temas y fuentes libres. PLN-015 se prueba con `plan = "free"`. */
+    private fun TestScope.readingViewModel(settings: FakeSettings, plan: String = "reader"): ProfileViewModel {
         val auth = FakeAuth().apply { user.value = AccountUser("u1", "a@mail.com") }
-        val vm = ProfileViewModel(auth, FakeQuota(Result.success(StorageQuota(0, gib))), FakeCache(), FakeDevice(), settings, signOutOf(auth), appearancePrefs, wifiOnlyPref)
+        val vm = ProfileViewModel(auth, FakeQuota(Result.success(StorageQuota(0, gib, plan = plan))), FakeCache(), FakeDevice(), settings, signOutOf(auth), appearancePrefs, wifiOnlyPref, prompts)
         backgroundScope.launch { vm.uiState.collect {} }
         advanceUntilIdle()
         return vm
@@ -301,6 +306,32 @@ class ProfileViewModelTest {
         assertEquals(1.1, settings.settings.value.fontScale, 0.001)
     }
 
+    // PLN-015: en Gratis se muestran Clásico y serifa, y las opciones pagas piden la hoja sin cambiar la preferencia
+    @Test
+    fun freePlanLocksThemesAndFonts() = runTest(dispatcher) {
+        val saved = ReaderSettings(theme = ReadingTheme.SEPIA, font = ReaderFont.MONO)
+        val settings = FakeSettings(saved)
+        val vm = readingViewModel(settings, plan = "free")
+        assertTrue(vm.uiState.value.readingOptionsLocked)
+        assertEquals(ReaderSettings(), vm.uiState.value.reading)
+
+        vm.onTheme(ReadingTheme.DARK)
+        vm.onFont(ReaderFont.SANS)
+        advanceUntilIdle()
+        assertEquals(saved, settings.settings.value)
+        assertEquals(
+            com.pluk.reader.domain.plans.PlanPrompt.Paid(com.pluk.reader.domain.plans.PaidFeature.THEMES_FONTS),
+            prompts.current.value,
+        )
+
+        // Clásico y serifa se eligen como siempre.
+        vm.onTheme(ReadingTheme.LIGHT)
+        vm.onFont(ReaderFont.SERIF)
+        advanceUntilIdle()
+        assertEquals(ReadingTheme.LIGHT, settings.settings.value.theme)
+        assertEquals(ReaderFont.SERIF, settings.settings.value.font)
+    }
+
     // PRF-013: el tamaño se muestra en puntos sobre una base de 18
     @Test
     fun fontSizeLabel() {
@@ -311,7 +342,7 @@ class ProfileViewModelTest {
 
     private fun TestScope.signOutViewModel(auth: FakeAuth, signOut: SignOut): ProfileViewModel {
         auth.user.value = AccountUser("u1", "a@mail.com")
-        val vm = ProfileViewModel(auth, FakeQuota(Result.success(StorageQuota(0, gib))), FakeCache(), FakeDevice(), FakeSettings(), signOut, appearancePrefs, wifiOnlyPref)
+        val vm = ProfileViewModel(auth, FakeQuota(Result.success(StorageQuota(0, gib))), FakeCache(), FakeDevice(), FakeSettings(), signOut, appearancePrefs, wifiOnlyPref, prompts)
         backgroundScope.launch { vm.uiState.collect {} }
         advanceUntilIdle()
         return vm

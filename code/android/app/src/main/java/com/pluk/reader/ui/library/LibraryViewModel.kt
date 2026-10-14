@@ -10,6 +10,11 @@ import com.pluk.reader.domain.model.filterBy
 import com.pluk.reader.domain.repository.LibraryRepository
 import com.pluk.reader.domain.account.AccountRepository
 import com.pluk.reader.domain.usecase.ImportBooksUseCase
+import com.pluk.reader.domain.plans.ImportQuotaCheck
+import com.pluk.reader.domain.plans.UsageNoticePreference
+import com.pluk.reader.domain.plans.shouldShowUsageNotice
+import com.pluk.reader.domain.profile.QuotaCache
+import com.pluk.reader.domain.profile.storageUsage
 import com.pluk.reader.domain.usecase.LibrarySync
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
@@ -30,6 +35,9 @@ class LibraryViewModel @Inject constructor(
     private val librarySync: LibrarySync,
     account: AccountRepository,
     savedState: SavedStateHandle,
+    private val importQuotaCheck: ImportQuotaCheck,
+    quotaCache: QuotaCache,
+    private val usageNoticePreference: UsageNoticePreference,
 ) : ViewModel() {
     /** HOM-011: Inicio abre la biblioteca con el filtro de la sección elegida. */
     private val filter = MutableStateFlow(
@@ -39,6 +47,11 @@ class LibraryViewModel @Inject constructor(
 
     private val _messages = MutableSharedFlow<LibraryMessage>(extraBufferCapacity = MESSAGE_BUFFER)
     val messages: SharedFlow<LibraryMessage> = _messages.asSharedFlow()
+
+    /** PLN-011: uso a mostrar en el aviso del 80 %, o null si no corresponde. */
+    private val usageNotice = combine(quotaCache.quota, usageNoticePreference.dismissed) { quota, dismissed ->
+        quota?.takeIf { shouldShowUsageNotice(it, dismissed) }?.let(::storageUsage)
+    }
 
     val uiState: StateFlow<LibraryUiState> = combine(
         library.books,
@@ -59,7 +72,7 @@ class LibraryViewModel @Inject constructor(
             pendingUploadCount = books.count { it.isDownloaded && !it.isUploaded },
             signedIn = user != null,
         )
-    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(STOP_TIMEOUT_MS), LibraryUiState())
+    }.combine(usageNotice) { state, notice -> state.copy(usageNotice = notice) }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(STOP_TIMEOUT_MS), LibraryUiState())
 
     fun onFilterSelected(selected: LibraryFilter) {
         filter.value = selected
@@ -76,9 +89,16 @@ class LibraryViewModel @Inject constructor(
                 importing.value = false
             }
             outcomes.toMessages().forEach { _messages.tryEmit(it) }
+            // PLN-007 a PLN-009: si lo importado no entra en la nube, la hoja de planes (antes de la pasada).
+            importQuotaCheck(outcomes)
             // SYN-001: lo importado se sube solo.
             if (outcomes.any { it is ImportOutcome.Imported }) librarySync.request()
         }
+    }
+
+    /** PLN-011: cerrar el aviso o tocar "Ver planes" lo descarta para siempre en esta cuenta y este dispositivo. */
+    fun onDismissUsageNotice() {
+        viewModelScope.launch { usageNoticePreference.dismiss() }
     }
 
     /** SYN-008: reintento manual tras un problema de sincronización. */

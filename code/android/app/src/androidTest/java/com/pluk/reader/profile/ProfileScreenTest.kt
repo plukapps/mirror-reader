@@ -87,10 +87,29 @@ class ProfileScreenTest {
     fun pendingFeaturesShowComingSoon() {
         var notices = 0
         show(actions = ProfileActions(onComingSoon = { notices++ }))
-        compose.onNodeWithText("Mejorar plan").performClick()
         compose.onNodeWithText("Eliminar cuenta").performScrollTo().performClick()
         compose.onNodeWithText("Descargar libros automáticamente").performScrollTo().performClick()
-        assertEquals(3, notices)
+        assertEquals(2, notices)
+    }
+
+    // PRF-006, PLN-012: tocar el bloque del espacio abre Mi plan
+    @Test
+    fun storageOpensMyPlan() {
+        var opened = 0
+        show(actions = ProfileActions(onOpenPlan = { opened++ }))
+        compose.onNodeWithText("1,2 GB de 2 GB usados").performClick()
+        assertEquals(1, opened)
+    }
+
+    // PRF-006, PLN-002: "Mejorar plan" abre Planes, no el aviso
+    @Test
+    fun upgradeOpensPlans() {
+        var opened = 0
+        var notices = 0
+        show(actions = ProfileActions(onComingSoon = { notices++ }, onUpgrade = { opened++ }))
+        compose.onNodeWithText("Mejorar plan").performClick()
+        assertEquals(1, opened)
+        assertEquals(0, notices)
     }
 
     // PRF-023: "Sincronizar solo con Wi-Fi" muestra su estado y tocarlo lo cambia, sin aviso
@@ -146,5 +165,20 @@ class ProfileScreenTest {
         compose.onNodeWithText("Todas las preguntas").performScrollTo().performClick()
         assertEquals(FaqId.SPACE, opened)
         assertEquals(true, all)
+    }
+
+    // PLN-015, PRF-014: en Gratis, Sepia y Noche llevan la marca "Lector"; con un plan pago, no
+    @Test
+    fun paidThemesAreMarkedOnFree() {
+        show(state.copy(readingOptionsLocked = true))
+        compose.onNodeWithContentDescription("Sepia, Incluido en Lector").performScrollTo().assertExists()
+        compose.onNodeWithContentDescription("Noche, Incluido en Lector").assertExists()
+        compose.onNodeWithContentDescription("Clásico").assertExists()
+    }
+
+    @Test
+    fun paidThemesAreNotMarkedOnPaidPlans() {
+        show(state.copy(readingOptionsLocked = false))
+        compose.onNodeWithContentDescription("Sepia").performScrollTo().assertExists()
     }
 }

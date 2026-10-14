@@ -40,6 +40,15 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import javax.inject.Inject
+import com.pluk.reader.domain.plans.PlanCatalog
+import com.pluk.reader.domain.plans.PlanId
+import com.pluk.reader.domain.plans.PlanPrompts
+import com.pluk.reader.domain.plans.allowReadingOption
+import com.pluk.reader.domain.plans.effectiveReaderSettings
+import com.pluk.reader.domain.plans.hasThemesAndFonts
+import com.pluk.reader.domain.plans.isPaid
+import com.pluk.reader.domain.profile.QuotaCache
+import kotlinx.coroutines.flow.map
 
 @HiltViewModel
 class ReaderViewModel @Inject constructor(
@@ -52,6 +61,8 @@ class ReaderViewModel @Inject constructor(
     private val positionSync: PositionSync,
     private val resolveOpeningPosition: ResolveOpeningPositionUseCase,
     private val readingSession: ReadingSession,
+    quotaCache: QuotaCache,
+    private val planPrompts: PlanPrompts,
 ) : ViewModel() {
 
     private data class PendingPosition(val locatorJson: String, val totalProgression: Double?)
@@ -101,9 +112,18 @@ class ReaderViewModel @Inject constructor(
         )
     }
 
+    /** PLN-015: plan de la cuenta según la última cuota conocida; sin dato, Gratis. */
+    private val plan = quotaCache.quota.map { PlanCatalog.planOf(it) }
+        .stateIn(viewModelScope, SharingStarted.Eagerly, PlanId.FREE)
+
+    /** PLN-015: ajustes con los que se lee (en Gratis, Clásico y serifa); lo guardado no cambia. */
+    private val effectiveSettings = combine(settingsRepository.settings, plan) { saved, plan ->
+        effectiveReaderSettings(saved, plan)
+    }
+
     val uiState: StateFlow<ReaderUiState> = combine(
-        phase, settingsRepository.settings, position, controlsVisible, settingsOpen,
-    ) { phase, settings, position, controls, settingsOpen ->
+        phase, combine(effectiveSettings, plan, ::Pair), position, controlsVisible, settingsOpen,
+    ) { phase, (settings, plan), position, controls, settingsOpen ->
         when (phase) {
             Phase.Loading -> ReaderUiState.Loading
             is Phase.Failed -> ReaderUiState.Failed(phase.message)
@@ -114,6 +134,7 @@ class ReaderViewModel @Inject constructor(
             is Phase.Opened -> ReaderUiState.Ready(
                 phase.book, phase.toc, settings, position.progress, position.page, controls, position.chapter, settingsOpen,
                 position.continueFrom,
+                readingOptionsLocked = !plan.hasThemesAndFonts,
             )
         }
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(STOP_TIMEOUT_MS), ReaderUiState.Loading)
@@ -179,7 +200,7 @@ class ReaderViewModel @Inject constructor(
     private suspend fun openBook() {
         books.open(bookId).fold(
             onSuccess = { book ->
-                val settings: ReaderSettings = settingsRepository.settings.first()
+                val settings: ReaderSettings = effectiveSettings.first()
                 navigatorHost.install(book, settings) { url ->
                     _events.tryEmit(ReaderEvent.OpenExternalLink(url))
                 }
@@ -224,8 +245,15 @@ class ReaderViewModel @Inject constructor(
         if (href != null && bodyEnd?.onResource(href) == true) _events.tryEmit(ReaderEvent.BodyEnded)
     }
 
-    fun setTheme(theme: ReadingTheme) = updateSettings { it.withTheme(theme) }
-    fun setFont(font: ReaderFont) = updateSettings { it.withFont(font) }
+    /** PLN-015: en Gratis, Sepia y Noche abren la hoja de función paga y no cambian la preferencia. */
+    fun setTheme(theme: ReadingTheme) {
+        if (planPrompts.allowReadingOption(plan.value, theme.isPaid)) updateSettings { it.withTheme(theme) }
+    }
+
+    /** PLN-015: en Gratis, sin serifa y monoespaciada abren la hoja de función paga. */
+    fun setFont(font: ReaderFont) {
+        if (planPrompts.allowReadingOption(plan.value, font.isPaid)) updateSettings { it.withFont(font) }
+    }
     fun setLineSpacing(spacing: LineSpacing) = updateSettings { it.withLineSpacing(spacing) }
     fun biggerFont() = updateSettings { it.biggerFont() }
     fun smallerFont() = updateSettings { it.smallerFont() }

@@ -6,6 +6,14 @@ import com.pluk.reader.domain.model.LibraryBook
 import com.pluk.reader.domain.model.LibraryFilter
 import com.pluk.reader.domain.repository.LibraryRepository
 import com.pluk.reader.domain.usecase.ImportBooksUseCase
+import com.pluk.reader.domain.account.StorageQuota
+import com.pluk.reader.domain.plans.ImportQuotaCheck
+import com.pluk.reader.domain.plans.PlanPrompt
+import com.pluk.reader.domain.plans.PlanPrompts
+import com.pluk.reader.domain.plans.UsageNoticePreference
+import com.pluk.reader.domain.plans.QuotaBlock
+import com.pluk.reader.plans.FakePendingUploads
+import com.pluk.reader.plans.FakeQuotaCache
 import com.pluk.reader.domain.usecase.LibrarySync
 import com.pluk.reader.domain.usecase.SyncIssue
 import com.pluk.reader.domain.usecase.SyncState
@@ -62,6 +70,19 @@ class LibraryViewModelTest {
 
     private val backend = FakeSyncBackend()
 
+    private val prompts = PlanPrompts()
+    private val quotaCache = FakeQuotaCache()
+    private val pendingUploads = FakePendingUploads()
+
+    private class FakeNoticePreference : UsageNoticePreference {
+        override val dismissed = MutableStateFlow(false)
+        override suspend fun dismiss() {
+            dismissed.value = true
+        }
+    }
+
+    private val noticePreference = FakeNoticePreference()
+
     private fun viewModel(
         library: FakeLibrary,
         filter: String? = null,
@@ -72,6 +93,9 @@ class LibraryViewModelTest {
         LibrarySync(backend.useCase(), account, CoroutineScope(dispatcher)).also { it.start() },
         account,
         SavedStateHandle(listOfNotNull(filter?.let { LibraryViewModel.ARG_FILTER to it }).toMap()),
+        ImportQuotaCheck(quotaCache, pendingUploads, prompts),
+        quotaCache,
+        noticePreference,
     )
 
     private fun local(id: String, uploaded: Boolean = false, downloaded: Boolean = true) =
@@ -225,5 +249,49 @@ class LibraryViewModelTest {
         vm.onRetrySync()
         advanceUntilIdle()
         assertEquals(before + 1, backend.listings)
+    }
+
+    // PLN-007: importar un libro con el espacio lleno muestra la hoja; el libro queda importado
+    @Test
+    fun importingWhenFullShowsTheQuotaSheet() = runTest(dispatcher) {
+        val mib = 1024L * 1024
+        val library = FakeLibrary()
+        library.outcomes["a"] = ImportOutcome.Imported("1", "Dune")
+        quotaCache.quota.value = StorageQuota(15 * mib, 15 * mib)
+        pendingUploads.items = FakePendingUploads("1" to 2 * mib).items
+        val vm = viewModel(library)
+        vm.onImport(listOf("a"))
+        advanceUntilIdle()
+        assertEquals(PlanPrompt.Quota("Dune", QuotaBlock.Full, 15 * mib), prompts.current.value)
+    }
+
+    // PLN-011: al 80 % aparece el aviso; cerrarlo lo descarta y no vuelve
+    @Test
+    fun usageNoticeAppearsAtEightyPercentUntilDismissed() = runTest(dispatcher) {
+        val mib = 1024L * 1024
+        quotaCache.quota.value = StorageQuota(12 * mib, 15 * mib)
+        val vm = viewModel(FakeLibrary())
+        backgroundScope.launch { vm.uiState.collect {} }
+        advanceUntilIdle()
+        assertEquals("12 MB", vm.uiState.value.usageNotice?.used)
+        assertEquals("3 MB", vm.uiState.value.usageNotice?.free)
+
+        vm.onDismissUsageNotice()
+        advanceUntilIdle()
+        assertEquals(null, vm.uiState.value.usageNotice)
+
+        quotaCache.quota.value = StorageQuota(13 * mib, 15 * mib)
+        advanceUntilIdle()
+        assertEquals(null, vm.uiState.value.usageNotice)
+    }
+
+    @Test
+    fun noUsageNoticeBelowEightyPercent() = runTest(dispatcher) {
+        val mib = 1024L * 1024
+        quotaCache.quota.value = StorageQuota(11 * mib, 15 * mib)
+        val vm = viewModel(FakeLibrary())
+        backgroundScope.launch { vm.uiState.collect {} }
+        advanceUntilIdle()
+        assertEquals(null, vm.uiState.value.usageNotice)
     }
 }

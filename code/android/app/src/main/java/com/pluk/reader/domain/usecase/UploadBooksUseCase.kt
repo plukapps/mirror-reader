@@ -1,6 +1,9 @@
 package com.pluk.reader.domain.usecase
 
 import com.pluk.reader.domain.account.QuotaSource
+import com.pluk.reader.domain.account.StorageQuota
+import com.pluk.reader.domain.profile.QuotaCache
+import com.pluk.reader.domain.plans.PlanCatalog
 import com.pluk.reader.domain.remote.BookFileStore
 import com.pluk.reader.domain.remote.QuotaExceededException
 import com.pluk.reader.domain.remote.RemoteLibrary
@@ -12,7 +15,7 @@ import javax.inject.Inject
 /**
  * Resultado de una tanda de subida. Los libros que no se subieron siguen pendientes y no se pierde nada (SYN-001).
  *
- * @param notEnoughSpace libros que no entraron en la cuota (LIB-009).
+ * @param notEnoughSpace libros que no entraron en la cuota (LIB-009) o superan el máximo por archivo del plan (PLN-014).
  * @param failed libros que fallaron por otro motivo.
  * @param unreachable no se pudo contactar la nube: la tanda se cortó.
  */
@@ -34,6 +37,7 @@ class UploadBooksUseCase @Inject constructor(
     private val files: BookFileStore,
     private val library: RemoteLibrary,
     private val quota: QuotaSource,
+    private val quotaCache: QuotaCache,
 ) {
     private enum class Step { Uploaded, NoSpace, Failed, Unreachable }
 
@@ -41,13 +45,19 @@ class UploadBooksUseCase @Inject constructor(
         val pending = uploads.pending()
         if (pending.isEmpty()) return UploadReport()
         // El servidor suma el uso unos segundos después de cada subida: el espacio libre se lleva aquí.
-        var free = quota.current().getOrElse { return UploadReport(unreachable = true) }.freeBytes
+        val read = quota.current().getOrElse { return UploadReport(unreachable = true) }
+        // PLN-009: la última cuota conocida se refresca en cada pasada (y al final con lo subido, que el servidor suma después).
+        quotaCache.save(read)
+        var free = read.freeBytes
+        // PLN-014: el tope por archivo del plan lo controla por ahora solo la app.
+        val maxFileBytes = PlanCatalog.maxFileBytes(read)
+        var uploadedBytes = 0L
 
         var uploaded = 0
         var noSpace = 0
         var failed = 0
         for (item in pending) {
-            if (item.book.sizeBytes > free) {
+            if (item.book.sizeBytes > free || item.book.sizeBytes > maxFileBytes) {
                 noSpace++
                 continue
             }
@@ -55,13 +65,22 @@ class UploadBooksUseCase @Inject constructor(
                 Step.Uploaded -> {
                     uploaded++
                     free -= item.book.sizeBytes
+                    uploadedBytes += item.book.sizeBytes
                 }
                 Step.NoSpace -> noSpace++
                 Step.Failed -> failed++
-                Step.Unreachable -> return UploadReport(uploaded, noSpace, failed, unreachable = true)
+                Step.Unreachable -> {
+                    saveUsage(read, uploadedBytes)
+                    return UploadReport(uploaded, noSpace, failed, unreachable = true)
+                }
             }
         }
+        saveUsage(read, uploadedBytes)
         return UploadReport(uploaded, noSpace, failed)
+    }
+
+    private suspend fun saveUsage(read: StorageQuota, uploadedBytes: Long) {
+        if (uploadedBytes > 0) quotaCache.save(read.copy(usedBytes = read.usedBytes + uploadedBytes))
     }
 
     private suspend fun upload(item: PendingUpload): Step {

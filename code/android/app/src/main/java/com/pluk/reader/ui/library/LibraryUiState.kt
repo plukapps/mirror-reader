@@ -7,6 +7,7 @@ import com.pluk.reader.domain.usecase.SyncIssue
 import com.pluk.reader.domain.usecase.SyncState
 import com.pluk.reader.domain.model.LibraryBook
 import com.pluk.reader.domain.model.LibraryFilter
+import com.pluk.reader.domain.profile.StorageUsage
 
 data class LibraryUiState(
     val loading: Boolean = true,
@@ -22,6 +23,8 @@ data class LibraryUiState(
     /** Libros descargados que aún no están en la nube (LIB-007). */
     val pendingUploadCount: Int = 0,
     val signedIn: Boolean = false,
+    /** Aviso del 80 % (PLN-011): el uso a mostrar, o null si no corresponde. */
+    val usageNotice: StorageUsage? = null,
 ) {
     /** Hay algo que decir sobre la sincronización: corriendo, con un problema o con libros por subir. Solo con sesión. */
     val showSyncStatus: Boolean get() = signedIn && (sync.running || sync.issue != null || pendingUploadCount > 0)
