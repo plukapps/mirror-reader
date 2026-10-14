@@ -170,13 +170,14 @@ struct ProfileContent: View {
     private var accountCard: some View {
         ProfileCard {
             storage
-            CardDivider()
-            Text("Dispositivos vinculados")
-                .font(.app(15, .semibold))
-                .foregroundStyle(MarginColors.ink)
-                .padding(EdgeInsets(top: 14, leading: 16, bottom: 6, trailing: 16))
-                .frame(maxWidth: .infinity, alignment: .leading)
-            thisDevice
+            // PRF-007: "Dispositivos vinculados" queda oculto hasta el registro de dispositivos (K-217).
+            // CardDivider()
+            // Text("Dispositivos vinculados")
+            //     .font(.app(15, .semibold))
+            //     .foregroundStyle(MarginColors.ink)
+            //     .padding(EdgeInsets(top: 14, leading: 16, bottom: 6, trailing: 16))
+            //     .frame(maxWidth: .infinity, alignment: .leading)
+            // thisDevice
             if viewModel.canChangePassword {
                 CardDivider()
                 ProfileRow(action: actions.changePassword ?? actions.comingSoon) {
@@ -238,7 +239,7 @@ struct ProfileContent: View {
         .padding(16)
     }
 
-    /// PRF-007: por ahora solo este dispositivo.
+    /// PRF-007: por ahora solo este dispositivo. Sin uso mientras la sección está oculta (K-217).
     private var thisDevice: some View {
         ProfileRow(action: nil) {
             ProfileIcon(name: isTablet ? "TabletAndroid" : "Smartphone", size: 20)

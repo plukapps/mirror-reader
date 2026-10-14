@@ -238,18 +238,19 @@ private fun Header(state: ProfileUiState, onClick: () -> Unit) {
     }
 }
 
-/** PRF-006 a PRF-010: espacio, este dispositivo, contraseña, cerrar sesión y eliminar cuenta. */
+/** PRF-006 a PRF-010: espacio, contraseña, cerrar sesión y eliminar cuenta (este dispositivo, oculto: PRF-007). */
 @Composable
 private fun AccountCard(state: ProfileUiState, isTablet: Boolean, actions: ProfileActions) {
     ProfileCard {
         Storage(state, actions.onUpgrade, actions.onOpenPlan)
-        CardDivider()
-        Text(
-            stringResource(R.string.profile_devices),
-            style = profileText(15, FontWeight.SemiBold),
-            modifier = Modifier.padding(start = 16.dp, end = 16.dp, top = 14.dp, bottom = 6.dp),
-        )
-        ThisDevice(state.deviceName, isTablet)
+        // PRF-007: "Dispositivos vinculados" queda oculto hasta el registro de dispositivos (K-217).
+        // CardDivider()
+        // Text(
+        //     stringResource(R.string.profile_devices),
+        //     style = profileText(15, FontWeight.SemiBold),
+        //     modifier = Modifier.padding(start = 16.dp, end = 16.dp, top = 14.dp, bottom = 6.dp),
+        // )
+        // ThisDevice(state.deviceName, isTablet)
         if (state.canChangePassword) {
             CardDivider()
             NavigationRow(stringResource(R.string.profile_change_password), actions.onChangePassword, ProfileIcons.Lock)
@@ -306,7 +307,7 @@ private fun Storage(state: ProfileUiState, onUpgrade: () -> Unit, onOpenPlan: ()
     }
 }
 
-/** PRF-007: por ahora solo este dispositivo. */
+/** PRF-007: por ahora solo este dispositivo. Sin uso mientras la sección está oculta (K-217). */
 @Composable
 private fun ThisDevice(name: String, isTablet: Boolean) {
     ProfileRow(onClick = null, modifier = Modifier.semantics(mergeDescendants = true) {}) {
