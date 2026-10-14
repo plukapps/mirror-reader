@@ -48,12 +48,12 @@ import com.pluk.reader.domain.model.ReaderSettings
 import com.pluk.reader.domain.model.ReadingTheme
 
 // Colores del panel, tomados del diseño (pantalla 07): es oscuro en todos los temas.
-private val SheetBackground = Color(0xFF130000)
-private val SheetInk = Color(0xFFFDFDFD)
-private val SheetAccent = Color(0xFFFBD256)
-private val SheetLine = Color(0xFF4A4840)
+internal val SheetBackground = Color(0xFF130000)
+internal val SheetInk = Color(0xFFFDFDFD)
+internal val SheetAccent = Color(0xFFFBD256)
+internal val SheetLine = Color(0xFF4A4840)
 private val SheetTrack = Color(0xFF33322D)
-private val SheetMuted = Color(0xFFA8A496)
+internal val SheetMuted = Color(0xFFA8A496)
 
 /**
  * Colores de los chips de letra y los botones de tamaño. El panel del lector usa [Dark]; Perfil (PRF-013) los

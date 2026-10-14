@@ -13,14 +13,13 @@
 - Sincronización (ANN-007): el modelo guarda lo necesario (id estable, `updatedAt`), pero no se sube. Plan aparte con Firestore y reglas.
 - iOS y Mac: rebanada aparte con el mismo spec.
 - Panel de notas dentro del lector (T04, tablet) y la entrada "Notas" de la biblioteca.
-- Copiar y compartir del menú de selección: se dejan las acciones del sistema.
 
 ## Decisiones
 
 - **Modelo:** `Note(id: String (UUID), bookId, locatorJson, quote, text, progression: Double, createdAt, updatedAt)` en `domain/model`. El locator viaja serializado como la posición de lectura (el dominio no lo interpreta). `quote` es el texto seleccionado (ANN-006) y `progression` (`totalProgression` del locator) sirve para ordenar y para el "N %" de la lista.
 - **Room:** tabla `notes` (versión 8, `MIGRATION_7_8`, esquema 8 exportado), índice por `bookId`. `NoteDao` con `observeByBook(bookId): Flow<List<NoteEntity>>` ordenado por `progression`, `get(id)`, `upsert`, `delete(id)`, `deleteByBook(bookId)`. `LocalDataWiper` ya limpia todas las tablas.
 - **Repositorio:** `NoteRepository` en `domain/repository` (observe, get, save, delete), `NoteRepositoryImpl` en `data`, binding en `RepositoryModule`, DAO en `StorageModule` y `TestStorageModule`.
-- **Menú de selección (ANN-008):** `selectionActionModeCallback` en `EpubNavigatorFragment.Configuration` (API verificada en las fuentes de Readium 3.4.0). El callback agrega "Nota" al menú del sistema; al tocarla pide `navigator.currentSelection()` (`Selection.locator` trae `text.highlight`) y abre el editor. El callback vive en `NavigatorFragmentHost` y avisa a la pantalla con un flujo, porque la configuración se arma en la fábrica del fragmento.
+- **Menú de selección (ANN-008):** `selectionActionModeCallback` en `EpubNavigatorFragment.Configuration` (API verificada en las fuentes de Readium 3.4.0). El callback agrega "Nota" al menú del sistema; al tocarla pide `navigator.currentSelection()` (`Selection.locator` trae `text.highlight`) y abre el editor. El callback es un objeto único (`SelectionMenu`) que avisa a la pantalla con un flujo, porque la configuración se arma en la fábrica del fragmento. Un menú propio reemplaza por completo al del sistema, así que también trae "Copiar" y "Compartir", como el diseño.
 - **Subrayados (ANN-008, ANN-009):** `navigator.applyDecorations(notas, "notes")` con `Decoration.Style.Highlight(tint = amarillo del diseño)`, cada vez que cambia la lista. `addDecorationListener("notes")` abre la hoja de la nota tocada.
 - **Editor:** bottom sheet con el texto citado, un campo de texto y Guardar / Cancelar (y Borrar si la nota existe, con confirmación). Guardar con el campo vacío no se permite. Estilo del panel de ajustes del lector.
 - **Abrir en una nota (ANN-010):** la ruta del lector gana un argumento opcional `noteId` (`reader/{bookId}?noteId={noteId}`). `ReaderViewModel` lo lee del `SavedStateHandle`, busca la nota y usa su locator en `navigatorHost.install` en lugar de la última posición, sin pasar por el aviso de "continuar desde otro dispositivo". Se pasa el id y no el JSON para no meter JSON en la ruta.

@@ -9,6 +9,7 @@ import com.pluk.reader.domain.ChapterEntry
 import com.pluk.reader.domain.currentChapterTitle
 import com.pluk.reader.domain.backMatterStart
 import com.pluk.reader.domain.model.LineSpacing
+import com.pluk.reader.domain.model.Note
 import com.pluk.reader.domain.model.OpenedBook
 import com.pluk.reader.domain.model.ReaderFont
 import com.pluk.reader.domain.model.ReaderSettings
@@ -17,6 +18,7 @@ import com.pluk.reader.domain.model.RemotePosition
 import com.pluk.reader.domain.progressPercent
 import com.pluk.reader.domain.shouldOfferJump
 import com.pluk.reader.domain.repository.BookRepository
+import com.pluk.reader.domain.repository.NoteRepository
 import com.pluk.reader.domain.repository.PositionRepository
 import com.pluk.reader.domain.repository.SettingsRepository
 import com.pluk.reader.domain.usecase.DownloadBookUseCase
@@ -32,6 +34,7 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asSharedFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.filter
@@ -39,6 +42,7 @@ import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import java.util.UUID
 import javax.inject.Inject
 
 @HiltViewModel
@@ -52,6 +56,7 @@ class ReaderViewModel @Inject constructor(
     private val positionSync: PositionSync,
     private val resolveOpeningPosition: ResolveOpeningPositionUseCase,
     private val readingSession: ReadingSession,
+    private val notes: NoteRepository,
 ) : ViewModel() {
 
     private data class PendingPosition(val locatorJson: String, val totalProgression: Double?)
@@ -91,6 +96,15 @@ class ReaderViewModel @Inject constructor(
 
     /** SYN-013: locator al que la pantalla debe navegar porque el usuario eligió seguir desde otro dispositivo. */
     val jumps: SharedFlow<String> = _jumps.asSharedFlow()
+
+    private val _noteEditor = MutableStateFlow<NoteEditor?>(null)
+
+    /** ANN-008, ANN-009: la nota que se está escribiendo o mirando. Null si el editor está cerrado. */
+    val noteEditor: StateFlow<NoteEditor?> = _noteEditor.asStateFlow()
+
+    /** ANN-008: las notas del libro, que el lector muestra subrayadas. */
+    val bookNotes: StateFlow<List<Note>> =
+        notes.observe(bookId).stateIn(viewModelScope, SharingStarted.WhileSubscribed(STOP_TIMEOUT_MS), emptyList())
 
     private data class Reading(val progress: Int?, val page: Int?, val chapter: String, val continueFrom: ContinueFrom?)
 
@@ -222,6 +236,52 @@ class ReaderViewModel @Inject constructor(
         navigatorHost.onLocatorChanged(locatorJson)
         if (href != null) chapterTitle.value = currentChapterTitle(chapters, readingOrder, href)
         if (href != null && bodyEnd?.onResource(href) == true) _events.tryEmit(ReaderEvent.BodyEnded)
+    }
+
+    /**
+     * ANN-008: el usuario eligió "Nota" sobre un texto seleccionado. [locatorJson] es el lugar de la selección y
+     * [quote] el texto. Una selección vacía no abre nada.
+     */
+    fun onTextSelected(locatorJson: String, quote: String, totalProgression: Double?) {
+        val text = quote.trim()
+        if (text.isEmpty()) return
+        _noteEditor.value = NoteEditor(null, text, "", locatorJson, totalProgression ?: 0.0)
+    }
+
+    /** ANN-008: guarda la nota y cierra el editor. Una nota sin texto no se guarda y el editor sigue abierto. */
+    fun saveNote(text: String) {
+        val editor = _noteEditor.value ?: return
+        val body = text.trim()
+        if (body.isEmpty()) return
+        _noteEditor.value = null
+        viewModelScope.launch {
+            val now = System.currentTimeMillis()
+            val existing = editor.noteId?.let { notes.get(it) }
+            notes.save(
+                existing?.copy(text = body, updatedAt = now)
+                    ?: Note(UUID.randomUUID().toString(), bookId, editor.locatorJson, editor.quote, body, editor.progression, now, now),
+            )
+        }
+    }
+
+    /** ANN-009: el usuario tocó un subrayado; se muestra su nota para leerla, editarla o borrarla. */
+    fun openNote(id: String) {
+        viewModelScope.launch {
+            val note = notes.get(id) ?: return@launch
+            _noteEditor.value = NoteEditor(note.id, note.quote, note.text, note.locatorJson, note.progression)
+        }
+    }
+
+    /** ANN-009: borra la nota abierta (la pantalla ya pidió confirmación); el subrayado se va con ella. */
+    fun deleteNote() {
+        val id = _noteEditor.value?.noteId ?: return
+        _noteEditor.value = null
+        viewModelScope.launch { notes.delete(id) }
+    }
+
+    /** ANN-008: cancelar no guarda nada. */
+    fun closeNote() {
+        _noteEditor.value = null
     }
 
     fun setTheme(theme: ReadingTheme) = updateSettings { it.withTheme(theme) }

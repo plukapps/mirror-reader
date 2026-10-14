@@ -22,6 +22,8 @@ import com.pluk.reader.domain.repository.SettingsRepository
 import com.pluk.reader.domain.account.AccountUser
 import com.pluk.reader.remote.FakePositionBackend
 import com.pluk.reader.remote.FakeSession
+import com.pluk.reader.notes.FakeNotes
+import com.pluk.reader.notes.note
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -101,6 +103,7 @@ class ReaderViewModelTest {
     private val settings = FakeSettings()
     private val positions = FakePositions()
     private val host = FakeHost()
+    private val notes = FakeNotes()
 
     @Before
     fun setUp() = Dispatchers.setMain(dispatcher)
@@ -159,7 +162,7 @@ class ReaderViewModelTest {
 
     private fun viewModel(books: FakeBooks) = ReaderViewModel(
         SavedStateHandle(mapOf(ReaderViewModel.ARG_BOOK_ID to "hash-del-libro")), books, settings, positions, host,
-        DownloadBookUseCase(cloud, files), positionSync, resolveOpening, ReadingSession(),
+        DownloadBookUseCase(cloud, files), positionSync, resolveOpening, ReadingSession(), notes,
     )
 
     private suspend fun ReaderViewModel.awaitReady(predicate: (ReaderUiState.Ready) -> Boolean = { true }) =
@@ -202,7 +205,7 @@ class ReaderViewModelTest {
         val books = FakeBooks(Result.success(book()))
         val vm = ReaderViewModel(
             SavedStateHandle(mapOf(ReaderViewModel.ARG_BOOK_ID to "hash-del-libro")), books, settings, positions, host,
-            DownloadBookUseCase(cloud, failing), positionSync, resolveOpening, ReadingSession(),
+            DownloadBookUseCase(cloud, failing), positionSync, resolveOpening, ReadingSession(), notes,
         )
         val state = vm.uiState.first { it !is ReaderUiState.Loading }
         assertEquals(ReaderUiState.Failed("Sin conexión. No se pudo descargar el libro."), state)
@@ -637,5 +640,101 @@ class ReaderViewModelTest {
         backgroundScope.launch(kotlinx.coroutines.test.UnconfinedTestDispatcher(testScheduler)) { vm.jumps.collect { jumps += it } }
         vm.continueFromOtherDevice()
         assertTrue(jumps.isEmpty())
+    }
+
+    // ANN-008: elegir "Nota" sobre una selección abre el editor con el texto citado; guardar crea la nota
+    @Test
+    fun savesANoteOnTheSelectedText() = runTest(dispatcher) {
+        val vm = viewModel(FakeBooks(Result.success(book())))
+        vm.awaitReady()
+        vm.onTextSelected("""{"href":"c2.xhtml"}""", "  Empieza la mañana  ", 0.42)
+        assertEquals(NoteEditor(null, "Empieza la mañana", "", """{"href":"c2.xhtml"}""", 0.42), vm.noteEditor.value)
+        vm.saveNote(" Para el lunes ")
+        dispatcher.scheduler.advanceUntilIdle()
+        assertNull(vm.noteEditor.value)
+        val saved = notes.all.value.single()
+        assertEquals("hash-del-libro", saved.bookId)
+        assertEquals("Empieza la mañana", saved.quote)
+        assertEquals("Para el lunes", saved.text)
+        assertEquals("""{"href":"c2.xhtml"}""", saved.locatorJson)
+        assertEquals(0.42, saved.progression, 0.0)
+        vm.release()
+    }
+
+    // ANN-008: cancelar no guarda nada
+    @Test
+    fun cancellingANoteSavesNothing() = runTest(dispatcher) {
+        val vm = viewModel(FakeBooks(Result.success(book())))
+        vm.awaitReady()
+        vm.onTextSelected("{}", "frase", 0.1)
+        vm.closeNote()
+        dispatcher.scheduler.advanceUntilIdle()
+        assertNull(vm.noteEditor.value)
+        assertTrue(notes.all.value.isEmpty())
+        vm.release()
+    }
+
+    // ANN-008: una nota sin texto no se guarda y el editor sigue abierto; una selección vacía no abre el editor
+    @Test
+    fun blankNoteOrSelectionIsIgnored() = runTest(dispatcher) {
+        val vm = viewModel(FakeBooks(Result.success(book())))
+        vm.awaitReady()
+        vm.onTextSelected("{}", "   ", 0.1)
+        assertNull(vm.noteEditor.value)
+        vm.onTextSelected("{}", "frase", 0.1)
+        vm.saveNote("   ")
+        dispatcher.scheduler.advanceUntilIdle()
+        assertTrue(vm.noteEditor.value != null)
+        assertTrue(notes.all.value.isEmpty())
+        vm.release()
+    }
+
+    // ANN-009: tocar un subrayado muestra su nota; editarla conserva el id, el lugar y la fecha de creación
+    @Test
+    fun editsANoteFromItsHighlight() = runTest(dispatcher) {
+        notes.all.value = listOf(note("n1"))
+        val vm = viewModel(FakeBooks(Result.success(book())))
+        vm.awaitReady()
+        vm.openNote("n1")
+        dispatcher.scheduler.advanceUntilIdle()
+        assertEquals(NoteEditor("n1", "texto citado n1", "nota n1", note("n1").locatorJson, 0.5), vm.noteEditor.value)
+        vm.saveNote("corregida")
+        dispatcher.scheduler.advanceUntilIdle()
+        val edited = notes.all.value.single()
+        assertEquals("n1", edited.id)
+        assertEquals("corregida", edited.text)
+        assertEquals(note("n1").locatorJson, edited.locatorJson)
+        assertEquals(1L, edited.createdAt)
+        assertTrue(edited.updatedAt > 1L)
+        vm.release()
+    }
+
+    // ANN-009: borrar desde el lector quita la nota (y su subrayado, que sale de la misma lista)
+    @Test
+    fun deletesANoteFromItsHighlight() = runTest(dispatcher) {
+        notes.all.value = listOf(note("n1"), note("n2", progression = 0.9))
+        val vm = viewModel(FakeBooks(Result.success(book())))
+        val collected = backgroundScope.launch { vm.bookNotes.collect {} }
+        vm.awaitReady()
+        vm.openNote("n1")
+        dispatcher.scheduler.advanceUntilIdle()
+        vm.deleteNote()
+        dispatcher.scheduler.advanceUntilIdle()
+        assertNull(vm.noteEditor.value)
+        assertEquals(listOf("n2"), vm.bookNotes.value.map { it.id })
+        collected.cancel()
+        vm.release()
+    }
+
+    // ANN-008: el lector solo subraya las notas de este libro
+    @Test
+    fun highlightsOnlyTheNotesOfThisBook() = runTest(dispatcher) {
+        notes.all.value = listOf(note("mia"), note("ajena", bookId = "otro-libro"))
+        val vm = viewModel(FakeBooks(Result.success(book())))
+        val collected = backgroundScope.launch { vm.bookNotes.collect {} }
+        dispatcher.scheduler.advanceUntilIdle()
+        assertEquals(listOf("mia"), vm.bookNotes.value.map { it.id })
+        collected.cancel()
+        vm.release()
     }
 }

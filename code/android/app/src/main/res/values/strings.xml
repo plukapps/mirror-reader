@@ -265,6 +265,16 @@
     <string name="reader_resume_continue">Continuar allí</string>
     <string name="reader_resume_stay">Quedarme aquí</string>
     <string name="reader_body_ended">Parece que terminaste el libro</string>
+    <!-- ANN-008, ANN-009 -->
+    <string name="selection_note">Nota</string>
+    <string name="selection_copy">Copiar</string>
+    <string name="selection_share">Compartir</string>
+    <string name="note_placeholder">Escribí tu nota</string>
+    <string name="note_save">Guardar</string>
+    <string name="note_cancel">Cancelar</string>
+    <string name="note_delete">Borrar</string>
+    <string name="note_delete_title">¿Borrar la nota?</string>
+    <string name="note_delete_message">Se borra la nota y su subrayado.</string>
 
     <!-- Búsqueda (LIB-006, LIB-013 a LIB-015) -->
     <string name="search_title">Buscar</string>

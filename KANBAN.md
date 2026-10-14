@@ -5,8 +5,6 @@ Plan de referencia: `specs/plans/2026-10-06-android-epub-viewer.md`
 
 ## Backlog
 
-- **K-262** Notas, Tarea 3: "Nota" en el menú de selección y editor. ANN-008.
-- **K-263** Notas, Tarea 4: subrayados en el lector; ver, editar y borrar la nota. ANN-009, ANN-005.
 - **K-264** Notas, Tarea 5: abrir el lector en una nota (`noteId` en la ruta). ANN-010, ANN-004.
 - **K-265** Notas, Tarea 6: detalle del libro con la lista de notas y "Ver detalle" en el menú; quitar el libro borra sus notas. LIB-022, ANN-010, ANN-011.
 - **K-266** Notas, Tarea 7: cierre de docs y verificación a mano en el teléfono.
@@ -55,6 +53,8 @@ Plan de referencia: `specs/plans/2026-10-06-android-epub-viewer.md`
 
 ## Revisión
 
+- **K-263** Notas, Tarea 4: subrayados en el lector; ver, editar y borrar la nota. ANN-009, ANN-005. Hecho: subrayados con `applyDecorations` (grupo `notes`), tocar uno abre la nota (`openNote`), editar y borrar con confirmación. 3 tests JVM; 422 pasan. Falta probar a mano en el teléfono.
+- **K-262** Notas, Tarea 3: "Nota" en el menú de selección y editor. ANN-008. Hecho: `SelectionMenu` (Nota, Copiar, Compartir) en la configuración de Readium, `NoteEditorSheet`, `ReaderViewModel.onTextSelected/saveNote/closeNote`. 3 tests JVM. Falta probar a mano en el teléfono.
 - **K-261** Notas, Tarea 2: modelo `Note`, tabla `notes` (Room v8, `MIGRATION_7_8`), `NoteRepository`. ANN-006. Hecho: `Note`, `NoteRepository`, tabla `notes` (Room v8, `MIGRATION_7_8`, esquema 8), DI en los dos módulos; quitar un libro borra sus notas (ANN-011). 416 tests JVM pasan; `NoteRepositoryTest` y `MigrationTest` 7→8 compilados, sin correr (sin emulador).
 - **K-216** Volver a importar, iOS: `saveBook` escribe `addedAt` y el listado lo usa como fecha de entrada. LIB-021. Rama `feature/library-order`. Hecho: `listBooks` lee `addedAt ?? createdAt`; `saveBook` escribe `addedAt` al crear y al revivir. Tests: dominio 205, iPhone 189 (+1). Falta desplegar las reglas y probar a mano.
 - **K-215** Volver a importar, Android: `saveBook` escribe `addedAt` y el listado lo usa como fecha de entrada. LIB-021. Rama `feature/library-order`. Hecho: `listBooks` lee `addedAt ?: createdAt`; `saveBook` escribe `addedAt` al crear y al revivir. 415 tests JVM pasan (1 nuevo); los de emulador compilan.
