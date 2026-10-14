@@ -9,6 +9,7 @@ import com.pluk.reader.domain.repository.LibraryRepository
 import com.pluk.reader.domain.onboarding.StartDestination
 import com.pluk.reader.domain.onboarding.startDestination
 import com.pluk.reader.domain.usecase.LibrarySync
+import com.pluk.reader.domain.plans.ImportQuotaCheck
 import com.pluk.reader.domain.usecase.PositionSync
 import com.pluk.reader.domain.usecase.CloudListener
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -32,6 +33,7 @@ class MainViewModel @Inject constructor(
     private val removals: CloudListener,
     private val accounts: AccountRepository,
     private val auth: AuthRepository,
+    private val importQuotaCheck: ImportQuotaCheck,
 ) : ViewModel() {
 
     enum class Start { Loading, Welcome, VerifyEmail, Home }
@@ -90,6 +92,8 @@ class MainViewModel @Inject constructor(
 
     suspend fun importIncoming(uri: String): Incoming = when (val outcome = library.import(uri)) {
         is ImportOutcome.Imported -> {
+            // PLN-007 a PLN-009: el libro se abre igual; si no entra en la nube, la hoja de planes.
+            importQuotaCheck(listOf(outcome))
             librarySync.request()
             Incoming.Open(outcome.bookId)
         }

@@ -18,6 +18,8 @@ enum AppGraph {
         let bookActions: BookActionsViewModel
         /// nil en la Mac: Readium Swift solo soporta iOS (ADR 0013).
         let makeReader: ((_ bookId: String) -> ReaderViewModel)?
+        /// Planes (PLN-002): quién lo abre y su estado.
+        let plans: PlansPresenter
         /// Apariencia de la app (PRF-021).
         let appearance: AppearanceSettings
         /// La red del dispositivo para "Sincronizar solo con Wi-Fi" (PRF-023). Se guarda para que siga avisando.
@@ -41,6 +43,8 @@ enum AppGraph {
         network.start { type in Task { @MainActor in gate.networkChanged(type) } }
         let cloudAllowed: @Sendable () async -> Bool = { await gate.allowsSync }
         let positions = firebase ? positionSync(store: store) : nil
+        // PRF-006, PLN-009: la última cuota leída, que cada pasada actualiza. De ella sale el plan (PLN-014, PLN-015).
+        let quotaCache = UserDefaultsQuotaCache()
         // LIB-020: quitar un libro lo borra de la cuenta y de los otros dispositivos.
         let removals = firebase ? RemovalSync(remote: FirebaseRemovals(), local: store, account: FirebaseAccountRepository()) : nil
         #if os(iOS)
@@ -50,7 +54,7 @@ enum AppGraph {
         let bookFiles: BookFiles = CoverExtractingBookFiles(store: store, importer: importer)
         let reader: (importer: BookImporter, makeReader: (String) -> ReaderViewModel)? = readerParts(
             store: store, files: files, loader: loader, importer: importer, bookFiles: bookFiles, firebase: firebase, positions: positions,
-            cloudAllowed: cloudAllowed
+            cloudAllowed: cloudAllowed, quotaCache: quotaCache
         )
         #else
         let bookFiles: BookFiles = store
@@ -59,7 +63,9 @@ enum AppGraph {
 
         // La sincronización vuelve a leer la base en Inicio y en la biblioteca cada vez que la cambia.
         let refs = ScreenRefs()
-        let pass = positions.map { libraryPass(store: store, bookFiles: bookFiles, positions: $0, removals: removals) }
+        let pass = positions.map {
+            libraryPass(store: store, bookFiles: bookFiles, positions: $0, removals: removals, quotaCache: quotaCache)
+        }
         // SYN-015: un libro agregado en otro dispositivo pide una pasada (la app a la vista).
         let watcher = firebase
             ? LibraryWatcher(remote: FirestoreRemoteLibrary(), known: store, account: FirebaseAccountRepository()) {
@@ -70,8 +76,10 @@ enum AppGraph {
             await refs.home?.reload()
             await refs.library?.load()
         }
-        let library = LibraryViewModel(library: store, sync: sync)
-        let home = HomeViewModel(library: store, importer: reader?.importer) { sync.request() }
+        let library = LibraryViewModel(library: store, sync: sync, quotaCache: quotaCache, usageNotice: UserDefaultsUsageNotice())
+        let home = HomeViewModel(
+            library: store, importer: reader?.importer, quotaCheck: ImportQuotaCheck(uploads: store, cache: quotaCache)
+        ) { sync.request() }
         refs.home = home
         refs.library = library
         refs.sync = sync
@@ -101,7 +109,7 @@ enum AppGraph {
             profile: ProfileViewModel(
                 account: account,
                 quota: firebase ? FirestoreQuotaSource() : nil,
-                cache: UserDefaultsQuotaCache(),
+                cache: quotaCache,
                 deviceName: UserDefaultsSyncPreferences.model,
                 settings: UserDefaultsReaderSettings(),
                 passwords: account,
@@ -124,6 +132,7 @@ enum AppGraph {
             ),
             bookActions: bookActions,
             makeReader: reader?.makeReader,
+            plans: PlansPresenter(cache: quotaCache),
             appearance: appearance,
             network: network,
             start: AppStartViewModel(account: account),
@@ -142,7 +151,7 @@ enum AppGraph {
 
     /// Una pasada de sincronización de la biblioteca con Firebase (SYN-001), como `SyncLibraryUseCase` de Android.
     private static func libraryPass(
-        store: LibraryStore, bookFiles: BookFiles, positions: PositionSync, removals: RemovalSync?
+        store: LibraryStore, bookFiles: BookFiles, positions: PositionSync, removals: RemovalSync?, quotaCache: QuotaCache
     ) -> SyncCoordinator.Pass {
         let remote = FirestoreRemoteLibrary()
         let books = FirebaseBookStore()
@@ -152,7 +161,7 @@ enum AppGraph {
             remote: remote,
             covers: covers,
             cloud: store,
-            upload: UploadBooks(uploads: store, files: books, covers: covers, library: remote, quota: FirestoreQuotaSource()),
+            upload: UploadBooks(uploads: store, files: books, covers: covers, library: remote, quota: FirestoreQuotaSource(), cache: quotaCache),
             download: DownloadBook(files: bookFiles, store: books),
             positions: positions,
             removals: removals
@@ -179,7 +188,7 @@ enum AppGraph {
     #if os(iOS)
     private static func readerParts(
         store: LibraryStore, files: LibraryFiles, loader: PublicationLoader, importer: EpubImporter, bookFiles: BookFiles,
-        firebase: Bool, positions: PositionSync?, cloudAllowed: @escaping @Sendable () async -> Bool
+        firebase: Bool, positions: PositionSync?, cloudAllowed: @escaping @Sendable () async -> Bool, quotaCache: QuotaCache
     ) -> (importer: BookImporter, makeReader: (String) -> ReaderViewModel) {
         let bookStore: BookFileStore = firebase ? FirebaseBookStore() : OfflineBookStore()
         // PRF-023: un libro solo en la nube no se baja sin Wi-Fi si así se eligió.
@@ -197,7 +206,12 @@ enum AppGraph {
         }
         return (
             importer,
-            { bookId in ReaderViewModel(bookId: bookId, source: source, positions: store, settings: settings, sync: readerSync) }
+            { bookId in
+                ReaderViewModel(
+                    bookId: bookId, source: source, positions: store, settings: settings, sync: readerSync,
+                    plan: { PlanCatalog.planOf(quotaCache.last()) }
+                )
+            }
         )
     }
     #endif

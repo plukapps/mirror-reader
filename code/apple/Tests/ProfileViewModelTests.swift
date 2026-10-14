@@ -70,11 +70,13 @@ private let offline = StubQuota(result: .failure(RemoteUnavailableError("sin red
 @MainActor
 private func loaded(
     _ user: AccountUser?, quota: QuotaSource? = used, cache: MemoryQuotaCache = MemoryQuotaCache(),
-    settings: MemorySettings = MemorySettings(), signOut: SignOut? = nil
+    settings: MemorySettings = MemorySettings(), signOut: SignOut? = nil, plan: PlanId? = nil
 ) async -> ProfileViewModel {
+    var planSource: (@MainActor () -> PlanId)?
+    if let plan { planSource = { plan } }
     let viewModel = ProfileViewModel(
         account: StubAccount(user: user), quota: quota, cache: cache, deviceName: "iPhone", settings: settings,
-        signOut: signOut
+        signOut: signOut, plan: planSource
     )
     await viewModel.load()
     return viewModel
@@ -179,17 +181,42 @@ struct ProfileViewModelTests {
         #expect(await loaded(ana).deviceName == "iPhone")
     }
 
-    @Test("PRF-011: Perfil muestra los mismos ajustes que el lector")
+    @Test("PRF-011: Perfil muestra los mismos ajustes que el lector; en Gratis, con Clásico y serifa (PLN-015)")
     func showsReaderSettings() async {
         let saved = ReaderSettings(theme: .sepia, fontScale: 1.2, font: .mono, lineSpacing: .wide)
-        let viewModel = await loaded(ana, settings: MemorySettings(saved))
+        let viewModel = await loaded(ana, settings: MemorySettings(saved), plan: .reader)
         #expect(viewModel.reading == saved)
+        let free = await loaded(ana, settings: MemorySettings(saved))
+        #expect(free.reading == ReaderSettings(theme: .light, fontScale: 1.2, font: .serif, lineSpacing: .wide))
+    }
+
+    @Test("PLN-015: en Gratis, tocar Noche o una letra paga no cambia la preferencia y pide la hoja de función paga")
+    func freePlanPaidOptions() async {
+        let settings = MemorySettings()
+        let viewModel = await loaded(ana, settings: settings)
+        viewModel.setTheme(.dark)
+        #expect(settings.stored.theme == .light)
+        #expect(viewModel.sheet == .paid(.themesAndFonts))
+        viewModel.openFontSheet()
+        #expect(viewModel.sheet == .font)
+        viewModel.setFont(.sans)
+        #expect(settings.stored.font == .serif)
+        #expect(viewModel.sheet == .paid(.themesAndFonts))
+        #expect(viewModel.isLocked(ReadingTheme.sepia))
+        #expect(!viewModel.isLocked(ReaderFont.serif))
+    }
+
+    @Test("PLN-015: el plan sale de la cuota guardada; con Lector las opciones no llevan marca")
+    func planFromCache() async {
+        let cache = MemoryQuotaCache(StorageQuota(usedBytes: 0, quotaBytes: 5 * gib, plan: "reader"))
+        let viewModel = await loaded(ana, quota: nil, cache: cache)
+        #expect(!viewModel.isLocked(ReadingTheme.dark))
     }
 
     @Test("PRF-011, PRF-013 a PRF-015: los cambios se guardan donde los lee el lector")
     func changesAreSaved() async {
         let settings = MemorySettings()
-        let viewModel = await loaded(ana, settings: settings)
+        let viewModel = await loaded(ana, settings: settings, plan: .library)
         viewModel.setTheme(.dark)
         viewModel.setLineSpacing(.wide)
         viewModel.setFont(.sans)
@@ -203,7 +230,7 @@ struct ProfileViewModelTests {
     @Test("PRF-011: al volver a Perfil se ven los cambios hechos en el lector")
     func reloadsSettings() async {
         let settings = MemorySettings()
-        let viewModel = await loaded(ana, settings: settings)
+        let viewModel = await loaded(ana, settings: settings, plan: .reader)
         settings.stored = ReaderSettings(theme: .sepia)
         await viewModel.load()
         #expect(viewModel.reading.theme == .sepia)

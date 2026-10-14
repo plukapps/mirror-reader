@@ -111,7 +111,7 @@ struct SyncStatusLineTests {
         #expect(SyncStatusLine(state: SyncState(running: true, issue: .offline), pendingUploads: 0)?.text == "Sincronizando…")
         #expect(SyncStatusLine(state: SyncState(), pendingUploads: 1)?.text == "1 libro sin subir")
         #expect(SyncStatusLine(state: SyncState(issue: .notEnoughSpace(1)), pendingUploads: 1)?.text
-            == "1 libro no entra en tu espacio. Podés seguir leyendo. Tocá para reintentar.")
+            == "1 libro no entra en tu plan. Podés seguir leyendo. Tocá para reintentar.")
         #expect(SyncStatusLine(state: SyncState(issue: .failed(2)), pendingUploads: 0)?.text
             == "No se pudieron sincronizar 2 libros. Tocá para reintentar.")
     }

@@ -28,6 +28,8 @@ sealed interface ReaderUiState {
         val settingsOpen: Boolean = false,
         /** SYN-013: otro dispositivo leyó más adelante este libro. Null si no hay nada que ofrecer. */
         val continueFrom: ContinueFrom? = null,
+        /** PLN-015: temas y fuentes pagos llevan la marca "Lector" y abren la hoja de función paga (Gratis). */
+        val readingOptionsLocked: Boolean = false,
     ) : ReaderUiState
 }
 

@@ -48,6 +48,9 @@ import com.pluk.reader.ui.profile.ChangePasswordScreen
 import com.pluk.reader.ui.profile.FaqAnswerScreen
 import com.pluk.reader.ui.profile.FaqListScreen
 import com.pluk.reader.ui.profile.ProfileScreen
+import com.pluk.reader.ui.plans.PlansScreen
+import com.pluk.reader.ui.plans.MyPlanScreen
+import com.pluk.reader.ui.plans.PlanPromptHost
 import com.pluk.reader.ui.search.SearchScreen
 import com.pluk.reader.ui.welcome.WelcomeScreen
 import android.net.Uri
@@ -86,6 +89,12 @@ object Routes {
     const val CHANGE_PASSWORD = "profile/password"
     const val BOOK_DETAIL = "book/{${BookDetailViewModel.ARG_BOOK_ID}}"
     fun bookDetail(bookId: String): String = "book/$bookId"
+
+    /** P01 Planes (PLN-002): pantalla completa, sin barra inferior. */
+    const val PLANS = "plans"
+
+    /** P04 Mi plan (PLN-012), sin barra inferior. */
+    const val MY_PLAN = "profile/plan"
     fun faqAnswer(key: String): String = "profile/faq/$key"
 
     /** El lector en la última posición del libro o, con [noteId], en el lugar de esa nota (ANN-010). */
@@ -240,7 +249,10 @@ fun AppNavHost(
                             navArgument(LibraryViewModel.ARG_FILTER) { type = NavType.StringType; nullable = true; defaultValue = null },
                         ),
                     ) {
-                        LibraryScreen(onBookClick = { bookId -> navController.navigate(Routes.reader(bookId)) })
+                        LibraryScreen(
+                            onBookClick = { bookId -> navController.navigate(Routes.reader(bookId)) },
+                            onSeePlans = { navController.navigate(Routes.PLANS) },
+                        )
                     }
                     composable(Routes.SEARCH) {
                         SearchScreen(onBookClick = { bookId -> navController.navigate(Routes.reader(bookId)) })
@@ -252,7 +264,20 @@ fun AppNavHost(
                             onFaq = { navController.navigate(Routes.faqAnswer(it.key)) },
                             onAllFaq = { navController.navigate(Routes.FAQ_LIST) },
                             onChangePassword = { navController.navigate(Routes.CHANGE_PASSWORD) },
+                            onUpgrade = { navController.navigate(Routes.PLANS) },
+                            onOpenPlan = { navController.navigate(Routes.MY_PLAN) },
                         )
+                    }
+                    // PLN-012: Mi plan, sin barra inferior; "Cambiar de plan" abre Planes.
+                    composable(Routes.MY_PLAN) {
+                        MyPlanScreen(
+                            onBack = { navController.popBackStack() },
+                            onChangePlan = { navController.navigate(Routes.PLANS) },
+                        )
+                    }
+                    // PLN-002: Planes, sin barra inferior; la cruz vuelve a donde estaba.
+                    composable(Routes.PLANS) {
+                        PlansScreen(onClose = { navController.popBackStack() })
                     }
                     // PRF-020: cambiar contraseña, sin barra inferior.
                     composable(Routes.CHANGE_PASSWORD) {
@@ -309,6 +334,10 @@ fun AppNavHost(
                 onDetails = { navController.navigate(Routes.bookDetail(it)) },
                 bottomPadding = bottomPadding,
             )
+        }
+        // P02, P03: hojas de planes pedidas por cualquier pantalla (también tras "Abrir con", sobre el lector).
+        if (routeName != null && routeName !in LightOnlyRoutes) {
+            PlanPromptHost(onSeePlans = { navController.navigate(Routes.PLANS) { launchSingleTop = true } })
         }
     }
 }

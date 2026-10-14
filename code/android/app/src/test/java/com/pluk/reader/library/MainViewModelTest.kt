@@ -52,6 +52,10 @@ class MainViewModelTest {
 
     private val positionBackend = FakePositionBackend()
 
+    private val prompts = com.pluk.reader.domain.plans.PlanPrompts()
+    private val quotaCache = com.pluk.reader.plans.FakeQuotaCache()
+    private val pendingUploads = com.pluk.reader.plans.FakePendingUploads()
+
     private fun viewModel(library: FakeLibrary = FakeLibrary()): MainViewModel {
         val account = FakeAccount(AccountUser("u1", null))
         return MainViewModel(
@@ -61,6 +65,7 @@ class MainViewModelTest {
             NoRemovals,
             account,
             com.pluk.reader.onboarding.FakeAuth(),
+            com.pluk.reader.domain.plans.ImportQuotaCheck(quotaCache, pendingUploads, prompts),
         )
     }
 
@@ -108,6 +113,23 @@ class MainViewModelTest {
         assertTrue(incoming is MainViewModel.Incoming.Open)
         assertEquals(2, backend.listings)
         assertEquals(listOf("1"), backend.uploaded)
+    }
+
+    // PLN-007: "Abrir con" con el espacio lleno abre el libro igual y muestra la hoja
+    @Test
+    fun anIncomingBookThatDoesNotFitStillOpensAndShowsTheSheet() = runTest(dispatcher) {
+        val mib = 1024L * 1024
+        quotaCache.quota.value = com.pluk.reader.domain.account.StorageQuota(15 * mib, 15 * mib)
+        pendingUploads.items = com.pluk.reader.plans.FakePendingUploads("1" to mib).items
+        val vm = viewModel(FakeLibrary(ImportOutcome.Imported("1", "A")))
+
+        val incoming = vm.importIncoming("content://libro.epub")
+
+        assertEquals(MainViewModel.Incoming.Open("1"), incoming)
+        assertEquals(
+            com.pluk.reader.domain.plans.PlanPrompt.Quota("A", com.pluk.reader.domain.plans.QuotaBlock.Full, 15 * mib),
+            prompts.current.value,
+        )
     }
 
     // SYN-011, SYN-012: al volver a la app se reenvía lo pendiente y empieza a llegar lo de otros dispositivos

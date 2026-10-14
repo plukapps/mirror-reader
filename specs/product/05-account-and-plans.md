@@ -13,6 +13,8 @@ Identidad para sincronizar, y base para un modelo de pago futuro.
 - **ACC-005** El concepto de plan debe permitir agregar planes de pago sin cambiar el modelo de datos.
 - **ACC-006** Debe permitir cerrar sesión y ver los dispositivos vinculados.
 
+- La pantalla de planes, los avisos de cuota y Mi plan están en `12-plans.md` (PLN).
+
 ## Escenarios
 
 - Dado que inicio sesión en un dispositivo nuevo, cuando termina el login, entonces veo mi biblioteca completa (libros "solo en la nube").

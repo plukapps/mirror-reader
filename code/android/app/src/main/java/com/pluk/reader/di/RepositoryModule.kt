@@ -23,6 +23,8 @@ import com.pluk.reader.domain.repository.PositionRepository
 import com.pluk.reader.domain.repository.PositionSyncStore
 import com.pluk.reader.domain.repository.SettingsRepository
 import com.pluk.reader.domain.repository.SyncPreferences
+import com.pluk.reader.data.repository.UsageNoticePreferenceImpl
+import com.pluk.reader.domain.plans.UsageNoticePreference
 import dagger.Binds
 import dagger.Module
 import dagger.hilt.InstallIn
@@ -35,6 +37,10 @@ abstract class RepositoryModule {
     @Binds
     @Singleton
     abstract fun bindQuotaCache(impl: QuotaCacheImpl): QuotaCache
+
+    @Binds
+    @Singleton
+    abstract fun bindUsageNoticePreference(impl: UsageNoticePreferenceImpl): UsageNoticePreference
 
     @Binds
     @Singleton

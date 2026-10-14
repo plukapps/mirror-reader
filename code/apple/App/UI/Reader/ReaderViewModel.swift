@@ -88,7 +88,12 @@ final class ReaderViewModel {
     }
 
     private(set) var phase: Phase = .loading
-    private(set) var settings: ReaderSettings
+    /// Lo guardado (RDR-014). El lector aplica `settings`, que en Gratis es Clásico y serifa (PLN-015).
+    private(set) var savedSettings: ReaderSettings
+    /// PLN-015: la hoja de función paga a la vista, o nil.
+    private(set) var paidFeature: PaidFeature?
+    /// PLN-015: P01 sobre el lector, después de "Ver planes".
+    var plansOpen = false
     /// RDR-013: vacío si el libro no tiene índice o la posición está antes del primer capítulo.
     private(set) var chapterTitle = ""
     /// RDR-010: posición del libro, sin total.
@@ -106,6 +111,9 @@ final class ReaderViewModel {
     private let source: ReaderBookSource
     private let positions: ReadingPositionRepository
     private let settingsRepository: ReaderSettingsRepository
+    private let plan: @MainActor () -> PlanId
+    private var paidAfterSettings = false
+    private var plansAfterPaid = false
     private let saveDelay: Duration
     private var chapters: [ChapterEntry] = []
     private var readingOrder: [String] = []
@@ -119,14 +127,17 @@ final class ReaderViewModel {
     private var currentProgression: Double?
     private var updatesTask: Task<Void, Never>?
 
-    /// - Parameter sync: nil si la app funciona solo en local.
+    /// - Parameters:
+    ///   - sync: nil si la app funciona solo en local.
+    ///   - plan: el plan de la cuenta (PLN-015); sin dato, Gratis.
     init(
         bookId: String,
         source: ReaderBookSource,
         positions: ReadingPositionRepository,
         settings: ReaderSettingsRepository,
         saveDelay: Duration = .milliseconds(250),
-        sync: ReaderPositionSync? = nil
+        sync: ReaderPositionSync? = nil,
+        plan: @escaping @MainActor () -> PlanId = { .free }
     ) {
         self.bookId = bookId
         self.source = source
@@ -134,7 +145,8 @@ final class ReaderViewModel {
         settingsRepository = settings
         self.saveDelay = saveDelay
         self.sync = sync
-        self.settings = settings.load()
+        self.plan = plan
+        savedSettings = settings.load()
     }
 
     func load() async {
@@ -261,16 +273,65 @@ final class ReaderViewModel {
 
     // MARK: Ajustes (RDR-002, RDR-003, RDR-014)
 
-    func setTheme(_ theme: ReadingTheme) { update(settings.withTheme(theme)) }
-    func setFont(_ font: ReaderFont) { update(settings.withFont(font)) }
-    func setLineSpacing(_ spacing: LineSpacing) { update(settings.withLineSpacing(spacing)) }
-    func biggerFont() { update(settings.biggerFont()) }
-    func smallerFont() { update(settings.smallerFont()) }
+    /// Lo que el lector aplica: en Gratis, Clásico y serifa (PLN-015).
+    var settings: ReaderSettings { effectiveReaderSettings(savedSettings, plan: plan()) }
+
+    /// PLN-015: la opción lleva la marca "Lector" y abre la hoja de función paga.
+    func isLocked(_ theme: ReadingTheme) -> Bool { theme.isPaid && !plan().hasThemesAndFonts }
+    func isLocked(_ font: ReaderFont) -> Bool { font.isPaid && !plan().hasThemesAndFonts }
+
+    func setTheme(_ theme: ReadingTheme) {
+        guard !isLocked(theme) else { return requestThemesAndFonts() }
+        update(savedSettings.withTheme(theme))
+    }
+
+    func setFont(_ font: ReaderFont) {
+        guard !isLocked(font) else { return requestThemesAndFonts() }
+        update(savedSettings.withFont(font))
+    }
+
+    func setLineSpacing(_ spacing: LineSpacing) { update(savedSettings.withLineSpacing(spacing)) }
+    func biggerFont() { update(savedSettings.biggerFont()) }
+    func smallerFont() { update(savedSettings.smallerFont()) }
 
     private func update(_ newSettings: ReaderSettings) {
-        guard newSettings != settings else { return }
-        settings = newSettings
+        guard newSettings != savedSettings else { return }
+        savedSettings = newSettings
         settingsRepository.save(newSettings)
+    }
+
+    // MARK: Función paga (PLN-015)
+
+    /// El panel se cierra y, cuando terminó de cerrarse, aparece la hoja: dos hojas a la vez no se pueden.
+    private func requestThemesAndFonts() {
+        if settingsOpen {
+            paidAfterSettings = true
+            settingsOpen = false
+        } else {
+            paidFeature = .themesAndFonts
+        }
+    }
+
+    /// El panel terminó de cerrarse.
+    func settingsDismissed() {
+        guard paidAfterSettings else { return }
+        paidAfterSettings = false
+        paidFeature = .themesAndFonts
+    }
+
+    /// "Ahora no".
+    func dismissPaidFeature() { paidFeature = nil }
+
+    /// "Ver planes": cierra la hoja y abre P01 cuando terminó de cerrarse.
+    func seePlans() {
+        plansAfterPaid = true
+        paidFeature = nil
+    }
+
+    func paidFeatureDismissed() {
+        guard plansAfterPaid else { return }
+        plansAfterPaid = false
+        plansOpen = true
     }
 
     // MARK: Posición (RDR-006)
