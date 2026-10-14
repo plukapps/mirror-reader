@@ -12,7 +12,7 @@ Identidad para sincronizar, y base para un modelo de pago futuro.
 - **ACC-004** Cada usuario solo accede a sus propios datos.
 - **ACC-005** El concepto de plan debe permitir agregar planes de pago sin cambiar el modelo de datos.
 - **ACC-006** Debe permitir cerrar sesión y ver los dispositivos vinculados.
-- **ACC-007** Las funciones que dependen del plan (por ahora, la sincronización de notas, SYN-017) se pueden prender o apagar desde la administración del producto, para todas las cuentas o por plan, sin publicar una versión nueva de la app. Mientras no haya cobro, todas las cuentas tienen todo prendido.
+- **ACC-011** Las funciones que dependen del plan (por ahora, la sincronización de notas, SYN-017) se pueden prender o apagar desde la administración del producto, para todas las cuentas o por plan, sin publicar una versión nueva de la app. Mientras no haya cobro, todas las cuentas tienen todo prendido.
 
 ## Escenarios
 

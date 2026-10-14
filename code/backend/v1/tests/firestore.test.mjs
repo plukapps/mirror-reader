@@ -536,15 +536,24 @@ describe("Firestore", () => {
     });
 
     // SYN-007: borrar es una marca y no se deshace
-    it("borrar es poner deletedAt; una nota borrada no revive; no hay borrado físico", async () => {
+    it("borrar es poner deletedAt; no hay borrado físico", async () => {
       await seedBook("alice");
       const base = Date.now() - 10_000;
       await seedNote("alice", { editedAt: base });
       await assertFails(deleteDoc(ref()));
       const deletedAt = base + 1;
       await assertSucceeds(setDoc(ref(), noteData({ text: "", editedAt: deletedAt, deletedAt })));
-      await assertFails(setDoc(ref(), noteData({ text: "revive", editedAt: base + 2, deletedAt: null })));
       await assertSucceeds(setDoc(ref(), noteData({ text: "", editedAt: deletedAt, deletedAt }))); // reenvío
+    });
+
+    // SYN-005, SYN-010: entre borrar y editar también gana el último cambio
+    it("una nota borrada revive solo con una edición posterior al borrado", async () => {
+      await seedBook("alice");
+      const deletedAt = Date.now() - 10_000;
+      await seedNote("alice", { text: "", editedAt: deletedAt, deletedAt });
+      await assertFails(setDoc(ref(), noteData({ text: "vieja", editedAt: deletedAt - 1, deletedAt: null })));
+      await assertFails(setDoc(ref(), noteData({ text: "igual", editedAt: deletedAt, deletedAt: null })));
+      await assertSucceeds(setDoc(ref(), noteData({ text: "editada después", editedAt: deletedAt + 1, deletedAt: null })));
     });
 
     // SYN-016: el listener pide solo lo que cambió desde la última vez

@@ -3,7 +3,7 @@ package com.pluk.reader.domain.flags
 import kotlinx.coroutines.flow.StateFlow
 
 /**
- * Funciones que se prenden y apagan sin publicar una versión nueva, para todos o por plan (ACC-007, ADR 0016).
+ * Funciones que se prenden y apagan sin publicar una versión nueva, para todos o por plan (ACC-011, ADR 0016).
  * [key] es el nombre del parámetro remoto; [default] vale mientras no se sabe el valor remoto.
  */
 enum class Feature(val key: String, val default: Boolean) {

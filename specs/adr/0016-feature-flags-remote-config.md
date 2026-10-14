@@ -4,14 +4,14 @@
 
 ## Contexto
 
-La sincronización de notas (SYN-016) tiene que poder prenderse o apagarse sin publicar una versión nueva de la app, para todas las cuentas o según el plan (SYN-017, ACC-007). Van a llegar planes pagos (Gratis, Lector, Biblioteca, `specs/product/12-plans.md`) y otras funciones con el mismo problema. Pedido del usuario (2026-10-14): usar Firebase Remote Config.
+La sincronización de notas (SYN-016) tiene que poder prenderse o apagarse sin publicar una versión nueva de la app, para todas las cuentas o según el plan (SYN-017, ACC-011). Van a llegar planes pagos (Gratis, Lector, Biblioteca, `specs/product/12-plans.md`) y otras funciones con el mismo problema. Pedido del usuario (2026-10-14): usar Firebase Remote Config.
 
 ## Decisiones
 
 ### Remote Config, un parámetro booleano por función
 
 - Primer parámetro: `notes_sync_enabled`. Los nombres siguen `<función>_enabled`.
-- El valor por defecto dentro de la app es `true` (SYN-017: si no se sabe, vale prendida; hoy todas las cuentas tienen todo, ACC-007). El valor por defecto en la consola también es `true`.
+- El valor por defecto dentro de la app es `true` (SYN-017: si no se sabe, vale prendida; hoy todas las cuentas tienen todo, ACC-011). El valor por defecto en la consola también es `true`.
 - **Por plan:** la app manda la señal personalizada `plan` (`free`, o el que tenga `users/{uid}.plan`) con `setCustomSignals`. Una condición de la consola, por ejemplo `app.customSignal['plan'] == 'free'`, cambia el valor para ese plan. Requiere firebase-config 22.1.0 o posterior en Android (el BoM 35 trae la 24.0.0) y 11.8.0 o posterior en iOS (el proyecto usa la 12.14.0). Fuente: documentación de Remote Config, "Custom signal conditions".
 - **Para una cuenta o una instalación** (pruebas): una condición por `app.firebaseInstallationId`.
 
@@ -37,4 +37,5 @@ Las reglas de Firestore no pueden leer Remote Config. Con el flag apagado, una a
 ## Consecuencias
 
 - Una dependencia nueva: `firebase-config` (Android, por el BoM) y `FirebaseRemoteConfig` (iOS, cuando la app de iOS tenga notas).
-- Crear o cambiar un parámetro en la consola es una acción sobre el proyecto real y se pide al usuario.
+- Crear o cambiar un parámetro es una acción sobre el proyecto real y se pide al usuario.
+- **Coordinación con el catálogo de planes** (otra rama, `firebase-remote-config-plans`, 2026-10-14): ese trabajo versiona el template de Remote Config en `code/backend/v1/remoteconfig.template.json` y lo publica con `firebase deploy --only remoteconfig`. Publicar el template reemplaza el del proyecto entero, así que `notes_sync_enabled` y sus condiciones tienen que estar en ese archivo. Si no, el próximo deploy del catálogo los borra y la app vuelve al valor por defecto (prendida). Esa rama usa también ACC-007 a ACC-010; por eso este requisito es ACC-011.

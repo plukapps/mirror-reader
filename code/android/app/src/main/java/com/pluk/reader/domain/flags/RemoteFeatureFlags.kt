@@ -13,7 +13,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 
 /**
- * Funciones prendidas o apagadas según la configuración remota (ACC-007, SYN-017, ADR 0016).
+ * Funciones prendidas o apagadas según la configuración remota (ACC-011, SYN-017, ADR 0016).
  *
  * Arranca con los valores por defecto. Con la app a la vista: manda el plan de la cuenta, aplica lo último bajado,
  * pide lo nuevo y escucha los cambios del servidor, así apagar o prender llega en segundos.

@@ -109,7 +109,7 @@ Reglas: el dueño lee, crea y actualiza. **No hay borrado desde el cliente.** Se
 - crear una nota ya borrada;
 - cambiar `bookId`, `locatorJson`, `quote`, `progression` o `createdAt`;
 - un `editedAt` menor que el guardado (**gana la edición más reciente**, como `readAt` en las posiciones, ADR 0011). Repetirlo se acepta (reenvío);
-- revivir una nota borrada: una vez puesto, `deletedAt` no cambia.
+- revivir una nota borrada con un `editedAt` que no sea posterior al borrado. Una edición hecha después del borrado la revive: también ahí gana el último cambio (SYN-005, SYN-010).
 
 ## Archivos (Storage)
 

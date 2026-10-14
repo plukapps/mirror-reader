@@ -123,7 +123,7 @@ class CloudListeners @Inject constructor(
     private val flags: RemoteFeatureFlags,
 ) : CloudListener {
     override fun startListening() {
-        // ACC-007, SYN-017: primero los interruptores, que deciden qué más se sincroniza.
+        // ACC-011, SYN-017: primero los interruptores, que deciden qué más se sincroniza.
         flags.startListening()
         removals.startListening()
         library.startListening()

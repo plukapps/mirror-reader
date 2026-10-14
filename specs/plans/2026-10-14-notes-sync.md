@@ -2,7 +2,7 @@
 
 **Objetivo:** que las notas lleguen a todos los dispositivos de la cuenta y que esa sincronización se pueda prender o apagar desde Remote Config, para todos o por plan, sin publicar una versión nueva.
 
-**Specs que implementa:** SYN-016, SYN-017 (nuevos), SYN-005 (cambiado: gana el último cambio), ACC-007 (nuevo), PRF-009 (avisa también por notas sin subir), ANN-007 para notas. **Decisión técnica:** ADR 0016 (Remote Config). Modelo de datos: `specs/platforms/backend.md`.
+**Specs que implementa:** SYN-016, SYN-017 (nuevos), SYN-005 (cambiado: gana el último cambio), ACC-011 (nuevo), PRF-009 (avisa también por notas sin subir), ANN-007 para notas. **Decisión técnica:** ADR 0016 (Remote Config). Modelo de datos: `specs/platforms/backend.md`.
 **Rama:** `feature/notes-sync`, desde `claude/notes-functionality-f6f30e`. PR aparte, apilado sobre el de notas (plukapps/mirror-reader#37); pasa a `develop` cuando ese se integre.
 **Aprobado por el usuario (2026-10-14).** **Tarjetas:** K-270 a K-277.
 **Pedido del usuario (2026-10-14):** Remote Config; prendida para todos por ahora; gana el último cambio; apagada, las notas siguen locales y se suben al prenderla.
@@ -37,7 +37,7 @@
   - cambiar los campos que no cambian;
   - campos de más o de menos;
   - el borrado físico.
-- Revivir una nota borrada no se permite: una nota borrada queda borrada.
+- Una nota borrada revive solo con una edición posterior al borrado: también entre borrar y editar gana el último cambio (SYN-005, SYN-010). Si no, una edición hecha sin conexión después de un borrado en otro dispositivo quedaría pendiente para siempre. Cambio hecho en K-273.
 
 ### Android: base local
 
@@ -83,7 +83,7 @@
 ## Tareas
 
 ### K-270 — Spec, ADR y plan
-- SYN-005 cambiado, SYN-016, SYN-017 y ACC-007 nuevos, PRF-009 y ANN-007. ADR 0016. Este plan. Tarjetas.
+- SYN-005 cambiado, SYN-016, SYN-017 y ACC-011 nuevos, PRF-009 y ANN-007. ADR 0016. Este plan. Tarjetas.
 
 ### K-271 — Backend: reglas de `notes` y tests
 - `firestore.rules`, `backend.md` (colección nueva, quitar "anotaciones" de "Fuera de este modelo").
@@ -93,7 +93,7 @@
   - rechazar más viejo y más de una hora en el futuro;
   - campos que no cambian;
   - borrar con marca;
-  - no revivir;
+  - revivir solo con una edición posterior;
   - libro inexistente;
   - otro usuario;
   - sin borrado físico.
@@ -127,6 +127,7 @@
 - Tests JVM en `SignOutTest` (PRF-009).
 
 ### K-276 — Remote Config y deploy (acciones sobre el proyecto real)
+- El parámetro va en `code/backend/v1/remoteconfig.template.json`, el template versionado de la rama del catálogo de planes (ADR 0016, "Coordinación"). Si esa rama todavía no se integró, se crea el parámetro en la consola y se agrega al template en cuanto exista. Un deploy del template sin el parámetro lo borra.
 - Se pide al usuario que cree en la consola el parámetro `notes_sync_enabled` (booleano, por defecto `true`), o que lo apruebe para hacerlo con la herramienta de Firebase.
 - También se le pide el deploy de las reglas (K-271).
 - Probar el apagado con una condición por instalación.

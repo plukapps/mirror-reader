@@ -67,7 +67,7 @@ class RemoteFeatureFlagsTest {
         assertTrue(flags.isEnabled(Feature.NotesSync))
     }
 
-    // SYN-017, ACC-007: apagada en el servidor, se apaga al bajar la configuración
+    // SYN-017, ACC-011: apagada en el servidor, se apaga al bajar la configuración
     @Test
     fun followsTheServerValue() = runTest(dispatcher) {
         source.server["notes_sync_enabled"] = false
@@ -95,7 +95,7 @@ class RemoteFeatureFlagsTest {
         assertNull(source.listener)
     }
 
-    // ACC-007: el plan de la cuenta viaja como señal, para las condiciones por plan; sin dato, Gratis
+    // ACC-011: el plan de la cuenta viaja como señal, para las condiciones por plan; sin dato, Gratis
     @Test
     fun sendsTheAccountPlan() = runTest(dispatcher) {
         flags(StorageQuota(0, 1, plan = "plus")).startListening()

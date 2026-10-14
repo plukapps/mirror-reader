@@ -68,7 +68,7 @@ abstract class RemoteModule {
     @Binds @Singleton abstract fun bindKnownBooks(impl: CloudBooksRepositoryImpl): KnownBooks
     @Binds @Singleton abstract fun bindLibrarySyncRequester(impl: LibrarySync): LibrarySyncRequester
 
-    // ACC-007, SYN-017, ADR 0016: funciones que se prenden y apagan con Remote Config.
+    // ACC-011, SYN-017, ADR 0016: funciones que se prenden y apagan con Remote Config.
     @Binds @Singleton abstract fun bindFeatureFlags(impl: RemoteFeatureFlags): FeatureFlags
     @Binds @Singleton abstract fun bindRemoteFlagSource(impl: FirebaseRemoteFlagSource): RemoteFlagSource
 
