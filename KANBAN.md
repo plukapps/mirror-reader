@@ -50,6 +50,7 @@ Plan de referencia: `specs/plans/2026-10-06-android-epub-viewer.md`
 
 ## Revisión
 
+- **K-217** Perfil: ocultar "Dispositivos vinculados" en Android e iOS hasta el registro de dispositivos. PRF-007. Rama `claude/linked-devices-profile-10dbda`. Hecho: la sección queda comentada en `ProfileScreen.kt` y `ProfileView.swift`; PRF-007 lo dice; `ProfileScreenTest` comprueba que no aparece.
 - **K-216** Volver a importar, iOS: `saveBook` escribe `addedAt` y el listado lo usa como fecha de entrada. LIB-021. Rama `feature/library-order`. Hecho: `listBooks` lee `addedAt ?? createdAt`; `saveBook` escribe `addedAt` al crear y al revivir. Tests: dominio 205, iPhone 189 (+1). Falta desplegar las reglas y probar a mano.
 - **K-215** Volver a importar, Android: `saveBook` escribe `addedAt` y el listado lo usa como fecha de entrada. LIB-021. Rama `feature/library-order`. Hecho: `listBooks` lee `addedAt ?: createdAt`; `saveBook` escribe `addedAt` al crear y al revivir. 415 tests JVM pasan (1 nuevo); los de emulador compilan.
 - **K-214** Volver a importar un libro quitado cuenta como entrada nueva (LIB-021): spec, campo `addedAt` en `backend.md` y reglas de Firestore con tests. Rama `feature/library-order`. Plan `2026-10-13-library-order.md`, segunda parte. Aprobado por el usuario (2026-10-13). Hecho: `addedAt` en `backend.md`, regla `isAddedAt`, 5 tests nuevos (97 pasan). Falta desplegar las reglas, antes que las apps.
