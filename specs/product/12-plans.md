@@ -7,11 +7,11 @@ Mostrar qué ofrece cada plan y avisar a tiempo cuando el plan gratuito no alcan
 Diseño: `design/Margin Planes.dc.html` (P01 a P07, borrador 2026-10-13). Se construye fiel al diseño, con estas diferencias decididas con el usuario (2026-10-13):
 
 - **La cuota sigue en bytes** (ACC-002, ADR 0008), no en libros. Donde el diseño dice "10 libros" va el espacio ("15 MB").
-- **Tamaño máximo por archivo según el plan** (PLN-014). Por ahora lo controla solo la app; el servidor sigue aceptando hasta 100 MB para todos hasta que una rebanada de backend lo haga cumplir.
+- **Tamaño máximo por archivo según el plan** (PLN-014). El servidor lo hace cumplir con el catálogo de planes (ACC-010, ADR 0017); hasta que las apps lean el catálogo (K-286, K-287) usan los mismos valores fijos.
 - **Sin prueba gratis por ahora.** El botón de compra siempre dice "Elegir…".
 - **Solo se muestran las funciones hechas o en camino** (PLN-016): espacio, tamaño por archivo, lectura y sincronización, temas y fuentes, exportar notas. Estadísticas, importar desde Drive, Calibre o email, lector web y familia están en definición y no aparecen.
 - **Temas y fuentes son de Lector** (PLN-015): en Gratis el lector usa el tema Clásico y la letra con serifa.
-- **Sin compras.** Los precios son de ejemplo y fijos en la app. "Elegir…" y "Restaurar compras" muestran el aviso "Llega más adelante." (PRF-003). La compra con la tienda, la confirmación (P05), el plan vencido (P06) y los estados de la tienda (P07) llegan en su propia rebanada.
+- **Sin compras.** Los precios son de ejemplo y fijos en la app; desde ACC-007 también están en el catálogo de planes (Remote Config, ADR 0017), de donde las apps los van a leer (K-286, K-287). "Elegir…" y "Restaurar compras" muestran el aviso "Llega más adelante." (PRF-003). La compra con la tienda, la confirmación (P05), el plan vencido (P06) y los estados de la tienda (P07) llegan en su propia rebanada.
 
 Primera rebanada: Android (teléfono y tablet) e iPhone. La Mac queda afuera hasta que tenga su barra lateral (K-078).
 
@@ -19,7 +19,7 @@ Primera rebanada: Android (teléfono y tablet) e iPhone. La Mac queda afuera has
 
 ### Catálogo
 
-- **PLN-001** Hay tres planes: Gratis, Lector y Biblioteca. Cada uno tiene nombre, bajada, espacio en la nube, tamaño máximo por archivo, lista de lo que incluye y precio mensual y anual. Gratis usa la cuota real de la cuenta (ACC-002). El espacio de Lector y Biblioteca lo confirmó el usuario por ahora (2026-10-13); los precios son de ejemplo hasta definirlos (open-questions #1):
+- **PLN-001** Hay tres planes: Gratis, Lector y Biblioteca (en el servidor y en el catálogo, `free`, `plus` y `pro`, ACC-007). Cada uno tiene nombre, bajada, espacio en la nube, tamaño máximo por archivo, lista de lo que incluye y precio mensual y anual. Gratis usa la cuota real de la cuenta (ACC-002). El espacio de Lector y Biblioteca lo confirmó el usuario por ahora (2026-10-13); los precios son de ejemplo hasta definirlos (open-questions #1):
 
   | | Gratis | Lector | Biblioteca |
   |---|---|---|---|
@@ -51,7 +51,7 @@ Primera rebanada: Android (teléfono y tablet) e iPhone. La Mac queda afuera has
 
 - **PLN-007** Al importar un libro que no entra en el espacio libre, el libro se importa igual en este dispositivo (se puede leer) y se muestra una hoja inferior. Si el espacio ya está lleno: "Llegaste a tu espacio", "{Título} no se subió a la nube, pero podés leerlo en este dispositivo. Tus otros libros siguen intactos.", la comparación "Gratis {cuota}" / "Lector 5 GB", "Ver planes" y "Ahora no". Reemplaza la explicación de LIB-009 en el momento de importar.
 - **PLN-008** Si queda espacio pero este libro no entra: "Este libro pesa {tamaño}", "Te quedan {libre} en la nube. No se subió, pero podés leerlo en este dispositivo.", la fila del libro con "{tamaño} · te quedan {libre}", "Con Lector: 5 GB en la nube", "Ver planes" y "Ahora no".
-- **PLN-014** Cada plan tiene un tamaño máximo por archivo (PLN-001). Al importar un libro más grande que el del plan de la cuenta, el libro se importa igual en este dispositivo y se muestra la hoja "archivo muy grande" del diseño (P02b): la fila del libro con "{tamaño} · límite {máximo}", "Este libro pesa {tamaño}", "Tu plan admite archivos de hasta {máximo}. No se subió a la nube, pero podés leerlo en este dispositivo.", "Con Lector: archivos de hasta 50 MB y 5 GB en la nube" (en Lector: "Con Biblioteca: archivos de hasta 100 MB y 50 GB en la nube"), "Ver planes" y "Ahora no". Esta comprobación va antes que la de espacio. La sincronización no sube los libros que superan el máximo; la línea de estado de la Biblioteca los cuenta con los que no entran ("N libros no entran en tu plan. Podés seguir leyendo."). El plan de la cuenta sale de la cuota (`plan`); si no se conoce o no es uno de los tres, vale Gratis. Por ahora lo controla solo la app (decisión del usuario, 2026-10-13); el servidor lo hará cumplir en otra rebanada.
+- **PLN-014** Cada plan tiene un tamaño máximo por archivo (PLN-001). Al importar un libro más grande que el del plan de la cuenta, el libro se importa igual en este dispositivo y se muestra la hoja "archivo muy grande" del diseño (P02b): la fila del libro con "{tamaño} · límite {máximo}", "Este libro pesa {tamaño}", "Tu plan admite archivos de hasta {máximo}. No se subió a la nube, pero podés leerlo en este dispositivo.", "Con Lector: archivos de hasta 50 MB y 5 GB en la nube" (en Lector: "Con Biblioteca: archivos de hasta 100 MB y 50 GB en la nube"), "Ver planes" y "Ahora no". Esta comprobación va antes que la de espacio. La sincronización no sube los libros que superan el máximo; la línea de estado de la Biblioteca los cuenta con los que no entran ("N libros no entran en tu plan. Podés seguir leyendo."). El plan de la cuenta sale de la cuota (`plan`); si no se conoce o no es uno de los tres, vale Gratis. Lo controla la app (decisión del usuario, 2026-10-13) y también el servidor, con el máximo de su plan (ACC-010, ADR 0017).
 - **PLN-009** La comprobación usa la última cuota conocida (la de PRF-006, que también se actualiza en cada sincronización) y descuenta los libros de este dispositivo que todavía esperan subirse. Si nunca se leyó, no se muestra la hoja y vale el aviso de sincronización de hoy (LIB-009). Si se importan varios libros a la vez, una sola hoja, con el primero que no entra. "Ahora no" cierra la hoja; el libro queda en el dispositivo, sin subir, y se vuelve a intentar en la próxima sincronización.
 
 ### P03 — Funciones pagas
@@ -83,4 +83,4 @@ Primera rebanada: Android (teléfono y tablet) e iPhone. La Mac queda afuera has
 
 ## Fuera de alcance en esta rebanada
 
-Compras y restauración con Google Play y App Store, prueba gratis real, P05 (compra confirmada), P06 (plan vencido), P07 (estados de la tienda), Mi plan de planes pagos y familia, cambiar la cuota a libros, tope por archivo en el servidor, P03a (exportar notas), funciones en definición (PLN-016), Mac.
+Compras y restauración con Google Play y App Store, prueba gratis real, P05 (compra confirmada), P06 (plan vencido), P07 (estados de la tienda), Mi plan de planes pagos y familia, cambiar la cuota a libros, tope por archivo en el servidor (lo hace ACC-010), P03a (exportar notas), funciones en definición (PLN-016), Mac.

@@ -39,3 +39,7 @@ Opción 2.
 ## Nota (2026-10-08): las portadas no cuentan
 
 Las portadas (`users/{uid}/covers/{hash}.jpg`, LIB-012) quedan fuera de `usedBytes`. Pesan unas decenas de KB, tope de 1 MiB por regla, y solo se pueden subir si existe el documento del libro, así que su cantidad queda acotada por la de libros. Contarlas obligaría a cambiar las funciones y sus tests sin un beneficio real. Si el costo de almacenamiento lo pidiera, se reevalúa junto con la deuda K-050.
+
+## Nota (2026-10-14): el tope por archivo depende del plan
+
+Los 100 MB fijos por archivo pasan a ser `users/{uid}.maxFileBytes`, el máximo del plan (ACC-010, ADR 0017). La regla lee el mismo documento que ya usa para la cuota, así que no suma lecturas. El exceso de la condición de carrera queda acotado por ese máximo en lugar de 100 MB.

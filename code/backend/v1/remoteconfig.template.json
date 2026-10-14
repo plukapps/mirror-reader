@@ -1,0 +1,11 @@
+{
+  "parameters": {
+    "plans": {
+      "defaultValue": {
+        "value": "{\"free\":{\"storageGb\":0.0146484375,\"maxFileMb\":2,\"priceMonthly\":0,\"priceYearly\":0,\"currency\":\"USD\"},\"plus\":{\"storageGb\":5,\"maxFileMb\":50,\"priceMonthly\":2.99,\"priceYearly\":24.99,\"currency\":\"USD\"},\"pro\":{\"storageGb\":50,\"maxFileMb\":100,\"priceMonthly\":5.99,\"priceYearly\":49.99,\"currency\":\"USD\"}}"
+      },
+      "description": "Catálogo de planes (ACC-007, PLN-001, ADR 0017). Por plan: storageGb (1 GB = 1024³ B), maxFileMb (1 MB = 1024² B), priceMonthly, priceYearly, currency. El backend lo copia a users/{uid}. Sin condiciones.",
+      "valueType": "JSON"
+    }
+  }
+}
