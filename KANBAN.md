@@ -6,7 +6,6 @@ Plan de referencia: `specs/plans/2026-10-06-android-epub-viewer.md`
 ## Backlog
 
 - **K-321** Notas iOS (#41): interruptores con Remote Config en iOS (`FirebaseRemoteConfig`, `FeatureFlags`, `FeatureTemplateTests`). ACC-011.
-- **K-322** Notas iOS (#37): `Note`, `NoteRecord` (SwiftData) y notas en `LibraryStore`; quitar un libro borra sus notas. ANN-006, ANN-011.
 - **K-323** Notas iOS (#37): "Nota" en el menú de selección (`EditingAction`) y editor. ANN-008.
 - **K-324** Notas iOS (#37): subrayados con decoraciones; ver, editar y borrar. ANN-009, ANN-005.
 - **K-325** Notas iOS (#37): abrir el lector en una nota. ANN-010.
@@ -62,6 +61,7 @@ Plan de referencia: `specs/plans/2026-10-06-android-epub-viewer.md`
 
 ## Revisión
 
+- **K-322** Notas iOS (#37): `Note`, `NoteRecord` (SwiftData) y notas en `LibraryStore`; quitar un libro borra sus notas. ANN-006, ANN-011. Hecho: `Note` y `NoteRepository` (dominio), `NoteRecord` (SwiftData, modelo nuevo) y la API de notas de `LibraryStore`; quitar un libro y cerrar sesión borran las notas. Dominio 229, app 214 en el simulador (+5 `NoteDataTests`), Mac compila.
 - **K-266** Notas, Tarea 7: cierre de docs y verificación a mano en el teléfono. Hecho: notas en `android.md`, resultado en el plan. Falta la verificación a mano en el SM-S711B (crear, ver subrayada, editar, ver en el detalle, tocar y llegar al lugar, borrar, quitar el libro) y correr los instrumentados donde el usuario diga.
 - **K-265** Notas, Tarea 6: detalle del libro con la lista de notas y "Ver detalle" en el menú; quitar el libro borra sus notas. LIB-022, ANN-010, ANN-011. Hecho: `BookDetailScreen` y `BookDetailViewModel` (ruta `book/{bookId}`), "Ver detalle" en el menú de acciones, tocar una nota abre el lector en ella. 3 tests JVM nuevos y orden del menú actualizado (428 pasan); `BookEditorTest` (ANN-011) y `BookActionsMenuTest` compilados, sin correr.
 - **K-264** Notas, Tarea 5: abrir el lector en una nota (`noteId` en la ruta). ANN-010, ANN-004. Hecho: ruta `reader/{bookId}?noteId={noteId}`; `ReaderViewModel` abre en el locator de la nota sin el aviso de otro dispositivo. 3 tests JVM; 425 pasan.
