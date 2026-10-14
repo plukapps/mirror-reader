@@ -2,9 +2,10 @@ import Foundation
 import Observation
 import ReaderDomain
 
-/// Opciones del menú de un libro, en el orden del diseño 05b (LIB-016). Como `BookAction` de Android.
+/// Opciones del menú de un libro, en el orden del diseño 05b (LIB-016), más "Ver detalle" (LIB-022). Como `BookAction`
+/// de Android.
 enum BookAction: Equatable {
-    case read, markFinished, markUnread, changeCover, remove
+    case read, details, markFinished, markUnread, changeCover, remove
 }
 
 /// Menú de un libro con mantener presionado (LIB-016 a LIB-020), compartido por Inicio, Estantes y Buscar.
@@ -17,6 +18,8 @@ final class BookActionsViewModel {
     /// El selector de fotos está abierto para `coverBookId` (LIB-019).
     var isPickingCover = false
     private(set) var coverBookId: String?
+    /// LIB-022: el detalle a la vista, o nil.
+    var detailBook: LibraryBook?
 
     private let actions: BookActions
     private let reload: () async -> Void
@@ -30,7 +33,7 @@ final class BookActionsViewModel {
 
     /// Sin empezar: terminado. Leyendo: terminado y no leído. Terminado: no leído (LIB-018).
     static func menu(for book: LibraryBook) -> [BookAction] {
-        var actions: [BookAction] = [.read]
+        var actions: [BookAction] = [.read, .details]
         if book.status != .finished { actions.append(.markFinished) }
         if book.status != .new { actions.append(.markUnread) }
         return actions + [.changeCover, .remove]
@@ -56,6 +59,11 @@ final class BookActionsViewModel {
         await actions.markUnread(bookId: book.id)
         await reload()
         notify(String(localized: "Marcado como no leído"))
+    }
+
+    /// LIB-022: "Ver detalle".
+    func showDetails(_ book: LibraryBook) {
+        detailBook = book
     }
 
     func askRemove(_ book: LibraryBook) {

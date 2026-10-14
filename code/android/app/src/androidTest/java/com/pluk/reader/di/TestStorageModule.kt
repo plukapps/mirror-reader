@@ -6,6 +6,7 @@ import androidx.datastore.preferences.core.PreferenceDataStoreFactory
 import androidx.datastore.preferences.core.Preferences
 import androidx.room.Room
 import com.pluk.reader.data.local.db.BookDao
+import com.pluk.reader.data.local.db.NoteDao
 import com.pluk.reader.data.local.db.ReaderDatabase
 import com.pluk.reader.data.local.db.ReadingPositionDao
 import dagger.Module
@@ -34,6 +35,9 @@ object TestStorageModule {
 
     @Provides
     fun provideBookDao(db: ReaderDatabase): BookDao = db.bookDao()
+
+    @Provides
+    fun provideNoteDao(db: ReaderDatabase): NoteDao = db.noteDao()
 
     @Provides
     @Singleton

@@ -46,6 +46,13 @@ Stack y capas definidos en `specs/adr/0005-android-stack-and-architecture.md`: C
   - **Apariencia (PRF-021, PRF-022, K-205):** `AppearancePreferences` en DataStore (clave `appearance`, en `RETAINED_KEYS`). `MarginColors` lee la `MarginPalette` de `LocalMarginPalette`, que `MainActivity` provee según la preferencia e `isSystemInDarkTheme()`; `InkFill` para rellenos oscuros y `OnYellow` sobre amarillo. Onboarding y lector se envuelven con la paleta clara (`lightComposable` en `AppNavHost`). Barras del sistema con `enableEdgeToEdge(SystemBarStyle…)` según el modo (`SystemBarsEffect`); el lector pone los íconos según su tema (resuelve K-200).
   - **Cambiar contraseña (PRF-020, K-203):** ruta `profile/password` sin barra (`ChangePasswordScreen`, `ChangePasswordViewModel`), con los campos, reglas y medidor del onboarding. `AuthRepository.changePassword` reautentica con `EmailAuthProvider` y llama `updatePassword`; la actual incorrecta llega como `InvalidCredentials` y se muestra bajo su campo. Regla de "Guardar" en `canSaveNewPassword`.
   - Plan `specs/plans/2026-10-12-profile.md`.
+- Notas sobre texto y detalle del libro (ANN-003 a ANN-011 en parte, LIB-022, K-260 a K-266):
+  - **Datos:** `Note` (`domain/model`), `NoteRepository`, tabla `notes` (Room v8, `MIGRATION_7_8`), solo local. El lugar es el locator de la selección serializado (con `text.highlight`); `progression` ordena la lista y da el porcentaje. Quitar un libro borra sus notas (`BookEditorImpl`).
+  - **Selección:** `SelectionMenu` es el `selectionActionModeCallback` de la configuración de Readium (`readerNavigatorConfiguration`). Reemplaza al menú del sistema, así que trae Nota, Copiar y Compartir. La pantalla lee `currentSelection()` antes de cerrar el menú, porque cerrarlo quita la selección.
+  - **Subrayados:** `applyDecorations(…, "notes")` con `Decoration.Style.Highlight` amarillo; `addDecorationListener` abre la nota tocada. Editor en `NoteEditorSheet`, con los colores del panel de ajustes.
+  - **Abrir en una nota:** ruta `reader/{bookId}?noteId={noteId}`; `ReaderViewModel` usa el locator de la nota en lugar de la última posición y no pregunta por otro dispositivo (SYN-003).
+  - **Detalle:** ruta `book/{bookId}` sin barra (`ui/detail`), desde "Ver detalle" del menú del libro. Sin páginas, tiempo ni descripción: la app no los conoce.
+  - Plan `specs/plans/2026-10-13-android-notes.md`.
 
 ## Criterio de terminado
 

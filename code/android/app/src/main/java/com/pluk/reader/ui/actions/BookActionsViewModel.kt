@@ -12,12 +12,13 @@ import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.launch
 
-/** Opciones del menú de un libro, en el orden del diseño 05b (LIB-016). */
-enum class BookAction { Read, MarkFinished, MarkUnread, ChangeCover, Remove }
+/** Opciones del menú de un libro, en el orden del diseño 05b (LIB-016), más "Ver detalle" (LIB-022). */
+enum class BookAction { Read, Details, MarkFinished, MarkUnread, ChangeCover, Remove }
 
 /** Sin empezar: terminado. Leyendo: terminado y no leído. Terminado: no leído (LIB-018). */
 fun menuActions(book: LibraryBook): List<BookAction> = buildList {
     add(BookAction.Read)
+    add(BookAction.Details)
     if (book.status != ReadingStatus.Finished) add(BookAction.MarkFinished)
     if (book.status != ReadingStatus.New) add(BookAction.MarkUnread)
     add(BookAction.ChangeCover)

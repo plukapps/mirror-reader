@@ -208,6 +208,7 @@ private fun subtitle(book: LibraryBook): String {
 private fun ActionRow(action: BookAction, onClick: () -> Unit) {
     val (icon, label) = when (action) {
         BookAction.Read -> R.drawable.ic_action_menu_book to R.string.book_actions_read
+        BookAction.Details -> R.drawable.ic_action_info to R.string.book_actions_details
         BookAction.MarkFinished -> R.drawable.ic_action_check_circle to R.string.book_actions_mark_finished
         BookAction.MarkUnread -> R.drawable.ic_action_remove_done to R.string.book_actions_mark_unread
         BookAction.ChangeCover -> R.drawable.ic_action_add_photo_alternate to R.string.book_actions_change_cover

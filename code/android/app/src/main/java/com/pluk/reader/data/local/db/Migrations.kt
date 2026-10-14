@@ -70,3 +70,15 @@ val MIGRATION_6_7 = object : Migration(6, 7) {
         db.execSQL("UPDATE `removed_books` SET `cloudDeleted` = 1")
     }
 }
+
+/** Notas sobre un texto del libro (ANN-003). */
+val MIGRATION_7_8 = object : Migration(7, 8) {
+    override fun migrate(db: SupportSQLiteDatabase) {
+        db.execSQL(
+            "CREATE TABLE IF NOT EXISTS `notes` (`id` TEXT NOT NULL, `bookId` TEXT NOT NULL, `locatorJson` TEXT NOT NULL, " +
+                "`quote` TEXT NOT NULL, `text` TEXT NOT NULL, `progression` REAL NOT NULL, `createdAt` INTEGER NOT NULL, " +
+                "`updatedAt` INTEGER NOT NULL, PRIMARY KEY(`id`))",
+        )
+        db.execSQL("CREATE INDEX IF NOT EXISTS `index_notes_bookId` ON `notes` (`bookId`)")
+    }
+}
