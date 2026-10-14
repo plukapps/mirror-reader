@@ -50,7 +50,9 @@ class ProfileScreenTest {
         compose.onNodeWithText("GRATIS").assertExists()
         compose.onNodeWithText("1,2 GB de 2 GB usados").assertExists()
         compose.onNodeWithText("0,8 GB libres").assertExists()
-        compose.onNodeWithText("Pixel 8 · este dispositivo").assertExists()
+        // PRF-007: la sección de dispositivos está oculta por ahora
+        compose.onNodeWithText("Dispositivos vinculados").assertDoesNotExist()
+        compose.onNodeWithText("Pixel 8 · este dispositivo").assertDoesNotExist()
         compose.onNodeWithText("margin. 1.0").performScrollTo().assertExists()
     }
 
