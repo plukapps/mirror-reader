@@ -208,7 +208,7 @@ struct ProfileViewModelTests {
 
     @Test("PLN-015: el plan sale de la cuota guardada; con Lector las opciones no llevan marca")
     func planFromCache() async {
-        let cache = MemoryQuotaCache(StorageQuota(usedBytes: 0, quotaBytes: 5 * gib, plan: "reader"))
+        let cache = MemoryQuotaCache(StorageQuota(usedBytes: 0, quotaBytes: 5 * gib, plan: "plus"))
         let viewModel = await loaded(ana, quota: nil, cache: cache)
         #expect(!viewModel.isLocked(ReadingTheme.dark))
     }

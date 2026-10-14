@@ -14,18 +14,27 @@ struct UserDefaultsQuotaCache: QuotaCache, @unchecked Sendable {
         guard let used = defaults.object(forKey: Key.usedBytes) as? Int64,
               let quota = defaults.object(forKey: Key.quotaBytes) as? Int64
         else { return nil }
-        return StorageQuota(usedBytes: used, quotaBytes: quota, plan: defaults.string(forKey: Key.plan) ?? StorageQuota.freePlan)
+        return StorageQuota(
+            usedBytes: used, quotaBytes: quota, plan: defaults.string(forKey: Key.plan) ?? StorageQuota.freePlan,
+            maxFileBytes: defaults.object(forKey: Key.maxFileBytes) as? Int64
+        )
     }
 
     func save(_ quota: StorageQuota) {
         defaults.set(quota.usedBytes, forKey: Key.usedBytes)
         defaults.set(quota.quotaBytes, forKey: Key.quotaBytes)
         defaults.set(quota.plan, forKey: Key.plan)
+        if let maxFileBytes = quota.maxFileBytes {
+            defaults.set(maxFileBytes, forKey: Key.maxFileBytes)
+        } else {
+            defaults.removeObject(forKey: Key.maxFileBytes)
+        }
     }
 
     enum Key {
         static let usedBytes = "profile_used_bytes"
         static let quotaBytes = "profile_quota_bytes"
         static let plan = "profile_plan"
+        static let maxFileBytes = "profile_max_file_bytes"
     }
 }

@@ -32,7 +32,7 @@ public struct Plan: Equatable, Sendable {
     public let name: String
     public let tagline: String
     public let storageBytes: Int64?
-    /// PLN-014: tamaño máximo de cada archivo que se sube a la nube.
+    /// PLN-014: tamaño máximo de cada archivo que se sube a la nube. Vale mientras no se conoce el del servidor (ACC-008).
     public let maxFileBytes: Int64
     public let includes: [String]
     public let monthlyPrice: String
@@ -151,9 +151,17 @@ public enum PlanCatalog {
         return formatStorage(bytes, unit: StorageUnit.forTotal(bytes))
     }
 
+    /// Id de cada plan en `users/{uid}.plan` y en el catálogo del backend (ACC-007, ADR 0017).
+    private static let backendIds: [String: PlanId] = ["free": .free, "plus": .reader, "pro": .library]
+
     /// PLN-014: el plan de la cuenta sale de la cuota; si no se conoce o no es uno de los tres, Gratis.
     public static func planOf(_ quota: StorageQuota?) -> PlanId {
-        quota.flatMap { PlanId(rawValue: $0.plan) } ?? .free
+        quota.flatMap { backendIds[$0.plan] } ?? .free
+    }
+
+    /// PLN-014, ACC-008: tamaño máximo por archivo de la cuenta; el del servidor si se conoce, si no el fijo del plan.
+    public static func maxFileBytes(_ quota: StorageQuota?) -> Int64 {
+        quota?.maxFileBytes ?? plan(planOf(quota)).maxFileBytes
     }
 
     /// PLN-014: el plan que se ofrece para pasar de este ("Con Lector…", "Con Biblioteca…"); nil en Biblioteca.

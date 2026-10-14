@@ -54,7 +54,7 @@ public struct ImportQuotaCheck: Sendable {
         guard !imported.isEmpty, let pending = try? await uploads.pending() else { return nil }
         let quota = cache.last()
         let newBooks = Set(imported)
-        let maxFile = PlanCatalog.plan(PlanCatalog.planOf(quota)).maxFileBytes
+        let maxFile = PlanCatalog.maxFileBytes(quota)
         // Sin cuota, el espacio no se comprueba: solo el tamaño.
         var free = quota?.freeBytes ?? .max
         for item in pending {

@@ -34,7 +34,7 @@ func blockRule() {
 
 @Test("PLN-008: quedan 3 MB y el libro pesa 8 MB")
 func doesNotFit() async {
-    let notice = await check(used: 12 * mib, [item("a", 8 * mib)], plan: "library")(imported: ["a"])
+    let notice = await check(used: 12 * mib, [item("a", 8 * mib)], plan: "pro")(imported: ["a"])
     #expect(notice?.block == .doesNotFit(bookBytes: 8 * mib, freeBytes: 3 * mib))
     #expect(notice?.title == "Libro a")
 }
@@ -46,13 +46,13 @@ func full() async {
 
 @Test("PLN-009: se descuentan los pendientes que esperan subirse")
 func pendingCount() async {
-    let notice = await check(used: 5 * mib, [item("viejo", 8 * mib), item("a", 4 * mib)], plan: "library")(imported: ["a"])
+    let notice = await check(used: 5 * mib, [item("viejo", 8 * mib), item("a", 4 * mib)], plan: "pro")(imported: ["a"])
     #expect(notice?.block == .doesNotFit(bookBytes: 4 * mib, freeBytes: 2 * mib))
 }
 
 @Test("PLN-009: varios a la vez, una sola hoja con el primero que no entra")
 func firstThatDoesNotFit() async {
-    let notice = await check(used: 0, [item("a", 10 * mib), item("b", 4 * mib), item("c", 9 * mib)], plan: "library")(imported: ["a", "b", "c"])
+    let notice = await check(used: 0, [item("a", 10 * mib), item("b", 4 * mib), item("c", 9 * mib)], plan: "pro")(imported: ["a", "b", "c"])
     #expect(notice?.bookId == "c")
     #expect(notice?.block == .doesNotFit(bookBytes: 9 * mib, freeBytes: mib))
 }
@@ -86,8 +86,8 @@ func tooLargeFirst() {
 @Test("PLN-014: en Gratis un libro de 3 MB es muy grande; en Lector entra")
 func tooLargeByPlan() async {
     #expect(await check(used: 0, [item("a", 3 * mib)])(imported: ["a"])?.block == .tooLarge(bookBytes: 3 * mib, maxBytes: 2 * mib))
-    #expect(await check(used: 0, [item("a", 3 * mib)], plan: "reader")(imported: ["a"]) == nil)
-    #expect(await check(used: 0, [item("a", 51 * mib)], quota: 5 * 1024 * mib, plan: "reader")(imported: ["a"])?.block
+    #expect(await check(used: 0, [item("a", 3 * mib)], plan: "plus")(imported: ["a"]) == nil)
+    #expect(await check(used: 0, [item("a", 51 * mib)], quota: 5 * 1024 * mib, plan: "plus")(imported: ["a"])?.block
         == .tooLarge(bookBytes: 51 * mib, maxBytes: 50 * mib))
 }
 
@@ -95,9 +95,23 @@ func tooLargeByPlan() async {
 func unknownPlanIsFree() async {
     #expect(PlanCatalog.planOf(StorageQuota(usedBytes: 0, quotaBytes: 1, plan: "premium")) == .free)
     #expect(PlanCatalog.planOf(nil) == .free)
-    #expect(PlanCatalog.planOf(StorageQuota(usedBytes: 0, quotaBytes: 1, plan: "library")) == .library)
+    #expect(PlanCatalog.planOf(StorageQuota(usedBytes: 0, quotaBytes: 1, plan: "pro")) == .library)
+    #expect(PlanCatalog.planOf(StorageQuota(usedBytes: 0, quotaBytes: 1, plan: "plus")) == .reader)
+    // ACC-007: los ids del backend son `plus` y `pro`; los viejos ya no valen.
+    #expect(PlanCatalog.planOf(StorageQuota(usedBytes: 0, quotaBytes: 1, plan: "library")) == .free)
+    #expect(PlanCatalog.planOf(StorageQuota(usedBytes: 0, quotaBytes: 1, plan: "reader")) == .free)
     #expect(await check(used: 0, [item("a", 3 * mib)], plan: "premium")(imported: ["a"])?.block == .tooLarge(bookBytes: 3 * mib, maxBytes: 2 * mib))
     #expect(await check(used: 0, [item("a", 2 * mib)])(imported: ["a"]) == nil)
+}
+
+@Test("ACC-008, ACC-010: el máximo por archivo que informa el servidor manda sobre el fijo del plan")
+func serverMaxFileBytesWins() async {
+    #expect(PlanCatalog.maxFileBytes(nil) == 2 * mib)
+    #expect(PlanCatalog.maxFileBytes(StorageQuota(usedBytes: 0, quotaBytes: 1, plan: "plus")) == 50 * mib)
+    #expect(PlanCatalog.maxFileBytes(StorageQuota(usedBytes: 0, quotaBytes: 1, plan: "plus", maxFileBytes: 7 * mib)) == 7 * mib)
+    let cache = Cache(StorageQuota(usedBytes: 0, quotaBytes: 15 * mib, maxFileBytes: 1 * mib))
+    let notice = await ImportQuotaCheck(uploads: Pending(items: [item("a", 1 * mib + 1)]), cache: cache)(imported: ["a"])
+    #expect(notice?.block == .tooLarge(bookBytes: 1 * mib + 1, maxBytes: 1 * mib))
 }
 
 @Test("PLN-014: un pendiente que supera el máximo no ocupa lugar")

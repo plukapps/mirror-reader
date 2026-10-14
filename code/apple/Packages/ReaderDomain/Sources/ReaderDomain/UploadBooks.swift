@@ -14,11 +14,14 @@ public struct StorageQuota: Equatable, Sendable {
     public let usedBytes: Int64
     public let quotaBytes: Int64
     public let plan: String
+    /// Máximo por archivo que aplica el servidor (ACC-010), o nil si el documento todavía no lo tiene.
+    public let maxFileBytes: Int64?
 
-    public init(usedBytes: Int64, quotaBytes: Int64, plan: String = StorageQuota.freePlan) {
+    public init(usedBytes: Int64, quotaBytes: Int64, plan: String = StorageQuota.freePlan, maxFileBytes: Int64? = nil) {
         self.usedBytes = usedBytes
         self.quotaBytes = quotaBytes
         self.plan = plan
+        self.maxFileBytes = maxFileBytes
     }
 
     public var freeBytes: Int64 { max(quotaBytes - usedBytes, 0) }
@@ -110,8 +113,8 @@ public struct UploadBooks: Sendable {
         guard let current = try? await quota.current() else { return UploadReport(unreachable: true) }
         cache?.save(current)
         var free = current.freeBytes
-        // PLN-014: por ahora el tope por archivo lo controla solo la app.
-        let maxFile = PlanCatalog.plan(PlanCatalog.planOf(current)).maxFileBytes
+        // PLN-014, ACC-010: el tope por archivo del plan; el servidor también lo aplica (ADR 0017).
+        let maxFile = PlanCatalog.maxFileBytes(current)
 
         var report = UploadReport()
         for item in pending {
