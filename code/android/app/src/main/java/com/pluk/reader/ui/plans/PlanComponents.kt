@@ -94,18 +94,18 @@ internal fun UsageBar(fraction: Float, modifier: Modifier = Modifier, track: Col
 
 /** Marca "Tu plan": borde tinta de 1,5, con o sin tilde. */
 @Composable
-internal fun YourPlanChip(text: String, large: Boolean = false, withCheck: Boolean = true) {
+internal fun YourPlanChip(text: String, large: Boolean = false, withCheck: Boolean = true, color: Color = MarginColors.Ink) {
     val height = if (large) 30.dp else 28.dp
     Row(
         Modifier
             .height(height)
-            .border(1.5.dp, MarginColors.Ink, RoundedCornerShape(height / 2))
+            .border(1.5.dp, color, RoundedCornerShape(height / 2))
             .padding(horizontal = if (large) 12.dp else 10.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(4.dp),
     ) {
-        if (withCheck) Icon(PlanIcons.Check, null, tint = MarginColors.Ink, modifier = Modifier.size(16.dp))
-        Text(text, style = planText(if (large) 13 else 12, FontWeight.Bold))
+        if (withCheck) Icon(PlanIcons.Check, null, tint = color, modifier = Modifier.size(16.dp))
+        Text(text, style = planText(if (large) 13 else 12, FontWeight.Bold, color))
     }
 }
 

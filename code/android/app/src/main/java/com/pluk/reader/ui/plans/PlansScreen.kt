@@ -398,7 +398,10 @@ private fun CardHeader(plan: PlanId, name: String, state: PlansUiState, selected
     Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             Text(name, style = planText(if (tablet) 24 else 20, FontWeight.Bold, ink, (-0.02).em))
-            if (plan == PlanId.PLUS) {
+            // PLN-005, PLN-017: en un plan pago de la cuenta, "Tu plan" junto al nombre (en Lector, en lugar de "Más elegido").
+            if (plan != PlanId.FREE && plan == state.accountPlan) {
+                YourPlanChip(stringResource(R.string.plans_your_plan), large = tablet, withCheck = false, color = ink)
+            } else if (plan == PlanId.PLUS) {
                 Text(
                     stringResource(R.string.plans_most_chosen),
                     style = planText(if (tablet) 12 else 11, FontWeight.Bold, MarginColors.Yellow),
@@ -411,7 +414,7 @@ private fun CardHeader(plan: PlanId, name: String, state: PlansUiState, selected
             }
         }
         when {
-            plan == PlanId.FREE -> if (state.isOnFreePlan) YourPlanChip(stringResource(R.string.plans_your_plan), large = tablet)
+            plan == PlanId.FREE -> if (state.accountPlan == PlanId.FREE) YourPlanChip(stringResource(R.string.plans_your_plan), large = tablet)
             else -> Icon(
                 if (selected) PlanIcons.RadioChecked else PlanIcons.RadioUnchecked,
                 null,

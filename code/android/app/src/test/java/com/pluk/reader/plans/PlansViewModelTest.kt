@@ -104,14 +104,17 @@ class PlansViewModelTest {
         assertEquals("20 MB", state().freeCloud)
     }
 
-    // PLN-005: "Tu plan" en Gratis si es el plan de la cuenta
+    // PLN-005, PLN-017: "Tu plan" va en el plan de la cuenta; sin dato, Gratis
     @Test
-    fun freeIsTheCurrentPlanOnlyForFreeAccounts() = runTest(dispatcher) {
+    fun yourPlanIsThePlanOfTheAccount() = runTest(dispatcher) {
         val cache = FakeQuotaCache(StorageQuota(0, 15 * mib))
         val (_, state) = start(cache)
-        assertTrue(state().isOnFreePlan)
+        assertEquals(PlanId.FREE, state().accountPlan)
         cache.quota.value = StorageQuota(0, 15 * mib, plan = "plus")
         advanceUntilIdle()
-        assertFalse(state().isOnFreePlan)
+        assertEquals(PlanId.PLUS, state().accountPlan)
+        cache.quota.value = StorageQuota(0, 15 * mib, plan = "pro")
+        advanceUntilIdle()
+        assertEquals(PlanId.PRO, state().accountPlan)
     }
 }

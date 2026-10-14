@@ -377,4 +377,6 @@
     <string name="plans_devices_value">Todos, sin límite</string>
     <string name="plans_change_plan">Cambiar de plan</string>
     <string name="plans_my_plan_upsell">Archivos de hasta %1$s, temas y fuentes.</string>
+    <string name="plans_with_library">Con Biblioteca: %1$s en la nube</string>
+    <string name="plans_my_plan_upsell_pro">Archivos de hasta %1$s.</string>
 </resources>

@@ -4,9 +4,12 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.test.assert
 import androidx.compose.ui.test.assertIsNotSelected
 import androidx.compose.ui.test.assertIsSelected
 import androidx.compose.ui.test.assertTextEquals
+import androidx.compose.ui.test.hasAnyDescendant
+import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithTag
@@ -54,6 +57,14 @@ class PlansScreenTest {
         show()
         compose.onNodeWithContentDescription("Usás 12 MB de 15 MB, 80 %").assertExists()
         compose.onNodeWithText("Tu biblioteca entera, en todos lados.").assertExists()
+    }
+
+    // PLN-005, PLN-017: "Tu plan" va en la tarjeta del plan de la cuenta
+    @Test
+    fun yourPlanMarksThePlanOfTheAccount() {
+        show(PlansUiState(usage = usage, accountPlan = PlanId.PRO))
+        compose.onNodeWithTag("plan-PRO").assert(hasAnyDescendant(hasText("Tu plan")))
+        compose.onNodeWithTag("plan-FREE").assert(hasAnyDescendant(hasText("Tu plan")).not())
     }
 
     // PLN-003: sin cuota leída no hay fila de uso

@@ -31,8 +31,8 @@ data class PlansUiState(
     val usage: StorageUsage? = null,
     /** Espacio de Gratis: la cuota de la cuenta (PLN-001). */
     val freeCloud: String = formatCloud(DefaultPlans.FREE_QUOTA_BYTES),
-    /** Gratis lleva "Tu plan" (PLN-005). Sin cuota conocida, la cuenta es gratuita: no hay otro plan todavía. */
-    val isOnFreePlan: Boolean = true,
+    /** Plan de la cuenta, que lleva "Tu plan" (PLN-005, PLN-017). Sin cuota conocida, Gratis. */
+    val accountPlan: PlanId = PlanId.FREE,
 ) {
     val cta: PlanCta get() = ctaFor(selected, billing)
 
@@ -52,7 +52,7 @@ class PlansViewModel @Inject constructor(quotaCache: QuotaCache) : ViewModel() {
         choice.copy(
             usage = quota?.let(::storageUsage),
             freeCloud = formatCloud(PlanCatalog.cloudBytes(DefaultPlans.free, quota)),
-            isOnFreePlan = quota?.isFreePlan ?: true,
+            accountPlan = PlanCatalog.planOf(quota),
         )
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(STOP_TIMEOUT_MS), PlansUiState())
 
