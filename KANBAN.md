@@ -5,7 +5,6 @@ Plan de referencia: `specs/plans/2026-10-06-android-epub-viewer.md`
 
 ## Backlog
 
-- **K-265** Notas, Tarea 6: detalle del libro con la lista de notas y "Ver detalle" en el menú; quitar el libro borra sus notas. LIB-022, ANN-010, ANN-011.
 - **K-266** Notas, Tarea 7: cierre de docs y verificación a mano en el teléfono.
 - **K-209** Android, modo oscuro: en "Cambiar contraseña" (PRF-020) los campos conservan el borde claro del onboarding y "Guardar" deshabilitado se ve gris claro sobre el fondo oscuro. Se lee, pero desentona con el resto. Pasar `OnbTextField` y `PrimaryButton` a los tokens de la paleta fuera del onboarding (PRF-022). Visto en el SM-S711B el 2026-10-13.
 - **K-202** Apple: la etiqueta 3.9.0 de Readium Swift ya no existe en GitHub (`git ls-remote` pasa de 3.8.0 a 3.10.0), y `project.yml` fija `exactVersion: 3.9.0`. Un clon o worktree nuevo no resuelve los paquetes ("no versions of 'swift-toolkit' match 3.9.0"). Hoy solo compila con una caché de Xcode que ya la tenía (`DerivedData/Reader-gbvs…`, commit `de07026e9`). Decidir: fijar por `revision: de07026e9…` en `project.yml` o pasar a 3.10 (exige Xcode 16.3, ADR 0013). Visto el 2026-10-12.
@@ -52,6 +51,7 @@ Plan de referencia: `specs/plans/2026-10-06-android-epub-viewer.md`
 
 ## Revisión
 
+- **K-265** Notas, Tarea 6: detalle del libro con la lista de notas y "Ver detalle" en el menú; quitar el libro borra sus notas. LIB-022, ANN-010, ANN-011. Hecho: `BookDetailScreen` y `BookDetailViewModel` (ruta `book/{bookId}`), "Ver detalle" en el menú de acciones, tocar una nota abre el lector en ella. 3 tests JVM nuevos y orden del menú actualizado (428 pasan); `BookEditorTest` (ANN-011) y `BookActionsMenuTest` compilados, sin correr.
 - **K-264** Notas, Tarea 5: abrir el lector en una nota (`noteId` en la ruta). ANN-010, ANN-004. Hecho: ruta `reader/{bookId}?noteId={noteId}`; `ReaderViewModel` abre en el locator de la nota sin el aviso de otro dispositivo. 3 tests JVM; 425 pasan.
 - **K-263** Notas, Tarea 4: subrayados en el lector; ver, editar y borrar la nota. ANN-009, ANN-005. Hecho: subrayados con `applyDecorations` (grupo `notes`), tocar uno abre la nota (`openNote`), editar y borrar con confirmación. 3 tests JVM; 422 pasan. Falta probar a mano en el teléfono.
 - **K-262** Notas, Tarea 3: "Nota" en el menú de selección y editor. ANN-008. Hecho: `SelectionMenu` (Nota, Copiar, Compartir) en la configuración de Readium, `NoteEditorSheet`, `ReaderViewModel.onTextSelected/saveNote/closeNote`. 3 tests JVM. Falta probar a mano en el teléfono.

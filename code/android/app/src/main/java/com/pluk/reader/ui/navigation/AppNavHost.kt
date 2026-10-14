@@ -57,6 +57,8 @@ import androidx.navigation.NamedNavArgument
 import androidx.navigation.NavBackStackEntry
 import androidx.navigation.NavGraphBuilder
 import com.pluk.reader.ui.theme.LightPalette
+import com.pluk.reader.ui.detail.BookDetailScreen
+import com.pluk.reader.ui.detail.BookDetailViewModel
 import com.pluk.reader.ui.theme.ReaderTheme
 import com.pluk.reader.ui.theme.LocalMarginPalette
 import com.pluk.reader.ui.theme.SystemBarsEffect
@@ -82,6 +84,8 @@ object Routes {
     const val FAQ_LIST = "profile/faq"
     const val FAQ_ANSWER = "profile/faq/{key}"
     const val CHANGE_PASSWORD = "profile/password"
+    const val BOOK_DETAIL = "book/{${BookDetailViewModel.ARG_BOOK_ID}}"
+    fun bookDetail(bookId: String): String = "book/$bookId"
     fun faqAnswer(key: String): String = "profile/faq/$key"
 
     /** El lector en la última posición del libro o, con [noteId], en el lugar de esa nota (ANN-010). */
@@ -265,6 +269,17 @@ fun AppNavHost(
                         val id = Faq.byKey(entry.arguments?.getString("key").orEmpty())
                         if (id != null) FaqAnswerScreen(id, onBack = { navController.popBackStack() })
                     }
+                    // LIB-022: detalle del libro, sin barra inferior. Tocar una nota abre el lector en ella (ANN-010).
+                    composable(
+                        Routes.BOOK_DETAIL,
+                        arguments = listOf(navArgument(BookDetailViewModel.ARG_BOOK_ID) { type = NavType.StringType }),
+                    ) {
+                        BookDetailScreen(
+                            onBack = { navController.popBackStack() },
+                            onRead = { navController.navigate(Routes.reader(it)) },
+                            onOpenNote = { bookId, noteId -> navController.navigate(Routes.reader(bookId, noteId)) },
+                        )
+                    }
                     lightComposable(
                         route = Routes.READER,
                         arguments = listOf(
@@ -288,7 +303,12 @@ fun AppNavHost(
             }
         }
         if (selected != null) {
-            BookActionsHost(bookActions, onRead = { navController.navigate(Routes.reader(it)) }, bottomPadding = bottomPadding)
+            BookActionsHost(
+                bookActions,
+                onRead = { navController.navigate(Routes.reader(it)) },
+                onDetails = { navController.navigate(Routes.bookDetail(it)) },
+                bottomPadding = bottomPadding,
+            )
         }
     }
 }

@@ -38,6 +38,7 @@ import com.pluk.reader.ui.theme.MarginColors
 fun BookActionsHost(
     state: BookActionsState,
     onRead: (bookId: String) -> Unit,
+    onDetails: (bookId: String) -> Unit,
     bottomPadding: Dp,
     viewModel: BookActionsViewModel = hiltViewModel(),
 ) {
@@ -65,6 +66,7 @@ fun BookActionsHost(
                     val book = target.book
                     when (action) {
                         BookAction.Read -> onRead(book.id)
+                        BookAction.Details -> onDetails(book.id)
                         BookAction.MarkFinished -> viewModel.markFinished(book)
                         BookAction.MarkUnread -> viewModel.markUnread(book)
                         BookAction.ChangeCover -> {
