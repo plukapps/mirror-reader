@@ -138,6 +138,19 @@ private struct ReadyReader: View {
             .sheet(isPresented: tocBinding) {
                 TableOfContentsSheet(items: book.toc, onSelect: viewModel.select)
             }
+            // ANN-008, ANN-009: el editor de la nota nueva o de la tocada.
+            .sheet(item: noteBinding) { editor in
+                NoteEditorSheet(
+                    editor: editor,
+                    onSave: { text in Task { await viewModel.saveNote(text) } },
+                    onCancel: viewModel.closeNote,
+                    onDelete: { Task { await viewModel.deleteNote() } }
+                )
+                .presentationDetents([.medium, .large])
+                .presentationCornerRadius(28)
+                .presentationBackground(SheetColors.background)
+                .presentationDragIndicator(.hidden)
+            }
             .onChange(of: viewModel.tocOpen) { _, open in
                 if !open { tocPresented = false }
             }
@@ -146,6 +159,10 @@ private struct ReadyReader: View {
     /// RDR-014: el panel se cierra tocando el libro, arrastrándolo hacia abajo o con "Aa".
     private var settingsBinding: Binding<Bool> {
         Binding(get: { viewModel.settingsOpen }, set: { if !$0 { viewModel.closeSettings() } })
+    }
+
+    private var noteBinding: Binding<ReaderViewModel.NoteEditor?> {
+        Binding(get: { viewModel.noteEditor }, set: { if $0 == nil { viewModel.closeNote() } })
     }
 
     private var tocBinding: Binding<Bool> {

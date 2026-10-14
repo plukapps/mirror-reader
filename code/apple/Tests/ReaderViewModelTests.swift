@@ -35,6 +35,25 @@ private final class FakeSettings: ReaderSettingsRepository, @unchecked Sendable 
     func save(_ settings: ReaderSettings) { stored = settings }
 }
 
+/// Notas en memoria, con el mismo orden que la base (ANN-010).
+private actor FakeNotes: NoteRepository {
+    private(set) var all: [Note] = []
+    init(_ notes: [Note] = []) { all = notes }
+    func notes(bookId: String) async -> [Note] {
+        all.filter { $0.bookId == bookId }.sorted { ($0.progression, $0.createdAt) < ($1.progression, $1.createdAt) }
+    }
+    func note(id: String) async -> Note? { all.first { $0.id == id } }
+    func save(_ note: Note) async { all.removeAll { $0.id == note.id }; all.append(note) }
+    func delete(id: String) async { all.removeAll { $0.id == id } }
+}
+
+private func note(_ id: String, bookId: String = "a", progression: Double = 0.5) -> Note {
+    Note(
+        id: id, bookId: bookId, locatorJson: #"{"href":"c1.xhtml","id":"\#(id)"}"#, quote: "texto citado \(id)",
+        text: "nota \(id)", progression: progression, createdAt: 1, updatedAt: 1
+    )
+}
+
 private let book = OpenedBook(
     title: "Walden",
     toc: [
@@ -231,5 +250,95 @@ struct ReaderViewModelTests {
         viewModel.select(book.toc[2])
         #expect(!viewModel.tocOpen)
         #expect(viewModel.jump?.href == "notes.xhtml")
+    }
+
+    // MARK: Notas (ANN-008 a ANN-010)
+
+    private func makeViewModel(notes: FakeNotes, noteId: String? = nil, source: FakeSource = FakeSource(book: book)) -> ReaderViewModel {
+        ReaderViewModel(
+            bookId: "a", source: source, positions: positions, settings: settings, saveDelay: .zero,
+            notes: notes, noteId: noteId, clock: { Date(timeIntervalSince1970: 50) }
+        )
+    }
+
+    @Test("ANN-008: elegir Nota sobre una selección abre el editor con el texto citado; guardar crea la nota subrayada")
+    func savesANoteOnTheSelection() async {
+        let notes = FakeNotes()
+        let viewModel = makeViewModel(notes: notes)
+        await viewModel.load()
+        viewModel.onTextSelected(locatorJson: #"{"href":"c2.xhtml"}"#, quote: "  Empieza la mañana  ", progression: 0.42)
+        #expect(viewModel.noteEditor == .init(noteId: nil, quote: "Empieza la mañana", text: "", locatorJson: #"{"href":"c2.xhtml"}"#, progression: 0.42))
+        await viewModel.saveNote(" Para el lunes ")
+        #expect(viewModel.noteEditor == nil)
+        let saved = await notes.all
+        #expect(saved.count == 1)
+        #expect(saved[0].bookId == "a")
+        #expect(saved[0].quote == "Empieza la mañana")
+        #expect(saved[0].text == "Para el lunes")
+        #expect(saved[0].progression == 0.42)
+        #expect(saved[0].createdAt == 50_000)
+        #expect(viewModel.bookNotes.map(\.id) == [saved[0].id])
+    }
+
+    @Test("ANN-008: cancelar no guarda nada; un texto vacío no se guarda; una selección vacía no abre el editor")
+    func cancelAndBlank() async {
+        let notes = FakeNotes()
+        let viewModel = makeViewModel(notes: notes)
+        await viewModel.load()
+        viewModel.onTextSelected(locatorJson: "{}", quote: "   ", progression: 0.1)
+        #expect(viewModel.noteEditor == nil)
+        viewModel.onTextSelected(locatorJson: "{}", quote: "frase", progression: 0.1)
+        await viewModel.saveNote("   ")
+        #expect(viewModel.noteEditor != nil)
+        viewModel.closeNote()
+        #expect(viewModel.noteEditor == nil)
+        #expect(await notes.all.isEmpty)
+    }
+
+    @Test("ANN-009: tocar un subrayado muestra la nota; editarla conserva el id, el lugar y la fecha de creación")
+    func editsFromTheHighlight() async {
+        let notes = FakeNotes([note("n1")])
+        let viewModel = makeViewModel(notes: notes)
+        await viewModel.load()
+        #expect(viewModel.bookNotes.map(\.id) == ["n1"])
+        await viewModel.openNote(id: "n1")
+        #expect(viewModel.noteEditor?.noteId == "n1")
+        #expect(viewModel.noteEditor?.text == "nota n1")
+        await viewModel.saveNote("corregida")
+        let edited = await notes.note(id: "n1")
+        #expect(edited?.text == "corregida")
+        #expect(edited?.locatorJson == note("n1").locatorJson)
+        #expect(edited?.createdAt == 1)
+        #expect(edited?.updatedAt == 50_000)
+    }
+
+    @Test("ANN-009: borrar desde el lector quita la nota y su subrayado")
+    func deletesFromTheHighlight() async {
+        let notes = FakeNotes([note("n1"), note("n2", progression: 0.9), note("ajena", bookId: "otro")])
+        let viewModel = makeViewModel(notes: notes)
+        await viewModel.load()
+        #expect(viewModel.bookNotes.map(\.id) == ["n1", "n2"])
+        await viewModel.openNote(id: "n1")
+        await viewModel.deleteNote()
+        #expect(viewModel.noteEditor == nil)
+        #expect(viewModel.bookNotes.map(\.id) == ["n2"])
+    }
+
+    @Test("ANN-010: abrir desde una nota abre en su lugar, no en la última posición")
+    func opensAtTheNote() async {
+        let viewModel = makeViewModel(notes: FakeNotes([note("n1")]), noteId: "n1")
+        await viewModel.load()
+        guard case let .ready(opened) = viewModel.phase else { Issue.record("no abrió"); return }
+        #expect(opened.initialLocatorJson == note("n1").locatorJson)
+    }
+
+    @Test("ANN-010: una nota que ya no existe o de otro libro abre en la última posición")
+    func missingOrForeignNote() async {
+        for noteId in ["borrada", "ajena"] {
+            let viewModel = makeViewModel(notes: FakeNotes([note("ajena", bookId: "otro")]), noteId: noteId)
+            await viewModel.load()
+            guard case let .ready(opened) = viewModel.phase else { Issue.record("no abrió"); return }
+            #expect(opened.initialLocatorJson == book.initialLocatorJson)
+        }
     }
 }

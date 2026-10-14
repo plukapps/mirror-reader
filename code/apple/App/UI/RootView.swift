@@ -13,7 +13,7 @@ struct RootView: View {
     let sync: SyncCoordinator
     let profile: ProfileViewModel
     @Bindable var bookActions: BookActionsViewModel
-    let makeReader: ((String) -> ReaderViewModel)?
+    let makeReader: ((_ bookId: String, _ noteId: String?) -> ReaderViewModel)?
     /// P01 Planes (PLN-002), a pantalla completa sobre todo lo demás.
     @Bindable var plans: PlansPresenter
     /// ONB-013: al llegar desde "Importar mis libros" abre el selector de Archivos.
@@ -154,7 +154,7 @@ struct RootView: View {
             }
             .fullScreenCover(item: readerBinding) { opened in
                 if let makeReader {
-                    ReaderView(viewModel: makeReader(opened.id), plans: plans, tabs: tabs) {
+                    ReaderView(viewModel: makeReader(opened.id, nil), plans: plans, tabs: tabs) {
                         home.closeReader()
                         Task {
                             await home.reload()
