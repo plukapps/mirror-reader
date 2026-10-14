@@ -306,7 +306,7 @@ class ProfileViewModelTest {
         assertEquals(1.1, settings.settings.value.fontScale, 0.001)
     }
 
-    // PLN-015: en Gratis se muestran Clásico y serifa, y las opciones pagas piden la hoja sin cambiar la preferencia
+    // PLN-015: en Free se muestran Clásico y serifa, y las opciones pagas piden la hoja sin cambiar la preferencia
     @Test
     fun freePlanLocksThemesAndFonts() = runTest(dispatcher) {
         val saved = ReaderSettings(theme = ReadingTheme.SEPIA, font = ReaderFont.MONO)

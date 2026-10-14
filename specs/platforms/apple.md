@@ -55,6 +55,22 @@ Stack y capas en `specs/adr/0010-apple-stack-and-architecture.md` (provisional):
   - **Cambiar contraseña (PRF-020, K-204):** destino `ProfileRoute.changePassword` del `NavigationStack` del tab, sin barra inferior, con los campos del onboarding. `PasswordRepository` y `canSaveNewPassword` en `ReaderDomain`; `FirebaseAccountRepository` reautentica con `EmailAuthProvider.credential` y llama a `updatePassword(to:)`. Una actual incorrecta (`.invalidCredentials`) se muestra bajo ese campo.
   - **Tests de la Mac:** no arrancan por la firma del framework del paquete (K-201).
   - Plan `specs/plans/2026-10-12-profile.md`.
+- Interruptores de funciones (ACC-011, ADR 0016, K-321):
+  - **Dominio:** `Feature`, `RemoteFlagSource` y el actor `FeatureFlags` en `ReaderDomain`.
+  - **App:** `FirebaseRemoteFlagSource` (`FirebaseRemoteConfig` 12.14.0). Señal `plan` desde `QuotaCache`.
+  - **Cuándo escucha:** con la app a la vista (`SyncCoordinator.appBecameActive` y `appWentToBackground`). Sin Firebase y en los tests, los valores por defecto.
+  - **Template:** `FeatureTemplateTests` exige cada `Feature` en `remoteconfig.template.json`.
+
+- Notas sobre texto y detalle del libro (ANN-003 a ANN-011 en parte, LIB-022, K-322 a K-327; plan `2026-10-14-ios-notes.md`):
+  - **Datos:** `Note` y `NoteRepository` en `ReaderDomain`; `NoteRecord` en SwiftData (modelo nuevo, migración automática) y la API de notas en `LibraryStore`. Quitar un libro y cerrar sesión borran sus notas.
+  - **Lector (solo iOS):** menú propio sobre la selección (Nota, Copiar, Compartir, diseño 06). `shouldShowMenuForSelection` devuelve `false` y el lector muestra `SelectionMenu` sobre `selection.frame`; el menú se va cuando la selección desaparece. No se usa `EditingAction` propia: Readium 3.9 la agrega con `UIMenuController` y iOS 26 ya no la muestra (K-332). Subrayados con `apply(decorations:in: "notes")`; `observeDecorationInteractions` abre la nota. Editor en `NoteEditorSheet`.
+  - **Abrir en una nota:** la fábrica del lector recibe `noteId`; `ReaderViewModel` abre en su locator sin el aviso de otro dispositivo.
+  - **Detalle:** `BookDetailView` desde "Ver detalle" del menú contextual: pantalla completa en el iPhone, con el lector encima; hoja en la Mac, que avisa que el lector llega más adelante.
+
+- Sincronización de notas (SYN-016, SYN-017, SYN-005, PRF-009, K-328 a K-331):
+  - **Base:** `NoteRecord.deletedAt` y `syncedAt` (la versión que la nube tiene; nil si nunca llegó), migración automática. Borrar una nota que la nube nunca tuvo la elimina; si no, la marca. `NoteSyncStore` aplica lo de la nube solo si es más nuevo.
+  - **Sincronizar:** actor `NoteSync` en `ReaderDomain`. Sube las pendientes al guardar en el lector, al final de `LibrarySync` y al prenderse la función, y escucha `users/{uid}/notes` desde `sync.lastNotesSeenAt` (`FirestoreNotes`) con la app a la vista (`SyncCoordinator`). Apagada (`notes_sync_enabled`) o sin red permitida, no hace nada.
+  - **Cerrar sesión:** `hasPending` cuenta las notas sin subir; con la función apagada, todas.
 
 ## Criterio de terminado
 

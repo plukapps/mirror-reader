@@ -81,6 +81,26 @@ final class ReaderViewModel {
         let id: Int
     }
 
+    /// ANN-008, ANN-009: la nota que se está escribiendo o mirando. `noteId` es nil para una nota nueva sobre la
+    /// selección. Como `NoteEditor` de Android.
+    struct NoteEditor: Equatable, Identifiable {
+        let noteId: String?
+        let quote: String
+        let text: String
+        let locatorJson: String
+        let progression: Double
+        var id: String { noteId ?? "nueva|\(locatorJson)" }
+    }
+
+    /// ANN-008, K-332: el texto seleccionado en el libro y dónde está en la pantalla (coordenadas del navegador), para el
+    /// menú propio de la selección.
+    struct TextSelection: Equatable {
+        let locatorJson: String
+        let quote: String
+        let progression: Double?
+        let frame: CGRect
+    }
+
     /// SYN-013: lectura más adelantada de otro dispositivo que se ofrece seguir.
     struct ContinueFrom: Equatable {
         let deviceName: String
@@ -106,6 +126,14 @@ final class ReaderViewModel {
     private(set) var notice: String?
     private(set) var jump: Jump?
     private(set) var continueFrom: ContinueFrom?
+    /// ANN-008: las notas del libro, que el lector muestra subrayadas.
+    private(set) var bookNotes: [Note] = []
+    /// ANN-008, ANN-009: el editor de nota a la vista, o nil.
+    private(set) var noteEditor: NoteEditor?
+    /// ANN-008, K-332: la selección con su menú a la vista, o nil.
+    private(set) var selection: TextSelection?
+    /// Cambia cada vez que hay que quitar la selección del libro.
+    private(set) var clearSelectionRequest = 0
 
     private let bookId: String
     private let source: ReaderBookSource
@@ -126,10 +154,18 @@ final class ReaderViewModel {
     private var remoteAhead: RemotePosition?
     private var currentProgression: Double?
     private var updatesTask: Task<Void, Never>?
+    private let notes: NoteRepository?
+    /// ANN-010: se abrió desde una nota; el libro abre en su lugar y no en la última posición.
+    private let noteId: String?
+    private let clock: @Sendable () -> Date
+    /// SYN-016: se guardó o borró una nota; la sincronización la sube enseguida.
+    private let notesChanged: @MainActor () -> Void
 
     /// - Parameters:
     ///   - sync: nil si la app funciona solo en local.
     ///   - plan: el plan de la cuenta (PLN-015); sin dato, Free.
+    ///   - notes: las notas del dispositivo (ANN-003); nil, sin notas.
+    ///   - noteId: abrir en el lugar de esta nota (ANN-010).
     init(
         bookId: String,
         source: ReaderBookSource,
@@ -137,8 +173,16 @@ final class ReaderViewModel {
         settings: ReaderSettingsRepository,
         saveDelay: Duration = .milliseconds(250),
         sync: ReaderPositionSync? = nil,
-        plan: @escaping @MainActor () -> PlanId = { .free }
+        plan: @escaping @MainActor () -> PlanId = { .free },
+        notes: NoteRepository? = nil,
+        noteId: String? = nil,
+        clock: @escaping @Sendable () -> Date = { .now },
+        notesChanged: @escaping @MainActor () -> Void = {}
     ) {
+        self.notesChanged = notesChanged
+        self.notes = notes
+        self.noteId = noteId
+        self.clock = clock
         self.bookId = bookId
         self.source = source
         self.positions = positions
@@ -151,6 +195,11 @@ final class ReaderViewModel {
 
     func load() async {
         guard phase == .loading, choice == nil else { return }
+        // ANN-010: abrir en una nota no pregunta por la posición de otro dispositivo: el usuario eligió el lugar.
+        if let noteId, let note = await notes?.note(id: noteId), note.bookId == bookId {
+            await openBook(startAt: note.locatorJson)
+            return
+        }
         // SYN-003, SYN-012: antes de mostrar el libro se consulta su posición más reciente en la nube.
         if let sync, case let .confirm(remote, local) = await sync.resolve(bookId: bookId) {
             choice = (remote, local)
@@ -170,13 +219,21 @@ final class ReaderViewModel {
         await openBook()
     }
 
-    private func openBook() async {
+    /// - Parameter startAt: locator donde abrir en lugar de la última posición (ANN-010).
+    private func openBook(startAt: String? = nil) async {
         do {
-            let book = try await source.open(bookId: bookId)
+            var book = try await source.open(bookId: bookId)
+            if let startAt {
+                book = OpenedBook(
+                    title: book.title, toc: book.toc, readingOrder: book.readingOrder, initialLocatorJson: startAt,
+                    publication: book.publication
+                )
+            }
             chapters = book.toc.map { ChapterEntry(title: $0.title, href: $0.href) }
             readingOrder = book.readingOrder
             let topLevel = book.toc.filter { $0.depth == 0 }.map { BodyEntry(title: $0.title, href: $0.href) }
             bodyEnd = BodyEndDetector(readingOrder: readingOrder, backMatterStart: backMatterStart(toc: topLevel, readingOrder: readingOrder))
+            await reloadNotes()
             phase = .ready(book)
             listenForOtherDevices()
         } catch let error as BookOpenError {
@@ -243,6 +300,83 @@ final class ReaderViewModel {
     }
 
     func dismissNotice() { notice = nil }
+
+    // MARK: Notas (ANN-008, ANN-009)
+
+    /// K-332: el navegador avisa la selección nueva, o nil cuando desapareció.
+    func selectionChanged(_ selection: TextSelection?) {
+        guard notes != nil || selection == nil else { return }
+        self.selection = selection
+    }
+
+    /// ANN-008: "Nota" en el menú de la selección.
+    func noteFromSelection() {
+        guard let selection else { return }
+        onTextSelected(locatorJson: selection.locatorJson, quote: selection.quote, progression: selection.progression)
+        dismissSelection()
+    }
+
+    /// Cierra el menú y quita la selección del libro (después de Nota, Copiar o Compartir).
+    func dismissSelection() {
+        selection = nil
+        clearSelectionRequest += 1
+    }
+
+    /// ANN-008: el usuario eligió "Nota" sobre un texto seleccionado. Una selección vacía no abre nada.
+    func onTextSelected(locatorJson: String, quote: String, progression: Double?) {
+        let text = quote.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard notes != nil, !text.isEmpty else { return }
+        settingsOpen = false
+        noteEditor = NoteEditor(noteId: nil, quote: text, text: "", locatorJson: locatorJson, progression: progression ?? 0)
+    }
+
+    /// ANN-009: el usuario tocó un subrayado: se muestra su nota para leerla, editarla o borrarla.
+    func openNote(id: String) async {
+        guard let note = await notes?.note(id: id) else { return }
+        settingsOpen = false
+        noteEditor = NoteEditor(
+            noteId: note.id, quote: note.quote, text: note.text, locatorJson: note.locatorJson, progression: note.progression
+        )
+    }
+
+    /// ANN-008, ANN-005: guarda la nota y cierra el editor. Una nota sin texto no se guarda y el editor sigue abierto.
+    func saveNote(_ text: String) async {
+        guard let editor = noteEditor, let notes else { return }
+        let body = text.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !body.isEmpty else { return }
+        noteEditor = nil
+        let now = Int64((clock().timeIntervalSince1970 * 1000).rounded())
+        if let id = editor.noteId, var existing = await notes.note(id: id) {
+            existing.text = body
+            existing.updatedAt = now
+            await notes.save(existing)
+        } else {
+            await notes.save(
+                Note(
+                    id: UUID().uuidString.lowercased(), bookId: bookId, locatorJson: editor.locatorJson, quote: editor.quote,
+                    text: body, progression: editor.progression, createdAt: now, updatedAt: now
+                )
+            )
+        }
+        notesChanged()
+        await reloadNotes()
+    }
+
+    /// ANN-009: borra la nota abierta (la pantalla ya pidió confirmación); el subrayado se va con ella.
+    func deleteNote() async {
+        guard let id = noteEditor?.noteId, let notes else { return }
+        noteEditor = nil
+        await notes.delete(id: id)
+        notesChanged()
+        await reloadNotes()
+    }
+
+    /// ANN-008: cancelar no guarda nada.
+    func closeNote() { noteEditor = nil }
+
+    private func reloadNotes() async {
+        bookNotes = await notes?.notes(bookId: bookId) ?? []
+    }
 
     // MARK: Controles (RDR-011, RDR-013, RDR-014)
 

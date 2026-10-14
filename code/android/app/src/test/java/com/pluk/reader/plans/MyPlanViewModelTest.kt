@@ -62,7 +62,7 @@ class MyPlanViewModelTest {
         backgroundScope.launch { vm.uiState.collect {} }
         advanceUntilIdle()
         assertNull(vm.uiState.value.usage)
-        // PLN-014: sin dato, Gratis con su máximo por defecto
+        // PLN-014: sin dato, Free con su máximo por defecto
         assertEquals(PlanId.FREE, vm.uiState.value.plan)
         assertEquals(DefaultPlans.free.maxFileBytes, vm.uiState.value.maxFileBytes)
     }
@@ -78,7 +78,7 @@ class MyPlanViewModelTest {
         assertEquals(100 * mib, vm.uiState.value.maxFileBytes)
     }
 
-    // PLN-012: en Gratis también vale el máximo del servidor
+    // PLN-012: en Free también vale el máximo del servidor
     @Test
     fun theFreePlanUsesTheServerMaximum() = runTest(dispatcher) {
         val quota = StorageQuota(0, 15 * mib, maxFileBytes = 3 * mib)

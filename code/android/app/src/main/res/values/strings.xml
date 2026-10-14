@@ -199,7 +199,7 @@
     <string name="profile_delete_account">Eliminar cuenta</string>
     <string name="profile_sign_out_title">¿Cerrar sesión?</string>
     <string name="profile_sign_out_body">Tus libros siguen en tu cuenta. En este dispositivo se borran hasta que vuelvas a entrar.</string>
-    <string name="profile_sign_out_body_pending">Hay libros o progreso de lectura que todavía no se subieron. Si cerrás sesión ahora, se pierden.</string>
+    <string name="profile_sign_out_body_pending">Hay libros, progreso de lectura o notas que todavía no se subieron. Si cerrás sesión ahora, se pierden.</string>
     <string name="profile_sign_out_cancel">Cancelar</string>
     <string name="profile_sign_out_failed">No se pudo cerrar sesión. Probá de nuevo.</string>
     <string name="profile_section_reading">Ajustes de lectura</string>
@@ -265,6 +265,27 @@
     <string name="reader_resume_continue">Continuar allí</string>
     <string name="reader_resume_stay">Quedarme aquí</string>
     <string name="reader_body_ended">Parece que terminaste el libro</string>
+    <!-- LIB-022, ANN-010 -->
+    <string name="detail_back">Volver</string>
+    <string name="detail_notes_empty">Todavía no hay notas. En el libro, seleccioná un texto y elegí “Nota”.</string>
+    <string name="detail_note_percent">%1$d %%</string>
+    <string name="detail_continue_reading">Continuar leyendo</string>
+    <string name="detail_start_reading">Empezar a leer</string>
+    <string name="book_actions_details">Ver detalle</string>
+    <plurals name="detail_notes_count">
+        <item quantity="one">%1$d nota</item>
+        <item quantity="other">%1$d notas</item>
+    </plurals>
+    <!-- ANN-008, ANN-009 -->
+    <string name="selection_note">Nota</string>
+    <string name="selection_copy">Copiar</string>
+    <string name="selection_share">Compartir</string>
+    <string name="note_placeholder">Escribí tu nota</string>
+    <string name="note_save">Guardar</string>
+    <string name="note_cancel">Cancelar</string>
+    <string name="note_delete">Borrar</string>
+    <string name="note_delete_title">¿Borrar la nota?</string>
+    <string name="note_delete_message">Se borra la nota y su subrayado.</string>
 
     <!-- Búsqueda (LIB-006, LIB-013 a LIB-015) -->
     <string name="search_title">Buscar</string>

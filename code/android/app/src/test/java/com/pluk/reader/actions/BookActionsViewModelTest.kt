@@ -56,19 +56,19 @@ class BookActionsViewModelTest {
     @After
     fun tearDown() = Dispatchers.resetMain()
 
-    // LIB-016, LIB-018: sin empezar, terminado; leyendo, las dos; terminado, no leído
+    // LIB-016, LIB-018, LIB-022: siempre "Ver detalle"; sin empezar, terminado; leyendo, las dos; terminado, no leído
     @Test
     fun menuActionsDependOnStatus() {
         assertEquals(
-            listOf(BookAction.Read, BookAction.MarkFinished, BookAction.ChangeCover, BookAction.Remove),
+            listOf(BookAction.Read, BookAction.Details, BookAction.MarkFinished, BookAction.ChangeCover, BookAction.Remove),
             menuActions(book("n", null)),
         )
         assertEquals(
-            listOf(BookAction.Read, BookAction.MarkFinished, BookAction.MarkUnread, BookAction.ChangeCover, BookAction.Remove),
+            listOf(BookAction.Read, BookAction.Details, BookAction.MarkFinished, BookAction.MarkUnread, BookAction.ChangeCover, BookAction.Remove),
             menuActions(book("l", 42)),
         )
         assertEquals(
-            listOf(BookAction.Read, BookAction.MarkUnread, BookAction.ChangeCover, BookAction.Remove),
+            listOf(BookAction.Read, BookAction.Details, BookAction.MarkUnread, BookAction.ChangeCover, BookAction.Remove),
             menuActions(book("t", 100)),
         )
     }

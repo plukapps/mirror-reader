@@ -3,6 +3,7 @@ package com.pluk.reader.di
 import com.pluk.reader.data.repository.BookEditorImpl
 import com.pluk.reader.data.repository.BookRepositoryImpl
 import com.pluk.reader.data.repository.LibraryRepositoryImpl
+import com.pluk.reader.data.repository.NoteRepositoryImpl
 import com.pluk.reader.data.repository.PositionRepositoryImpl
 import com.pluk.reader.data.repository.QuotaCacheImpl
 import com.pluk.reader.data.repository.AppearancePreferencesImpl
@@ -17,6 +18,8 @@ import com.pluk.reader.domain.profile.QuotaCache
 import com.pluk.reader.domain.repository.BookEditor
 import com.pluk.reader.domain.repository.BookRepository
 import com.pluk.reader.domain.repository.LibraryRepository
+import com.pluk.reader.domain.repository.NoteRepository
+import com.pluk.reader.domain.repository.NoteSyncStore
 import com.pluk.reader.domain.repository.PositionRepository
 import com.pluk.reader.domain.repository.PositionSyncStore
 import com.pluk.reader.domain.repository.SettingsRepository
@@ -67,6 +70,14 @@ abstract class RepositoryModule {
     @Binds
     @Singleton
     abstract fun bindLibraryRepository(impl: LibraryRepositoryImpl): LibraryRepository
+
+    @Binds
+    @Singleton
+    abstract fun bindNoteRepository(impl: NoteRepositoryImpl): NoteRepository
+
+    @Binds
+    @Singleton
+    abstract fun bindNoteSyncStore(impl: NoteRepositoryImpl): NoteSyncStore
 
     @Binds
     @Singleton

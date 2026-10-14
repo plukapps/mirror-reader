@@ -25,12 +25,14 @@ private val FONT_FILES: Map<ReaderFont, List<FontFile>> = mapOf(
 
 /**
  * Configuración del navegador de EPUB: sirve las fuentes de la app al libro y declara cada familia
- * (RDR-014, ADR 0009). Los insets de sistema (barra de estado) los reserva ReaderScreen, no Readium.
+ * (RDR-014, ADR 0009) y reemplaza el menú de selección (ANN-008). Los insets de sistema (barra de estado) los reserva ReaderScreen, no Readium.
  */
 @OptIn(ExperimentalReadiumApi::class)
 internal fun readerNavigatorConfiguration() = EpubNavigatorFragment.Configuration(
     servedAssets = listOf("fonts/.*"),
     shouldApplyInsetsPadding = false,
+    // ANN-008: "Nota", copiar y compartir sobre el texto seleccionado.
+    selectionActionModeCallback = SelectionMenu,
 ).apply {
     FONT_FILES.forEach { (font, files) ->
         addFontFamilyDeclaration(FontFamily(font.familyName)) {

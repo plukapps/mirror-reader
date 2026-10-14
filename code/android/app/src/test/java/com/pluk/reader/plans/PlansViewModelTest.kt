@@ -40,7 +40,7 @@ class PlansViewModelTest {
         return vm to { vm.uiState.value }
     }
 
-    // PLN-004, PLN-005: arranca en mensual, con Lector elegido (en amarillo) y la tabla cerrada
+    // PLN-004, PLN-005: arranca en mensual, con Plus elegido (en amarillo) y la tabla cerrada
     @Test
     fun startsMonthlyWithReaderSelected() = runTest(dispatcher) {
         val (_, state) = start()
@@ -61,7 +61,7 @@ class PlansViewModelTest {
         assertEquals("$24.99", state().cta.price)
     }
 
-    // PLN-005: Lector y Biblioteca se eligen; Gratis no
+    // PLN-005: Plus y Pro se eligen; Free no
     @Test
     fun onlyPaidPlansCanBeSelected() = runTest(dispatcher) {
         val (vm, state) = start()
@@ -100,11 +100,11 @@ class PlansViewModelTest {
         advanceUntilIdle()
         assertEquals("12 MB", state().usage?.used)
         assertEquals("20 MB", state().usage?.total)
-        // PLN-001: Gratis muestra la cuota de la cuenta.
+        // PLN-001: Free muestra la cuota de la cuenta.
         assertEquals("20 MB", state().freeCloud)
     }
 
-    // PLN-005, PLN-017: "Tu plan" va en el plan de la cuenta; sin dato, Gratis
+    // PLN-005, PLN-017: "Tu plan" va en el plan de la cuenta; sin dato, Free
     @Test
     fun yourPlanIsThePlanOfTheAccount() = runTest(dispatcher) {
         val cache = FakeQuotaCache(StorageQuota(0, 15 * mib))

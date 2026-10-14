@@ -36,6 +36,8 @@ private struct BookContextMenu: ViewModifier {
             switch action {
             case .read:
                 Button(action: onRead) { Label("Leer libro", systemImage: "book.fill") }
+            case .details:
+                Button { actions.showDetails(book) } label: { Label("Ver detalle", systemImage: "info.circle") }
             case .markFinished:
                 Button { Task { await actions.markFinished(book) } } label: {
                     Label("Marcar como terminado", systemImage: "checkmark.circle")

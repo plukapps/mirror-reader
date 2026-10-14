@@ -167,7 +167,7 @@ class ProfileScreenTest {
         assertEquals(true, all)
     }
 
-    // PLN-015, PRF-014: en Gratis, Sepia y Noche llevan la marca "Lector"; con un plan pago, no
+    // PLN-015, PRF-014: en Free, Sepia y Noche llevan la marca "Plus"; con un plan pago, no
     @Test
     fun paidThemesAreMarkedOnFree() {
         show(state.copy(readingOptionsLocked = true))

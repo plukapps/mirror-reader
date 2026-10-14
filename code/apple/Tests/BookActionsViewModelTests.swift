@@ -37,14 +37,14 @@ struct BookActionsViewModelTests {
 
     @Test("LIB-016, LIB-018: sin empezar, terminado; leyendo, las dos; terminado, no leído")
     func menuDependsOnStatus() {
-        #expect(BookActionsViewModel.menu(for: dracula) == [.read, .markFinished, .markUnread, .changeCover, .remove])
+        #expect(BookActionsViewModel.menu(for: dracula) == [.read, .details, .markFinished, .markUnread, .changeCover, .remove])
         #expect(
             BookActionsViewModel.menu(for: LibraryBook(id: "n", title: "N", author: nil, coverPath: nil, progressPercent: nil))
-                == [.read, .markFinished, .changeCover, .remove]
+                == [.read, .details, .markFinished, .changeCover, .remove]
         )
         #expect(
             BookActionsViewModel.menu(for: LibraryBook(id: "t", title: "T", author: nil, coverPath: nil, progressPercent: 100))
-                == [.read, .markUnread, .changeCover, .remove]
+                == [.read, .details, .markUnread, .changeCover, .remove]
         )
     }
 

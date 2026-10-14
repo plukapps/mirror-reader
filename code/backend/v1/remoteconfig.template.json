@@ -6,6 +6,13 @@
       },
       "description": "Catálogo de planes (ACC-007, PLN-001, ADR 0017). Por plan: storageGb (1 GB = 1024³ B), maxFileMb (1 MB = 1024² B), priceMonthly, priceYearly, currency. El backend lo copia a users/{uid}. Sin condiciones.",
       "valueType": "JSON"
+    },
+    "notes_sync_enabled": {
+      "defaultValue": {
+        "value": "true"
+      },
+      "description": "Sincronización de notas (ACC-011, SYN-017, ADR 0016). true: las notas suben y bajan. false: quedan solo en el dispositivo. Se puede condicionar por la señal personalizada plan o por instalación.",
+      "valueType": "BOOLEAN"
     }
   }
 }
