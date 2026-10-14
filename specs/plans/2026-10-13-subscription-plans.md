@@ -15,7 +15,7 @@
 
 | Rama | Contenido | PR contra |
 |---|---|---|
-| `feature/subscription-plans` | diseño importado, spec, plan, Kanban (K-217) | base de las dos de abajo |
+| `feature/subscription-plans` | diseño importado, spec, plan, Kanban (K-256; era K-217, renumerada al fusionar `develop`, que ya usaba K-217) | base de las dos de abajo |
 | `feature/subscription-plans-android` | K-218 a K-222 | `develop` |
 | `feature/subscription-plans-ios` | K-223 a K-227 | `develop` |
 
