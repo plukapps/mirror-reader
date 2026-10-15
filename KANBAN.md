@@ -5,6 +5,7 @@ Plan de referencia: `specs/plans/2026-10-06-android-epub-viewer.md`
 
 ## Backlog
 
+- **K-336** Crashlytics, Tarea 4: habilitar Crashlytics en la consola de `mirror-reading-staging` (pedirlo al usuario) y forzar un cierre de prueba en el teléfono y en el iPhone; ver el reporte con el `uid`. CMP-010, ADR 0018. Plan `2026-10-15-crashlytics.md`.
 - **K-288** Uso sin cuenta: definir qué plan y qué límites tiene quien usa la app sin registrarse, y qué pasa con sus libros al crear la cuenta. Hoy ACC-001 exige cuenta y el onboarding deja "Explorar sin cuenta" fuera de alcance (open-questions #7). Opciones: solo local con los límites de `free` aplicados por la app, o Firebase Anonymous Auth. Requiere spec, ADR y plan propios; va en otra rama, no en la del catálogo de planes (ADR 0017).
 - **K-240** Planes, iOS: al importar con "Abrir con" desde otra app, la comprobación de cuota (P02) no corre porque el lector se abre enseguida a pantalla completa. Mostrar la hoja al cerrar el lector, o antes de abrirlo. PLN-007 a PLN-009. Encontrado en K-224.
 - **K-209** Android, modo oscuro: en "Cambiar contraseña" (PRF-020) los campos conservan el borde claro del onboarding y "Guardar" deshabilitado se ve gris claro sobre el fondo oscuro. Se lee, pero desentona con el resto. Pasar `OnbTextField` y `PrimaryButton` a los tokens de la paleta fuera del onboarding (PRF-022). Visto en el SM-S711B el 2026-10-13.
@@ -42,16 +43,19 @@ Plan de referencia: `specs/plans/2026-10-06-android-epub-viewer.md`
 
 ## Listo
 
+- **K-335** Crashlytics, Tarea 3: iOS y Mac (`FirebaseCrashlytics`, dSYM, `CrashReportIdentity` en el dominio, oyente de Auth). CMP-010, ADR 0018.
 - **K-134** Lector iOS, Tarea 7: cierre de docs y verificación a mano en el simulador. Rama `feature/ios-reader`. Era K-125 hasta el merge con `master`.
 - **K-038** Inicio, Tarea 4: cierre de docs y verificación a mano. Rama `feature/home`.
 - **K-024** Quitar el padding vertical de Readium (40 dp arriba y abajo en modo paginado) y reservar la barra de estado desde la pantalla. RDR-002. Rama `feat/page-turn-animation`.
 
 ## En curso
 
+- **K-334** Crashlytics, Tarea 2: Android (`firebase-crashlytics`, plugin, `CrashReportIdentity`, `FirebaseCrashReporter`). CMP-010, ADR 0018. Rama `claude/crashlytics-android-ios-b61f44`.
 - **K-176** Posición exacta, Tarea 5: verificación a mano entre el teléfono y el iPhone, cierre de docs. SYN-014.
 
 ## Revisión
 
+- **K-333** Crashlytics, Tarea 1: CMP-010, ADR 0018 y plan `2026-10-15-crashlytics.md`. Pedido del usuario (2026-10-15).
 - **K-331** Sync de notas iOS (#38): cierre y prueba cruzada Android ↔ iPhone.
 - **K-327** Notas iOS (#37): cierre de docs y verificación en el iPhone. Crear una nota en el iPhone 13 verificado por el usuario (2026-10-14, después de K-332); falta el resto de la lista.
 - **K-277** Sync de notas, Tarea 8: cierre de docs y verificación a mano en el teléfono y la tablet. Hecho: notas en `android.md`, resultado en el plan. Falta la verificación a mano (lista en el plan), después de K-276.

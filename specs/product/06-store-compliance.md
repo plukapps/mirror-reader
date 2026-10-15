@@ -15,10 +15,14 @@ Poder publicar y mantener la app en Google Play y App Store.
 - **CMP-007** Datos cifrados en tránsito y en reposo, con aislamiento entre usuarios.
 - **CMP-008** Debe permitir exportar los datos del usuario (libros y anotaciones).
 - **CMP-009** No debe analizar el contenido de libros ni notas.
+- **CMP-010** Debe registrar los cierres inesperados de la app para poder corregirlos. El registro identifica la cuenta solo por su identificador interno (nunca el email ni el nombre), se deja de asociar a la cuenta al cerrar sesión, no incluye contenido de libros ni notas (CMP-009) y se declara en la política de privacidad (CMP-002).
 
 ## Escenarios
 
 - Dado que elimino mi cuenta, cuando confirmo, entonces mis datos y archivos se borran y no pueden recuperarse.
+
+- Dado que la app se cierra de forma inesperada, cuando vuelve a abrirse con conexión, entonces el cierre queda registrado con el identificador interno de la cuenta, sin el email ni el contenido del libro.
+- Dado que cierro sesión, cuando la app se cierra de forma inesperada, entonces el registro no queda asociado a mi cuenta.
 
 ## Nota
 
