@@ -1,6 +1,8 @@
 package com.pluk.reader.di
 
+import com.pluk.reader.data.crash.FirebaseCrashReporter
 import com.pluk.reader.data.flags.FirebaseRemoteFlagSource
+import com.pluk.reader.domain.crash.CrashReporter
 import com.pluk.reader.data.remote.FirebaseBookFileStore
 import com.pluk.reader.data.remote.FirestoreNotes
 import com.pluk.reader.data.repository.NoteSyncCursorImpl
@@ -54,6 +56,8 @@ import javax.inject.Singleton
 @Module
 @InstallIn(SingletonComponent::class)
 abstract class RemoteModule {
+    // CMP-010, ADR 0018.
+    @Binds @Singleton abstract fun bindCrashReporter(impl: FirebaseCrashReporter): CrashReporter
     @Binds @Singleton abstract fun bindRemoteLibrary(impl: FirestoreRemoteLibrary): RemoteLibrary
     @Binds @Singleton abstract fun bindPositionFlusher(impl: PositionSync): PositionFlusher
     @Binds @Singleton abstract fun bindPositionFlushRequester(impl: PositionSync): PositionFlushRequester

@@ -47,6 +47,9 @@ targets:
       # ACC-011, ADR 0016: funciones que se prenden y apagan.
       - package: Firebase
         product: FirebaseRemoteConfig
+      # CMP-010, ADR 0018: cierres inesperados.
+      - package: Firebase
+        product: FirebaseCrashlytics
       - package: GoogleSignIn
         product: GoogleSignIn
       - package: Readium
@@ -72,6 +75,8 @@ targets:
         "CODE_SIGN_STYLE[sdk=macosx*]": Automatic
         "CODE_SIGN_IDENTITY[sdk=macosx*]": Apple Development
         PRODUCT_NAME: Reader
+        # Crashlytics necesita los dSYM también en Debug para mostrar los cierres legibles (ADR 0018).
+        DEBUG_INFORMATION_FORMAT: dwarf-with-dsym
         GENERATE_INFOPLIST_FILE: YES
         # Se combina con lo generado: lleva el esquema de URL de Google (ver Signing.xcconfig).
         INFOPLIST_FILE: App/Info.plist
@@ -90,6 +95,22 @@ targets:
         # Firma local ("Sign to Run Locally"): no requiere cuenta de Apple Developer.
         CODE_SIGN_STYLE: Manual
         CODE_SIGN_IDENTITY: "-"
+    # Sube los dSYM a Crashlytics (ADR 0018). Va última; sin GoogleService-Info.plist no hace nada.
+    postBuildScripts:
+      - name: Crashlytics
+        script: |
+          GSP="${SRCROOT}/App/GoogleService-Info.plist"
+          if [ ! -f "$GSP" ]; then
+            echo "Sin GoogleService-Info.plist: no se suben los símbolos a Crashlytics."
+            exit 0
+          fi
+          "${BUILD_DIR%/Build/*}/SourcePackages/checkouts/firebase-ios-sdk/Crashlytics/run" -gsp "$GSP"
+        inputFiles:
+          - ${DWARF_DSYM_FOLDER_PATH}/${DWARF_DSYM_FILE_NAME}
+          - ${DWARF_DSYM_FOLDER_PATH}/${DWARF_DSYM_FILE_NAME}/Contents/Resources/DWARF/${PRODUCT_NAME}
+          - ${DWARF_DSYM_FOLDER_PATH}/${DWARF_DSYM_FILE_NAME}/Contents/Info.plist
+          - $(TARGET_BUILD_DIR)/$(EXECUTABLE_PATH)
+        basedOnDependencyAnalysis: false
     scheme:
       testTargets: [ReaderTests]
   ReaderTests:
