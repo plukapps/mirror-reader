@@ -72,6 +72,7 @@ import com.pluk.reader.domain.home.HomeContent
 import com.pluk.reader.domain.home.greetingFor
 import com.pluk.reader.domain.model.LibraryBook
 import com.pluk.reader.ui.library.BookCover
+import com.pluk.reader.ui.library.GuestNoticeCard
 import com.pluk.reader.ui.library.toText
 import com.pluk.reader.ui.navigation.LocalBottomBarPadding
 import com.pluk.reader.ui.theme.MarginColors
@@ -84,6 +85,7 @@ fun HomeScreen(
     onSeeAll: (LibraryFilter?) -> Unit,
     openImportPicker: Boolean = false,
     onImportPickerOpened: () -> Unit = {},
+    onCreateAccount: () -> Unit = {},
     viewModel: HomeViewModel = hiltViewModel(),
 ) {
     val state = viewModel.uiState.collectAsStateWithLifecycle().value
@@ -102,6 +104,12 @@ fun HomeScreen(
         onSeeAll = onSeeAll,
         openImportPicker = openImportPicker,
         onImportPickerOpened = onImportPickerOpened,
+        guestNotice = state.guestNotice,
+        onDismissGuestNotice = viewModel::onDismissGuestNotice,
+        onCreateAccount = {
+            viewModel.onDismissGuestNotice()
+            onCreateAccount()
+        },
     )
 }
 
@@ -117,6 +125,9 @@ fun HomeContentView(
     onSeeAll: (LibraryFilter?) -> Unit,
     openImportPicker: Boolean = false,
     onImportPickerOpened: () -> Unit = {},
+    guestNotice: Boolean = false,
+    onDismissGuestNotice: () -> Unit = {},
+    onCreateAccount: () -> Unit = {},
 ) {
     val picker = rememberLauncherForActivityResult(ActivityResultContracts.OpenMultipleDocuments()) { uris ->
         onImport(uris.map { it.toString() })
@@ -150,6 +161,7 @@ fun HomeContentView(
                     .padding(start = 20.dp, end = 20.dp, top = 12.dp)
                     .testTag("home-greeting"),
             )
+            if (guestNotice) GuestNoticeCard(onCreateAccount, onDismissGuestNotice)
             if (!loading) {
                 val reading = content.continueReading
                 if (reading != null) {

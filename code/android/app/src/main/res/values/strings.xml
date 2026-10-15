@@ -97,6 +97,10 @@
     <string name="onb_import_books">Importar mis libros</string>
     <!-- Listo sin cuenta, L0 (GST-019) -->
     <string name="guest_ready_title">Ya podés\nleer.</string>
+    <!-- Aviso sin cuenta, H0 y L1 (GST-010) -->
+    <string name="guest_notice_title">Tus libros están solo en este dispositivo.</string>
+    <string name="guest_notice_body">Creá una cuenta para tenerlos en todos.</string>
+    <string name="guest_notice_create_account">Crear cuenta</string>
     <string name="guest_ready_body">Empezá importando tus libros. Todo queda en este dispositivo, sin cuenta.</string>
 
     <string name="onb_signin_title">Te damos la\nbienvenida.</string>

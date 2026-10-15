@@ -82,6 +82,7 @@ class LibraryViewModelTest {
     }
 
     private val noticePreference = FakeNoticePreference()
+    private val guestPreference = com.pluk.reader.account.FakeGuestNoticePreference()
 
     private fun viewModel(
         library: FakeLibrary,
@@ -96,6 +97,7 @@ class LibraryViewModelTest {
         ImportQuotaCheck(quotaCache, pendingUploads, prompts, account),
         quotaCache,
         noticePreference,
+        com.pluk.reader.domain.account.GuestNotice(account, library, guestPreference),
     )
 
     private fun local(id: String, uploaded: Boolean = false, downloaded: Boolean = true) =
@@ -320,5 +322,30 @@ class LibraryViewModelTest {
         backgroundScope.launch { vm.uiState.collect {} }
         advanceUntilIdle()
         assertEquals(null, vm.uiState.value.usageNotice)
+    }
+
+    // GST-010 (L1, L2): sin cuenta y con libros aparece el aviso; descartarlo lo saca
+    @Test
+    fun guestNoticeShowsWithoutSessionUntilDismissed() = runTest(dispatcher) {
+        val vm = viewModel(FakeLibrary(listOf(book("a", null))))
+        backgroundScope.launch { vm.uiState.collect {} }
+        advanceUntilIdle()
+        assertTrue(vm.uiState.value.guestNotice)
+
+        vm.onDismissGuestNotice()
+        advanceUntilIdle()
+        assertFalse(vm.uiState.value.guestNotice)
+    }
+
+    // GST-010: con sesión, o sin libros, no hay aviso
+    @Test
+    fun noGuestNoticeWithASessionOrWithoutBooks() = runTest(dispatcher) {
+        val signedIn = viewModel(FakeLibrary(listOf(book("a", null))), account = FakeAccount(signedIn = true))
+        val empty = viewModel(FakeLibrary())
+        backgroundScope.launch { signedIn.uiState.collect {} }
+        backgroundScope.launch { empty.uiState.collect {} }
+        advanceUntilIdle()
+        assertFalse(signedIn.uiState.value.guestNotice)
+        assertFalse(empty.uiState.value.guestNotice)
     }
 }

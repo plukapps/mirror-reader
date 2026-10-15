@@ -3,6 +3,7 @@ package com.pluk.reader.ui.library
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.pluk.reader.domain.account.GuestNotice
 import com.pluk.reader.domain.model.ImportOutcome
 import com.pluk.reader.domain.model.LibraryFilter
 import com.pluk.reader.domain.model.countBy
@@ -38,6 +39,7 @@ class LibraryViewModel @Inject constructor(
     private val importQuotaCheck: ImportQuotaCheck,
     quotaCache: QuotaCache,
     private val usageNoticePreference: UsageNoticePreference,
+    private val guestNotice: GuestNotice,
 ) : ViewModel() {
     /** HOM-011: Inicio abre la biblioteca con el filtro de la sección elegida. */
     private val filter = MutableStateFlow(
@@ -72,7 +74,8 @@ class LibraryViewModel @Inject constructor(
             pendingUploadCount = books.count { it.isDownloaded && !it.isUploaded },
             signedIn = user != null,
         )
-    }.combine(usageNotice) { state, notice -> state.copy(usageNotice = notice.takeIf { state.signedIn }) }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(STOP_TIMEOUT_MS), LibraryUiState())
+    }.combine(usageNotice) { state, notice -> state.copy(usageNotice = notice.takeIf { state.signedIn }) }
+        .combine(guestNotice.visible) { state, guest -> state.copy(guestNotice = guest) }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(STOP_TIMEOUT_MS), LibraryUiState())
 
     fun onFilterSelected(selected: LibraryFilter) {
         filter.value = selected
@@ -99,6 +102,11 @@ class LibraryViewModel @Inject constructor(
     /** PLN-011: cerrar el aviso o tocar "Ver planes" lo descarta para siempre en esta cuenta y este dispositivo. */
     fun onDismissUsageNotice() {
         viewModelScope.launch { usageNoticePreference.dismiss() }
+    }
+
+    /** GST-010: cerrar el aviso sin cuenta o tocar "Crear cuenta" lo descarta en Inicio y en la Biblioteca. */
+    fun onDismissGuestNotice() {
+        viewModelScope.launch { guestNotice.dismiss() }
     }
 
     /** SYN-008: reintento manual tras un problema de sincronización. */

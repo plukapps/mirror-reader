@@ -28,6 +28,8 @@ import com.pluk.reader.data.repository.UsageNoticePreferenceImpl
 import com.pluk.reader.domain.plans.UsageNoticePreference
 import com.pluk.reader.data.repository.WelcomePreferenceImpl
 import com.pluk.reader.domain.onboarding.WelcomePreference
+import com.pluk.reader.data.repository.GuestNoticePreferenceImpl
+import com.pluk.reader.domain.account.GuestNoticePreference
 import dagger.Binds
 import dagger.Module
 import dagger.hilt.InstallIn
@@ -48,6 +50,10 @@ abstract class RepositoryModule {
     @Binds
     @Singleton
     abstract fun bindWelcomePreference(impl: WelcomePreferenceImpl): WelcomePreference
+
+    @Binds
+    @Singleton
+    abstract fun bindGuestNoticePreference(impl: GuestNoticePreferenceImpl): GuestNoticePreference
 
     @Binds
     @Singleton

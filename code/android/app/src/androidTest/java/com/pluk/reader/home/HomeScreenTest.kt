@@ -72,4 +72,26 @@ class HomeScreenTest {
         show(listOf(books[1], books[3]))
         compose.onNodeWithTag("reading-row").assertDoesNotExist()
     }
+
+    // GST-010 (H0): sin cuenta, el aviso va debajo del saludo y "Crear cuenta" avisa
+    @Test
+    fun guestNoticeShowsUnderTheGreeting() {
+        var dismissed = 0
+        compose.setContent {
+            HomeContentView(
+                false,
+                homeContent(books),
+                Greeting.Night,
+                SnackbarHostState(),
+                {},
+                {},
+                {},
+                guestNotice = true,
+                onDismissGuestNotice = { dismissed++ },
+            )
+        }
+        compose.onNodeWithTag("guest-notice").assertIsDisplayed()
+        compose.onNodeWithTag("guest-notice-close").performClick()
+        assertEquals(1, dismissed)
+    }
 }

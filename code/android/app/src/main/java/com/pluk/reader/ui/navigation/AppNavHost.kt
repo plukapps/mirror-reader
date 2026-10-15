@@ -256,6 +256,7 @@ fun AppNavHost(
                             onSeeAll = { filter -> navController.navigateTo(Routes.library(filter)) },
                             openImportPicker = pendingImport,
                             onImportPickerOpened = { pendingImport = false },
+                            onCreateAccount = { navController.navigate(Routes.signUp()) },
                         )
                     }
                     composable(
@@ -267,6 +268,7 @@ fun AppNavHost(
                         LibraryScreen(
                             onBookClick = { bookId -> navController.navigate(Routes.reader(bookId)) },
                             onSeePlans = { navController.navigate(Routes.PLANS) },
+                            onCreateAccount = { navController.navigate(Routes.signUp()) },
                         )
                     }
                     composable(Routes.SEARCH) {

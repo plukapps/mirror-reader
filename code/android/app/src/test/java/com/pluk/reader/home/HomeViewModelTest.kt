@@ -55,12 +55,36 @@ class HomeViewModelTest {
     private val quotaCache = FakeQuotaCache()
     private val pendingUploads = FakePendingUploads()
 
-    private fun viewModel(library: FakeLibrary) = HomeViewModel(
-        library,
-        ImportBooksUseCase(library),
-        { syncRequests++ },
-        ImportQuotaCheck(quotaCache, pendingUploads, prompts, com.pluk.reader.remote.FakeSession(com.pluk.reader.domain.account.AccountUser("u1", null))),
-    )
+    private val guestPreference = com.pluk.reader.account.FakeGuestNoticePreference()
+
+    private fun viewModel(library: FakeLibrary, signedIn: Boolean = true): HomeViewModel {
+        val session = com.pluk.reader.remote.FakeSession(if (signedIn) com.pluk.reader.domain.account.AccountUser("u1", null) else null)
+        return HomeViewModel(
+            library,
+            ImportBooksUseCase(library),
+            { syncRequests++ },
+            ImportQuotaCheck(quotaCache, pendingUploads, prompts, session),
+            com.pluk.reader.domain.account.GuestNotice(session, library, guestPreference),
+        )
+    }
+
+    // GST-010 (H0): sin cuenta y con libros, Inicio muestra el aviso; descartarlo lo saca
+    @Test
+    fun guestNoticeShowsWithoutSessionUntilDismissed() = runTest(dispatcher) {
+        val vm = viewModel(FakeLibrary(listOf(book("a", null))), signedIn = false)
+        assertTrue(vm.uiState.first { !it.loading }.guestNotice)
+
+        vm.onDismissGuestNotice()
+        advanceUntilIdle()
+        assertFalse(vm.uiState.first { !it.loading }.guestNotice)
+        assertTrue(guestPreference.dismissed.value)
+    }
+
+    @Test
+    fun noGuestNoticeWithASession() = runTest(dispatcher) {
+        val vm = viewModel(FakeLibrary(listOf(book("a", null))))
+        assertFalse(vm.uiState.first { !it.loading }.guestNotice)
+    }
 
     // HOM-002, HOM-004
     @Test

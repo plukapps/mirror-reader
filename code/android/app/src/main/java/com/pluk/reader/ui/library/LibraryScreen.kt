@@ -75,6 +75,7 @@ import com.pluk.reader.ui.theme.MarginColors
 fun LibraryScreen(
     onBookClick: (bookId: String) -> Unit,
     onSeePlans: () -> Unit = {},
+    onCreateAccount: () -> Unit = {},
     viewModel: LibraryViewModel = hiltViewModel(),
 ) {
     val state = viewModel.uiState.collectAsStateWithLifecycle().value
@@ -95,6 +96,11 @@ fun LibraryScreen(
             viewModel.onDismissUsageNotice()
             onSeePlans()
         },
+        onDismissGuestNotice = viewModel::onDismissGuestNotice,
+        onCreateAccount = {
+            viewModel.onDismissGuestNotice()
+            onCreateAccount()
+        },
     )
 }
 
@@ -109,6 +115,8 @@ fun LibraryContent(
     onRetrySync: () -> Unit = {},
     onDismissUsageNotice: () -> Unit = {},
     onSeePlans: () -> Unit = {},
+    onDismissGuestNotice: () -> Unit = {},
+    onCreateAccount: () -> Unit = {},
 ) {
     // El libro se copia a la app (ADR 0006), así que no hace falta permiso persistente.
     val picker = rememberLauncherForActivityResult(ActivityResultContracts.OpenMultipleDocuments()) { uris ->
@@ -122,6 +130,7 @@ fun LibraryContent(
             Header(importing = state.importing, onImport = launchPicker)
             if (state.showSyncStatus) SyncStatus(state, onRetrySync)
             state.usageNotice?.let { UsageNotice(it, onSeePlans, onDismissUsageNotice) }
+            if (state.guestNotice) GuestNoticeCard(onCreateAccount, onDismissGuestNotice)
             Tabs(state, onFilterSelected)
             when {
                 state.loading -> Unit
