@@ -17,6 +17,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -35,6 +36,9 @@ import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.em
 import androidx.compose.ui.unit.sp
+import com.pluk.reader.domain.plans.Plan
+import com.pluk.reader.domain.plans.PlanCatalog
+import com.pluk.reader.domain.plans.PlanId
 import com.pluk.reader.ui.theme.MarginColors
 
 /*
@@ -198,3 +202,11 @@ fun LectorMark(modifier: Modifier = Modifier) {
             .padding(horizontal = 5.dp, vertical = 2.dp),
     )
 }
+
+/** El catálogo de planes vigente (ACC-007, K-290): la pantalla se vuelve a dibujar si cambia. */
+@Composable
+internal fun catalogPlans(): List<Plan> = PlanCatalog.plans.collectAsState().value
+
+/** El plan [id] del catálogo vigente. */
+@Composable
+internal fun catalogPlan(id: PlanId): Plan = catalogPlans().first { it.id == id }

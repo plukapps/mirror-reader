@@ -3,7 +3,6 @@ package com.pluk.reader.ui.plans
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.pluk.reader.domain.plans.Billing
-import com.pluk.reader.domain.plans.DefaultPlans
 import com.pluk.reader.domain.plans.PlanCatalog
 import com.pluk.reader.domain.plans.PlanCta
 import com.pluk.reader.domain.plans.PlanId
@@ -30,7 +29,7 @@ data class PlansUiState(
     /** Uso de la cuenta, o null si nunca se leyó la cuota: la fila se oculta (PLN-003). */
     val usage: StorageUsage? = null,
     /** Espacio de Free: la cuota de la cuenta (PLN-001). */
-    val freeCloud: String = formatCloud(DefaultPlans.FREE_QUOTA_BYTES),
+    val freeCloud: String = formatCloud(PlanCatalog.of(PlanId.FREE).cloudBytes),
     /** Plan de la cuenta, que lleva "Tu plan" (PLN-005, PLN-017). Sin cuota conocida, Free. */
     val accountPlan: PlanId = PlanId.FREE,
 ) {
@@ -48,10 +47,11 @@ fun formatCloud(bytes: Long): String = formatStorage(bytes, storageUnitFor(bytes
 class PlansViewModel @Inject constructor(quotaCache: QuotaCache) : ViewModel() {
     private val choice = MutableStateFlow(PlansUiState())
 
-    val uiState: StateFlow<PlansUiState> = combine(choice, quotaCache.quota) { choice, quota ->
+    // ACC-007, K-290: también cambia si llega otro catálogo de planes.
+    val uiState: StateFlow<PlansUiState> = combine(choice, quotaCache.quota, PlanCatalog.plans) { choice, quota, plans ->
         choice.copy(
             usage = quota?.let(::storageUsage),
-            freeCloud = formatCloud(PlanCatalog.cloudBytes(DefaultPlans.free, quota)),
+            freeCloud = formatCloud(PlanCatalog.cloudBytes(plans.first { it.id == PlanId.FREE }, quota)),
             accountPlan = PlanCatalog.planOf(quota),
         )
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(STOP_TIMEOUT_MS), PlansUiState())

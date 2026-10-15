@@ -2,6 +2,7 @@ package com.pluk.reader.domain.flags
 
 import com.pluk.reader.domain.ApplicationScope
 import com.pluk.reader.domain.account.StorageQuota
+import com.pluk.reader.domain.plans.PlanCatalog
 import com.pluk.reader.domain.profile.QuotaCache
 import com.pluk.reader.domain.usecase.CloudListener
 import javax.inject.Inject
@@ -49,5 +50,7 @@ class RemoteFeatureFlags @Inject constructor(
 
     private fun publish() {
         states.forEach { (feature, state) -> state.value = source.value(feature.key) ?: feature.default }
+        // ACC-007, ACC-008, K-290: el catálogo de planes viaja con la misma configuración; inválido, los por defecto.
+        PlanCatalog.update(source.plans())
     }
 }

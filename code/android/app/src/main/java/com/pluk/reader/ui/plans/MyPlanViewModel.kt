@@ -13,7 +13,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
@@ -33,8 +33,10 @@ class MyPlanViewModel @Inject constructor(
     private val quotaCache: QuotaCache,
     private val quotaSource: QuotaSource,
 ) : ViewModel() {
-    val uiState: StateFlow<MyPlanUiState> = quotaCache.quota
-        .map { MyPlanUiState(it?.let(::storageUsage), PlanCatalog.planOf(it), PlanCatalog.maxFileBytes(it)) }
+    // ACC-007, K-290: también cambia si llega otro catálogo de planes (el máximo sin dato del servidor).
+    val uiState: StateFlow<MyPlanUiState> = combine(quotaCache.quota, PlanCatalog.plans) { quota, _ ->
+        MyPlanUiState(quota?.let(::storageUsage), PlanCatalog.planOf(quota), PlanCatalog.maxFileBytes(quota))
+    }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(STOP_TIMEOUT_MS), MyPlanUiState())
 
     init {

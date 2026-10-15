@@ -7,12 +7,49 @@ import com.pluk.reader.domain.plans.PlanCatalog
 import com.pluk.reader.domain.plans.PlanId
 import com.pluk.reader.domain.plans.ctaFor
 import com.pluk.reader.domain.profile.storageUsage
+import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Test
 
 class PlanCatalogTest {
     private val mib = 1024L * 1024
     private val gib = 1024L * mib
+
+    @After
+    fun resetCatalog() = PlanCatalog.update(null)
+
+    // PLN-001: precio fijo con "$" y dos decimales; sin costo, "$0"
+    @Test
+    fun pricesAreFixedText() {
+        assertEquals("$0", DefaultPlans.free.price(Billing.MONTHLY))
+        assertEquals("$0", DefaultPlans.free.annualPerMonth)
+        val plan = DefaultPlans.plus.copy(monthlyPrice = 3.0, annualPrice = 30.0)
+        assertEquals("$3.00", plan.price(Billing.MONTHLY))
+        assertEquals("$2.50", plan.annualPerMonth)
+    }
+
+    // ACC-007, ACC-008: el catálogo vigente reemplaza a los por defecto; inválido (null), vuelven los por defecto
+    @Test
+    fun theCurrentCatalogReplacesTheDefaults() {
+        val plus = DefaultPlans.plus.copy(cloudBytes = 7 * gib, maxFileBytes = 7 * mib, monthlyPrice = 3.49)
+        PlanCatalog.update(listOf(DefaultPlans.free, plus, DefaultPlans.pro))
+        assertEquals(plus, PlanCatalog.of(PlanId.PLUS))
+        assertEquals(plus, PlanCatalog.plans.value[1])
+        assertEquals("$3.49", ctaFor(PlanId.PLUS, Billing.MONTHLY).price)
+        // ACC-008: sin el máximo del servidor, el del plan en el catálogo vigente
+        assertEquals(7 * mib, PlanCatalog.maxFileBytes(StorageQuota(0, 1, plan = "plus")))
+        PlanCatalog.update(null)
+        assertEquals(DefaultPlans.plus, PlanCatalog.of(PlanId.PLUS))
+    }
+
+    // PLN-001: el espacio de Free sin cuota conocida (o en una cuenta paga) sale del catálogo vigente
+    @Test
+    fun freeSpaceComesFromTheCurrentCatalog() {
+        PlanCatalog.update(listOf(DefaultPlans.free.copy(cloudBytes = 20 * mib), DefaultPlans.plus, DefaultPlans.pro))
+        assertEquals(20 * mib, PlanCatalog.cloudBytes(PlanCatalog.of(PlanId.FREE), null))
+        assertEquals(20 * mib, PlanCatalog.cloudBytes(PlanCatalog.of(PlanId.FREE), StorageQuota(0, 50 * gib, plan = "pro")))
+        assertEquals(12 * mib, PlanCatalog.cloudBytes(PlanCatalog.of(PlanId.FREE), StorageQuota(0, 12 * mib)))
+    }
 
     // PLN-001: tres planes, en orden, con el espacio y los precios provisionales
     @Test

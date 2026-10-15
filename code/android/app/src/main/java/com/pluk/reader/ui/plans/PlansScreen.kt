@@ -58,7 +58,6 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.pluk.reader.R
 import com.pluk.reader.domain.plans.Billing
-import com.pluk.reader.domain.plans.DefaultPlans
 import com.pluk.reader.domain.plans.PlanCatalog
 import com.pluk.reader.domain.plans.PlanCta
 import com.pluk.reader.domain.plans.PlanId
@@ -324,8 +323,8 @@ private fun PlanCard(plan: PlanId, state: PlansUiState, onSelect: (PlanId) -> Un
     val colors = cardColors(highlighted)
     val radius = if (tablet) 28.dp else 24.dp
     val name = planName(plan)
-    val info = PlanCatalog.of(plan)
-    val cloud = if (plan == PlanId.FREE) state.freeCloud else formatCloud(info.cloudBytes ?: 0)
+    val info = catalogPlan(plan)
+    val cloud = if (plan == PlanId.FREE) state.freeCloud else formatCloud(info.cloudBytes)
     val period = stringResource(if (state.billing == Billing.ANNUAL) R.string.plans_per_year else R.string.plans_per_month)
     val price = info.price(state.billing)
     val description = stringResource(R.string.plans_card_description, name, cloud, price, period)
@@ -468,7 +467,7 @@ private fun ComparisonTable(freeCloud: String, tablet: Boolean, modifier: Modifi
                 Text(text.uppercase(), style = header.copy(color = color, textAlign = TextAlign.Center), modifier = Modifier.width(widths[i]))
             }
         }
-        comparisonRows(freeCloud).forEach { row ->
+        comparisonRows(freeCloud, catalogPlans()).forEach { row ->
             HorizontalDivider(thickness = 1.dp, color = MarginColors.Hairline)
             val feature = stringResource(row.feature)
             val values = row.values.map { it.text() }
@@ -621,7 +620,7 @@ private fun planTagline(plan: PlanId): Int = when (plan) {
 /** Lo que incluye cada tarjeta (PLN-001). Solo funciones hechas o en camino (PLN-016). */
 @Composable
 private fun planIncludes(plan: PlanId): List<String> {
-    val maxFile = stringResource(R.string.plans_includes_max_file, formatCloud(PlanCatalog.of(plan).maxFileBytes))
+    val maxFile = stringResource(R.string.plans_includes_max_file, formatCloud(catalogPlan(plan).maxFileBytes))
     return when (plan) {
         PlanId.FREE -> listOf(stringResource(R.string.plans_free_includes_1), stringResource(R.string.plans_free_includes_2), maxFile)
         PlanId.PLUS -> listOf(stringResource(R.string.plans_plus_includes_1), stringResource(R.string.plans_plus_includes_2), maxFile)
@@ -655,13 +654,14 @@ private fun Cell.spoken(): String = when (this) {
 private data class ComparisonRow(val feature: Int, val values: List<Cell>)
 
 /** Filas de la tabla (PLN-001); sin funciones en definición (PLN-016). */
-private fun comparisonRows(freeCloud: String): List<ComparisonRow> {
+private fun comparisonRows(freeCloud: String, plans: List<com.pluk.reader.domain.plans.Plan>): List<ComparisonRow> {
+    fun plan(id: PlanId) = plans.first { it.id == id }
     val unlimited = Cell.Res(R.string.plans_value_unlimited)
-    fun cloud(plan: com.pluk.reader.domain.plans.Plan) = Cell.Plain(formatCloud(plan.cloudBytes ?: 0))
+    fun cloud(plan: com.pluk.reader.domain.plans.Plan) = Cell.Plain(formatCloud(plan.cloudBytes))
     fun file(plan: com.pluk.reader.domain.plans.Plan) = Cell.Plain(formatCloud(plan.maxFileBytes))
     return listOf(
-        ComparisonRow(R.string.plans_row_cloud, listOf(Cell.Plain(freeCloud), cloud(DefaultPlans.plus), cloud(DefaultPlans.pro))),
-        ComparisonRow(R.string.plans_row_file_size, listOf(file(DefaultPlans.free), file(DefaultPlans.plus), file(DefaultPlans.pro))),
+        ComparisonRow(R.string.plans_row_cloud, listOf(Cell.Plain(freeCloud), cloud(plan(PlanId.PLUS)), cloud(plan(PlanId.PRO)))),
+        ComparisonRow(R.string.plans_row_file_size, listOf(file(plan(PlanId.FREE)), file(plan(PlanId.PLUS)), file(plan(PlanId.PRO)))),
         ComparisonRow(R.string.plans_row_reading, listOf(unlimited, unlimited, unlimited)),
         ComparisonRow(R.string.plans_row_sync, listOf(Cell.Yes, Cell.Yes, Cell.Yes)),
         ComparisonRow(R.string.plans_row_themes, listOf(Cell.No, Cell.Yes, Cell.Yes)),

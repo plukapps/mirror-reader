@@ -4,12 +4,17 @@ import com.pluk.reader.domain.account.StorageQuota
 import com.pluk.reader.domain.flags.Feature
 import com.pluk.reader.domain.flags.RemoteFeatureFlags
 import com.pluk.reader.domain.flags.RemoteFlagSource
+import com.pluk.reader.domain.plans.DefaultPlans
+import com.pluk.reader.domain.plans.Plan
+import com.pluk.reader.domain.plans.PlanCatalog
+import com.pluk.reader.domain.plans.PlanId
 import com.pluk.reader.domain.profile.QuotaCache
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.runTest
+import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
@@ -22,6 +27,9 @@ class RemoteFeatureFlagsTest {
         /** Lo que tiene el servidor; se aplica al activar. */
         val server = mutableMapOf<String, Boolean>()
         private val applied = mutableMapOf<String, Boolean>()
+        /** El catálogo de planes del servidor, ya leído (null: inválido o sin valor); se aplica al activar. */
+        var serverPlans: List<Plan>? = DefaultPlans.all
+        private var appliedPlans: List<Plan>? = DefaultPlans.all
         var plan: String? = null
         var offline = false
         var listener: (() -> Unit)? = null
@@ -35,12 +43,15 @@ class RemoteFeatureFlagsTest {
         override suspend fun fetchAndActivate() {
             if (offline) error("sin conexión")
             applied.putAll(server)
+            appliedPlans = serverPlans
         }
 
         override fun value(key: String): Boolean? = applied[key]
 
+        override fun plans(): List<Plan>? = appliedPlans
+
         override fun listen(onUpdate: () -> Unit): () -> Unit {
-            listener = { applied.putAll(server); onUpdate() }
+            listener = { applied.putAll(server); appliedPlans = serverPlans; onUpdate() }
             return { listener = null }
         }
     }
@@ -57,6 +68,44 @@ class RemoteFeatureFlagsTest {
     private val source = FakeSource()
 
     private fun flags(quota: StorageQuota? = null) = RemoteFeatureFlags(source, FakeQuota(quota), CoroutineScope(dispatcher))
+
+    @After
+    fun resetCatalog() = PlanCatalog.update(null)
+
+    private val cheaperPlus = listOf(DefaultPlans.free, DefaultPlans.plus.copy(monthlyPrice = 1.99), DefaultPlans.pro)
+
+    // ACC-007, K-290: al bajar la configuración, el catálogo de planes del servidor pasa a ser el vigente
+    @Test
+    fun publishesThePlanCatalog() = runTest(dispatcher) {
+        source.serverPlans = cheaperPlus
+        flags().startListening()
+        dispatcher.scheduler.advanceUntilIdle()
+        assertEquals(1.99, PlanCatalog.of(PlanId.PLUS).monthlyPrice, 0.0)
+    }
+
+    // ACC-008: si el catálogo del servidor pasa a ser inválido, vuelven los valores por defecto (no el anterior)
+    @Test
+    fun anInvalidCatalogRestoresTheDefaults() = runTest(dispatcher) {
+        source.serverPlans = cheaperPlus
+        flags().startListening()
+        dispatcher.scheduler.advanceUntilIdle()
+        assertEquals(cheaperPlus, PlanCatalog.plans.value)
+        source.serverPlans = null
+        source.listener!!.invoke()
+        dispatcher.scheduler.advanceUntilIdle()
+        assertEquals(DefaultPlans.all, PlanCatalog.plans.value)
+    }
+
+    // ACC-007: con la app a la vista, un cambio del catálogo llega sin esperar otra descarga
+    @Test
+    fun appliesCatalogChangesWhileListening() = runTest(dispatcher) {
+        flags().startListening()
+        dispatcher.scheduler.advanceUntilIdle()
+        source.serverPlans = cheaperPlus
+        source.listener!!.invoke()
+        dispatcher.scheduler.advanceUntilIdle()
+        assertEquals(cheaperPlus, PlanCatalog.plans.value)
+    }
 
     // SYN-017: si no se sabe todavía, vale prendida
     @Test

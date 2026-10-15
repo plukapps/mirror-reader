@@ -2,6 +2,7 @@ package com.pluk.reader.plans
 
 import com.pluk.reader.domain.account.StorageQuota
 import com.pluk.reader.domain.plans.Billing
+import com.pluk.reader.domain.plans.DefaultPlans
 import com.pluk.reader.domain.plans.PlanId
 import com.pluk.reader.ui.plans.PlansUiState
 import com.pluk.reader.ui.plans.PlansViewModel
@@ -29,6 +30,9 @@ class PlansViewModelTest {
 
     @Before
     fun setUp() = Dispatchers.setMain(dispatcher)
+
+    @After
+    fun resetCatalog() = com.pluk.reader.domain.plans.PlanCatalog.update(null)
 
     @After
     fun tearDown() = Dispatchers.resetMain()
@@ -116,5 +120,17 @@ class PlansViewModelTest {
         cache.quota.value = StorageQuota(0, 15 * mib, plan = "pro")
         advanceUntilIdle()
         assertEquals(PlanId.PRO, state().accountPlan)
+    }
+
+    // ACC-007, K-290: si cambia el catálogo, Planes muestra el espacio nuevo de Free
+    @Test
+    fun followsTheCatalog() = runTest(dispatcher) {
+        val (_, state) = start(FakeQuotaCache())
+        assertEquals("15 MB", state().freeCloud)
+        com.pluk.reader.domain.plans.PlanCatalog.update(
+            listOf(DefaultPlans.free.copy(cloudBytes = 20 * mib), DefaultPlans.plus, DefaultPlans.pro),
+        )
+        advanceUntilIdle()
+        assertEquals("20 MB", state().freeCloud)
     }
 }
