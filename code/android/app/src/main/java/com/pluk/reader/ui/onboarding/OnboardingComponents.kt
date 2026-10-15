@@ -129,7 +129,7 @@ internal fun OnboardingPage(
     }
 }
 
-/** Logo y "margin.", anunciados juntos (WEL-007). */
+/** Logo y "tuck.", anunciados juntos (WEL-007). */
 @Composable
 internal fun Brand(modifier: Modifier = Modifier) {
     val name = stringResource(R.string.welcome_brand)
@@ -479,7 +479,7 @@ internal fun TermsCheckbox(checked: Boolean, onCheckedChange: (Boolean) -> Unit,
     }
 }
 
-/** Fila de texto con un enlace subrayado al final ("¿Nuevo en margin.? Crear cuenta"). */
+/** Fila de texto con un enlace subrayado al final ("¿Nuevo en tuck.? Crear cuenta"). */
 @Composable
 internal fun TextLink(text: String, onClick: () -> Unit, modifier: Modifier = Modifier, size: TextUnit = 14.sp, color: Color = MarginColors.Ink) {
     Text(

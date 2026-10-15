@@ -379,7 +379,7 @@ struct ProfileContent: View {
 
     private var footer: some View {
         HStack {
-            Text("margin. \(version)")
+            Text("tuck. \(version)")
             Spacer()
             Button("Términos", action: actions.comingSoon).buttonStyle(.plain)
             Text("·")

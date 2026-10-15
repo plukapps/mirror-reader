@@ -12,7 +12,7 @@ Que abrir la app se sienta inmediato y con identidad propia, y que quien llega p
 - **WEL-004** ~~Reemplazado por ONB-001 (diseño O1).~~ La bienvenida seguía el diseño 01: fondo amarillo, logo y "margin." arriba a la izquierda; titular en tres líneas "Leé más. / Scrolleá menos. / Pensá despacio."; bajada "Tus EPUB, en un lugar tranquilo, en todos tus dispositivos."; botón "Comenzar" con flecha; pie "margin. 2026 ©".
 - **WEL-005** ~~Reemplazado por ONB-002 y ONB-013.~~ Tocar "Comenzar" (el botón o la flecha) debe registrar la bienvenida como completada y llevar a Inicio. Volver atrás desde Inicio no regresa a la bienvenida.
 - **WEL-006** Mientras se decide entre bienvenida e Inicio, la app muestra el mismo fondo amarillo, sin parpadeo de otro color ni de Inicio.
-- **WEL-007** Debe funcionar en teléfono y tablet, en vertical y apaisado (el contenido no se corta y se puede desplazar si no entra), y ser compatible con TalkBack: el logo se anuncia como "margin." y cada botón con su texto (AND-001, AND-002).
+- **WEL-007** Debe funcionar en teléfono y tablet, en vertical y apaisado (el contenido no se corta y se puede desplazar si no entra), y ser compatible con TalkBack: el logo se anuncia como "tuck." y cada botón con su texto (AND-001, AND-002).
 - **WEL-008** Si la app se abre con un EPUB ("Abrir con"), el libro se importa y abre igual que hoy, aunque corresponda la bienvenida.
 
 ## Escenarios

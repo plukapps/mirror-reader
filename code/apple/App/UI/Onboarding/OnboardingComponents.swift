@@ -77,15 +77,15 @@ struct MarginLogo: Shape {
     }
 }
 
-/// Logo y "margin.", anunciados juntos.
+/// Logo y "tuck.", anunciados juntos.
 struct Brand: View {
     var body: some View {
         HStack(spacing: 10) {
             MarginLogo().frame(width: 30, height: 24)
-            Text("margin.").font(.app(20, .medium)).tracking(-0.03 * 20)
+            Text("tuck.").font(.app(20, .medium)).tracking(-0.03 * 20)
         }
         .accessibilityElement(children: .ignore)
-        .accessibilityLabel("margin.")
+        .accessibilityLabel("tuck.")
     }
 }
 

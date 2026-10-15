@@ -65,7 +65,7 @@ Primera rebanada: Android (teléfono y tablet) e iPhone. La Mac queda afuera has
 
 - **PRF-017** Sección "Ayuda" en una tarjeta oscura: "Preguntas frecuentes" con tres preguntas ("¿Por qué no abre este EPUB?", "¿Dónde están mis libros?", "¿Cuánto espacio tengo?") y "Todas las preguntas". Tocar una pregunta abre su respuesta en una pantalla con el título de la pregunta, el texto y un botón para volver. "Todas las preguntas" abre la lista completa (PRF-018).
 - **PRF-018** Las preguntas frecuentes viven en la app (funcionan sin conexión). Lista inicial: por qué no abre un EPUB (con DRM no se puede, CMP-006; archivo dañado), dónde están mis libros (en la nube y en cada dispositivo; "solo en la nube" se baja al abrir), cuánto espacio tengo (la cuota, qué cuenta y qué no, LIB-012), cómo agrego libros, cómo se sincroniza mi lectura, cómo quito un libro.
-- **PRF-019** Al pie: "margin." con la versión de la app a la izquierda y "Términos · Privacidad" a la derecha. Mientras no estén publicados, "Términos" y "Privacidad" avisan (PRF-003).
+- **PRF-019** Al pie: "tuck." con la versión de la app a la izquierda y "Términos · Privacidad" a la derecha. Mientras no estén publicados, "Términos" y "Privacidad" avisan (PRF-003).
 
 ## Escenarios
 
