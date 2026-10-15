@@ -26,13 +26,6 @@ interface WelcomePreference {
     suspend fun markSeen()
 }
 
-/** Géneros de O4, en el orden del diseño (ONB-009). */
-enum class Genre { Philosophy, Classics, Poetry, SciFi, History, Essays, Mystery, Romance, Biography, Horror, Science, Travel, Drama }
-
-const val MIN_INTERESTS = 3
-
-fun canContinueInterests(selected: Set<Genre>): Boolean = selected.size >= MIN_INTERESTS
-
 /** Opciones de O5 (ONB-010). */
 enum class ReadingGoal(val minutes: Int) {
     Casual(10), Regular(20), Serious(30), Devoted(60);
@@ -55,11 +48,8 @@ data class DailyReminder(val enabled: Boolean, val hour: Int, val minute: Int) {
 
 /** Lo elegido en el onboarding. Vive en el dispositivo (ADR 0014). */
 interface OnboardingPreferences {
-    val interests: Flow<Set<Genre>>
     val goal: Flow<ReadingGoal?>
     val reminder: Flow<DailyReminder?>
-
-    suspend fun saveInterests(genres: Set<Genre>)
 
     suspend fun saveGoal(goal: ReadingGoal, reminder: DailyReminder)
 }

@@ -51,27 +51,6 @@
     <string name="onb_no_email_app">No encontramos una app de correo.</string>
     <string name="onb_verify_waiting">Esperando la confirmación…</string>
 
-    <string name="onb_email_verified">Paso 3 de 4 · Email verificado</string>
-    <string name="onb_interests_title">¿Qué te gusta\nleer?</string>
-    <string name="onb_interests_body">Elegí al menos 3.</string>
-    <plurals name="onb_interests_selected">
-        <item quantity="one">%d elegido</item>
-        <item quantity="other">%d elegidos</item>
-    </plurals>
-    <string name="onb_continue">Continuar</string>
-    <string name="genre_philosophy">Filosofía</string>
-    <string name="genre_classics">Clásicos</string>
-    <string name="genre_poetry">Poesía</string>
-    <string name="genre_scifi">Ciencia ficción</string>
-    <string name="genre_history">Historia</string>
-    <string name="genre_essays">Ensayo</string>
-    <string name="genre_mystery">Misterio</string>
-    <string name="genre_romance">Romance</string>
-    <string name="genre_biography">Biografía</string>
-    <string name="genre_horror">Terror</string>
-    <string name="genre_science">Ciencia</string>
-    <string name="genre_travel">Viajes</string>
-    <string name="genre_drama">Drama</string>
 
     <string name="onb_goal_title">¿Cuánto querés\nleer por día?</string>
     <string name="goal_casual">Tranquilo</string>

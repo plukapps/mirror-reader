@@ -216,7 +216,7 @@ internal fun StepBar(step: Int, modifier: Modifier = Modifier) {
     }
 }
 
-internal const val STEPS = 4
+internal const val STEPS = 3
 
 /** Píldora tinta con texto amarillo (y flecha). Mientras [busy], muestra que trabaja y no responde (ONB-021). */
 @Composable

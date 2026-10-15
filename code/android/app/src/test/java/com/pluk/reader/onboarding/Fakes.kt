@@ -6,7 +6,6 @@ import com.pluk.reader.domain.account.AuthError
 import com.pluk.reader.domain.account.AuthException
 import com.pluk.reader.domain.account.AuthRepository
 import com.pluk.reader.domain.onboarding.DailyReminder
-import com.pluk.reader.domain.onboarding.Genre
 import com.pluk.reader.domain.onboarding.OnboardingPreferences
 import com.pluk.reader.domain.onboarding.ReadingGoal
 import com.pluk.reader.domain.onboarding.ReminderScheduler
@@ -114,13 +113,8 @@ class FakeWelcomePreference(seen: Boolean = false) : WelcomePreference {
 }
 
 class FakePreferences : OnboardingPreferences {
-    override val interests = MutableStateFlow<Set<Genre>>(emptySet())
     override val goal = MutableStateFlow<ReadingGoal?>(null)
     override val reminder = MutableStateFlow<DailyReminder?>(null)
-
-    override suspend fun saveInterests(genres: Set<Genre>) {
-        interests.value = genres
-    }
 
     override suspend fun saveGoal(goal: ReadingGoal, reminder: DailyReminder) {
         this.goal.value = goal

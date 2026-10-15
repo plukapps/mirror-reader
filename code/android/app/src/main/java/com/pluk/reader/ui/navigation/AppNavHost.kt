@@ -35,7 +35,6 @@ import com.pluk.reader.ui.onboarding.AllSetScreen
 import com.pluk.reader.ui.onboarding.ForgotPasswordScreen
 import com.pluk.reader.ui.onboarding.ForgotPasswordViewModel
 import com.pluk.reader.ui.onboarding.GoalScreen
-import com.pluk.reader.ui.onboarding.InterestsScreen
 import com.pluk.reader.ui.onboarding.ResetPasswordScreen
 import com.pluk.reader.ui.onboarding.ResetPasswordViewModel
 import com.pluk.reader.ui.onboarding.SignInScreen
@@ -77,7 +76,6 @@ object Routes {
     // Onboarding (ONB): alta, verificación, intereses, meta, listo; ingreso, olvido y contraseña nueva.
     const val SIGNUP = "signup?${SignUpViewModel.ARG_NAME}={${SignUpViewModel.ARG_NAME}}&${SignUpViewModel.ARG_EMAIL}={${SignUpViewModel.ARG_EMAIL}}"
     const val VERIFY = "verify?${VerifyEmailViewModel.ARG_JUST_SENT}={${VerifyEmailViewModel.ARG_JUST_SENT}}"
-    const val INTERESTS = "interests"
     const val GOAL = "goal"
     const val ALL_SET = "allset"
     const val GUEST_READY = "guestready"
@@ -170,7 +168,7 @@ fun AppNavHost(
                             onBack = { navController.popOrStartOver() },
                             // Con la cuenta creada, crear cuenta ya no está detrás.
                             onVerifyEmail = { navController.navigate(Routes.verify(justSent = true)) { popUpTo(Routes.SIGNUP) { inclusive = true } } },
-                            onInterests = { navController.startOver(Routes.INTERESTS) },
+                            onGoal = { navController.startOver(Routes.GOAL) },
                             onSignIn = { navController.navigate(Routes.SIGNIN) { popUpTo(Routes.SIGNUP) { inclusive = true } } },
                         )
                     }
@@ -179,7 +177,7 @@ fun AppNavHost(
                         arguments = listOf(navArgument(VerifyEmailViewModel.ARG_JUST_SENT) { type = NavType.BoolType; defaultValue = false }),
                     ) {
                         VerifyEmailScreen(
-                            onVerified = { navController.startOver(Routes.INTERESTS) },
+                            onVerified = { navController.startOver(Routes.GOAL) },
                             // ONB-008: de vuelta a crear cuenta, con la bienvenida detrás.
                             onChange = { name, email ->
                                 navController.startOver(Routes.WELCOME)
@@ -187,15 +185,10 @@ fun AppNavHost(
                             },
                         )
                     }
-                    lightComposable(Routes.INTERESTS) {
-                        InterestsScreen(
-                            onBack = null,
-                            onDone = { navController.navigate(Routes.GOAL) },
-                        )
-                    }
                     lightComposable(Routes.GOAL) {
                         GoalScreen(
-                            onBack = { navController.popBackStack() },
+                            // Con la cuenta ya creada, no hay paso anterior (era intereses, ONB-009 retirado).
+                            onBack = null,
                             onDone = { navController.startOver(Routes.ALL_SET) },
                         )
                     }
@@ -363,7 +356,7 @@ fun AppNavHost(
 
 /** Rutas del onboarding (O1 a O9): siempre con la paleta clara (PRF-021). */
 private val LightOnlyRoutes = setOf(
-    Routes.WELCOME, Routes.SIGNUP, Routes.VERIFY, Routes.INTERESTS, Routes.GOAL, Routes.ALL_SET, Routes.GUEST_READY,
+    Routes.WELCOME, Routes.SIGNUP, Routes.VERIFY, Routes.GOAL, Routes.ALL_SET, Routes.GUEST_READY,
     Routes.SIGNIN, Routes.FORGOT, Routes.RESET,
 )
 

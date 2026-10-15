@@ -24,7 +24,7 @@ class SignUpViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
 ) : ViewModel() {
 
-    enum class Next { VerifyEmail, Interests }
+    enum class Next { VerifyEmail, Goal }
 
     data class UiState(
         val name: String = "",
@@ -83,7 +83,7 @@ class SignUpViewModel @Inject constructor(
         _state.update { it.copy(busy = true, error = null) }
         viewModelScope.launch {
             auth.signInWithGoogle(idToken).fold(
-                onSuccess = { _state.update { it.copy(busy = false, next = Next.Interests) } },
+                onSuccess = { _state.update { it.copy(busy = false, next = Next.Goal) } },
                 onFailure = { e -> _state.update { it.copy(busy = false, error = e.authError()) } },
             )
         }

@@ -42,7 +42,6 @@ Plan de referencia: `specs/plans/2026-10-06-android-epub-viewer.md`
 
 ## Listo
 
-- **K-346** Uso sin cuenta, Android: alta corta (B1 → O3 → B3) e ingreso desde Perfil a la Biblioteca. GST-011, GST-021, GST-022. Plan `2026-10-15-android-no-account.md`, rama `feature/no-account`.
 - **K-347** Uso sin cuenta, Android: cierre de docs y verificación a mano en el teléfono y la tablet. Plan `2026-10-15-android-no-account.md`, rama `feature/no-account`.
 - **K-134** Lector iOS, Tarea 7: cierre de docs y verificación a mano en el simulador. Rama `feature/ios-reader`. Era K-125 hasta el merge con `master`.
 - **K-038** Inicio, Tarea 4: cierre de docs y verificación a mano. Rama `feature/home`.
@@ -50,11 +49,12 @@ Plan de referencia: `specs/plans/2026-10-06-android-epub-viewer.md`
 
 ## En curso
 
-- **K-345** Onboarding, Android: quitar los intereses (O4) del alta, pasos 1 a 3. ONB-003, ONB-009. Plan `2026-10-15-android-no-account.md`, rama `feature/no-account`.
+- **K-346** Uso sin cuenta, Android: alta corta (B1 → O3 → B3) e ingreso desde Perfil a la Biblioteca. GST-011, GST-021, GST-022. Plan `2026-10-15-android-no-account.md`, rama `feature/no-account`.
 - **K-176** Posición exacta, Tarea 5: verificación a mano entre el teléfono y el iPhone, cierre de docs. SYN-014.
 
 ## Revisión
 
+- **K-345** Onboarding, Android: quitar los intereses (O4) del alta, pasos 1 a 3. ONB-003, ONB-009. Plan `2026-10-15-android-no-account.md`, rama `feature/no-account`. Hecho: sin ruta, pantalla, ViewModel, strings ni guardado de intereses; verificar y Google van a la meta (O5), que pasa a "Paso 3 de 3" sin flecha atrás. Tests JVM actualizados (`OnboardingViewModelsTest`, `OnboardingRulesTest`).
 - **K-344** Uso sin cuenta, Android: Perfil sin cuenta (09g). GST-009, GST-018. Plan `2026-10-15-android-no-account.md`, rama `feature/no-account`. Hecho: `ProfileUiState.signedIn`; sin sesión, tarjeta "Sin cuenta" con el logo, "Ya tengo una cuenta" (ícono `Login`), sin espacio, contraseña, cerrar sesión, eliminar cuenta ni Wi-Fi, y sin pedir la cuota. La tarjeta abre por ahora el alta completa (K-346). Tests: `ProfileViewModelTest` (JVM), `ProfileScreenTest` (instrumentado, compilado sin correr).
 - **K-343** Uso sin cuenta, Android: aviso "Tus libros están solo en este dispositivo" en Inicio y Biblioteca. GST-010. Plan `2026-10-15-android-no-account.md`, rama `feature/no-account`. Hecho: `GuestNotice` (regla, preferencia `guest_notice_dismissed`) compartido por Inicio y Biblioteca; `GuestNoticeCard`. "Crear cuenta" abre por ahora el alta completa (el alta corta llega en K-346). Tests: `GuestNoticeTest`, `HomeViewModelTest`, `LibraryViewModelTest` (JVM); `LibraryScreenTest`, `HomeScreenTest` (instrumentados, compilados sin correr).
 - **K-342** Uso sin cuenta, Android: sin hojas de cuota, archivo muy grande ni aviso del 80 % sin sesión. GST-006. Plan `2026-10-15-android-no-account.md`, rama `feature/no-account`. Hecho: `ImportQuotaCheck` no muestra hojas sin sesión (tampoco la de archivo muy grande); el aviso del 80 % exige sesión. Tests JVM: `ImportQuotaCheckTest`, `LibraryViewModelTest` (incluye "Esperando Wi-Fi" sin sesión).
