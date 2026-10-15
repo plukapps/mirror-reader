@@ -75,3 +75,4 @@ Stack y capas en `specs/adr/0010-apple-stack-and-architecture.md` (provisional):
 ## Criterio de terminado
 
 Todos los requisitos "debe" de `product/` cumplidos y verificados en una Mac real, y la app aprobada en la Mac App Store.
+- Cierres inesperados (CMP-010, ADR 0018, K-335): `FirebaseCrashlytics` 12.14.0. `CrashReporter` y `CrashReportIdentity` en `ReaderDomain`; `CrashReportSession` (App/Data/Remote) escucha el estado de Firebase Auth y manda el `uid`, o vacío sin sesión. Arranca en `AppGraph` solo con Firebase (nunca en los tests). `DEBUG_INFORMATION_FORMAT = dwarf-with-dsym` y la fase final `Crashlytics` de `project.yml` sube los dSYM; sin `GoogleService-Info.plist` no hace nada. Plan `specs/plans/2026-10-15-crashlytics.md`.

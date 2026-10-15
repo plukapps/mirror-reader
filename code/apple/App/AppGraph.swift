@@ -39,6 +39,8 @@ enum AppGraph {
         let store = LibraryStore(container: container(), files: files)
         // Los tests corren dentro de la app: nunca tocan el proyecto real.
         let firebase = !isRunningTests && FirebaseSetup.configureIfAvailable()
+        // CMP-010, ADR 0018: los cierres llevan el uid de la cuenta.
+        if firebase { CrashReportSession.start() }
         // PRF-023: "Sincronizar solo con Wi-Fi" mira la red real.
         let gate = SyncNetworkGate()
         let network = PathNetworkMonitor()

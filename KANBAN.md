@@ -49,11 +49,11 @@ Plan de referencia: `specs/plans/2026-10-06-android-epub-viewer.md`
 
 ## En curso
 
-- **K-335** Crashlytics, Tarea 3: iOS y Mac (`FirebaseCrashlytics`, dSYM, `CrashReportIdentity` en el dominio, oyente de Auth). CMP-010, ADR 0018.
 - **K-176** Posición exacta, Tarea 5: verificación a mano entre el teléfono y el iPhone, cierre de docs. SYN-014.
 
 ## Revisión
 
+- **K-335** Crashlytics, Tarea 3: iOS y Mac (`FirebaseCrashlytics`, dSYM, `CrashReportIdentity` en el dominio, oyente de Auth). CMP-010, ADR 0018. Hecho: `CrashReporting.swift` en el dominio, `FirebaseCrashReporting.swift` en la app, fase `Crashlytics` en `project.yml`. Dominio 256 (2 nuevos, `CrashReportIdentityTests`), app 243 en el simulador; la Mac compila (sus tests no arrancan, K-201).
 - **K-334** Crashlytics, Tarea 2: Android (`firebase-crashlytics`, plugin, `CrashReportIdentity`, `FirebaseCrashReporter`). CMP-010, ADR 0018. Rama `claude/crashlytics-android-ios-b61f44`. Hecho: plugin 3.0.8 y `firebase-crashlytics` por el BoM; `CrashReportIdentity` arranca en `ReaderApp`. 516 tests JVM (2 nuevos, `CrashReportIdentityTest`); compila la app y los instrumentados.
 - **K-333** Crashlytics, Tarea 1: CMP-010, ADR 0018 y plan `2026-10-15-crashlytics.md`. Pedido del usuario (2026-10-15).
 - **K-331** Sync de notas iOS (#38): cierre y prueba cruzada Android ↔ iPhone.
