@@ -15,15 +15,26 @@ final class MyPlanViewModel {
     private(set) var usage: PlanUsage?
     private(set) var quota: StorageQuota?
 
+    /// ACC-007, K-290: el catálogo de planes vigente; cambia si llega otro de Remote Config.
+    private(set) var plans: [Plan]
+
     private let source: QuotaSource?
     private let cache: QuotaCache
+    @ObservationIgnored private let catalog: PlanCatalogStore
 
     /// `source` es nil sin Firebase: queda lo guardado.
-    init(quota source: QuotaSource?, cache: QuotaCache) {
+    init(quota source: QuotaSource?, cache: QuotaCache, catalog: PlanCatalogStore = .shared) {
         self.source = source
         self.cache = cache
+        self.catalog = catalog
+        plans = catalog.plans
         quota = cache.last()
         usage = PlanUsage(quota)
+    }
+
+    /// Sigue los cambios del catálogo mientras la pantalla está a la vista (`.task`).
+    func followCatalog() async {
+        for await plans in catalog.changes() { self.plans = plans }
     }
 
     func load() async {
@@ -43,7 +54,7 @@ final class MyPlanViewModel {
 
     /// PLN-012, PLN-017, ACC-010: "2 MB", el máximo por archivo de la cuenta (el del servidor si se conoce).
     var maxFile: String {
-        let bytes = PlanCatalog.maxFileBytes(quota)
+        let bytes = PlanCatalog.maxFileBytes(quota, in: plans)
         return formatStorage(bytes, unit: StorageUnit.forTotal(bytes))
     }
 
@@ -52,13 +63,13 @@ final class MyPlanViewModel {
         switch plan {
         case .free:
             MyPlanOffer(
-                title: String(localized: "Con Plus: \(PlanCatalog.storageText(.plus, quota: quota)) en la nube"),
-                body: String(localized: "Archivos de hasta \(PlanCatalog.maxFileText(.plus)), temas y fuentes.")
+                title: String(localized: "Con Plus: \(PlanCatalog.storageText(.plus, quota: quota, in: plans)) en la nube"),
+                body: String(localized: "Archivos de hasta \(PlanCatalog.maxFileText(.plus, in: plans)), temas y fuentes.")
             )
         case .plus:
             MyPlanOffer(
-                title: String(localized: "Con Pro: \(PlanCatalog.storageText(.pro, quota: quota)) en la nube"),
-                body: String(localized: "Archivos de hasta \(PlanCatalog.maxFileText(.pro)).")
+                title: String(localized: "Con Pro: \(PlanCatalog.storageText(.pro, quota: quota, in: plans)) en la nube"),
+                body: String(localized: "Archivos de hasta \(PlanCatalog.maxFileText(.pro, in: plans)).")
             )
         case .pro:
             nil
@@ -91,6 +102,7 @@ struct MyPlanView: View {
         .background(MarginColors.paper)
         .toolbar(.hidden)
         .task { await viewModel.load() }
+        .task { await viewModel.followCatalog() }
     }
 }
 

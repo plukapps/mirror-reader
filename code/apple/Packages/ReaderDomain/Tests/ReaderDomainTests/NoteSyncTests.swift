@@ -95,6 +95,7 @@ struct NoteSyncTests {
         func activate() async throws {}
         func fetchAndActivate() async throws {}
         func value(_ key: String) async -> Bool? { on }
+        func plans() async -> [Plan]? { DefaultPlans.all }
         nonisolated func updates() -> AsyncStream<Void> {
             let (stream, continuation) = AsyncStream<Void>.makeStream()
             Task { await self.keep(continuation) }

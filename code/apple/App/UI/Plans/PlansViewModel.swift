@@ -12,12 +12,22 @@ final class PlansViewModel {
     /// PLN-006: la tabla comparativa, desplegada o no.
     private(set) var tableOpen = false
     private(set) var quota: StorageQuota?
+    /// ACC-007, K-290: el catálogo de planes vigente; cambia si llega otro de Remote Config.
+    private(set) var plans: [Plan]
 
     private let cache: QuotaCache
+    @ObservationIgnored private let catalog: PlanCatalogStore
 
-    init(cache: QuotaCache) {
+    init(cache: QuotaCache, catalog: PlanCatalogStore = .shared) {
         self.cache = cache
+        self.catalog = catalog
         quota = cache.last()
+        plans = catalog.plans
+    }
+
+    /// Sigue los cambios del catálogo mientras la pantalla está a la vista (`.task`).
+    func followCatalog() async {
+        for await plans in catalog.changes() { self.plans = plans }
     }
 
     /// Vuelve a leer la cuota guardada (puede cambiar con una pasada de sincronización).
@@ -43,12 +53,12 @@ final class PlansViewModel {
         tableOpen.toggle()
     }
 
-    var cta: PlanCta { PlanCta(selected, billing) }
+    var cta: PlanCta { PlanCta(selected, billing, catalog: plans) }
 
-    var comparison: [PlanComparisonRow] { PlanComparisonRow.rows(quota: quota) }
+    var comparison: [PlanComparisonRow] { PlanComparisonRow.rows(quota: quota, catalog: plans) }
 
     /// "15 MB", "5 GB": el espacio de cada tarjeta.
-    func storage(_ plan: PlanId) -> String { PlanCatalog.storageText(plan, quota: quota) }
+    func storage(_ plan: PlanId) -> String { PlanCatalog.storageText(plan, quota: quota, in: plans) }
 }
 
 /// Quién abre Planes (PLN-002): Perfil, Mi plan, la Biblioteca y las hojas de P02 y P03. Se presenta a pantalla

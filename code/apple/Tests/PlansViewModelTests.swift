@@ -106,4 +106,18 @@ struct PlansViewModelTests {
         #expect(!presenter.plansOpen)
     }
 
+
+    @Test("ACC-007, K-290: si cambia el catálogo, Planes muestra los valores nuevos")
+    func followsCatalog() async {
+        let store = PlanCatalogStore()
+        let viewModel = PlansViewModel(cache: PlansMemoryQuotaCache(), catalog: store)
+        let following = Task { await viewModel.followCatalog() }
+        defer { following.cancel() }
+        let plus = Plan(id: .plus, storageBytes: 7 * 1024 * mib, maxFileBytes: 70 * mib, monthlyPrice: 3.49, annualPrice: 34.99, currency: "USD")
+        store.update([DefaultPlans.free, plus, DefaultPlans.pro])
+        for _ in 0..<2_000 where viewModel.plans != store.plans { await Task.yield() }
+        #expect(viewModel.storage(.plus) == "7 GB")
+        #expect(viewModel.cta.title == "Elegir Plus · $3.49 por mes")
+        #expect(viewModel.comparison[1].plus == "70 MB")
+    }
 }

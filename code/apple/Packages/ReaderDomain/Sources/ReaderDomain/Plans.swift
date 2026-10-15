@@ -10,22 +10,40 @@ public enum Billing: Sendable {
     case monthly, annual
 }
 
-/// Un plan: espacio y precios, sin textos (los pone la app, traducibles, K-295). `storageBytes` es nil en Free, que
-/// usa la cuota de la cuenta (ACC-002). Los precios son informativos (open-questions #1): la rebanada de compras los
-/// toma de la tienda.
+/// Un plan del catálogo (ACC-007): espacio, máximo por archivo y precios, sin textos (los pone la app, K-295). En Free
+/// la app muestra la cuota de la cuenta si la cuenta está en Free (PLN-001, `PlanCatalog.storageBytes`). Los precios son
+/// informativos (open-questions #1): la rebanada de compras los toma de la tienda.
 public struct Plan: Equatable, Sendable {
     public let id: PlanId
-    public let storageBytes: Int64?
+    public let storageBytes: Int64
     /// PLN-014: tamaño máximo de cada archivo que se sube a la nube. Vale mientras no se conoce el del servidor (ACC-008).
     public let maxFileBytes: Int64
-    public let monthlyPrice: String
-    public let annualPrice: String
-    /// Equivalencia por mes del precio anual ("$2.08"), o nil en Free.
-    public let annualPerMonth: String?
+    public let monthlyPrice: Double
+    public let annualPrice: Double
+    public let currency: String
 
-    public func price(_ billing: Billing) -> String {
-        billing == .annual ? annualPrice : monthlyPrice
+    public init(id: PlanId, storageBytes: Int64, maxFileBytes: Int64, monthlyPrice: Double, annualPrice: Double, currency: String) {
+        self.id = id
+        self.storageBytes = storageBytes
+        self.maxFileBytes = maxFileBytes
+        self.monthlyPrice = monthlyPrice
+        self.annualPrice = annualPrice
+        self.currency = currency
     }
+
+    /// PLN-001: "$2.99" según la forma de pago.
+    public func price(_ billing: Billing) -> String {
+        formatPrice(billing == .annual ? annualPrice : monthlyPrice)
+    }
+
+    /// Equivalencia por mes del precio anual: el anual dividido 12, redondeado al centavo ("$2.08").
+    public var annualPerMonth: String { formatPrice((annualPrice / 12 * 100).rounded() / 100) }
+}
+
+/// PLN-001: precio fijo con "$" y dos decimales ("$2.99"); sin costo, "$0". No usa el formato del país del dispositivo
+/// (decisión del usuario, 2026-10-14): el precio real llega de la tienda con el cobro.
+public func formatPrice(_ value: Double) -> String {
+    value == 0 ? "$0" : "$" + String(format: "%.2f", locale: Locale(identifier: "en_US_POSIX"), value)
 }
 
 /// PLN-003: lo usado y el total con la unidad y el formato de PRF-006, la proporción y la barra. El texto ("Usás X de
@@ -51,29 +69,32 @@ public struct PlanUsage: Equatable, Sendable {
     public var percent: Int { Int((fraction * 100).rounded()) }
 }
 
-/// Reglas de los planes sobre la cuenta (PLN-001). Los valores de cada plan, por ahora, son los de `DefaultPlans`.
+/// Reglas de los planes sobre la cuenta (PLN-001), con el catálogo vigente: el de Remote Config si es válido, si no
+/// `DefaultPlans` (ACC-007, ACC-008, ADR 0017). Cada regla acepta un catálogo propio (`in:`), para los `ViewModel` que
+/// siguen sus cambios; sin él, usa el vigente.
 public enum PlanCatalog {
     public static let annualSavingPercent = 30
 
-    public static var all: [Plan] { DefaultPlans.all }
+    /// Solo para tests: un catálogo propio de la tarea, sin tocar el compartido (Swift Testing corre en paralelo).
+    @TaskLocal public static var override: [Plan]?
 
-    public static func plan(_ id: PlanId) -> Plan {
-        switch id {
-        case .free: DefaultPlans.free
-        case .plus: DefaultPlans.plus
-        case .pro: DefaultPlans.pro
-        }
+    /// El catálogo vigente. Siempre tiene Free, Plus y Pro, en ese orden.
+    public static var all: [Plan] { override ?? PlanCatalogStore.shared.plans }
+
+    public static func plan(_ id: PlanId, in catalog: [Plan]? = nil) -> Plan {
+        (catalog ?? all).first { $0.id == id } ?? DefaultPlans.all.first { $0.id == id }!
     }
 
     /// PLN-001: espacio del plan; el de Free es la cuota de la cuenta si la cuenta está en Free.
-    public static func storageBytes(_ id: PlanId, quota: StorageQuota?) -> Int64 {
-        // En una cuenta paga, Free no es la cuota de la cuenta sino la de Free de hoy (K-291).
-        plan(id).storageBytes ?? quota.flatMap { $0.isFreePlan ? $0.quotaBytes : nil } ?? DefaultPlans.freeQuotaBytes
+    public static func storageBytes(_ id: PlanId, quota: StorageQuota?, in catalog: [Plan]? = nil) -> Int64 {
+        // En una cuenta paga, Free no es la cuota de la cuenta sino la del catálogo (K-291).
+        if id == .free, let quota, quota.isFreePlan { return quota.quotaBytes }
+        return plan(id, in: catalog).storageBytes
     }
 
     /// "15 MB", "5 GB": con la unidad de su propio total (PRF-006).
-    public static func storageText(_ id: PlanId, quota: StorageQuota?) -> String {
-        let bytes = storageBytes(id, quota: quota)
+    public static func storageText(_ id: PlanId, quota: StorageQuota?, in catalog: [Plan]? = nil) -> String {
+        let bytes = storageBytes(id, quota: quota, in: catalog)
         return formatStorage(bytes, unit: StorageUnit.forTotal(bytes))
     }
 
@@ -84,8 +105,8 @@ public enum PlanCatalog {
     }
 
     /// PLN-014, ACC-008: tamaño máximo por archivo de la cuenta; el del servidor si se conoce, si no el fijo del plan.
-    public static func maxFileBytes(_ quota: StorageQuota?) -> Int64 {
-        quota?.maxFileBytes ?? plan(planOf(quota)).maxFileBytes
+    public static func maxFileBytes(_ quota: StorageQuota?, in catalog: [Plan]? = nil) -> Int64 {
+        quota?.maxFileBytes ?? plan(planOf(quota), in: catalog).maxFileBytes
     }
 
     /// PLN-014: el plan que se ofrece para pasar de este ("Con Plus…", "Con Pro…"); nil en Pro.
@@ -98,8 +119,8 @@ public enum PlanCatalog {
     }
 
     /// "2 MB", "50 MB": el tamaño máximo por archivo del plan (PLN-014).
-    public static func maxFileText(_ id: PlanId) -> String {
-        let bytes = plan(id).maxFileBytes
+    public static func maxFileText(_ id: PlanId, in catalog: [Plan]? = nil) -> String {
+        let bytes = plan(id, in: catalog).maxFileBytes
         return formatStorage(bytes, unit: StorageUnit.forTotal(bytes))
     }
 }

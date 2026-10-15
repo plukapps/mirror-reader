@@ -31,8 +31,9 @@ func prices() {
     let pro = PlanCatalog.plan(.pro)
     #expect(pro.price(.annual) == "$49.99")
     #expect(pro.price(.monthly) == "$5.99")
+    #expect(pro.annualPerMonth == "$4.17")
     #expect(PlanCatalog.plan(.free).price(.annual) == "$0")
-    #expect(PlanCatalog.plan(.free).annualPerMonth == nil)
+    #expect(PlanCatalog.plan(.free).annualPerMonth == "$0")
 }
 
 @Test("PLN-001, PLN-014: tamaño máximo por archivo de cada plan")
@@ -65,4 +66,47 @@ func effectiveSettings() {
     #expect(effectiveReaderSettings(saved, plan: .pro) == saved)
     #expect(ReadingTheme.allCases.filter(\.isPaid) == [.dark, .sepia])
     #expect(ReaderFont.allCases.filter(\.isPaid) == [.sans, .mono])
+}
+
+@Test("PLN-001: precio fijo con \"$\" y dos decimales; sin costo, \"$0\"")
+func priceText() {
+    let plan = Plan(id: .plus, storageBytes: 5 * gib, maxFileBytes: 50 * mib, monthlyPrice: 3, annualPrice: 30, currency: "USD")
+    #expect(plan.price(.monthly) == "$3.00")
+    #expect(plan.annualPerMonth == "$2.50")
+    #expect(DefaultPlans.free.price(.annual) == "$0")
+}
+
+@Test("ACC-007, ACC-008: el catálogo de un test reemplaza a los por defecto solo dentro del test")
+func catalogOverride() {
+    let plus = Plan(id: .plus, storageBytes: 7 * gib, maxFileBytes: 7 * mib, monthlyPrice: 3.49, annualPrice: 30, currency: "USD")
+    PlanCatalog.$override.withValue([DefaultPlans.free, plus, DefaultPlans.pro]) {
+        #expect(PlanCatalog.plan(.plus) == plus)
+        #expect(PlanCatalog.maxFileBytes(StorageQuota(usedBytes: 0, quotaBytes: 1, plan: "plus")) == 7 * mib)
+        #expect(PlanCatalog.storageText(.plus, quota: nil) == "7 GB")
+    }
+    #expect(PlanCatalog.plan(.plus) == DefaultPlans.plus)
+}
+
+@Test("PLN-001: el espacio de Free sin cuota conocida (o en una cuenta paga) sale del catálogo")
+func freeStorageFromCatalog() {
+    let free = Plan(id: .free, storageBytes: 20 * mib, maxFileBytes: 2 * mib, monthlyPrice: 0, annualPrice: 0, currency: "USD")
+    PlanCatalog.$override.withValue([free, DefaultPlans.plus, DefaultPlans.pro]) {
+        #expect(PlanCatalog.storageBytes(.free, quota: nil) == 20 * mib)
+        #expect(PlanCatalog.storageBytes(.free, quota: StorageQuota(usedBytes: 0, quotaBytes: 50 * gib, plan: "pro")) == 20 * mib)
+        #expect(PlanCatalog.storageBytes(.free, quota: StorageQuota(usedBytes: 0, quotaBytes: 12 * mib)) == 12 * mib)
+    }
+}
+
+@Test("ACC-007, ACC-008: el store publica el catálogo nuevo; inválido (nil), vuelven los por defecto")
+func storeUpdates() async {
+    let store = PlanCatalogStore()
+    let cheaper = [DefaultPlans.free, Plan(id: .plus, storageBytes: 5 * gib, maxFileBytes: 50 * mib, monthlyPrice: 1.99, annualPrice: 19.99, currency: "USD"), DefaultPlans.pro]
+    var changes = store.changes().makeAsyncIterator()
+    #expect(await changes.next() == DefaultPlans.all)
+    store.update(cheaper)
+    #expect(store.plans == cheaper)
+    #expect(await changes.next() == cheaper)
+    store.update(nil)
+    #expect(store.plans == DefaultPlans.all)
+    #expect(await changes.next() == DefaultPlans.all)
 }

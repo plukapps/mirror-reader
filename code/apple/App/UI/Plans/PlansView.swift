@@ -38,6 +38,7 @@ struct PlansView: View {
         }
         .background(MarginColors.paper.ignoresSafeArea())
         .onAppear { viewModel.load() }
+        .task { await viewModel.followCatalog() }
     }
 }
 
@@ -150,7 +151,7 @@ struct PlansContent: View {
     private var cards: some View {
         if wide {
             HStack(alignment: .top, spacing: 16) {
-                ForEach(PlanCatalog.all, id: \.id) { plan in
+                ForEach(viewModel.plans, id: \.id) { plan in
                     PlanCard(plan: plan, viewModel: viewModel, wide: true).frame(maxHeight: .infinity, alignment: .top)
                 }
             }
@@ -158,7 +159,7 @@ struct PlansContent: View {
             .padding(EdgeInsets(top: 24, leading: 28, bottom: 0, trailing: 28))
         } else {
             VStack(spacing: 12) {
-                ForEach(PlanCatalog.all, id: \.id) { plan in
+                ForEach(viewModel.plans, id: \.id) { plan in
                     PlanCard(plan: plan, viewModel: viewModel, wide: false)
                 }
             }
