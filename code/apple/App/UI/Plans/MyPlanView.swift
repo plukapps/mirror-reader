@@ -27,12 +27,12 @@ final class MyPlanViewModel {
     }
 
     /// En esta rebanada solo existe la variante Gratis.
-    var planName: String { PlanCatalog.free.name }
+    var planName: String { PlanId.free.name }
 
     /// "12 MB de 15 MB".
     var storageText: String? { usage.map { "\($0.used) de \($0.total)" } }
 
-    var readerStorage: String { PlanCatalog.storageText(.reader, quota: quota) }
+    var readerStorage: String { PlanCatalog.storageText(.plus, quota: quota) }
 
     /// PLN-012: "2 MB", el tamaño máximo por archivo de Gratis.
     var maxFile: String { PlanCatalog.maxFileText(.free) }
@@ -136,7 +136,7 @@ struct MyPlanContent: View {
     private var upsell: some View {
         VStack(alignment: .leading, spacing: 4) {
             Text("Con Lector: \(viewModel.readerStorage) en la nube").font(.app(15, .bold)).foregroundStyle(MarginColors.onYellow)
-            Text("Archivos de hasta \(PlanCatalog.maxFileText(.reader)), temas y fuentes.")
+            Text("Archivos de hasta \(PlanCatalog.maxFileText(.plus)), temas y fuentes.")
                 .font(.app(13, .medium))
                 .foregroundStyle(MarginColors.onYellowMuted)
         }

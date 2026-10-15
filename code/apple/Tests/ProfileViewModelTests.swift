@@ -184,7 +184,7 @@ struct ProfileViewModelTests {
     @Test("PRF-011: Perfil muestra los mismos ajustes que el lector; en Gratis, con Clásico y serifa (PLN-015)")
     func showsReaderSettings() async {
         let saved = ReaderSettings(theme: .sepia, fontScale: 1.2, font: .mono, lineSpacing: .wide)
-        let viewModel = await loaded(ana, settings: MemorySettings(saved), plan: .reader)
+        let viewModel = await loaded(ana, settings: MemorySettings(saved), plan: .plus)
         #expect(viewModel.reading == saved)
         let free = await loaded(ana, settings: MemorySettings(saved))
         #expect(free.reading == ReaderSettings(theme: .light, fontScale: 1.2, font: .serif, lineSpacing: .wide))
@@ -208,7 +208,7 @@ struct ProfileViewModelTests {
 
     @Test("PLN-015: el plan sale de la cuota guardada; con Lector las opciones no llevan marca")
     func planFromCache() async {
-        let cache = MemoryQuotaCache(StorageQuota(usedBytes: 0, quotaBytes: 5 * gib, plan: "reader"))
+        let cache = MemoryQuotaCache(StorageQuota(usedBytes: 0, quotaBytes: 5 * gib, plan: "plus"))
         let viewModel = await loaded(ana, quota: nil, cache: cache)
         #expect(!viewModel.isLocked(ReadingTheme.dark))
     }
@@ -216,7 +216,7 @@ struct ProfileViewModelTests {
     @Test("PRF-011, PRF-013 a PRF-015: los cambios se guardan donde los lee el lector")
     func changesAreSaved() async {
         let settings = MemorySettings()
-        let viewModel = await loaded(ana, settings: settings, plan: .library)
+        let viewModel = await loaded(ana, settings: settings, plan: .pro)
         viewModel.setTheme(.dark)
         viewModel.setLineSpacing(.wide)
         viewModel.setFont(.sans)
@@ -230,7 +230,7 @@ struct ProfileViewModelTests {
     @Test("PRF-011: al volver a Perfil se ven los cambios hechos en el lector")
     func reloadsSettings() async {
         let settings = MemorySettings()
-        let viewModel = await loaded(ana, settings: settings, plan: .reader)
+        let viewModel = await loaded(ana, settings: settings, plan: .plus)
         settings.stored = ReaderSettings(theme: .sepia)
         await viewModel.load()
         #expect(viewModel.reading.theme == .sepia)

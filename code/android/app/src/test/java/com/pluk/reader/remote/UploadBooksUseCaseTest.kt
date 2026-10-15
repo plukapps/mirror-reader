@@ -238,10 +238,19 @@ class UploadBooksUseCaseTest {
         assertEquals(listOf("chico" to 1 * MIB), uploads.marked)
     }
 
+    // ACC-010: el máximo que informa el servidor manda sobre el fijo del plan
+    @Test
+    fun theServerMaximumWins() = runTest {
+        val uploads = FakeUploads(listOf(pending("mediano", 3 * MIB)))
+        val quota = StorageQuota(0, 100 * MIB, plan = "plus", maxFileBytes = 2 * MIB)
+        val report = useCase(uploads, quota = FakeQuota(Result.success(quota))).invoke()
+        assertEquals(UploadReport(notEnoughSpace = 1), report)
+    }
+
     @Test
     fun aReaderPlanAllowsBiggerFiles() = runTest {
         val uploads = FakeUploads(listOf(pending("grande", 3 * MIB)))
-        val report = useCase(uploads, quota = FakeQuota(Result.success(StorageQuota(0, 100 * MIB, plan = "reader")))).invoke()
+        val report = useCase(uploads, quota = FakeQuota(Result.success(StorageQuota(0, 100 * MIB, plan = "plus")))).invoke()
         assertEquals(UploadReport(uploaded = 1), report)
     }
 }

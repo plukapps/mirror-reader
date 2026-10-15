@@ -21,7 +21,7 @@ struct LocalAccountWiperTests {
         defaults.set(5, forKey: "sync.lastPositionsSeenAt")
         defaults.set(6, forKey: "sync.lastNotesSeenAt")
         defaults.set(20, forKey: "readingGoalMinutes")
-        UserDefaultsQuotaCache(defaults: defaults).save(StorageQuota(usedBytes: 1, quotaBytes: 2))
+        UserDefaultsQuotaCache(defaults: defaults).save(StorageQuota(usedBytes: 1, quotaBytes: 2, maxFileBytes: 3))
         UserDefaultsUsageNotice(defaults: defaults).dismiss()
 
         try await LocalAccountWiper(store: store, files: files, defaults: defaults).wipe()
@@ -35,6 +35,7 @@ struct LocalAccountWiperTests {
         #expect(defaults.object(forKey: "sync.lastNotesSeenAt") == nil)
         #expect(defaults.object(forKey: "readingGoalMinutes") == nil)
         #expect(UserDefaultsQuotaCache(defaults: defaults).last() == nil)
+        #expect(defaults.object(forKey: UserDefaultsQuotaCache.Key.maxFileBytes) == nil)
         #expect(!UserDefaultsUsageNotice(defaults: defaults).isDismissed())
     }
 

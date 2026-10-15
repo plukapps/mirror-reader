@@ -1,40 +1,23 @@
 import Foundation
 
-/// Planes de suscripción (PLN-001), como `PlanId` de Android.
+/// Planes de suscripción (PLN-001), como `PlanId` de Android. Gratis, Lector y Biblioteca; el `rawValue` es el id del backend.
 public enum PlanId: String, CaseIterable, Sendable {
-    case free, reader, library
+    case free, plus, pro
 }
 
 /// Forma de pago elegida en Planes (PLN-004).
 public enum Billing: Sendable {
     case monthly, annual
-
-    /// "por año" / "por mes", junto al precio de cada tarjeta.
-    public var perLabel: String {
-        switch self {
-        case .annual: "por año"
-        case .monthly: "por mes"
-        }
-    }
-
-    fileprivate var period: String {
-        switch self {
-        case .annual: "año"
-        case .monthly: "mes"
-        }
-    }
 }
 
-/// Un plan del catálogo. `storageBytes` es nil en Gratis, que usa la cuota de la cuenta (ACC-002). Los precios son de
-/// ejemplo y fijos (open-questions #1): la rebanada de compras los toma de la tienda.
+/// Un plan: espacio y precios, sin textos (los pone la app, traducibles, K-295). `storageBytes` es nil en Gratis, que
+/// usa la cuota de la cuenta (ACC-002). Los precios son informativos (open-questions #1): la rebanada de compras los
+/// toma de la tienda.
 public struct Plan: Equatable, Sendable {
     public let id: PlanId
-    public let name: String
-    public let tagline: String
     public let storageBytes: Int64?
-    /// PLN-014: tamaño máximo de cada archivo que se sube a la nube.
+    /// PLN-014: tamaño máximo de cada archivo que se sube a la nube. Vale mientras no se conoce el del servidor (ACC-008).
     public let maxFileBytes: Int64
-    public let includes: [String]
     public let monthlyPrice: String
     public let annualPrice: String
     /// Equivalencia por mes del precio anual ("$2.08"), o nil en Gratis.
@@ -43,45 +26,10 @@ public struct Plan: Equatable, Sendable {
     public func price(_ billing: Billing) -> String {
         billing == .annual ? annualPrice : monthlyPrice
     }
-
-    /// PLN-004, PLN-005: "Equivale a $2.08 por mes" en anual, "Pagás mes a mes" en mensual; en Gratis, "Sin costo, para
-    /// siempre".
-    public func periodNote(_ billing: Billing) -> String {
-        guard let annualPerMonth else { return "Sin costo, para siempre" }
-        return switch billing {
-        case .annual: "Equivale a \(annualPerMonth) por mes"
-        case .monthly: "Pagás mes a mes"
-        }
-    }
 }
 
-/// Botón de compra de P01 y su texto de abajo (PLN-006).
-public struct PlanCta: Equatable, Sendable {
-    public let title: String
-    public let subtitle: String
-
-    public init(title: String, subtitle: String) {
-        self.title = title
-        self.subtitle = subtitle
-    }
-}
-
-/// Fila de la tabla comparativa (PLN-006).
-public struct PlanComparisonRow: Equatable, Sendable {
-    public let feature: String
-    public let free: String
-    public let reader: String
-    public let library: String
-
-    public init(feature: String, free: String, reader: String, library: String) {
-        self.feature = feature
-        self.free = free
-        self.reader = reader
-        self.library = library
-    }
-}
-
-/// PLN-003: "Usás X de Y" con la unidad y el formato de PRF-006, la proporción y la barra.
+/// PLN-003: lo usado y el total con la unidad y el formato de PRF-006, la proporción y la barra. El texto ("Usás X de
+/// Y") lo arma la app.
 public struct PlanUsage: Equatable, Sendable {
     public let used: String
     public let total: String
@@ -99,50 +47,28 @@ public struct PlanUsage: Equatable, Sendable {
         fraction = quota.quotaBytes <= 0 ? 1 : min(max(Double(quota.usedBytes) / Double(quota.quotaBytes), 0), 1)
     }
 
-    public var text: String { "Usás \(used) de \(total)" }
-    /// "80 %", en letra monoespaciada a la derecha.
-    public var ratio: String { "\(Int((fraction * 100).rounded())) %" }
+    /// La proporción en por ciento, redondeada (el "80 %" de la derecha).
+    public var percent: Int { Int((fraction * 100).rounded()) }
 }
 
-/// Catálogo de planes (PLN-001). Valores provisionales hasta definir precios (open-questions #1).
+/// Reglas de los planes sobre la cuenta (PLN-001). Los valores de cada plan, por ahora, son los de `DefaultPlans`.
 public enum PlanCatalog {
-    private static let mib: Int64 = 1024 * 1024
-    private static let gib: Int64 = 1024 * mib
-
-    /// Cuota de Gratis de hoy (backend `FREE_PLAN`), para cuando nunca se leyó la de la cuenta.
-    public static let freeQuotaBytes: Int64 = 15 * mib
     public static let annualSavingPercent = 30
 
-    public static let free = Plan(
-        id: .free, name: "Gratis", tagline: "Para leer de vez en cuando", storageBytes: nil, maxFileBytes: 2 * mib,
-        includes: ["Lectura y notas sin tope", "Sincroniza en todos tus dispositivos", "Archivos de hasta 2 MB"],
-        monthlyPrice: "$0", annualPrice: "$0", annualPerMonth: nil
-    )
-    public static let reader = Plan(
-        id: .reader, name: "Lector", tagline: "Para quien lee siempre", storageBytes: 5 * gib, maxFileBytes: 50 * mib,
-        includes: ["Temas y fuentes", "Exportá notas a Markdown, Obsidian y Notion", "Archivos de hasta 50 MB"],
-        monthlyPrice: "$2.99", annualPrice: "$24.99", annualPerMonth: "$2.08"
-    )
-    public static let library = Plan(
-        id: .library, name: "Biblioteca", tagline: "Para quien tiene una biblioteca", storageBytes: 50 * gib,
-        maxFileBytes: 100 * mib,
-        includes: ["Todo lo de Lector", "Archivos de hasta 100 MB"],
-        monthlyPrice: "$5.99", annualPrice: "$49.99", annualPerMonth: "$4.17"
-    )
-
-    public static let all = [free, reader, library]
+    public static var all: [Plan] { DefaultPlans.all }
 
     public static func plan(_ id: PlanId) -> Plan {
         switch id {
-        case .free: free
-        case .reader: reader
-        case .library: library
+        case .free: DefaultPlans.free
+        case .plus: DefaultPlans.plus
+        case .pro: DefaultPlans.pro
         }
     }
 
-    /// PLN-001: espacio del plan; el de Gratis es la cuota de la cuenta.
+    /// PLN-001: espacio del plan; el de Gratis es la cuota de la cuenta si la cuenta está en Gratis.
     public static func storageBytes(_ id: PlanId, quota: StorageQuota?) -> Int64 {
-        plan(id).storageBytes ?? quota?.quotaBytes ?? freeQuotaBytes
+        // En una cuenta paga, Gratis no es la cuota de la cuenta sino la de Gratis de hoy (K-291).
+        plan(id).storageBytes ?? quota.flatMap { $0.isFreePlan ? $0.quotaBytes : nil } ?? DefaultPlans.freeQuotaBytes
     }
 
     /// "15 MB", "5 GB": con la unidad de su propio total (PRF-006).
@@ -151,17 +77,23 @@ public enum PlanCatalog {
         return formatStorage(bytes, unit: StorageUnit.forTotal(bytes))
     }
 
-    /// PLN-014: el plan de la cuenta sale de la cuota; si no se conoce o no es uno de los tres, Gratis.
+    /// PLN-014: el plan de la cuenta sale de la cuota (el `rawValue` es el id de `users/{uid}.plan` y del catálogo,
+    /// ACC-007, ADR 0017); si no se conoce o no es uno de los tres, Gratis.
     public static func planOf(_ quota: StorageQuota?) -> PlanId {
         quota.flatMap { PlanId(rawValue: $0.plan) } ?? .free
+    }
+
+    /// PLN-014, ACC-008: tamaño máximo por archivo de la cuenta; el del servidor si se conoce, si no el fijo del plan.
+    public static func maxFileBytes(_ quota: StorageQuota?) -> Int64 {
+        quota?.maxFileBytes ?? plan(planOf(quota)).maxFileBytes
     }
 
     /// PLN-014: el plan que se ofrece para pasar de este ("Con Lector…", "Con Biblioteca…"); nil en Biblioteca.
     public static func nextPlan(after id: PlanId) -> PlanId? {
         switch id {
-        case .free: .reader
-        case .reader: .library
-        case .library: nil
+        case .free: .plus
+        case .plus: .pro
+        case .pro: nil
         }
     }
 
@@ -169,33 +101,6 @@ public enum PlanCatalog {
     public static func maxFileText(_ id: PlanId) -> String {
         let bytes = plan(id).maxFileBytes
         return formatStorage(bytes, unit: StorageUnit.forTotal(bytes))
-    }
-
-    /// PLN-006: sin prueba gratis por ahora, se elige con el precio del período.
-    public static func cta(_ id: PlanId, _ billing: Billing) -> PlanCta {
-        let plan = plan(id)
-        return PlanCta(
-            title: "Elegir \(plan.name) · \(plan.price(billing)) por \(billing.period)",
-            subtitle: "Se renueva cada \(billing.period). Cancelás cuando quieras."
-        )
-    }
-
-    /// PLN-001, PLN-006: filas de la tabla comparativa. Sin funciones en definición (PLN-016).
-    public static func comparison(quota: StorageQuota?) -> [PlanComparisonRow] {
-        let yes = "✓", no = "—"
-        return [
-            PlanComparisonRow(
-                feature: "Espacio en la nube", free: storageText(.free, quota: quota),
-                reader: storageText(.reader, quota: quota), library: storageText(.library, quota: quota)
-            ),
-            PlanComparisonRow(
-                feature: "Tamaño por archivo", free: maxFileText(.free), reader: maxFileText(.reader), library: maxFileText(.library)
-            ),
-            PlanComparisonRow(feature: "Lectura, ajustes y anotaciones", free: "Sin tope", reader: "Sin tope", library: "Sin tope"),
-            PlanComparisonRow(feature: "Sincronización en todos tus dispositivos", free: yes, reader: yes, library: yes),
-            PlanComparisonRow(feature: "Temas y fuentes", free: no, reader: yes, library: yes),
-            PlanComparisonRow(feature: "Exportar notas (Markdown, Obsidian, Notion)", free: no, reader: yes, library: yes),
-        ]
     }
 }
 

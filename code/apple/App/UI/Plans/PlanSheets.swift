@@ -85,7 +85,7 @@ struct QuotaBlockContent: View {
     var onSeePlans: () -> Void = {}
     var onNotNow: () -> Void = {}
 
-    private var readerStorage: String { PlanCatalog.storageText(.reader, quota: notice.quota) }
+    private var readerStorage: String { PlanCatalog.storageText(.plus, quota: notice.quota) }
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
@@ -113,7 +113,7 @@ struct QuotaBlockContent: View {
 
     private var comparison: some View {
         let free = PlanCatalog.storageBytes(.free, quota: notice.quota)
-        let reader = PlanCatalog.storageBytes(.reader, quota: notice.quota)
+        let reader = PlanCatalog.storageBytes(.plus, quota: notice.quota)
         return VStack(alignment: .leading, spacing: 10) {
             HStack(spacing: 10) {
                 Text("Gratis").font(.app(13, .medium)).foregroundStyle(MarginColors.muted).frame(width: 56, alignment: .leading)
@@ -156,7 +156,7 @@ struct QuotaBlockContent: View {
         // En Lector se ofrece Biblioteca; en Biblioteca no hay tarjeta.
         let upsell = PlanCatalog.nextPlan(after: PlanCatalog.planOf(notice.quota)).map { next in
             String(localized: """
-                Con \(PlanCatalog.plan(next).name): archivos de hasta \(unbroken(PlanCatalog.maxFileText(next))) y \
+                Con \(next.name): archivos de hasta \(unbroken(PlanCatalog.maxFileText(next))) y \
                 \(unbroken(PlanCatalog.storageText(next, quota: notice.quota))) en la nube
                 """)
         }
@@ -272,7 +272,7 @@ struct PaidFeatureContent: View {
             Text(feature.body).sheetBody()
             HStack(spacing: 6) {
                 PlanIcon(name: "WorkspacePremium", size: 16, color: MarginColors.yellow)
-                Text("Incluido en \(PlanCatalog.plan(feature.plan).name)").font(.app(13, .bold)).foregroundStyle(MarginColors.yellow)
+                Text("Incluido en \(feature.plan.name)").font(.app(13, .bold)).foregroundStyle(MarginColors.yellow)
             }
             .padding(.horizontal, 12)
             .frame(height: 30)
@@ -285,7 +285,7 @@ struct PaidFeatureContent: View {
 }
 
 private extension PaidFeature {
-    var plan: PlanId { .reader }
+    var plan: PlanId { .plus }
 
     var icon: String { "Palette" }
 

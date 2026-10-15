@@ -45,6 +45,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.pluk.reader.R
 import com.pluk.reader.domain.plans.PaidFeature
+import com.pluk.reader.domain.plans.DefaultPlans
 import com.pluk.reader.domain.plans.PlanCatalog
 import com.pluk.reader.domain.plans.PlanId
 import com.pluk.reader.domain.plans.PlanPrompt
@@ -121,7 +122,7 @@ internal fun PlanSheet(onDismiss: () -> Unit, content: @Composable () -> Unit) {
 fun PlanPromptContent(prompt: PlanPrompt, onSeePlans: () -> Unit, onNotNow: () -> Unit) {
     when (prompt) {
         is PlanPrompt.Quota -> when (val block = prompt.block) {
-            QuotaBlock.Full -> QuotaFullContent(prompt.title, prompt.quotaBytes ?: PlanCatalog.FREE_QUOTA_BYTES, onSeePlans, onNotNow)
+            QuotaBlock.Full -> QuotaFullContent(prompt.title, prompt.quotaBytes ?: DefaultPlans.FREE_QUOTA_BYTES, onSeePlans, onNotNow)
             is QuotaBlock.DoesNotFit -> DoesNotFitContent(prompt.title, block, onSeePlans, onNotNow)
             is QuotaBlock.TooLarge -> TooLargeContent(prompt.title, block, onSeePlans, onNotNow)
         }
@@ -161,7 +162,7 @@ private fun boldTitle(template: String, title: String): AnnotatedString {
 /** PLN-007 (P02a): el espacio ya está lleno. */
 @Composable
 private fun QuotaFullContent(title: String, quotaBytes: Long, onSeePlans: () -> Unit, onNotNow: () -> Unit) {
-    val readerBytes = PlanCatalog.reader.cloudBytes ?: 1
+    val readerBytes = DefaultPlans.plus.cloudBytes ?: 1
     val free = formatCloud(quotaBytes)
     val reader = formatCloud(readerBytes)
     Column(Modifier.testTag("plan-sheet-full")) {
@@ -273,7 +274,7 @@ private fun DoesNotFitContent(title: String, block: QuotaBlock.DoesNotFit, onSee
         BookRow(title, stringResource(R.string.plans_sheet_book_size, size, free))
         AnnouncedTitle(stringResource(R.string.plans_sheet_too_big_title, size), Modifier.padding(top = 18.dp))
         SheetBody(AnnotatedString(stringResource(R.string.plans_sheet_too_big_body, free)), Modifier.padding(top = 10.dp))
-        UpsellCard(stringResource(R.string.plans_with_reader, formatCloud(PlanCatalog.reader.cloudBytes ?: 0)))
+        UpsellCard(stringResource(R.string.plans_with_reader, formatCloud(DefaultPlans.plus.cloudBytes ?: 0)))
         SheetActions(stringResource(R.string.plans_see_plans), stringResource(R.string.plans_not_now), onSeePlans, onNotNow)
     }
 }
@@ -284,9 +285,9 @@ private fun TooLargeContent(title: String, block: QuotaBlock.TooLarge, onSeePlan
     val size = formatCloud(block.bookBytes)
     val max = formatCloud(block.maxBytes)
     val next = when (block.plan) {
-        PlanId.FREE -> PlanCatalog.reader
-        PlanId.READER -> PlanCatalog.library
-        PlanId.LIBRARY -> null
+        PlanId.FREE -> DefaultPlans.plus
+        PlanId.PLUS -> DefaultPlans.pro
+        PlanId.PRO -> null
     }
     Column(Modifier.testTag("plan-sheet-too-large")) {
         BookRow(title, stringResource(R.string.plans_sheet_book_limit, size, max))
@@ -319,7 +320,7 @@ private fun PaidFeatureContent(feature: PaidFeature, onSeePlans: () -> Unit, onN
             R.string.plans_paid_themes_body,
             onSeePlans,
             onNotNow,
-            plan = PlanId.READER,
+            plan = PlanId.PLUS,
         )
     }
 }
@@ -331,7 +332,7 @@ internal fun PaidContent(
     body: Int,
     onSeePlans: () -> Unit,
     onNotNow: () -> Unit,
-    plan: PlanId = PlanId.LIBRARY,
+    plan: PlanId = PlanId.PRO,
 ) {
     Column(Modifier.testTag("plan-sheet-paid")) {
         SheetIcon(icon)

@@ -17,6 +17,7 @@ struct LocalAccountWiper: LocalAccountData, @unchecked Sendable {
         "onboardingInterests", "readingGoalMinutes", "reminderEnabled", "reminderHour", "reminderMinute",
         "sync.lastPositionsSeenAt", UserDefaultsSyncPreferences.Key.lastNotesSeenAt,
         UserDefaultsQuotaCache.Key.usedBytes, UserDefaultsQuotaCache.Key.quotaBytes, UserDefaultsQuotaCache.Key.plan,
+        UserDefaultsQuotaCache.Key.maxFileBytes,
         UserDefaultsUsageNotice.key,
     ]
 

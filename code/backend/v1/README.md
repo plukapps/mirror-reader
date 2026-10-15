@@ -49,7 +49,7 @@ Estos pasos se hacen una vez por proyecto de Firebase, en la consola web:
    - Antes de publicar hay que agregar también la huella de la clave de release o de Play App Signing.
 3. `google-services.json` se descarga en la rebanada de sincronización y no va al repo.
 
-Al registrarse (email o Google), la función `onUserCreated` crea `users/{uid}` con el plan gratuito. La cuota gratuita (15 MiB) está en `functions/src/accounts.ts`.
+Al registrarse (email o Google), la función `onUserCreated` crea `users/{uid}` con el plan gratuito. Los límites de cada plan (espacio, máximo por archivo, precio) están en el parámetro `plans` de Remote Config, versionado en `remoteconfig.template.json` y publicado con `firebase deploy --only remoteconfig` (ADR 0017). Si Remote Config no responde, y siempre en el emulador, se usan los valores por defecto de `functions/src/plans.ts`, que un test mantiene iguales al template.
 
 ## Remote Config
 

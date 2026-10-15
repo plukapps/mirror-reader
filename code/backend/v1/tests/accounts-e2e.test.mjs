@@ -1,9 +1,10 @@
 import assert from "node:assert/strict";
 import { randomBytes } from "node:crypto";
 import { after, before, describe, it } from "node:test";
-import { doc, getDoc } from "firebase/firestore";
+import { doc, getDocFromServer } from "firebase/firestore";
 import { ref, uploadBytes } from "firebase/storage";
 import { createTestEnv } from "./helpers.mjs";
+import { DEFAULT_PLANS, planLimits } from "../functions/lib/plans.js";
 
 // Punta a punta (ACC-001, ACC-002): registrarse en el emulador de Auth dispara la función
 // onUserCreated, que crea users/{uid}. Se usa la API REST de Auth, la misma que usan los SDK.
@@ -30,11 +31,13 @@ describe("cuentas punta a punta (ACC-001, ACC-002)", () => {
   });
 
   async function waitForUserDoc(uid, timeoutMs = 30000) {
-    const db = env.authenticatedContext(uid).firestore();
     const start = Date.now();
     while (Date.now() - start < timeoutMs) {
-      const snap = await getDoc(doc(db, `users/${uid}`));
-      if (snap.exists()) return snap.data();
+      // Un cliente nuevo en cada intento: a veces un mismo cliente sigue respondiendo "no existe"
+      // aunque la función ya creó el documento, y nunca lo ve (K-289). Siempre del servidor.
+      const db = env.authenticatedContext(uid).firestore();
+      const snap = await getDocFromServer(doc(db, `users/${uid}`)).catch(() => null);
+      if (snap?.exists()) return snap.data();
       await new Promise((r) => setTimeout(r, 250));
     }
     assert.fail(`users/${uid} no se creó en ${timeoutMs} ms`);
@@ -49,7 +52,11 @@ describe("cuentas punta a punta (ACC-001, ACC-002)", () => {
     const data = await waitForUserDoc(localId);
     assert.equal(data.plan, "free");
     assert.equal(data.usedBytes, 0);
-    assert.equal(data.quotaBytes, 15 * 1024 * 1024);
+    // En el emulador la función usa el catálogo por defecto: no toca Remote Config (ADR 0017).
+    assert.deepEqual(
+      { quotaBytes: data.quotaBytes, maxFileBytes: data.maxFileBytes },
+      planLimits(DEFAULT_PLANS.free),
+    );
   });
 
   it("ACC-001: registro con Google (proveedor simulado) crea el plan gratuito", async () => {
@@ -64,7 +71,7 @@ describe("cuentas punta a punta (ACC-001, ACC-002)", () => {
     assert.equal(data.plan, "free");
   });
 
-  it("ACC-002: la cuota gratuita admite un libro chico y rechaza uno que la supera", async () => {
+  it("ACC-002, ACC-010: el plan gratuito admite un libro chico y rechaza uno más grande que su máximo", async () => {
     const { localId } = await authCall("accounts:signUp", {
       email: `${randomBytes(4).toString("hex")}@example.com`,
       password: "una-clave-larga-123",
@@ -76,6 +83,7 @@ describe("cuentas punta a punta (ACC-001, ACC-002)", () => {
     const meta = { contentType: "application/epub+zip" };
 
     await uploadBytes(ref(storage, path()), new Uint8Array(1024), meta);
-    await assert.rejects(uploadBytes(ref(storage, path()), new Uint8Array(16 * 1024 * 1024), meta), /unauthorized/);
+    const { maxFileBytes } = planLimits(DEFAULT_PLANS.free);
+    await assert.rejects(uploadBytes(ref(storage, path()), new Uint8Array(maxFileBytes + 1), meta), /unauthorized/);
   });
 });

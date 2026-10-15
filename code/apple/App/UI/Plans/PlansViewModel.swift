@@ -8,7 +8,7 @@ final class PlansViewModel {
     /// PLN-004: arranca en mensual.
     var billing: Billing = .monthly
     /// PLN-005: arranca elegido Lector. Gratis no se elige.
-    private(set) var selected: PlanId = .reader
+    private(set) var selected: PlanId = .plus
     /// PLN-006: la tabla comparativa, desplegada o no.
     private(set) var tableOpen = false
     private(set) var quota: StorageQuota?
@@ -43,9 +43,9 @@ final class PlansViewModel {
         tableOpen.toggle()
     }
 
-    var cta: PlanCta { PlanCatalog.cta(selected, billing) }
+    var cta: PlanCta { PlanCta(selected, billing) }
 
-    var comparison: [PlanComparisonRow] { PlanCatalog.comparison(quota: quota) }
+    var comparison: [PlanComparisonRow] { PlanComparisonRow.rows(quota: quota) }
 
     /// "15 MB", "5 GB": el espacio de cada tarjeta.
     func storage(_ plan: PlanId) -> String { PlanCatalog.storageText(plan, quota: quota) }

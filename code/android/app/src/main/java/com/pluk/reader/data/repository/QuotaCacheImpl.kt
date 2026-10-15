@@ -23,7 +23,7 @@ class QuotaCacheImpl @Inject constructor(
     private fun Preferences.toQuota(): StorageQuota? {
         val used = this[USED_BYTES] ?: return null
         val quota = this[QUOTA_BYTES] ?: return null
-        return StorageQuota(used, quota, this[PLAN] ?: StorageQuota.FREE_PLAN)
+        return StorageQuota(used, quota, this[PLAN] ?: StorageQuota.FREE_PLAN, this[MAX_FILE_BYTES])
     }
 
     override suspend fun save(quota: StorageQuota) {
@@ -31,6 +31,8 @@ class QuotaCacheImpl @Inject constructor(
             it[USED_BYTES] = quota.usedBytes
             it[QUOTA_BYTES] = quota.quotaBytes
             it[PLAN] = quota.plan
+            val maxFileBytes = quota.maxFileBytes
+            if (maxFileBytes == null) it.remove(MAX_FILE_BYTES) else it[MAX_FILE_BYTES] = maxFileBytes
         }
     }
 
@@ -38,5 +40,6 @@ class QuotaCacheImpl @Inject constructor(
         val USED_BYTES = longPreferencesKey("profile_used_bytes")
         val QUOTA_BYTES = longPreferencesKey("profile_quota_bytes")
         val PLAN = stringPreferencesKey("profile_plan")
+        val MAX_FILE_BYTES = longPreferencesKey("profile_max_file_bytes")
     }
 }

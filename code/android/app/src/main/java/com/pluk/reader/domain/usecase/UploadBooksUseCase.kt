@@ -49,7 +49,7 @@ class UploadBooksUseCase @Inject constructor(
         // PLN-009: la última cuota conocida se refresca en cada pasada (y al final con lo subido, que el servidor suma después).
         quotaCache.save(read)
         var free = read.freeBytes
-        // PLN-014: el tope por archivo del plan lo controla por ahora solo la app.
+        // PLN-014, ACC-010: el tope por archivo del plan; el servidor también lo aplica (ADR 0017).
         val maxFileBytes = PlanCatalog.maxFileBytes(read)
         var uploadedBytes = 0L
 

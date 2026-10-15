@@ -92,8 +92,8 @@ private final class SavedQuota: QuotaCache, @unchecked Sendable {
 }
 
 /// Biblioteca por defecto: estos tests miran el espacio; el tope por archivo (PLN-014) tiene los suyos.
-private func quota(used: Int64 = 0, limit: Int64 = 15 * mib, plan: String = "library") -> FakeQuota {
-    FakeQuota(quota: StorageQuota(usedBytes: used, quotaBytes: limit, plan: plan))
+private func quota(used: Int64 = 0, limit: Int64 = 15 * mib, plan: String = "pro", maxFileBytes: Int64? = nil) -> FakeQuota {
+    FakeQuota(quota: StorageQuota(usedBytes: used, quotaBytes: limit, plan: plan, maxFileBytes: maxFileBytes))
 }
 
 private func useCase(
@@ -209,7 +209,7 @@ struct UploadBooksTests {
             uploads: uploads, files: FakeFiles(calls: calls), covers: FakeFiles(calls: calls), library: FakeRemote(calls: calls),
             quota: quota(used: 2 * mib), cache: cache
         )()
-        #expect(cache.saved == StorageQuota(usedBytes: 2 * mib, quotaBytes: 15 * mib, plan: "library"))
+        #expect(cache.saved == StorageQuota(usedBytes: 2 * mib, quotaBytes: 15 * mib, plan: "pro"))
     }
 
     @Test("PLN-014: en Gratis no se sube lo que supera 2 MB y cuenta como sin espacio; justo 2 MB sí")
@@ -221,6 +221,17 @@ struct UploadBooksTests {
         #expect(report == UploadReport(uploaded: 1, notEnoughSpace: 1))
         #expect(await uploads.markedOrder == ["justo"])
         #expect(await !calls.all.contains("archivo:grande"))
+    }
+
+    @Test("ACC-010: el máximo por archivo del servidor manda sobre el fijo del plan")
+    func serverMaxFileSize() async {
+        let uploads = FakeUploads([pending("mediano", 3 * mib)], calls: calls)
+        let report = await useCase(
+            uploads, files: FakeFiles(calls: calls), remote: FakeRemote(calls: calls),
+            quota: quota(plan: "plus", maxFileBytes: 2 * mib)
+        )()
+        #expect(report == UploadReport(notEnoughSpace: 1))
+        #expect(await !calls.all.contains("archivo:mediano"))
     }
 
     @Test("LIB-009: si no se puede leer la cuota no se sube nada")

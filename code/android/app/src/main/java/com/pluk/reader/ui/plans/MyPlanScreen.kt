@@ -43,6 +43,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.pluk.reader.R
 import com.pluk.reader.domain.plans.PlanCatalog
+import com.pluk.reader.domain.plans.DefaultPlans
 import com.pluk.reader.domain.plans.PlanId
 import com.pluk.reader.ui.theme.MarginColors
 
@@ -86,7 +87,7 @@ fun MyPlanContent(state: MyPlanUiState, onBack: () -> Unit, onChangePlan: () -> 
                         .semantics { heading() },
                 )
                 PlanCard(state)
-                val reader = formatCloud(PlanCatalog.reader.cloudBytes ?: 0)
+                val reader = formatCloud(DefaultPlans.plus.cloudBytes ?: 0)
                 Column(
                     Modifier
                         .padding(start = 20.dp, end = 20.dp, top = 12.dp)
@@ -99,7 +100,7 @@ fun MyPlanContent(state: MyPlanUiState, onBack: () -> Unit, onChangePlan: () -> 
                 ) {
                     Text(stringResource(R.string.plans_with_reader, reader), style = planText(15, FontWeight.Bold, MarginColors.OnYellow))
                     Text(
-                        stringResource(R.string.plans_my_plan_upsell, formatCloud(PlanCatalog.reader.maxFileBytes)),
+                        stringResource(R.string.plans_my_plan_upsell, formatCloud(DefaultPlans.plus.maxFileBytes)),
                         style = planText(13, FontWeight.Medium, MarginColors.OnYellowMuted).copy(lineHeight = 1.4.em),
                     )
                 }
@@ -187,7 +188,7 @@ private fun PlanCard(state: MyPlanUiState) {
         }
         // PLN-012, PLN-014: tamaño máximo por archivo del plan.
         Text(
-            stringResource(R.string.plans_includes_max_file, formatCloud(PlanCatalog.free.maxFileBytes)),
+            stringResource(R.string.plans_includes_max_file, formatCloud(DefaultPlans.free.maxFileBytes)),
             style = planText(14, FontWeight.Medium, MarginColors.Ink2),
         )
     }

@@ -178,7 +178,7 @@ struct ReaderViewModelTests {
 
     @Test("RDR-014: con Lector, cada ajuste se aplica y se guarda como preferencia")
     func settingsAreAppliedAndSaved() async {
-        let viewModel = makeViewModel(FakeSource(book: book), plan: .reader)
+        let viewModel = makeViewModel(FakeSource(book: book), plan: .plus)
         await viewModel.load()
 
         viewModel.setTheme(.sepia)
@@ -234,7 +234,7 @@ struct ReaderViewModelTests {
         free.biggerFont()
         #expect(settings.stored.theme == .dark)
         #expect(settings.stored.font == .mono)
-        #expect(makeViewModel(FakeSource(book: book), plan: .library).settings.theme == .dark)
+        #expect(makeViewModel(FakeSource(book: book), plan: .pro).settings.theme == .dark)
     }
 
     @Test("RDR-014: abrir el índice desde el panel cierra el panel; elegir un capítulo pide el salto y cierra el índice")

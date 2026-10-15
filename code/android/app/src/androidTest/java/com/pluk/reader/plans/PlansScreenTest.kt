@@ -84,10 +84,10 @@ class PlansScreenTest {
     @Test
     fun selectingLibraryChangesTheButton() {
         show()
-        compose.onNodeWithTag("plan-READER").assertIsSelected()
-        compose.onNodeWithTag("plan-LIBRARY").performScrollTo().performClick()
-        compose.onNodeWithTag("plan-LIBRARY").assertIsSelected()
-        compose.onNodeWithTag("plan-READER").assertIsNotSelected()
+        compose.onNodeWithTag("plan-PLUS").assertIsSelected()
+        compose.onNodeWithTag("plan-PRO").performScrollTo().performClick()
+        compose.onNodeWithTag("plan-PRO").assertIsSelected()
+        compose.onNodeWithTag("plan-PLUS").assertIsNotSelected()
         compose.onNodeWithText("Elegir Biblioteca · $5.99 por mes").assertExists()
     }
 

@@ -80,10 +80,10 @@ struct PlanPrimaryButton: View {
 
 /// PLN-015: marca chica de una opción que es de un plan pago ("Lector"): amarillo con texto tinta, no cambia con el modo.
 struct PlanMark: View {
-    var plan: PlanId = .reader
+    var plan: PlanId = .plus
 
     var body: some View {
-        Text(PlanCatalog.plan(plan).name)
+        Text(plan.name)
             .font(.app(9, .bold))
             .foregroundStyle(MarginColors.onYellow)
             .padding(.horizontal, 5)
