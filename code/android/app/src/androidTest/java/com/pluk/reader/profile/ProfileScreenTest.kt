@@ -53,7 +53,7 @@ class ProfileScreenTest {
         // PRF-007: la sección de dispositivos está oculta por ahora
         compose.onNodeWithText("Dispositivos vinculados").assertDoesNotExist()
         compose.onNodeWithText("Pixel 8 · este dispositivo").assertDoesNotExist()
-        compose.onNodeWithText("margin. 1.0").performScrollTo().assertExists()
+        compose.onNodeWithText("tuck. 1.0").performScrollTo().assertExists()
     }
 
     // PRF-008: sin "Cambiar contraseña" para cuentas de Google

@@ -1,11 +1,11 @@
 <resources>
-    <string name="app_name">Reader</string>
+    <string name="app_name">Tuck</string>
 
     <!-- Bienvenida (WEL-004) -->
-    <string name="welcome_brand">margin.</string>
+    <string name="welcome_brand">tuck.</string>
     <string name="welcome_headline">Leé más.\nScrolleá menos.\nPensá despacio.</string>
     <string name="welcome_body">Tus EPUB, en un lugar tranquilo. Sincronizados en todos tus dispositivos.</string>
-    <string name="welcome_footer">margin. 2026 ©</string>
+    <string name="welcome_footer">tuck. 2026 ©</string>
 
     <!-- Onboarding (ONB-001 a ONB-022) -->
     <string name="onb_create_account">Crear cuenta</string>
@@ -98,7 +98,7 @@
     <string name="onb_signin_title">Te damos la\nbienvenida.</string>
     <string name="onb_forgot">¿Olvidaste tu contraseña?</string>
     <string name="onb_signin">Iniciar sesión</string>
-    <string name="onb_new_here">¿Nuevo en margin.?</string>
+    <string name="onb_new_here">¿Nuevo en tuck.?</string>
 
     <string name="onb_forgot_title">¿Olvidaste tu\ncontraseña?</string>
     <string name="onb_forgot_body">Escribí tu email y te enviamos un enlace para elegir una nueva.</string>
@@ -227,7 +227,7 @@
     <string name="profile_faq">Preguntas frecuentes</string>
     <string name="profile_faq_all">Todas las preguntas</string>
     <string name="faq_back">Volver</string>
-    <string name="profile_version">margin. %1$s</string>
+    <string name="profile_version">tuck. %1$s</string>
     <string name="profile_terms">Términos</string>
     <string name="profile_privacy">Privacidad</string>
     <string name="state_on">activado</string>
@@ -235,13 +235,13 @@
     <string name="faq_epub_question">¿Por qué no abre este EPUB?</string>
     <string name="faq_books_question">¿Dónde están mis libros?</string>
     <string name="faq_space_question">¿Cuánto espacio tengo?</string>
-    <string name="faq_epub_answer">margin. abre libros EPUB sin protección. Los que vienen con DRM (la protección que ponen algunas tiendas) no se pueden abrir: hay que leerlos en la app de esa tienda.\n\nSi el archivo no tiene DRM y aun así no abre, puede estar dañado o incompleto. Probá descargarlo otra vez desde donde lo conseguiste y volvé a importarlo.</string>
+    <string name="faq_epub_answer">tuck. abre libros EPUB sin protección. Los que vienen con DRM (la protección que ponen algunas tiendas) no se pueden abrir: hay que leerlos en la app de esa tienda.\n\nSi el archivo no tiene DRM y aun así no abre, puede estar dañado o incompleto. Probá descargarlo otra vez desde donde lo conseguiste y volvé a importarlo.</string>
     <string name="faq_books_answer">Tus libros están en tu cuenta, en la nube, y en cada dispositivo donde entrás con ella. Un libro que agregás en un dispositivo aparece solo en los demás.\n\nSi un libro todavía no está en este dispositivo, se descarga cuando lo abrís. Para eso hace falta conexión; después se lee sin ella.</string>
     <string name="faq_space_answer">Tu plan define cuánto podés guardar en la nube. Lo ves arriba de todo en Perfil, en Espacio: cuánto usás y cuánto te queda.\n\nCuentan los archivos de los libros; las portadas no. Si llegás al límite, los libros nuevos quedan solo en este dispositivo y podés seguir leyendo todo. Para liberar espacio, quitá libros que ya no quieras.</string>
     <string name="faq_add_question">¿Cómo agrego libros?</string>
-    <string name="faq_add_answer">Desde Inicio o Estantes, con Importar, elegí uno o varios archivos EPUB del teléfono. También podés abrir un EPUB desde otra app (por ejemplo, el correo o Archivos) y elegir margin.\n\nLos libros nuevos se suben a tu cuenta cuando hay conexión.</string>
+    <string name="faq_add_answer">Desde Inicio o Estantes, con Importar, elegí uno o varios archivos EPUB del teléfono. También podés abrir un EPUB desde otra app (por ejemplo, el correo o Archivos) y elegir tuck.\n\nLos libros nuevos se suben a tu cuenta cuando hay conexión.</string>
     <string name="faq_sync_question">¿Cómo se sincroniza mi lectura?</string>
-    <string name="faq_sync_answer">Cada vez que leés, margin. guarda en qué página quedaste y la sube a tu cuenta cuando hay conexión. Al abrir el mismo libro en otro dispositivo, sigue desde ahí.\n\nSi leíste sin conexión, la posición se sube sola la próxima vez que la app tenga red.</string>
+    <string name="faq_sync_answer">Cada vez que leés, tuck. guarda en qué página quedaste y la sube a tu cuenta cuando hay conexión. Al abrir el mismo libro en otro dispositivo, sigue desde ahí.\n\nSi leíste sin conexión, la posición se sube sola la próxima vez que la app tenga red.</string>
     <string name="faq_remove_question">¿Cómo quito un libro?</string>
     <string name="faq_remove_answer">Mantené presionada la portada del libro y elegí Quitar de la biblioteca. Se borra de tu cuenta y de todos tus dispositivos, con su progreso.\n\nSi lo querés de vuelta, importá el archivo otra vez.</string>
 

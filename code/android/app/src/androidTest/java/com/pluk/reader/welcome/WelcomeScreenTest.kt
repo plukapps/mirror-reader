@@ -26,14 +26,14 @@ class WelcomeScreenTest {
         compose.onNodeWithText("Tus EPUB, en un lugar tranquilo. Sincronizados en todos tus dispositivos.").assertExists()
         compose.onNodeWithText("Crear cuenta").assertExists()
         compose.onNodeWithText("Ya tengo una cuenta").assertExists()
-        compose.onNodeWithText("margin. 2026 ©").assertExists()
+        compose.onNodeWithText("tuck. 2026 ©").assertExists()
     }
 
     // WEL-007, ONB-022: logo y botones con nombre para TalkBack
     @Test
     fun logoAndButtonsHaveAccessibleNames() {
         compose.setContent { WelcomeScreen(onCreateAccount = {}, onSignIn = {}) }
-        compose.onNodeWithContentDescription("margin.").assertExists()
+        compose.onNodeWithContentDescription("tuck.").assertExists()
         compose.onNodeWithTag("welcome-create").assertHasClickAction()
         compose.onNodeWithTag("welcome-signin").assertHasClickAction()
     }

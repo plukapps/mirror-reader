@@ -58,7 +58,7 @@ struct SignInView: View {
                 .padding(.top, 16)
         } bottom: {
             HStack(spacing: 0) {
-                Text("¿Nuevo en margin.?").font(.app(13)).foregroundStyle(OnbColors.soft)
+                Text("¿Nuevo en tuck.?").font(.app(13)).foregroundStyle(OnbColors.soft)
                 TextLink(text: "Crear cuenta", size: 13, action: onCreateAccount)
             }
             .frame(maxWidth: .infinity)

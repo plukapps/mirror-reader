@@ -39,7 +39,7 @@ struct WelcomeView: View {
                 .frame(maxWidth: .infinity)
                 .padding(.horizontal, 28)
                 .padding(.top, 16)
-            Text("margin. 2026 ©")
+            Text("tuck. 2026 ©")
                 .font(.app(11))
                 .foregroundStyle(OnbColors.softOnYellow)
                 .frame(maxWidth: .infinity)
