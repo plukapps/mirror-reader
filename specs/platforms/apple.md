@@ -71,8 +71,8 @@ Stack y capas en `specs/adr/0010-apple-stack-and-architecture.md` (provisional):
   - **Base:** `NoteRecord.deletedAt` y `syncedAt` (la versión que la nube tiene; nil si nunca llegó), migración automática. Borrar una nota que la nube nunca tuvo la elimina; si no, la marca. `NoteSyncStore` aplica lo de la nube solo si es más nuevo.
   - **Sincronizar:** actor `NoteSync` en `ReaderDomain`. Sube las pendientes al guardar en el lector, al final de `LibrarySync` y al prenderse la función, y escucha `users/{uid}/notes` desde `sync.lastNotesSeenAt` (`FirestoreNotes`) con la app a la vista (`SyncCoordinator`). Apagada (`notes_sync_enabled`) o sin red permitida, no hace nada.
   - **Cerrar sesión:** `hasPending` cuenta las notas sin subir; con la función apagada, todas.
+- Cierres inesperados (CMP-010, ADR 0018, K-335): `FirebaseCrashlytics` 12.14.0. `CrashReporter` y `CrashReportIdentity` en `ReaderDomain`; `CrashReportSession` (App/Data/Remote) escucha el estado de Firebase Auth y manda el `uid`, o vacío sin sesión. Arranca en `AppGraph` solo con Firebase (nunca en los tests). `DEBUG_INFORMATION_FORMAT = dwarf-with-dsym` y la fase final `Crashlytics` de `project.yml` sube los dSYM; sin `GoogleService-Info.plist` no hace nada. Plan `specs/plans/2026-10-15-crashlytics.md`.
 
 ## Criterio de terminado
 
 Todos los requisitos "debe" de `product/` cumplidos y verificados en una Mac real, y la app aprobada en la Mac App Store.
-- Cierres inesperados (CMP-010, ADR 0018, K-335): `FirebaseCrashlytics` 12.14.0. `CrashReporter` y `CrashReportIdentity` en `ReaderDomain`; `CrashReportSession` (App/Data/Remote) escucha el estado de Firebase Auth y manda el `uid`, o vacío sin sesión. Arranca en `AppGraph` solo con Firebase (nunca en los tests). `DEBUG_INFORMATION_FORMAT = dwarf-with-dsym` y la fase final `Crashlytics` de `project.yml` sube los dSYM; sin `GoogleService-Info.plist` no hace nada. Plan `specs/plans/2026-10-15-crashlytics.md`.

@@ -59,8 +59,8 @@ Stack y capas definidos en `specs/adr/0005-android-stack-and-architecture.md`: C
   - **Sincronizar:** `NoteSync` sube las pendientes (al guardar en el lector, al terminar la pasada de `SyncLibraryUseCase` y al prenderse la función) y escucha `users/{uid}/notes` desde el cursor `sync_last_notes_seen_at` (`FirestoreNotes`). Apagada o sin red permitida (PRF-023), no hace nada.
   - **Cerrar sesión:** `notesAtRisk` suma las notas al aviso de PRF-009; con la función apagada cuentan todas.
   - Plan `specs/plans/2026-10-14-notes-sync.md`.
+- Cierres inesperados (CMP-010, ADR 0018, K-334): `firebase-crashlytics` por el BoM y el plugin `com.google.firebase.crashlytics` 3.0.8. `domain/crash/CrashReportIdentity` sigue `AccountRepository.user` y manda el `uid` (vacío sin sesión) a `data/crash/FirebaseCrashReporter`; arranca en `ReaderApp.onCreate`. Sin Analytics ni claves propias. Plan `specs/plans/2026-10-15-crashlytics.md`.
 
 ## Criterio de terminado
 
 Todos los requisitos "debe" de `product/` cumplidos y verificados en un dispositivo real, y beta cerrada aprobada en Google Play.
-- Cierres inesperados (CMP-010, ADR 0018, K-334): `firebase-crashlytics` por el BoM y el plugin `com.google.firebase.crashlytics` 3.0.8. `domain/crash/CrashReportIdentity` sigue `AccountRepository.user` y manda el `uid` (vacío sin sesión) a `data/crash/FirebaseCrashReporter`; arranca en `ReaderApp.onCreate`. Sin Analytics ni claves propias. Plan `specs/plans/2026-10-15-crashlytics.md`.
