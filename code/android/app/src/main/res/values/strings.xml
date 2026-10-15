@@ -5,7 +5,6 @@
     <string name="welcome_brand">tuck.</string>
     <string name="welcome_headline">Leé más.\nScrolleá menos.\nPensá despacio.</string>
     <string name="welcome_body">Tus EPUB, en un lugar tranquilo, en todos tus dispositivos.</string>
-    <string name="welcome_start_reading">Empezar a leer</string>
     <string name="welcome_want_sync">¿Querés sincronizar?</string>
     <string name="welcome_sign_in">Iniciar sesión</string>
 
@@ -96,6 +95,9 @@
     <string name="onb_allset_generic">Tu biblioteca te espera. Importá tus EPUB y empezá cuando quieras.</string>
     <string name="onb_start_reading">Empezar a leer</string>
     <string name="onb_import_books">Importar mis libros</string>
+    <!-- Listo sin cuenta, L0 (GST-019) -->
+    <string name="guest_ready_title">Ya podés\nleer.</string>
+    <string name="guest_ready_body">Empezá importando tus libros. Todo queda en este dispositivo, sin cuenta.</string>
 
     <string name="onb_signin_title">Te damos la\nbienvenida.</string>
     <string name="onb_forgot">¿Olvidaste tu contraseña?</string>

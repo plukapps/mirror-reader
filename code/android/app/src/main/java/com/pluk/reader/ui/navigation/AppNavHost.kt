@@ -52,6 +52,7 @@ import com.pluk.reader.ui.plans.PlansScreen
 import com.pluk.reader.ui.plans.MyPlanScreen
 import com.pluk.reader.ui.plans.PlanPromptHost
 import com.pluk.reader.ui.search.SearchScreen
+import com.pluk.reader.ui.welcome.GuestReadyScreen
 import com.pluk.reader.ui.welcome.WelcomeScreen
 import com.pluk.reader.ui.welcome.WelcomeViewModel
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -79,6 +80,7 @@ object Routes {
     const val INTERESTS = "interests"
     const val GOAL = "goal"
     const val ALL_SET = "allset"
+    const val GUEST_READY = "guestready"
     const val SIGNIN = "signin"
     const val FORGOT = "forgot?${ForgotPasswordViewModel.ARG_EMAIL}={${ForgotPasswordViewModel.ARG_EMAIL}}"
     const val RESET = "reset?${ResetPasswordViewModel.ARG_CODE}={${ResetPasswordViewModel.ARG_CODE}}"
@@ -152,7 +154,7 @@ fun AppNavHost(
                     lightComposable(Routes.WELCOME) {
                         val welcome: WelcomeViewModel = hiltViewModel()
                         WelcomeScreen(
-                            onStartReading = { welcome.startReading { navController.startOver(Routes.HOME) } },
+                            onStartReading = { welcome.startReading { navController.startOver(Routes.GUEST_READY) } },
                             onCreateAccount = { navController.navigate(Routes.signUp()) },
                             onSignIn = { navController.navigate(Routes.SIGNIN) },
                         )
@@ -195,6 +197,15 @@ fun AppNavHost(
                         GoalScreen(
                             onBack = { navController.popBackStack() },
                             onDone = { navController.startOver(Routes.ALL_SET) },
+                        )
+                    }
+                    lightComposable(Routes.GUEST_READY) {
+                        GuestReadyScreen(
+                            onStartReading = { navController.startOver(Routes.HOME) },
+                            onImportBooks = {
+                                pendingImport = true
+                                navController.startOver(Routes.HOME)
+                            },
                         )
                     }
                     lightComposable(Routes.ALL_SET) {
@@ -348,7 +359,7 @@ fun AppNavHost(
 
 /** Rutas del onboarding (O1 a O9): siempre con la paleta clara (PRF-021). */
 private val LightOnlyRoutes = setOf(
-    Routes.WELCOME, Routes.SIGNUP, Routes.VERIFY, Routes.INTERESTS, Routes.GOAL, Routes.ALL_SET,
+    Routes.WELCOME, Routes.SIGNUP, Routes.VERIFY, Routes.INTERESTS, Routes.GOAL, Routes.ALL_SET, Routes.GUEST_READY,
     Routes.SIGNIN, Routes.FORGOT, Routes.RESET,
 )
 

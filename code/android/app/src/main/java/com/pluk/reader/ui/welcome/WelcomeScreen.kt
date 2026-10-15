@@ -44,7 +44,7 @@ fun WelcomeScreen(onStartReading: () -> Unit, onCreateAccount: () -> Unit, onSig
         modifier = modifier,
         bottom = {
             Column(Modifier.padding(horizontal = 20.dp), horizontalAlignment = Alignment.CenterHorizontally) {
-                PrimaryButton(stringResource(R.string.welcome_start_reading), onStartReading, Modifier.testTag("welcome-start"))
+                PrimaryButton(stringResource(R.string.onb_start_reading), onStartReading, Modifier.testTag("welcome-start"))
                 Text(
                     stringResource(R.string.welcome_want_sync),
                     style = onbText(13.sp, FontWeight.Medium, OnbColors.SoftOnYellow),
