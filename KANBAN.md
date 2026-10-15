@@ -43,18 +43,18 @@ Plan de referencia: `specs/plans/2026-10-06-android-epub-viewer.md`
 
 ## Listo
 
-- **K-335** Crashlytics, Tarea 3: iOS y Mac (`FirebaseCrashlytics`, dSYM, `CrashReportIdentity` en el dominio, oyente de Auth). CMP-010, ADR 0018.
 - **K-134** Lector iOS, Tarea 7: cierre de docs y verificación a mano en el simulador. Rama `feature/ios-reader`. Era K-125 hasta el merge con `master`.
 - **K-038** Inicio, Tarea 4: cierre de docs y verificación a mano. Rama `feature/home`.
 - **K-024** Quitar el padding vertical de Readium (40 dp arriba y abajo en modo paginado) y reservar la barra de estado desde la pantalla. RDR-002. Rama `feat/page-turn-animation`.
 
 ## En curso
 
-- **K-334** Crashlytics, Tarea 2: Android (`firebase-crashlytics`, plugin, `CrashReportIdentity`, `FirebaseCrashReporter`). CMP-010, ADR 0018. Rama `claude/crashlytics-android-ios-b61f44`.
+- **K-335** Crashlytics, Tarea 3: iOS y Mac (`FirebaseCrashlytics`, dSYM, `CrashReportIdentity` en el dominio, oyente de Auth). CMP-010, ADR 0018.
 - **K-176** Posición exacta, Tarea 5: verificación a mano entre el teléfono y el iPhone, cierre de docs. SYN-014.
 
 ## Revisión
 
+- **K-334** Crashlytics, Tarea 2: Android (`firebase-crashlytics`, plugin, `CrashReportIdentity`, `FirebaseCrashReporter`). CMP-010, ADR 0018. Rama `claude/crashlytics-android-ios-b61f44`. Hecho: plugin 3.0.8 y `firebase-crashlytics` por el BoM; `CrashReportIdentity` arranca en `ReaderApp`. 516 tests JVM (2 nuevos, `CrashReportIdentityTest`); compila la app y los instrumentados.
 - **K-333** Crashlytics, Tarea 1: CMP-010, ADR 0018 y plan `2026-10-15-crashlytics.md`. Pedido del usuario (2026-10-15).
 - **K-331** Sync de notas iOS (#38): cierre y prueba cruzada Android ↔ iPhone.
 - **K-327** Notas iOS (#37): cierre de docs y verificación en el iPhone. Crear una nota en el iPhone 13 verificado por el usuario (2026-10-14, después de K-332); falta el resto de la lista.
