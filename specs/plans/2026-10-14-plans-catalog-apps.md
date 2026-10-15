@@ -22,29 +22,31 @@
 **Verificación:** revisión del usuario.
 
 ### Tarea 2: Android, dominio (M) — K-302
-- [ ] `Plan` con precios numéricos y moneda; texto "$2.99" y equivalencia por mes calculados.
-- [ ] `parsePlans(json)` con la validación del backend; test con el JSON del template.
-- [ ] `RemotePlans`: catálogo vigente (`StateFlow`), con `DefaultPlans` por defecto; `PlanCatalog` lo usa.
+- [x] `Plan` con precios numéricos y moneda; texto "$2.99" y equivalencia por mes calculados.
+- [x] `parsePlans(json)` con la validación del backend; test con el JSON del template.
+- [x] `RemotePlans`: catálogo vigente (`StateFlow`), con `DefaultPlans` por defecto; `PlanCatalog` lo usa.
 **Verificación:** tests JVM (ACC-007, ACC-008, PLN-001), verificados rompiendo el código.
 
 ### Tarea 3: Android, Remote Config y pantallas (M) — K-303
-- [ ] `RemoteFlagSource` con lectura de textos; `FirebaseRemoteFlagSource` carga los valores por defecto de funciones y catálogo juntos.
-- [ ] `RemoteFeatureFlags` publica también el catálogo.
-- [ ] Planes, Mi plan, hojas, Perfil, lector y subida usan el catálogo vigente y se actualizan cuando cambia.
+- [x] `RemoteFlagSource` con lectura de textos; `FirebaseRemoteFlagSource` carga los valores por defecto de funciones y catálogo juntos.
+- [x] `RemoteFeatureFlags` publica también el catálogo.
+- [x] Planes, Mi plan, hojas, Perfil, lector y subida usan el catálogo vigente y se actualizan cuando cambia.
 **Verificación:** tests JVM de los `ViewModel` y de `RemoteFeatureFlags` con una fuente falsa; los de Compose, compilados.
 
 ### Tarea 4: iOS, dominio (M) — K-304
-- [ ] Lo mismo que la Tarea 2 en `ReaderDomain`.
+- [x] Lo mismo que la Tarea 2 en `ReaderDomain`.
 **Verificación:** `swift test`.
 
 ### Tarea 5: iOS, Remote Config y pantallas (M) — K-305
-- [ ] Lo mismo que la Tarea 3.
+- [x] Lo mismo que la Tarea 3.
 **Verificación:** tests de la app en el simulador.
 
 ### Tarea 6: verificación a mano y PR (S) — K-306
-- [ ] Instalar en el teléfono y el iPhone y ver los precios y espacios de hoy (los del catálogo publicado coinciden con los por defecto).
-- [ ] Opcional, con permiso del usuario: cambiar un precio en Remote Config, verlo llegar a las dos apps y volver a dejarlo como en el repo.
-- [ ] PR contra `feature/my-plan-paid`.
+- [x] Instalar en el teléfono y el iPhone y ver los precios y espacios de hoy (los del catálogo publicado coinciden con los por defecto).
+- [x] Opcional, con permiso del usuario: cambiar un precio en Remote Config, verlo llegar a las dos apps y volver a dejarlo como en el repo.
+- [x] PR contra `feature/my-plan-paid`.
+
+**Resultado (2026-10-15):** instalado en el teléfono y el iPhone. Se publicó en Remote Config Plus a $3.49 por mes (versión 7) y el usuario vio el cambio; después se volvió a publicar el template del repo (versión 9, Plus a $2.99, con `notes_sync_enabled`).
 
 ## Fuera de este plan
 
