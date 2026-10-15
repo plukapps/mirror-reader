@@ -24,7 +24,7 @@ public struct QuotaBlockNotice: Equatable, Sendable, Identifiable {
     public let block: QuotaBlock
     public let bookId: String
     public let title: String
-    /// nil si nunca se leyó: entonces solo puede ser `tooLarge`, con el máximo de Gratis (PLN-014).
+    /// nil si nunca se leyó: entonces solo puede ser `tooLarge`, con el máximo de Free (PLN-014).
     public let quota: StorageQuota?
 
     public init(block: QuotaBlock, bookId: String, title: String, quota: StorageQuota?) {
@@ -39,7 +39,7 @@ public struct QuotaBlockNotice: Equatable, Sendable, Identifiable {
 
 /// PLN-009, PLN-014: después de importar, ¿alguno de los libros nuevos no entra en la nube? Usa la última cuota
 /// conocida (sin red) y descuenta los pendientes de subir en el mismo orden en que se suben (`UploadBooks`): un
-/// pendiente que no entra no ocupa lugar. Sin cuota conocida solo se comprueba el tamaño máximo de Gratis (vale LIB-009
+/// pendiente que no entra no ocupa lugar. Sin cuota conocida solo se comprueba el tamaño máximo de Free (vale LIB-009
 /// para el espacio). Devuelve el primero que no entra.
 public struct ImportQuotaCheck: Sendable {
     private let uploads: BookUploadRepository

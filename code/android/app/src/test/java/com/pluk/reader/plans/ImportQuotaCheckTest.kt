@@ -35,7 +35,7 @@ class ImportQuotaCheckTest {
         assertNull(quotaBlock(null, 0, 1 * MIB))
     }
 
-    // PLN-014: justo el máximo de Gratis entra; un byte más es archivo muy grande, antes que el espacio
+    // PLN-014: justo el máximo de Free entra; un byte más es archivo muy grande, antes que el espacio
     @Test
     fun maxFileSizeIsCheckedFirst() {
         assertNull(quotaBlock(quota, 0, 2 * MIB))
@@ -43,7 +43,7 @@ class ImportQuotaCheckTest {
         assertEquals(QuotaBlock.TooLarge(3 * MIB, 2 * MIB, PlanId.FREE), quotaBlock(StorageQuota(15 * MIB, 15 * MIB), 0, 3 * MIB))
     }
 
-    // PLN-014: sin cuota o con un plan desconocido vale Gratis; en Lector el máximo es 50 MB
+    // PLN-014: sin cuota o con un plan desconocido vale Free; en Plus el máximo es 50 MB
     @Test
     fun planComesFromTheQuota() {
         assertEquals(QuotaBlock.TooLarge(3 * MIB, 2 * MIB, PlanId.FREE), quotaBlock(null, 0, 3 * MIB))
@@ -98,7 +98,7 @@ class ImportQuotaCheckTest {
         assertEquals(PlanPrompt.Quota("Dune", QuotaBlock.DoesNotFit(2 * MIB, 1 * MIB), 15 * MIB), prompts.current.value)
     }
 
-    // PLN-014: sin cuota leída, un archivo más grande que el máximo de Gratis también muestra la hoja
+    // PLN-014: sin cuota leída, un archivo más grande que el máximo de Free también muestra la hoja
     @Test
     fun tooLargeWithoutQuotaUsesFree() = runTest {
         val prompts = PlanPrompts()

@@ -2,6 +2,8 @@ package com.pluk.reader.plans
 
 import com.pluk.reader.domain.account.QuotaSource
 import com.pluk.reader.domain.account.StorageQuota
+import com.pluk.reader.domain.plans.DefaultPlans
+import com.pluk.reader.domain.plans.PlanId
 import com.pluk.reader.domain.remote.RemoteUnavailableException
 import com.pluk.reader.ui.plans.MyPlanViewModel
 import kotlinx.coroutines.Dispatchers
@@ -60,5 +62,30 @@ class MyPlanViewModelTest {
         backgroundScope.launch { vm.uiState.collect {} }
         advanceUntilIdle()
         assertNull(vm.uiState.value.usage)
+        // PLN-014: sin dato, Free con su máximo por defecto
+        assertEquals(PlanId.FREE, vm.uiState.value.plan)
+        assertEquals(DefaultPlans.free.maxFileBytes, vm.uiState.value.maxFileBytes)
+    }
+
+    // PLN-017, ACC-010: el plan de la cuenta y el máximo por archivo que informa el servidor
+    @Test
+    fun showsThePlanOfTheAccountAndItsMaximum() = runTest(dispatcher) {
+        val quota = StorageQuota(3 * mib, 50 * 1024 * mib, plan = "pro", maxFileBytes = 100 * mib)
+        val vm = MyPlanViewModel(FakeQuotaCache(), FakeSource(Result.success(quota)))
+        backgroundScope.launch { vm.uiState.collect {} }
+        advanceUntilIdle()
+        assertEquals(PlanId.PRO, vm.uiState.value.plan)
+        assertEquals(100 * mib, vm.uiState.value.maxFileBytes)
+    }
+
+    // PLN-012: en Free también vale el máximo del servidor
+    @Test
+    fun theFreePlanUsesTheServerMaximum() = runTest(dispatcher) {
+        val quota = StorageQuota(0, 15 * mib, maxFileBytes = 3 * mib)
+        val vm = MyPlanViewModel(FakeQuotaCache(), FakeSource(Result.success(quota)))
+        backgroundScope.launch { vm.uiState.collect {} }
+        advanceUntilIdle()
+        assertEquals(PlanId.FREE, vm.uiState.value.plan)
+        assertEquals(3 * mib, vm.uiState.value.maxFileBytes)
     }
 }

@@ -69,7 +69,7 @@ final class ProfileViewModel {
         settings: ReaderSettingsRepository, passwords: PasswordRepository? = nil, appearance: AppearanceSettings? = nil,
         wifiOnly: SyncNetworkGate? = nil, signOut: SignOut? = nil, plan: (@MainActor () -> PlanId)? = nil
     ) {
-        // PLN-015: sin dato de plan, el de la cuota guardada (desconocido: Gratis).
+        // PLN-015: sin dato de plan, el de la cuota guardada (desconocido: Free).
         self.plan = plan ?? { PlanCatalog.planOf(cache.last()) }
         appearanceSettings = appearance
         wifiOnlyGate = wifiOnly
@@ -160,10 +160,10 @@ final class ProfileViewModel {
         signingOut = false
     }
 
-    /// Lo que usa el lector (y muestra la vista previa): en Gratis, Clásico y serifa (PLN-015).
+    /// Lo que usa el lector (y muestra la vista previa): en Free, Clásico y serifa (PLN-015).
     var reading: ReaderSettings { effectiveReaderSettings(savedReading, plan: plan()) }
 
-    /// PLN-015: la opción lleva la marca "Lector" y abre la hoja de función paga.
+    /// PLN-015: la opción lleva la marca "Plus" y abre la hoja de función paga.
     func isLocked(_ theme: ReadingTheme) -> Bool { theme.isPaid && !plan().hasThemesAndFonts }
     func isLocked(_ font: ReaderFont) -> Bool { font.isPaid && !plan().hasThemesAndFonts }
 

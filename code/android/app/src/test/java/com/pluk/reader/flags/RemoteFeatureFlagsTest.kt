@@ -97,7 +97,7 @@ class RemoteFeatureFlagsTest {
         assertNull(source.listener)
     }
 
-    // ACC-011: el plan de la cuenta viaja como señal, para las condiciones por plan; sin dato, Gratis
+    // ACC-011: el plan de la cuenta viaja como señal, para las condiciones por plan; sin dato, Free
     @Test
     fun sendsTheAccountPlan() = runTest(dispatcher) {
         flags(StorageQuota(0, 1, plan = "plus")).startListening()

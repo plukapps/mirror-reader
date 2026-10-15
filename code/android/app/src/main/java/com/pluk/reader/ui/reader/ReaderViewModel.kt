@@ -130,11 +130,11 @@ class ReaderViewModel @Inject constructor(
         )
     }
 
-    /** PLN-015: plan de la cuenta según la última cuota conocida; sin dato, Gratis. */
+    /** PLN-015: plan de la cuenta según la última cuota conocida; sin dato, Free. */
     private val plan = quotaCache.quota.map { PlanCatalog.planOf(it) }
         .stateIn(viewModelScope, SharingStarted.Eagerly, PlanId.FREE)
 
-    /** PLN-015: ajustes con los que se lee (en Gratis, Clásico y serifa); lo guardado no cambia. */
+    /** PLN-015: ajustes con los que se lee (en Free, Clásico y serifa); lo guardado no cambia. */
     private val effectiveSettings = combine(settingsRepository.settings, plan) { saved, plan ->
         effectiveReaderSettings(saved, plan)
     }
@@ -322,12 +322,12 @@ class ReaderViewModel @Inject constructor(
         _noteEditor.value = null
     }
 
-    /** PLN-015: en Gratis, Sepia y Noche abren la hoja de función paga y no cambian la preferencia. */
+    /** PLN-015: en Free, Sepia y Noche abren la hoja de función paga y no cambian la preferencia. */
     fun setTheme(theme: ReadingTheme) {
         if (planPrompts.allowReadingOption(plan.value, theme.isPaid)) updateSettings { it.withTheme(theme) }
     }
 
-    /** PLN-015: en Gratis, sin serifa y monoespaciada abren la hoja de función paga. */
+    /** PLN-015: en Free, sin serifa y monoespaciada abren la hoja de función paga. */
     fun setFont(font: ReaderFont) {
         if (planPrompts.allowReadingOption(plan.value, font.isPaid)) updateSettings { it.withFont(font) }
     }

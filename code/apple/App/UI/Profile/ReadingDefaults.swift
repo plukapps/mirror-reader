@@ -55,7 +55,7 @@ struct ReadingDefaultsCard: View {
             ProfileRow(action: nil) {
                 Text("Tema").font(.app(15, .medium)).foregroundStyle(MarginColors.ink)
                 Spacer(minLength: 0)
-                // Con las marcas de Lector debajo (PLN-015), los círculos se separan un poco más.
+                // Con las marcas de Plus debajo (PLN-015), los círculos se separan un poco más.
                 HStack(spacing: viewModel.isLocked(ReadingTheme.sepia) ? 16 : 10) {
                     ForEach([ReadingTheme.light, .sepia, .dark], id: \.self) { theme in
                         swatch(theme, selected: theme == reading.theme)
@@ -113,7 +113,7 @@ struct ReadingDefaultsCard: View {
         .buttonStyle(.plain)
         .accessibilityLabel(theme.label)
         .accessibilityAddTraits(selected ? .isSelected : [])
-        .accessibilityHint(locked ? Text("Incluido en Lector") : Text(""))
+        .accessibilityHint(locked ? Text("Incluido en Plus") : Text(""))
     }
 
     /// Botón de 36, radio 10: el elegido en tinta con el ícono amarillo.

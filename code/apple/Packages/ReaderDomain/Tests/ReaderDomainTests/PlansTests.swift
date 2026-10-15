@@ -4,7 +4,7 @@ import Testing
 private let mib: Int64 = 1024 * 1024
 private let gib: Int64 = 1024 * mib
 
-@Test("PLN-001: tres planes; Gratis usa la cuota de la cuenta, Lector 5 GB y Biblioteca 50 GB")
+@Test("PLN-001: tres planes; Free usa la cuota de la cuenta, Plus 5 GB y Pro 50 GB")
 func catalog() {
     #expect(PlanCatalog.all.map(\.id) == [.free, .plus, .pro])
     #expect(PlanCatalog.storageBytes(.free, quota: StorageQuota(usedBytes: 0, quotaBytes: 20 * mib)) == 20 * mib)
@@ -16,7 +16,7 @@ func catalog() {
     #expect(PlanCatalog.storageText(.pro, quota: nil) == "50 GB")
 }
 
-@Test("PLN-001 (K-291): en una cuenta paga, Gratis muestra la cuota de Gratis y no la de la cuenta")
+@Test("PLN-001 (K-291): en una cuenta paga, Free muestra la cuota de Free y no la de la cuenta")
 func freeStorageOfAPaidAccount() {
     #expect(PlanCatalog.storageBytes(.free, quota: StorageQuota(usedBytes: 0, quotaBytes: 50 * gib, plan: "pro")) == 15 * mib)
     #expect(PlanCatalog.storageText(.free, quota: StorageQuota(usedBytes: 0, quotaBytes: 5 * gib, plan: "plus")) == "15 MB")
@@ -57,7 +57,7 @@ func usage() {
     #expect(PlanUsage(nil) == nil)
 }
 
-@Test("PLN-015: en Gratis el lector usa Clásico y serifa; tamaño e interlineado siguen; en Lector, lo guardado")
+@Test("PLN-015: en Free el lector usa Clásico y serifa; tamaño e interlineado siguen; en Plus, lo guardado")
 func effectiveSettings() {
     let saved = ReaderSettings(theme: .dark, fontScale: 1.3, font: .mono, lineSpacing: .wide)
     #expect(effectiveReaderSettings(saved, plan: .free) == ReaderSettings(theme: .light, fontScale: 1.3, font: .serif, lineSpacing: .wide))

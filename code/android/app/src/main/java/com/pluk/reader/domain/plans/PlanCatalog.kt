@@ -9,7 +9,7 @@ enum class PlanId { FREE, PLUS, PRO }
 enum class Billing { MONTHLY, ANNUAL }
 
 /**
- * Un plan: espacio en la nube y precios. [cloudBytes] es null en Gratis, que usa la cuota de la cuenta (ACC-002).
+ * Un plan: espacio en la nube y precios. [cloudBytes] es null en Free, que usa la cuota de la cuenta (ACC-002).
  * Los precios son informativos (open-questions #1): la rebanada de compras los toma de la tienda.
  */
 data class Plan(
@@ -34,15 +34,15 @@ object PlanCatalog {
     /** Id de cada plan en `users/{uid}.plan` y en el catálogo del backend (ACC-007, ADR 0017). */
     private val BACKEND_IDS = mapOf("free" to PlanId.FREE, "plus" to PlanId.PLUS, "pro" to PlanId.PRO)
 
-    /** PLN-014, PLN-015: plan de la cuenta según la cuota; sin dato o desconocido, Gratis. */
+    /** PLN-014, PLN-015: plan de la cuenta según la cuota; sin dato o desconocido, Free. */
     fun planOf(quota: StorageQuota?): PlanId = quota?.plan?.let(BACKEND_IDS::get) ?: PlanId.FREE
 
     /** PLN-014, ACC-008: tamaño máximo por archivo de la cuenta; el del servidor si se conoce, si no el fijo del plan. */
     fun maxFileBytes(quota: StorageQuota?): Long = quota?.maxFileBytes ?: of(planOf(quota)).maxFileBytes
 
     /**
-     * PLN-001: espacio del plan. El de Gratis es la cuota de la cuenta si la cuenta está en Gratis; en una cuenta paga
-     * (o sin dato), la de Gratis de hoy (K-291).
+     * PLN-001: espacio del plan. El de Free es la cuota de la cuenta si la cuenta está en Free; en una cuenta paga
+     * (o sin dato), la de Free de hoy (K-291).
      */
     fun cloudBytes(plan: Plan, quota: StorageQuota?): Long =
         plan.cloudBytes ?: quota?.takeIf { it.isFreePlan }?.quotaBytes ?: DefaultPlans.FREE_QUOTA_BYTES

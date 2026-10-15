@@ -14,7 +14,7 @@ final class PlansMemoryQuotaCache: QuotaCache, @unchecked Sendable {
 
 @MainActor
 struct PlansViewModelTests {
-    @Test("PLN-004, PLN-005: arranca en mensual con Lector elegido (en amarillo) y la tabla cerrada")
+    @Test("PLN-004, PLN-005: arranca en mensual con Plus elegido (en amarillo) y la tabla cerrada")
     func startsMonthlyWithReader() {
         let viewModel = PlansViewModel(cache: PlansMemoryQuotaCache())
         #expect(viewModel.billing == .monthly)
@@ -23,7 +23,7 @@ struct PlansViewModelTests {
         #expect(!viewModel.isHighlighted(.pro))
         #expect(!viewModel.isHighlighted(.free))
         #expect(!viewModel.tableOpen)
-        #expect(viewModel.cta.title == "Elegir Lector · $2.99 por mes")
+        #expect(viewModel.cta.title == "Elegir Plus · $2.99 por mes")
         #expect(viewModel.cta.subtitle == "Se renueva cada mes. Cancelás cuando quieras.")
     }
 
@@ -31,11 +31,11 @@ struct PlansViewModelTests {
     func annualChangesCta() {
         let viewModel = PlansViewModel(cache: PlansMemoryQuotaCache())
         viewModel.billing = .annual
-        #expect(viewModel.cta.title == "Elegir Lector · $24.99 por año")
+        #expect(viewModel.cta.title == "Elegir Plus · $24.99 por año")
         #expect(viewModel.cta.subtitle == "Se renueva cada año. Cancelás cuando quieras.")
     }
 
-    @Test("PLN-005: se elige Biblioteca tocando su tarjeta y pasa a amarillo; Gratis no se elige")
+    @Test("PLN-005: se elige Pro tocando su tarjeta y pasa a amarillo; Free no se elige")
     func selection() {
         let viewModel = PlansViewModel(cache: PlansMemoryQuotaCache())
         viewModel.select(.pro)
@@ -45,7 +45,7 @@ struct PlansViewModelTests {
         viewModel.select(.free)
         #expect(viewModel.selected == .pro)
         #expect(!viewModel.isHighlighted(.free))
-        #expect(viewModel.cta.title == "Elegir Biblioteca · $5.99 por mes")
+        #expect(viewModel.cta.title == "Elegir Pro · $5.99 por mes")
     }
 
     @Test("PLN-006: la tabla se despliega y se repliega")
@@ -66,7 +66,18 @@ struct PlansViewModelTests {
         viewModel.load()
         #expect(viewModel.usage?.text == "Usás 12 MB de 15 MB")
         #expect(viewModel.storage(.free) == "15 MB")
-        #expect(viewModel.isOnFreePlan)
+        #expect(viewModel.accountPlan == .free)
+    }
+
+    @Test("PLN-005, PLN-017: \"Tu plan\" va en el plan de la cuenta")
+    func accountPlan() {
+        let cache = PlansMemoryQuotaCache(StorageQuota(usedBytes: 0, quotaBytes: 15 * mib, plan: "pro"))
+        let viewModel = PlansViewModel(cache: cache)
+        viewModel.load()
+        #expect(viewModel.accountPlan == .pro)
+        cache.saved = StorageQuota(usedBytes: 0, quotaBytes: 15 * mib, plan: "plus")
+        viewModel.load()
+        #expect(viewModel.accountPlan == .plus)
     }
 
     @Test("PLN-002: se abre y se cierra; cada vez arranca de nuevo")

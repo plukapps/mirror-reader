@@ -47,7 +47,7 @@ import com.pluk.reader.domain.plans.DefaultPlans
 import com.pluk.reader.domain.plans.PlanId
 import com.pluk.reader.ui.theme.MarginColors
 
-/** PLN-012 (P04 Gratis): Mi plan, sin barra inferior, con "Perfil" para volver. */
+/** PLN-012 (P04 Free): Mi plan, sin barra inferior, con "Perfil" para volver. */
 @Composable
 fun MyPlanScreen(onBack: () -> Unit, onChangePlan: () -> Unit, viewModel: MyPlanViewModel = hiltViewModel()) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
@@ -87,22 +87,17 @@ fun MyPlanContent(state: MyPlanUiState, onBack: () -> Unit, onChangePlan: () -> 
                         .semantics { heading() },
                 )
                 PlanCard(state)
-                val reader = formatCloud(DefaultPlans.plus.cloudBytes ?: 0)
-                Column(
-                    Modifier
-                        .padding(start = 20.dp, end = 20.dp, top = 12.dp)
-                        .fillMaxWidth()
-                        .clip(RoundedCornerShape(20.dp))
-                        .background(MarginColors.Yellow)
-                        .semantics(mergeDescendants = true) {}
-                        .padding(16.dp),
-                    verticalArrangement = Arrangement.spacedBy(4.dp),
-                ) {
-                    Text(stringResource(R.string.plans_with_reader, reader), style = planText(15, FontWeight.Bold, MarginColors.OnYellow))
-                    Text(
+                // PLN-012, PLN-017: la oferta del plan siguiente, con sus valores por defecto; en Pro no hay.
+                when (state.plan) {
+                    PlanId.FREE -> OfferCard(
+                        stringResource(R.string.plans_with_plus, formatCloud(DefaultPlans.plus.cloudBytes ?: 0)),
                         stringResource(R.string.plans_my_plan_upsell, formatCloud(DefaultPlans.plus.maxFileBytes)),
-                        style = planText(13, FontWeight.Medium, MarginColors.OnYellowMuted).copy(lineHeight = 1.4.em),
                     )
+                    PlanId.PLUS -> OfferCard(
+                        stringResource(R.string.plans_with_pro, formatCloud(DefaultPlans.pro.cloudBytes ?: 0)),
+                        stringResource(R.string.plans_my_plan_upsell_pro, formatCloud(DefaultPlans.pro.maxFileBytes)),
+                    )
+                    PlanId.PRO -> Unit
                 }
                 Spacer(Modifier.height(24.dp))
             }
@@ -150,7 +145,26 @@ private fun BackRow(onBack: () -> Unit) {
     }
 }
 
-/** Tarjeta del plan: "Gratis" con "Tu plan", espacio con barra y dispositivos. */
+/** Tarjeta amarilla con el plan siguiente (PLN-012, PLN-017). */
+@Composable
+private fun OfferCard(title: String, body: String) {
+    Column(
+        Modifier
+            .padding(start = 20.dp, end = 20.dp, top = 12.dp)
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(20.dp))
+            .background(MarginColors.Yellow)
+            .semantics(mergeDescendants = true) {}
+            .testTag("my-plan-offer")
+            .padding(16.dp),
+        verticalArrangement = Arrangement.spacedBy(4.dp),
+    ) {
+        Text(title, style = planText(15, FontWeight.Bold, MarginColors.OnYellow))
+        Text(body, style = planText(13, FontWeight.Medium, MarginColors.OnYellowMuted).copy(lineHeight = 1.4.em))
+    }
+}
+
+/** Tarjeta del plan de la cuenta con "Tu plan", espacio con barra, dispositivos y máximo por archivo. */
 @Composable
 private fun PlanCard(state: MyPlanUiState) {
     val mono = rememberMonoFamily()
@@ -164,7 +178,7 @@ private fun PlanCard(state: MyPlanUiState) {
         verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
-            Text(planName(PlanId.FREE), style = planText(22, FontWeight.Bold))
+            Text(planName(state.plan), style = planText(22, FontWeight.Bold))
             YourPlanChip(stringResource(R.string.plans_your_plan), withCheck = false)
         }
         val usage = state.usage
@@ -186,9 +200,9 @@ private fun PlanCard(state: MyPlanUiState) {
             Text(stringResource(R.string.plans_devices), style = planText(14, FontWeight.Medium, MarginColors.Ink2))
             Text(stringResource(R.string.plans_devices_value), style = planText(14, FontWeight.Medium, MarginColors.Ink2))
         }
-        // PLN-012, PLN-014: tamaño máximo por archivo del plan.
+        // PLN-012, PLN-017, ACC-010: tamaño máximo por archivo de la cuenta.
         Text(
-            stringResource(R.string.plans_includes_max_file, formatCloud(DefaultPlans.free.maxFileBytes)),
+            stringResource(R.string.plans_includes_max_file, formatCloud(state.maxFileBytes)),
             style = planText(14, FontWeight.Medium, MarginColors.Ink2),
         )
     }

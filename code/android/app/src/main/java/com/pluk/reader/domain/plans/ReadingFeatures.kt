@@ -4,7 +4,7 @@ import com.pluk.reader.domain.model.ReaderFont
 import com.pluk.reader.domain.model.ReaderSettings
 import com.pluk.reader.domain.model.ReadingTheme
 
-/** PLN-015: temas y fuentes son de Lector y Biblioteca. */
+/** PLN-015: temas y fuentes son de Plus y Pro. */
 val PlanId.hasThemesAndFonts: Boolean get() = this != PlanId.FREE
 
 /** PLN-015: Sepia y Noche son de un plan pago; Clásico es de todos. */
@@ -14,7 +14,7 @@ val ReadingTheme.isPaid: Boolean get() = this != ReadingTheme.LIGHT
 val ReaderFont.isPaid: Boolean get() = this != ReaderFont.SERIF
 
 /**
- * PLN-015: ajustes con los que se lee. En Gratis, Clásico y serifa; tamaño, interlineado y animación quedan como
+ * PLN-015: ajustes con los que se lee. En Free, Clásico y serifa; tamaño, interlineado y animación quedan como
  * están. Lo guardado no se toca: vuelve si la cuenta pasa a un plan pago.
  */
 fun effectiveReaderSettings(saved: ReaderSettings, plan: PlanId): ReaderSettings =

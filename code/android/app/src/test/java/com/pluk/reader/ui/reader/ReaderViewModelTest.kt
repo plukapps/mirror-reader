@@ -103,7 +103,7 @@ class ReaderViewModelTest {
 
     private val settings = FakeSettings()
 
-    /** Por defecto, una cuenta Lector: los temas y fuentes se eligen libremente (PLN-015 se prueba aparte). */
+    /** Por defecto, una cuenta Plus: los temas y fuentes se eligen libremente (PLN-015 se prueba aparte). */
     private val quotaCache = com.pluk.reader.plans.FakeQuotaCache(
         com.pluk.reader.domain.account.StorageQuota(0, 1L shl 30, plan = "plus"),
     )
@@ -316,7 +316,7 @@ class ReaderViewModelTest {
         assertEquals(expected, settings.state.value)
     }
 
-    // PLN-015: en Gratis se lee con Clásico y serifa aunque lo guardado sea otro, y lo guardado no cambia
+    // PLN-015: en Free se lee con Clásico y serifa aunque lo guardado sea otro, y lo guardado no cambia
     @Test
     fun freePlanReadsWithClassicAndSerif() = runTest(dispatcher) {
         quotaCache.quota.value = com.pluk.reader.domain.account.StorageQuota(0, 15L shl 20)
@@ -328,7 +328,7 @@ class ReaderViewModelTest {
         assertEquals(ReadingTheme.DARK, settings.state.value.theme)
     }
 
-    // PLN-015: en Gratis, tocar Sepia o una letra paga no cambia la preferencia y pide la hoja de función paga
+    // PLN-015: en Free, tocar Sepia o una letra paga no cambia la preferencia y pide la hoja de función paga
     @Test
     fun freePlanPaidOptionsShowThePaidSheet() = runTest(dispatcher) {
         quotaCache.quota.value = null

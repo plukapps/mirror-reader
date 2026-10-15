@@ -181,7 +181,7 @@ struct ProfileViewModelTests {
         #expect(await loaded(ana).deviceName == "iPhone")
     }
 
-    @Test("PRF-011: Perfil muestra los mismos ajustes que el lector; en Gratis, con Clásico y serifa (PLN-015)")
+    @Test("PRF-011: Perfil muestra los mismos ajustes que el lector; en Free, con Clásico y serifa (PLN-015)")
     func showsReaderSettings() async {
         let saved = ReaderSettings(theme: .sepia, fontScale: 1.2, font: .mono, lineSpacing: .wide)
         let viewModel = await loaded(ana, settings: MemorySettings(saved), plan: .plus)
@@ -190,7 +190,7 @@ struct ProfileViewModelTests {
         #expect(free.reading == ReaderSettings(theme: .light, fontScale: 1.2, font: .serif, lineSpacing: .wide))
     }
 
-    @Test("PLN-015: en Gratis, tocar Noche o una letra paga no cambia la preferencia y pide la hoja de función paga")
+    @Test("PLN-015: en Free, tocar Noche o una letra paga no cambia la preferencia y pide la hoja de función paga")
     func freePlanPaidOptions() async {
         let settings = MemorySettings()
         let viewModel = await loaded(ana, settings: settings)
@@ -206,7 +206,7 @@ struct ProfileViewModelTests {
         #expect(!viewModel.isLocked(ReaderFont.serif))
     }
 
-    @Test("PLN-015: el plan sale de la cuota guardada; con Lector las opciones no llevan marca")
+    @Test("PLN-015: el plan sale de la cuota guardada; con Plus las opciones no llevan marca")
     func planFromCache() async {
         let cache = MemoryQuotaCache(StorageQuota(usedBytes: 0, quotaBytes: 5 * gib, plan: "plus"))
         let viewModel = await loaded(ana, quota: nil, cache: cache)

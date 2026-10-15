@@ -162,9 +162,9 @@ private fun boldTitle(template: String, title: String): AnnotatedString {
 /** PLN-007 (P02a): el espacio ya está lleno. */
 @Composable
 private fun QuotaFullContent(title: String, quotaBytes: Long, onSeePlans: () -> Unit, onNotNow: () -> Unit) {
-    val readerBytes = DefaultPlans.plus.cloudBytes ?: 1
+    val plusBytes = DefaultPlans.plus.cloudBytes ?: 1
     val free = formatCloud(quotaBytes)
-    val reader = formatCloud(readerBytes)
+    val plus = formatCloud(plusBytes)
     Column(Modifier.testTag("plan-sheet-full")) {
         SheetIcon(PlanIcons.CloudOff)
         AnnouncedTitle(stringResource(R.string.plans_sheet_full_title), Modifier.padding(top = 16.dp))
@@ -179,16 +179,16 @@ private fun QuotaFullContent(title: String, quotaBytes: Long, onSeePlans: () -> 
             verticalArrangement = Arrangement.spacedBy(10.dp),
         ) {
             val freeLabel = stringResource(R.string.plans_free)
-            val readerLabel = stringResource(R.string.plans_reader)
-            CompareRow(freeLabel, free, (quotaBytes.toFloat() / readerBytes).coerceIn(0.02f, 1f), bold = false)
-            CompareRow(readerLabel, reader, 1f, bold = true)
-            Text(stringResource(R.string.plans_with_reader, reader), style = planText(14, FontWeight.SemiBold))
+            val plusLabel = stringResource(R.string.plans_plus)
+            CompareRow(freeLabel, free, (quotaBytes.toFloat() / plusBytes).coerceIn(0.02f, 1f), bold = false)
+            CompareRow(plusLabel, plus, 1f, bold = true)
+            Text(stringResource(R.string.plans_with_plus, plus), style = planText(14, FontWeight.SemiBold))
         }
         SheetActions(stringResource(R.string.plans_see_plans), stringResource(R.string.plans_not_now), onSeePlans, onNotNow)
     }
 }
 
-/** Fila "Gratis ▬ 15 MB" de la comparación de P02a. */
+/** Fila "Free ▬ 15 MB" de la comparación de P02a. */
 @Composable
 private fun CompareRow(label: String, value: String, fraction: Float, bold: Boolean) {
     val mono = rememberMonoFamily()
@@ -274,7 +274,7 @@ private fun DoesNotFitContent(title: String, block: QuotaBlock.DoesNotFit, onSee
         BookRow(title, stringResource(R.string.plans_sheet_book_size, size, free))
         AnnouncedTitle(stringResource(R.string.plans_sheet_too_big_title, size), Modifier.padding(top = 18.dp))
         SheetBody(AnnotatedString(stringResource(R.string.plans_sheet_too_big_body, free)), Modifier.padding(top = 10.dp))
-        UpsellCard(stringResource(R.string.plans_with_reader, formatCloud(DefaultPlans.plus.cloudBytes ?: 0)))
+        UpsellCard(stringResource(R.string.plans_with_plus, formatCloud(DefaultPlans.plus.cloudBytes ?: 0)))
         SheetActions(stringResource(R.string.plans_see_plans), stringResource(R.string.plans_not_now), onSeePlans, onNotNow)
     }
 }

@@ -85,7 +85,7 @@ struct QuotaBlockContent: View {
     var onSeePlans: () -> Void = {}
     var onNotNow: () -> Void = {}
 
-    private var readerStorage: String { PlanCatalog.storageText(.plus, quota: notice.quota) }
+    private var plusStorage: String { PlanCatalog.storageText(.plus, quota: notice.quota) }
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
@@ -116,23 +116,23 @@ struct QuotaBlockContent: View {
         let reader = PlanCatalog.storageBytes(.plus, quota: notice.quota)
         return VStack(alignment: .leading, spacing: 10) {
             HStack(spacing: 10) {
-                Text("Gratis").font(.app(13, .medium)).foregroundStyle(MarginColors.muted).frame(width: 56, alignment: .leading)
+                Text("Free").font(.app(13, .medium)).foregroundStyle(MarginColors.muted).frame(width: 56, alignment: .leading)
                 PlanUsageBar(fraction: Double(free) / Double(max(reader, 1)))
                 Text(formatted(free)).font(.mono(12)).foregroundStyle(MarginColors.ink).frame(width: 48, alignment: .trailing)
             }
             HStack(spacing: 10) {
-                Text("Lector").font(.app(13, .bold)).foregroundStyle(MarginColors.ink).frame(width: 56, alignment: .leading)
+                Text("Plus").font(.app(13, .bold)).foregroundStyle(MarginColors.ink).frame(width: 56, alignment: .leading)
                 PlanUsageBar(fraction: 1, fill: MarginColors.yellow, track: MarginColors.yellow)
-                Text(readerStorage).font(.mono(12)).foregroundStyle(MarginColors.ink).frame(width: 48, alignment: .trailing)
+                Text(plusStorage).font(.mono(12)).foregroundStyle(MarginColors.ink).frame(width: 48, alignment: .trailing)
             }
-            Text("Con Lector: \(readerStorage) en la nube").font(.app(14, .semibold)).foregroundStyle(MarginColors.ink)
+            Text("Con Plus: \(plusStorage) en la nube").font(.app(14, .semibold)).foregroundStyle(MarginColors.ink)
         }
         .padding(.horizontal, 16)
         .padding(.vertical, 14)
         .background(MarginColors.paper, in: RoundedRectangle(cornerRadius: 18))
         .padding(.top, 18)
         .accessibilityElement(children: .ignore)
-        .accessibilityLabel(Text("Gratis \(formatted(free)), Lector \(readerStorage). Con Lector: \(readerStorage) en la nube"))
+        .accessibilityLabel(Text("Free \(formatted(free)), Plus \(plusStorage). Con Plus: \(plusStorage) en la nube"))
     }
 
     // MARK: P02b
@@ -144,7 +144,7 @@ struct QuotaBlockContent: View {
             detail: "\(size) · te quedan \(free)",
             size: size,
             body: String(localized: "Te quedan \(free) en la nube. No se subió, pero podés leerlo en este dispositivo."),
-            upsell: String(localized: "Con Lector: \(readerStorage) en la nube")
+            upsell: String(localized: "Con Plus: \(plusStorage) en la nube")
         )
     }
 
@@ -153,7 +153,7 @@ struct QuotaBlockContent: View {
     private func tooLarge(bookBytes: Int64, maxBytes: Int64) -> some View {
         let size = formatted(bookBytes)
         let max = formatted(maxBytes)
-        // En Lector se ofrece Biblioteca; en Biblioteca no hay tarjeta.
+        // En Plus se ofrece Pro; en Pro no hay tarjeta.
         let upsell = PlanCatalog.nextPlan(after: PlanCatalog.planOf(notice.quota)).map { next in
             String(localized: """
                 Con \(next.name): archivos de hasta \(unbroken(PlanCatalog.maxFileText(next))) y \

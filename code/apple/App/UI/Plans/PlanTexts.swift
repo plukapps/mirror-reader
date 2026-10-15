@@ -5,12 +5,12 @@ import ReaderDomain
 // números y reglas; como `strings.xml` en Android (`plans_*`).
 
 extension PlanId {
-    /// "Gratis", "Lector", "Biblioteca".
+    /// "Free", "Plus", "Pro".
     var name: String {
         switch self {
-        case .free: String(localized: "Gratis")
-        case .plus: String(localized: "Lector")
-        case .pro: String(localized: "Biblioteca")
+        case .free: String(localized: "Free")
+        case .plus: String(localized: "Plus")
+        case .pro: String(localized: "Pro")
         }
     }
 
@@ -28,7 +28,7 @@ extension PlanId {
         return switch self {
         case .free: [String(localized: "Lectura y notas sin tope"), String(localized: "Sincroniza en todos tus dispositivos"), maxFile]
         case .plus: [String(localized: "Temas y fuentes"), String(localized: "Exportá notas a Markdown, Obsidian y Notion"), maxFile]
-        case .pro: [String(localized: "Todo lo de Lector"), maxFile]
+        case .pro: [String(localized: "Todo lo de Plus"), maxFile]
         }
     }
 }
@@ -44,7 +44,7 @@ extension Billing {
 }
 
 extension Plan {
-    /// PLN-004, PLN-005: "Equivale a $2.08 por mes" en anual, "Pagás mes a mes" en mensual; en Gratis, "Sin costo, para
+    /// PLN-004, PLN-005: "Equivale a $2.08 por mes" en anual, "Pagás mes a mes" en mensual; en Free, "Sin costo, para
     /// siempre".
     func periodNote(_ billing: Billing) -> String {
         guard let annualPerMonth else { return String(localized: "Sin costo, para siempre") }

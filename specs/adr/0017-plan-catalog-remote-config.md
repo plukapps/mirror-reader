@@ -39,7 +39,7 @@ Opción 2.
   }
   ```
 
-  Los valores iniciales son los de PLN-001 (`specs/product/12-plans.md`). Los ids son `free`, `plus` y `pro` (Gratis, Lector y Biblioteca); el espacio gratuito, 15 MiB, se escribe 15 / 1024 GB. Decisión del usuario (2026-10-14).
+  Los valores iniciales son los de PLN-001 (`specs/product/12-plans.md`). Los ids son `free`, `plus` y `pro`, y en la interfaz los planes se llaman Free, Plus y Pro; el espacio gratuito, 15 MiB, se escribe 15 / 1024 GB. Decisión del usuario (2026-10-14).
 
   Un solo parámetro se publica entero: no hay estados intermedios con un plan a medio cambiar, y agregar un plan no agrega claves (ACC-005).
 - Unidades binarias: 1 GB = 1024³ bytes, 1 MB = 1024² bytes (igual que los 100 MB de hoy en la regla). El servidor redondea hacia abajo a bytes enteros.

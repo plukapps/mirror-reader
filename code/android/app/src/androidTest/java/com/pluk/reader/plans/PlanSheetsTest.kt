@@ -35,8 +35,8 @@ class PlanSheetsTest {
         compose.onNodeWithText(
             "Dune no se subió a la nube, pero podés leerlo en este dispositivo. Tus otros libros siguen intactos.",
         ).assertExists()
-        compose.onNodeWithContentDescription("Gratis, 15 MB").assertExists()
-        compose.onNodeWithContentDescription("Lector, 5 GB").assertExists()
+        compose.onNodeWithContentDescription("Free, 15 MB").assertExists()
+        compose.onNodeWithContentDescription("Plus, 5 GB").assertExists()
         compose.onNodeWithText("Ver planes").performClick()
         compose.onNodeWithText("Ahora no").performClick()
         assertEquals(1 to 1, seePlans to notNow)
@@ -49,7 +49,7 @@ class PlanSheetsTest {
         compose.onNodeWithText("Este libro pesa 2 MB").assertExists()
         compose.onNodeWithText("Te quedan 1 MB en la nube. No se subió, pero podés leerlo en este dispositivo.").assertExists()
         compose.onNodeWithText("2 MB · te quedan 1 MB").assertExists()
-        compose.onNodeWithText("Con Lector: 5 GB en la nube").assertExists()
+        compose.onNodeWithText("Con Plus: 5 GB en la nube").assertExists()
     }
 
     // PLN-015: hoja de función paga de temas y fuentes
@@ -58,7 +58,7 @@ class PlanSheetsTest {
         show(PlanPrompt.Paid(com.pluk.reader.domain.plans.PaidFeature.THEMES_FONTS))
         compose.onNodeWithText("Leé con tus temas y fuentes").assertExists()
         compose.onNodeWithText("Sepia, Noche y todas las letras del lector, en todos tus libros.").assertExists()
-        compose.onNodeWithText("Incluido en Lector").assertExists()
+        compose.onNodeWithText("Incluido en Plus").assertExists()
         compose.onNodeWithText("Ver planes").performClick()
         assertEquals(1, seePlans)
     }
@@ -70,6 +70,6 @@ class PlanSheetsTest {
         compose.onNodeWithText("3 MB · límite 2 MB").assertExists()
         compose.onNodeWithText("Este libro pesa 3 MB").assertExists()
         compose.onNodeWithText("Tu plan admite archivos de hasta 2 MB. No se subió a la nube, pero podés leerlo en este dispositivo.").assertExists()
-        compose.onNodeWithText("Con Lector: archivos de hasta 50 MB y 5 GB en la nube").assertExists()
+        compose.onNodeWithText("Con Plus: archivos de hasta 50 MB y 5 GB en la nube").assertExists()
     }
 }

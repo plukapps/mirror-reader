@@ -29,14 +29,14 @@ data class PlansUiState(
     val tableOpen: Boolean = false,
     /** Uso de la cuenta, o null si nunca se leyó la cuota: la fila se oculta (PLN-003). */
     val usage: StorageUsage? = null,
-    /** Espacio de Gratis: la cuota de la cuenta (PLN-001). */
+    /** Espacio de Free: la cuota de la cuenta (PLN-001). */
     val freeCloud: String = formatCloud(DefaultPlans.FREE_QUOTA_BYTES),
-    /** Gratis lleva "Tu plan" (PLN-005). Sin cuota conocida, la cuenta es gratuita: no hay otro plan todavía. */
-    val isOnFreePlan: Boolean = true,
+    /** Plan de la cuenta, que lleva "Tu plan" (PLN-005, PLN-017). Sin cuota conocida, Free. */
+    val accountPlan: PlanId = PlanId.FREE,
 ) {
     val cta: PlanCta get() = ctaFor(selected, billing)
 
-    /** PLN-005: la tarjeta elegida va en amarillo; Gratis nunca. */
+    /** PLN-005: la tarjeta elegida va en amarillo; Free nunca. */
     fun isHighlighted(plan: PlanId): Boolean = plan != PlanId.FREE && plan == selected
 }
 
@@ -52,7 +52,7 @@ class PlansViewModel @Inject constructor(quotaCache: QuotaCache) : ViewModel() {
         choice.copy(
             usage = quota?.let(::storageUsage),
             freeCloud = formatCloud(PlanCatalog.cloudBytes(DefaultPlans.free, quota)),
-            isOnFreePlan = quota?.isFreePlan ?: true,
+            accountPlan = PlanCatalog.planOf(quota),
         )
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(STOP_TIMEOUT_MS), PlansUiState())
 
@@ -60,7 +60,7 @@ class PlansViewModel @Inject constructor(quotaCache: QuotaCache) : ViewModel() {
         choice.value = choice.value.copy(billing = billing)
     }
 
-    /** Solo Lector y Biblioteca se eligen (PLN-005). */
+    /** Solo Plus y Pro se eligen (PLN-005). */
     fun onSelect(plan: PlanId) {
         if (plan == PlanId.FREE) return
         choice.value = choice.value.copy(selected = plan)

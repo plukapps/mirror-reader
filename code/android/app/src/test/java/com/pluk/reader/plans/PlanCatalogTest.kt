@@ -28,7 +28,7 @@ class PlanCatalogTest {
         assertEquals("$4.17", DefaultPlans.pro.annualPerMonth)
     }
 
-    // PLN-001: Gratis usa la cuota real de la cuenta; sin dato, la de hoy (15 MB)
+    // PLN-001: Free usa la cuota real de la cuenta; sin dato, la de hoy (15 MB)
     @Test
     fun freeCloudSpaceIsTheAccountQuota() {
         assertEquals(20 * mib, PlanCatalog.cloudBytes(DefaultPlans.free, StorageQuota(0, 20 * mib)))
@@ -36,7 +36,7 @@ class PlanCatalogTest {
         assertEquals(5 * gib, PlanCatalog.cloudBytes(DefaultPlans.plus, StorageQuota(0, 20 * mib)))
     }
 
-    // PLN-001 (K-291): en una cuenta paga, Gratis no muestra la cuota de la cuenta sino la de Gratis (15 MB)
+    // PLN-001 (K-291): en una cuenta paga, Free no muestra la cuota de la cuenta sino la de Free (15 MB)
     @Test
     fun freeCloudSpaceOfAPaidAccountIsTheFreeQuota() {
         assertEquals(15 * mib, PlanCatalog.cloudBytes(DefaultPlans.free, StorageQuota(0, 50 * gib, plan = "pro")))
@@ -55,7 +55,7 @@ class PlanCatalogTest {
         assertEquals(PlanId.PRO, monthly.plan.id)
     }
 
-    // PLN-014, ACC-007: el plan sale de la cuota con los ids del backend (`plus` y `pro`); desconocido o sin dato, Gratis
+    // PLN-014, ACC-007: el plan sale de la cuota con los ids del backend (`plus` y `pro`); desconocido o sin dato, Free
     @Test
     fun planOfQuota() {
         assertEquals(PlanId.FREE, PlanCatalog.planOf(null))

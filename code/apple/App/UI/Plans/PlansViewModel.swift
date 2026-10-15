@@ -7,7 +7,7 @@ import ReaderDomain
 final class PlansViewModel {
     /// PLN-004: arranca en mensual.
     var billing: Billing = .monthly
-    /// PLN-005: arranca elegido Lector. Gratis no se elige.
+    /// PLN-005: arranca elegido Plus. Free no se elige.
     private(set) var selected: PlanId = .plus
     /// PLN-006: la tabla comparativa, desplegada o no.
     private(set) var tableOpen = false
@@ -28,15 +28,15 @@ final class PlansViewModel {
     /// PLN-003: nil si nunca se leyó la cuota; entonces se oculta la fila.
     var usage: PlanUsage? { PlanUsage(quota) }
 
-    /// PLN-005: "Tu plan" va en Gratis si es el plan de la cuenta. Sin dato se asume Gratis (no hay otro todavía).
-    var isOnFreePlan: Bool { quota?.isFreePlan ?? true }
+    /// PLN-005, PLN-017: el plan de la cuenta, que lleva "Tu plan". Sin dato, Free.
+    var accountPlan: PlanId { PlanCatalog.planOf(quota) }
 
     func select(_ plan: PlanId) {
         guard plan != .free else { return }
         selected = plan
     }
 
-    /// PLN-005: la tarjeta del plan elegido va en amarillo. Gratis no se elige.
+    /// PLN-005: la tarjeta del plan elegido va en amarillo. Free no se elige.
     func isHighlighted(_ plan: PlanId) -> Bool { plan != .free && plan == selected }
 
     func toggleTable() {
@@ -86,7 +86,7 @@ final class PlansPresenter {
         plansOpen = true
     }
 
-    /// Un ViewModel nuevo cada vez que se abre: vuelve a arrancar en anual con Lector elegido.
+    /// Un ViewModel nuevo cada vez que se abre: vuelve a arrancar en anual con Plus elegido.
     func makePlans() -> PlansViewModel {
         PlansViewModel(cache: cache)
     }

@@ -1,6 +1,6 @@
 import Foundation
 
-/// Planes de suscripción (PLN-001), como `PlanId` de Android. Gratis, Lector y Biblioteca; el `rawValue` es el id del backend.
+/// Planes de suscripción (PLN-001), como `PlanId` de Android. Free, Plus y Pro; el `rawValue` es el id del backend.
 public enum PlanId: String, CaseIterable, Sendable {
     case free, plus, pro
 }
@@ -10,7 +10,7 @@ public enum Billing: Sendable {
     case monthly, annual
 }
 
-/// Un plan: espacio y precios, sin textos (los pone la app, traducibles, K-295). `storageBytes` es nil en Gratis, que
+/// Un plan: espacio y precios, sin textos (los pone la app, traducibles, K-295). `storageBytes` es nil en Free, que
 /// usa la cuota de la cuenta (ACC-002). Los precios son informativos (open-questions #1): la rebanada de compras los
 /// toma de la tienda.
 public struct Plan: Equatable, Sendable {
@@ -20,7 +20,7 @@ public struct Plan: Equatable, Sendable {
     public let maxFileBytes: Int64
     public let monthlyPrice: String
     public let annualPrice: String
-    /// Equivalencia por mes del precio anual ("$2.08"), o nil en Gratis.
+    /// Equivalencia por mes del precio anual ("$2.08"), o nil en Free.
     public let annualPerMonth: String?
 
     public func price(_ billing: Billing) -> String {
@@ -65,9 +65,9 @@ public enum PlanCatalog {
         }
     }
 
-    /// PLN-001: espacio del plan; el de Gratis es la cuota de la cuenta si la cuenta está en Gratis.
+    /// PLN-001: espacio del plan; el de Free es la cuota de la cuenta si la cuenta está en Free.
     public static func storageBytes(_ id: PlanId, quota: StorageQuota?) -> Int64 {
-        // En una cuenta paga, Gratis no es la cuota de la cuenta sino la de Gratis de hoy (K-291).
+        // En una cuenta paga, Free no es la cuota de la cuenta sino la de Free de hoy (K-291).
         plan(id).storageBytes ?? quota.flatMap { $0.isFreePlan ? $0.quotaBytes : nil } ?? DefaultPlans.freeQuotaBytes
     }
 
@@ -78,7 +78,7 @@ public enum PlanCatalog {
     }
 
     /// PLN-014: el plan de la cuenta sale de la cuota (el `rawValue` es el id de `users/{uid}.plan` y del catálogo,
-    /// ACC-007, ADR 0017); si no se conoce o no es uno de los tres, Gratis.
+    /// ACC-007, ADR 0017); si no se conoce o no es uno de los tres, Free.
     public static func planOf(_ quota: StorageQuota?) -> PlanId {
         quota.flatMap { PlanId(rawValue: $0.plan) } ?? .free
     }
@@ -88,7 +88,7 @@ public enum PlanCatalog {
         quota?.maxFileBytes ?? plan(planOf(quota)).maxFileBytes
     }
 
-    /// PLN-014: el plan que se ofrece para pasar de este ("Con Lector…", "Con Biblioteca…"); nil en Biblioteca.
+    /// PLN-014: el plan que se ofrece para pasar de este ("Con Plus…", "Con Pro…"); nil en Pro.
     public static func nextPlan(after id: PlanId) -> PlanId? {
         switch id {
         case .free: .plus
@@ -107,7 +107,7 @@ public enum PlanCatalog {
 // MARK: Temas y fuentes (PLN-015)
 
 public extension PlanId {
-    /// PLN-015: temas y fuentes son de Lector y Biblioteca.
+    /// PLN-015: temas y fuentes son de Plus y Pro.
     var hasThemesAndFonts: Bool { self != .free }
 }
 
@@ -121,7 +121,7 @@ public extension ReaderFont {
     var isPaid: Bool { self != .serif }
 }
 
-/// PLN-015: lo que el lector aplica. En Gratis, Clásico y serifa; el resto de lo guardado (tamaño, interlineado) sigue
+/// PLN-015: lo que el lector aplica. En Free, Clásico y serifa; el resto de lo guardado (tamaño, interlineado) sigue
 /// igual. La preferencia guardada no se toca: vuelve si la cuenta pasa a un plan pago.
 public func effectiveReaderSettings(_ saved: ReaderSettings, plan: PlanId) -> ReaderSettings {
     guard !plan.hasThemesAndFonts else { return saved }

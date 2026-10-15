@@ -10,7 +10,7 @@ struct PlanTextsTests {
 
     @Test("PLN-001: nombre y bajada de cada plan")
     func names() {
-        #expect(PlanId.allCases.map(\.name) == ["Gratis", "Lector", "Biblioteca"])
+        #expect(PlanId.allCases.map(\.name) == ["Free", "Plus", "Pro"])
         #expect(PlanId.plus.tagline == "Para quien lee siempre")
         #expect(PlanId.free.tagline == "Para leer de vez en cuando")
         #expect(PlanId.pro.tagline == "Para quien tiene una biblioteca")
@@ -30,20 +30,20 @@ struct PlanTextsTests {
     @Test("PLN-006: sin prueba gratis, siempre Elegir con el precio del período")
     func cta() {
         #expect(PlanCta(.plus, .annual) == PlanCta(
-            title: "Elegir Lector · $24.99 por año", subtitle: "Se renueva cada año. Cancelás cuando quieras."
+            title: "Elegir Plus · $24.99 por año", subtitle: "Se renueva cada año. Cancelás cuando quieras."
         ))
         #expect(PlanCta(.plus, .monthly) == PlanCta(
-            title: "Elegir Lector · $2.99 por mes", subtitle: "Se renueva cada mes. Cancelás cuando quieras."
+            title: "Elegir Plus · $2.99 por mes", subtitle: "Se renueva cada mes. Cancelás cuando quieras."
         ))
-        #expect(PlanCta(.pro, .annual).title == "Elegir Biblioteca · $49.99 por año")
-        #expect(PlanCta(.pro, .monthly).title == "Elegir Biblioteca · $5.99 por mes")
+        #expect(PlanCta(.pro, .annual).title == "Elegir Pro · $49.99 por año")
+        #expect(PlanCta(.pro, .monthly).title == "Elegir Pro · $5.99 por mes")
     }
 
     @Test("PLN-001, PLN-016: lo que incluye cada tarjeta, sin funciones en definición")
     func includes() {
         #expect(PlanId.free.includes == ["Lectura y notas sin tope", "Sincroniza en todos tus dispositivos", "Archivos de hasta 2 MB"])
         #expect(PlanId.plus.includes == ["Temas y fuentes", "Exportá notas a Markdown, Obsidian y Notion", "Archivos de hasta 50 MB"])
-        #expect(PlanId.pro.includes == ["Todo lo de Lector", "Archivos de hasta 100 MB"])
+        #expect(PlanId.pro.includes == ["Todo lo de Plus", "Archivos de hasta 100 MB"])
     }
 
     @Test("PLN-003: \"Usás X de Y\"")
