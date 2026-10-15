@@ -6,7 +6,7 @@ Identidad para sincronizar, y base para un modelo de pago futuro.
 
 ## Requisitos
 
-- **ACC-001** Debe requerir cuenta en la v1. Registro con email y con Google.
+- **ACC-001** ~~Debe requerir cuenta en la v1.~~ La cuenta es opcional: sin cuenta la app se usa solo en este dispositivo (`13-no-account.md`, GST); la cuenta hace falta para sincronizar y guardar en la nube. Registro con email y con Google. Cambiado el 2026-10-15 por decisión del usuario.
 - **ACC-002** Cada usuario tiene un plan que define su cuota de espacio. En la v1 todo usuario nuevo recibe el plan gratuito (tamaño en open-questions #2).
 - **ACC-003** Debe mostrar el espacio usado y disponible.
 - **ACC-004** Cada usuario solo accede a sus propios datos.
@@ -30,4 +30,4 @@ Identidad para sincronizar, y base para un modelo de pago futuro.
 
 ## Fuera de alcance en v1
 
-Cobro, suscripción y cambio de plan desde la app (el precio del catálogo es informativo: cuando haya cobro, el precio real y localizado lo fija cada tienda), uso sin cuenta, "Iniciar sesión con Apple" (se agrega con iOS).
+Cobro, suscripción y cambio de plan desde la app (el precio del catálogo es informativo: cuando haya cobro, el precio real y localizado lo fija cada tienda), "Iniciar sesión con Apple" (se agrega con iOS).

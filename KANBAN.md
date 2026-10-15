@@ -5,7 +5,7 @@ Plan de referencia: `specs/plans/2026-10-06-android-epub-viewer.md`
 
 ## Backlog
 
-- **K-288** Uso sin cuenta: definir qué plan y qué límites tiene quien usa la app sin registrarse, y qué pasa con sus libros al crear la cuenta. Hoy ACC-001 exige cuenta y el onboarding deja "Explorar sin cuenta" fuera de alcance (open-questions #7). Opciones: solo local con los límites de `free` aplicados por la app, o Firebase Anonymous Auth. Requiere spec, ADR y plan propios; va en otra rama, no en la del catálogo de planes (ADR 0017).
+- **K-348** Uso sin cuenta, iPhone: plan propio con el mismo spec (GST) y el ADR 0019; revisar que SwiftData no guarde el uid. Quitar también los intereses (ONB-009) en iOS. Después de K-347.
 - **K-240** Planes, iOS: al importar con "Abrir con" desde otra app, la comprobación de cuota (P02) no corre porque el lector se abre enseguida a pantalla completa. Mostrar la hoja al cerrar el lector, o antes de abrirlo. PLN-007 a PLN-009. Encontrado en K-224.
 - **K-209** Android, modo oscuro: en "Cambiar contraseña" (PRF-020) los campos conservan el borde claro del onboarding y "Guardar" deshabilitado se ve gris claro sobre el fondo oscuro. Se lee, pero desentona con el resto. Pasar `OnbTextField` y `PrimaryButton` a los tokens de la paleta fuera del onboarding (PRF-022). Visto en el SM-S711B el 2026-10-13.
 - **K-202** Apple: la etiqueta 3.9.0 de Readium Swift ya no existe en GitHub (`git ls-remote` pasa de 3.8.0 a 3.10.0), y `project.yml` fija `exactVersion: 3.9.0`. Un clon o worktree nuevo no resuelve los paquetes ("no versions of 'swift-toolkit' match 3.9.0"). Hoy solo compila con una caché de Xcode que ya la tenía (`DerivedData/Reader-gbvs…`, commit `de07026e9`). Decidir: fijar por `revision: de07026e9…` en `project.yml` o pasar a 3.10 (exige Xcode 16.3, ADR 0013). Visto el 2026-10-12.
@@ -42,12 +42,21 @@ Plan de referencia: `specs/plans/2026-10-06-android-epub-viewer.md`
 
 ## Listo
 
+- **K-340** Uso sin cuenta, Android: pantalla "Listo" (L0) sin libros de regalo. GST-019. Plan `2026-10-15-android-no-account.md`, rama `feature/no-account`.
+- **K-341** Uso sin cuenta, Android: quitar un libro sin sesión no deja borrado pendiente para la nube; textos de la confirmación y FAQ. GST-008, GST-017, GST-020. Plan `2026-10-15-android-no-account.md`, rama `feature/no-account`.
+- **K-342** Uso sin cuenta, Android: sin hojas de cuota, archivo muy grande ni aviso del 80 % sin sesión. GST-006. Plan `2026-10-15-android-no-account.md`, rama `feature/no-account`.
+- **K-343** Uso sin cuenta, Android: aviso "Tus libros están solo en este dispositivo" en Inicio y Biblioteca. GST-010. Plan `2026-10-15-android-no-account.md`, rama `feature/no-account`.
+- **K-344** Uso sin cuenta, Android: Perfil sin cuenta (09g). GST-009, GST-018. Plan `2026-10-15-android-no-account.md`, rama `feature/no-account`.
+- **K-345** Onboarding, Android: quitar los intereses (O4) del alta, pasos 1 a 3. ONB-003, ONB-009. Plan `2026-10-15-android-no-account.md`, rama `feature/no-account`.
+- **K-346** Uso sin cuenta, Android: alta corta (B1 → O3 → B3) e ingreso desde Perfil a la Biblioteca. GST-011, GST-021, GST-022. Plan `2026-10-15-android-no-account.md`, rama `feature/no-account`.
+- **K-347** Uso sin cuenta, Android: cierre de docs y verificación a mano en el teléfono y la tablet. Plan `2026-10-15-android-no-account.md`, rama `feature/no-account`.
 - **K-134** Lector iOS, Tarea 7: cierre de docs y verificación a mano en el simulador. Rama `feature/ios-reader`. Era K-125 hasta el merge con `master`.
 - **K-038** Inicio, Tarea 4: cierre de docs y verificación a mano. Rama `feature/home`.
 - **K-024** Quitar el padding vertical de Readium (40 dp arriba y abajo en modo paginado) y reservar la barra de estado desde la pantalla. RDR-002. Rama `feat/page-turn-animation`.
 
 ## En curso
 
+- **K-339** Uso sin cuenta, Android: arranque y bienvenida O1 v2 ("Empezar a leer", clave `welcome_seen`). GST-001 a GST-004. Plan `2026-10-15-android-no-account.md`, rama `feature/no-account`.
 - **K-176** Posición exacta, Tarea 5: verificación a mano entre el teléfono y el iPhone, cierre de docs. SYN-014.
 
 ## Revisión
@@ -202,6 +211,7 @@ Plan de referencia: `specs/plans/2026-10-06-android-epub-viewer.md`
 
 ## Hecho
 
+- **K-338** Uso sin cuenta: spec `13-no-account.md` (GST), ADR 0019 y plan `2026-10-15-android-no-account.md`. Reemplaza a K-288. Aprobado por el usuario (2026-10-15).
 - **K-336** Crashlytics, Tarea 4: habilitar Crashlytics en la consola de `mirror-reading-staging` (pedirlo al usuario) y forzar un cierre de prueba en el teléfono y en el iPhone; ver el reporte con el `uid`. CMP-010, ADR 0018. Plan `2026-10-15-crashlytics.md`. Hecho (2026-10-15): un cierre de prueba temporal al tocar "Buscar" ("Bug de Prueba") llegó a la consola, verificado por el usuario; se quitó antes del merge. Integrado en `develop` (#43), 2026-10-15.
 - **K-335** Crashlytics, Tarea 3: iOS y Mac (`FirebaseCrashlytics`, dSYM, `CrashReportIdentity` en el dominio, oyente de Auth). CMP-010, ADR 0018. Hecho: `CrashReporting.swift` en el dominio, `FirebaseCrashReporting.swift` en la app, fase `Crashlytics` en `project.yml`. Dominio 256 (2 nuevos, `CrashReportIdentityTests`), app 243 en el simulador; la Mac compila (sus tests no arrancan, K-201). Integrado en `develop` (#43), 2026-10-15.
 - **K-334** Crashlytics, Tarea 2: Android (`firebase-crashlytics`, plugin, `CrashReportIdentity`, `FirebaseCrashReporter`). CMP-010, ADR 0018. Rama `claude/crashlytics-android-ios-b61f44`. Hecho: plugin 3.0.8 y `firebase-crashlytics` por el BoM; `CrashReportIdentity` arranca en `ReaderApp`. 516 tests JVM (2 nuevos, `CrashReportIdentityTest`); compila la app y los instrumentados. Integrado en `develop` (#43), 2026-10-15.
