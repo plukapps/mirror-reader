@@ -70,4 +70,21 @@ struct MyPlanViewModelTests {
         await empty.load()
         #expect(empty.storageText == nil)
     }
+
+    @Test("ACC-007, ACC-008: sin el máximo del servidor, el del plan en el catálogo vigente, y se actualiza si cambia")
+    func followsCatalog() async {
+        let store = PlanCatalogStore()
+        let quota = StorageQuota(usedBytes: 0, quotaBytes: 5 * 1024 * mib, plan: "plus")
+        let viewModel = MyPlanViewModel(quota: FixedQuota(result: quota), cache: PlansMemoryQuotaCache(), catalog: store)
+        await viewModel.load()
+        #expect(viewModel.maxFile == "50 MB")
+        let following = Task { await viewModel.followCatalog() }
+        defer { following.cancel() }
+        let plus = Plan(id: .plus, storageBytes: 5 * 1024 * mib, maxFileBytes: 7 * mib, monthlyPrice: 2.99, annualPrice: 24.99, currency: "USD")
+        let pro = Plan(id: .pro, storageBytes: 80 * 1024 * mib, maxFileBytes: 200 * mib, monthlyPrice: 5.99, annualPrice: 49.99, currency: "USD")
+        store.update([DefaultPlans.free, plus, pro])
+        for _ in 0..<2_000 where viewModel.plans != store.plans { await Task.yield() }
+        #expect(viewModel.maxFile == "7 MB")
+        #expect(viewModel.offer == MyPlanOffer(title: "Con Pro: 80 GB en la nube", body: "Archivos de hasta 200 MB."))
+    }
 }

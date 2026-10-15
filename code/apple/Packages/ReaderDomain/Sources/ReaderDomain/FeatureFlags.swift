@@ -26,6 +26,8 @@ public protocol RemoteFlagSource: Sendable {
     func fetchAndActivate() async throws
     /// El valor aplicado de `key`, o nil si todavía no hay uno remoto.
     func value(_ key: String) async -> Bool?
+    /// El catálogo de planes aplicado (`plans`), o nil si es inválido (ACC-007, ACC-008, ADR 0017).
+    func plans() async -> [Plan]?
     /// Avisa cada vez que cambian los valores en el servidor, mientras se recorre.
     func updates() -> AsyncStream<Void>
 }
@@ -39,14 +41,22 @@ public protocol RemoteFlagSource: Sendable {
 public actor FeatureFlags {
     private let source: RemoteFlagSource?
     private let plan: @Sendable () -> String
+    private let catalog: PlanCatalogStore
     private var values: [Feature: Bool] = Dictionary(uniqueKeysWithValues: Feature.allCases.map { ($0, $0.defaultValue) })
     private var subscribers: [UUID: (Feature, AsyncStream<Bool>.Continuation)] = [:]
     private var listening: Task<Void, Never>?
 
-    /// - Parameter plan: el plan de la cuenta (`users/{uid}.plan`), o `free` si no se sabe.
-    public init(source: RemoteFlagSource?, plan: @escaping @Sendable () -> String = { StorageQuota.freePlan }) {
+    /// - Parameters:
+    ///   - plan: el plan de la cuenta (`users/{uid}.plan`), o `free` si no se sabe.
+    ///   - catalog: dónde se publica el catálogo de planes que llega con la configuración (K-290).
+    public init(
+        source: RemoteFlagSource?,
+        plan: @escaping @Sendable () -> String = { StorageQuota.freePlan },
+        catalog: PlanCatalogStore = .shared
+    ) {
         self.source = source
         self.plan = plan
+        self.catalog = catalog
     }
 
     public func isEnabled(_ feature: Feature) -> Bool {
@@ -96,6 +106,8 @@ public actor FeatureFlags {
                 continuation.yield(value)
             }
         }
+        // ACC-007, ACC-008, K-290: el catálogo de planes viaja con la misma configuración; inválido, los por defecto.
+        catalog.update(await source.plans())
     }
 
     private func unsubscribe(_ id: UUID) {

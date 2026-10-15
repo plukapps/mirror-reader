@@ -47,7 +47,7 @@ extension Plan {
     /// PLN-004, PLN-005: "Equivale a $2.08 por mes" en anual, "Pagás mes a mes" en mensual; en Free, "Sin costo, para
     /// siempre".
     func periodNote(_ billing: Billing) -> String {
-        guard let annualPerMonth else { return String(localized: "Sin costo, para siempre") }
+        guard id != .free else { return String(localized: "Sin costo, para siempre") }
         return switch billing {
         case .annual: String(localized: "Equivale a \(annualPerMonth) por mes")
         case .monthly: String(localized: "Pagás mes a mes")
@@ -72,8 +72,9 @@ struct PlanCta: Equatable {
         self.subtitle = subtitle
     }
 
-    init(_ id: PlanId, _ billing: Billing) {
-        let price = PlanCatalog.plan(id).price(billing)
+    /// `catalog`: el catálogo que sigue el `ViewModel`; sin él, el vigente.
+    init(_ id: PlanId, _ billing: Billing, catalog: [Plan]? = nil) {
+        let price = PlanCatalog.plan(id, in: catalog).price(billing)
         switch billing {
         case .annual:
             title = String(localized: "Elegir \(id.name) · \(price) por año")
@@ -93,16 +94,17 @@ struct PlanComparisonRow: Equatable {
     let pro: String
 
     /// PLN-001, PLN-006: las filas de la tabla comparativa. Sin funciones en definición (PLN-016).
-    static func rows(quota: StorageQuota?) -> [PlanComparisonRow] {
+    static func rows(quota: StorageQuota?, catalog: [Plan]? = nil) -> [PlanComparisonRow] {
         let yes = "✓", no = "—", unlimited = String(localized: "Sin tope")
-        func storage(_ id: PlanId) -> String { PlanCatalog.storageText(id, quota: quota) }
+        func storage(_ id: PlanId) -> String { PlanCatalog.storageText(id, quota: quota, in: catalog) }
+        func maxFile(_ id: PlanId) -> String { PlanCatalog.maxFileText(id, in: catalog) }
         return [
             PlanComparisonRow(
                 feature: String(localized: "Espacio en la nube"), free: storage(.free), plus: storage(.plus), pro: storage(.pro)
             ),
             PlanComparisonRow(
                 feature: String(localized: "Tamaño por archivo"),
-                free: PlanCatalog.maxFileText(.free), plus: PlanCatalog.maxFileText(.plus), pro: PlanCatalog.maxFileText(.pro)
+                free: maxFile(.free), plus: maxFile(.plus), pro: maxFile(.pro)
             ),
             PlanComparisonRow(
                 feature: String(localized: "Lectura, ajustes y anotaciones"), free: unlimited, plus: unlimited, pro: unlimited

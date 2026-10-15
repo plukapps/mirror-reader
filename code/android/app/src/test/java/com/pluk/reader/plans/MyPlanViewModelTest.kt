@@ -30,6 +30,9 @@ class MyPlanViewModelTest {
     fun setUp() = Dispatchers.setMain(dispatcher)
 
     @After
+    fun resetCatalog() = com.pluk.reader.domain.plans.PlanCatalog.update(null)
+
+    @After
     fun tearDown() = Dispatchers.resetMain()
 
     private class FakeSource(val result: Result<StorageQuota>) : QuotaSource {
@@ -87,5 +90,19 @@ class MyPlanViewModelTest {
         advanceUntilIdle()
         assertEquals(PlanId.FREE, vm.uiState.value.plan)
         assertEquals(3 * mib, vm.uiState.value.maxFileBytes)
+    }
+
+    // ACC-007, ACC-008: sin el máximo del servidor, el del plan en el catálogo vigente, y se actualiza si cambia
+    @Test
+    fun followsTheCatalogWithoutServerMaximum() = runTest(dispatcher) {
+        val vm = MyPlanViewModel(FakeQuotaCache(), FakeSource(Result.success(StorageQuota(0, 15 * mib, plan = "plus"))))
+        backgroundScope.launch { vm.uiState.collect {} }
+        advanceUntilIdle()
+        assertEquals(DefaultPlans.plus.maxFileBytes, vm.uiState.value.maxFileBytes)
+        com.pluk.reader.domain.plans.PlanCatalog.update(
+            listOf(DefaultPlans.free, DefaultPlans.plus.copy(maxFileBytes = 7 * mib), DefaultPlans.pro),
+        )
+        advanceUntilIdle()
+        assertEquals(7 * mib, vm.uiState.value.maxFileBytes)
     }
 }
