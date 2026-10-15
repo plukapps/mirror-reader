@@ -30,3 +30,6 @@
 ## Criterios de terminado
 - Tests JVM de Android y de dominio de Apple en verde; la app de Apple compila para iPhone y Mac.
 - Un clon sin `google-services.json`/`GoogleService-Info.plist` sigue comportándose como antes (Android exige el archivo desde ADR 0005; Apple compila sin él).
+
+## Resultado
+- 2026-10-15: app instalada en el SM-S711B, la SM-X510 y el iPhone 13. Logcat muestra Crashlytics activo (`collect_reports: true`). Un cierre de prueba temporal al tocar "Buscar" llegó a la consola (verificado por el usuario); se quitó antes del merge.
