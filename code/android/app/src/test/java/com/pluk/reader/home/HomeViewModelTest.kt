@@ -59,7 +59,7 @@ class HomeViewModelTest {
         library,
         ImportBooksUseCase(library),
         { syncRequests++ },
-        ImportQuotaCheck(quotaCache, pendingUploads, prompts),
+        ImportQuotaCheck(quotaCache, pendingUploads, prompts, com.pluk.reader.remote.FakeSession(com.pluk.reader.domain.account.AccountUser("u1", null))),
     )
 
     // HOM-002, HOM-004

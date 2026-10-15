@@ -93,7 +93,7 @@ class LibraryViewModelTest {
         LibrarySync(backend.useCase(), account, CoroutineScope(dispatcher)).also { it.start() },
         account,
         SavedStateHandle(listOfNotNull(filter?.let { LibraryViewModel.ARG_FILTER to it }).toMap()),
-        ImportQuotaCheck(quotaCache, pendingUploads, prompts),
+        ImportQuotaCheck(quotaCache, pendingUploads, prompts, account),
         quotaCache,
         noticePreference,
     )
@@ -198,6 +198,8 @@ class LibraryViewModelTest {
         assertTrue(idle.copy(sync = SyncState(running = true)).showSyncStatus)
         assertTrue(idle.copy(sync = SyncState(issue = SyncIssue.Offline)).showSyncStatus)
         assertFalse(idle.copy(signedIn = false, pendingUploadCount = 1).showSyncStatus)
+        // GST-006: sin cuenta tampoco "Esperando Wi-Fi", que la puerta de Wi-Fi marca aunque no haya sesión
+        assertFalse(idle.copy(signedIn = false, sync = SyncState(issue = SyncIssue.WaitingForWifi)).showSyncStatus)
     }
 
     // LIB-007, SYN-001: solo cuentan como pendientes los libros descargados y no subidos
@@ -259,10 +261,24 @@ class LibraryViewModelTest {
         library.outcomes["a"] = ImportOutcome.Imported("1", "Dune")
         quotaCache.quota.value = StorageQuota(15 * mib, 15 * mib)
         pendingUploads.items = FakePendingUploads("1" to 2 * mib).items
-        val vm = viewModel(library)
+        val vm = viewModel(library, account = FakeAccount(signedIn = true))
         vm.onImport(listOf("a"))
         advanceUntilIdle()
         assertEquals(PlanPrompt.Quota("Dune", QuotaBlock.Full, 15 * mib), prompts.current.value)
+    }
+
+    // GST-006: sin cuenta, importar con la cuota (vieja) llena no muestra hoja
+    @Test
+    fun withoutSessionImportingShowsNoQuotaSheet() = runTest(dispatcher) {
+        val mib = 1024L * 1024
+        val library = FakeLibrary()
+        library.outcomes["a"] = ImportOutcome.Imported("1", "Dune")
+        quotaCache.quota.value = StorageQuota(15 * mib, 15 * mib)
+        pendingUploads.items = FakePendingUploads("1" to 3 * mib).items
+        val vm = viewModel(library)
+        vm.onImport(listOf("a"))
+        advanceUntilIdle()
+        assertEquals(null, prompts.current.value)
     }
 
     // PLN-011: al 80 % aparece el aviso; cerrarlo lo descarta y no vuelve
@@ -270,7 +286,7 @@ class LibraryViewModelTest {
     fun usageNoticeAppearsAtEightyPercentUntilDismissed() = runTest(dispatcher) {
         val mib = 1024L * 1024
         quotaCache.quota.value = StorageQuota(12 * mib, 15 * mib)
-        val vm = viewModel(FakeLibrary())
+        val vm = viewModel(FakeLibrary(), account = FakeAccount(signedIn = true))
         backgroundScope.launch { vm.uiState.collect {} }
         advanceUntilIdle()
         assertEquals("12 MB", vm.uiState.value.usageNotice?.used)
@@ -289,6 +305,17 @@ class LibraryViewModelTest {
     fun noUsageNoticeBelowEightyPercent() = runTest(dispatcher) {
         val mib = 1024L * 1024
         quotaCache.quota.value = StorageQuota(11 * mib, 15 * mib)
+        val vm = viewModel(FakeLibrary())
+        backgroundScope.launch { vm.uiState.collect {} }
+        advanceUntilIdle()
+        assertEquals(null, vm.uiState.value.usageNotice)
+    }
+
+    // GST-006: sin cuenta no hay aviso del 80 %, aunque quede una cuota guardada
+    @Test
+    fun noUsageNoticeWithoutSession() = runTest(dispatcher) {
+        val mib = 1024L * 1024
+        quotaCache.quota.value = StorageQuota(12 * mib, 15 * mib)
         val vm = viewModel(FakeLibrary())
         backgroundScope.launch { vm.uiState.collect {} }
         advanceUntilIdle()

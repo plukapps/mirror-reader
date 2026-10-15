@@ -48,7 +48,7 @@ class LibraryViewModel @Inject constructor(
     private val _messages = MutableSharedFlow<LibraryMessage>(extraBufferCapacity = MESSAGE_BUFFER)
     val messages: SharedFlow<LibraryMessage> = _messages.asSharedFlow()
 
-    /** PLN-011: uso a mostrar en el aviso del 80 %, o null si no corresponde. */
+    /** PLN-011: uso a mostrar en el aviso del 80 %, o null si no corresponde. GST-006: solo con sesión. */
     private val usageNotice = combine(quotaCache.quota, usageNoticePreference.dismissed) { quota, dismissed ->
         quota?.takeIf { shouldShowUsageNotice(it, dismissed) }?.let(::storageUsage)
     }
@@ -72,7 +72,7 @@ class LibraryViewModel @Inject constructor(
             pendingUploadCount = books.count { it.isDownloaded && !it.isUploaded },
             signedIn = user != null,
         )
-    }.combine(usageNotice) { state, notice -> state.copy(usageNotice = notice) }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(STOP_TIMEOUT_MS), LibraryUiState())
+    }.combine(usageNotice) { state, notice -> state.copy(usageNotice = notice.takeIf { state.signedIn }) }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(STOP_TIMEOUT_MS), LibraryUiState())
 
     fun onFilterSelected(selected: LibraryFilter) {
         filter.value = selected

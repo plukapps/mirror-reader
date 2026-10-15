@@ -65,6 +65,7 @@ class StartTest {
                 com.pluk.reader.plans.FakeQuotaCache(),
                 com.pluk.reader.plans.FakePendingUploads(),
                 com.pluk.reader.domain.plans.PlanPrompts(),
+                FakeAccount(user),
             ),
             FakeWelcomePreference(welcomeSeen),
         )
