@@ -134,6 +134,23 @@ class ProfileViewModelTest {
         return vm.uiState.value
     }
 
+    // GST-009: sin sesión, Perfil sin cuenta y sin pedir la cuota (nada se guarda)
+    @Test
+    fun withoutSessionThereIsNoAccountAndNoQuotaRequest() = runTest(dispatcher) {
+        val cache = FakeCache()
+        val state = state(null, cache = cache)
+        assertFalse(state.signedIn)
+        assertNull(state.storage)
+        assertFalse(state.storageFailed)
+        assertNull(cache.saved)
+    }
+
+    // GST-009: con sesión, la cabecera de la cuenta
+    @Test
+    fun withSessionItIsSignedIn() = runTest(dispatcher) {
+        assertTrue(state(AccountUser("u1", "a@mail.com")).signedIn)
+    }
+
     // PRF-005: nombre, email e inicial del nombre
     @Test
     fun headerShowsNameEmailAndInitial() = runTest(dispatcher) {

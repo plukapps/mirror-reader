@@ -188,6 +188,10 @@
 
     <!-- Perfil (PRF-001 a PRF-019), diseño 09 Profile -->
     <string name="profile_account_header">Cuenta de %1$s</string>
+    <!-- Perfil sin cuenta, 09g (GST-009, GST-018) -->
+    <string name="profile_guest_title">Sin cuenta</string>
+    <string name="profile_guest_body">Creá una cuenta para tener tus libros en todos tus dispositivos.</string>
+    <string name="profile_guest_header">Sin cuenta. Crear una cuenta</string>
     <string name="profile_section_account">Cuenta</string>
     <string name="profile_storage">Espacio</string>
     <string name="profile_plan_free">GRATIS</string>

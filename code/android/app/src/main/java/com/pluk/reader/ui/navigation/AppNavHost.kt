@@ -278,6 +278,8 @@ fun AppNavHost(
                         // PRF-009: con la sesión cerrada, a la bienvenida sin poder volver atrás.
                         ProfileScreen(
                             onSignedOut = { navController.startOver(Routes.WELCOME) },
+                            onCreateAccount = { navController.navigate(Routes.signUp()) },
+                            onSignIn = { navController.navigate(Routes.SIGNIN) },
                             onFaq = { navController.navigate(Routes.faqAnswer(it.key)) },
                             onAllFaq = { navController.navigate(Routes.FAQ_LIST) },
                             onChangePassword = { navController.navigate(Routes.CHANGE_PASSWORD) },

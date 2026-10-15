@@ -19,6 +19,10 @@ import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.foundation.layout.size
+import androidx.compose.material3.Icon
+import androidx.compose.ui.res.painterResource
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -76,6 +80,10 @@ data class ProfileActions(
     val onLineSpacing: (LineSpacing) -> Unit = {},
     val onAppearance: (Appearance) -> Unit = {},
     val onWifiOnly: (Boolean) -> Unit = {},
+    /** GST-009: sin cuenta, la tarjeta de arriba abre el alta corta. */
+    val onCreateAccount: () -> Unit = onComingSoon,
+    /** GST-009: "Ya tengo una cuenta" abre el ingreso. */
+    val onSignIn: () -> Unit = onComingSoon,
 )
 
 /** Perfil: cuenta, espacio, ajustes y ayuda (PRF-001 a PRF-019). Diseño: "09 — Profile". */
@@ -87,6 +95,8 @@ fun ProfileScreen(
     onChangePassword: () -> Unit,
     onUpgrade: () -> Unit,
     onOpenPlan: () -> Unit,
+    onCreateAccount: () -> Unit = {},
+    onSignIn: () -> Unit = {},
     viewModel: ProfileViewModel = hiltViewModel()) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     val context = LocalContext.current
@@ -118,6 +128,8 @@ fun ProfileScreen(
             onLineSpacing = viewModel::onLineSpacing,
             onAppearance = viewModel::onAppearance,
             onWifiOnly = viewModel::onWifiOnly,
+            onCreateAccount = onCreateAccount,
+            onSignIn = onSignIn,
         ),
     )
 }
@@ -147,9 +159,9 @@ fun ProfileContent(
                 .statusBarsPadding()
                 .verticalScroll(rememberScrollState()),
         ) {
-            Header(state, actions.onComingSoon)
+            if (state.signedIn) Header(state, actions.onComingSoon) else GuestHeader(actions.onCreateAccount)
             SectionTitle(stringResource(R.string.profile_section_account))
-            AccountCard(state, isTablet, actions)
+            if (state.signedIn) AccountCard(state, isTablet, actions) else GuestAccountCard(actions.onSignIn)
             SectionTitle(stringResource(R.string.profile_section_reading), bottom = 4.dp)
             Text(
                 stringResource(R.string.profile_reading_hint),
@@ -158,7 +170,7 @@ fun ProfileContent(
             )
             ReadingDefaultsCard(state.reading, actions, onOpenFont = { fontSheetOpen = true }, locked = state.readingOptionsLocked)
             SectionTitle(stringResource(R.string.profile_section_app))
-            AppCard(state.appearance, state.wifiOnly, actions)
+            AppCard(state.appearance, state.wifiOnly, actions, showWifiOnly = state.signedIn)
             SectionTitle(stringResource(R.string.profile_section_help))
             HelpCard(actions)
             Footer(version, actions.onComingSoon, Modifier.padding(bottom = 24.dp + bottomBarPadding))
@@ -235,6 +247,58 @@ private fun Header(state: ProfileUiState, onClick: () -> Unit) {
             }
         }
         RowIcon(ProfileIcons.ChevronRight, MarginColors.OnYellow, 24.dp)
+    }
+}
+
+/** GST-009 (09g): sin cuenta, el logo, "Sin cuenta" y la invitación a crearla. */
+@Composable
+private fun GuestHeader(onCreateAccount: () -> Unit) {
+    val description = stringResource(R.string.profile_guest_header)
+    Row(
+        Modifier
+            .padding(start = 16.dp, end = 16.dp, top = 16.dp)
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(24.dp))
+            .background(MarginColors.Yellow)
+            .clickable(role = Role.Button, onClick = onCreateAccount)
+            .clearAndSetSemantics {
+                contentDescription = description
+                role = Role.Button
+            }
+            .padding(16.dp)
+            .testTag("profile-guest-header"),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(14.dp),
+    ) {
+        Box(
+            Modifier
+                .size(56.dp)
+                .clip(CircleShape)
+                // Va sobre la cabecera amarilla: tinta fija en los dos modos (PRF-022).
+                .background(MarginColors.OnYellow),
+            contentAlignment = Alignment.Center,
+        ) {
+            Icon(painterResource(R.drawable.ic_margin_logo), contentDescription = null, tint = MarginColors.Yellow, modifier = Modifier.size(width = 26.dp, height = 21.dp))
+        }
+        Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+            Text(
+                stringResource(R.string.profile_guest_title),
+                style = profileText(20, FontWeight.Bold, MarginColors.OnYellow, (-0.02).em).copy(lineHeight = 1.1.em),
+            )
+            Text(
+                stringResource(R.string.profile_guest_body),
+                style = profileText(13, color = MarginColors.OnYellowMuted).copy(lineHeight = 1.35.em),
+            )
+        }
+        RowIcon(ProfileIcons.ChevronRight, MarginColors.OnYellow, 24.dp)
+    }
+}
+
+/** GST-009: sin cuenta, la sección "Cuenta" tiene solo "Ya tengo una cuenta". */
+@Composable
+private fun GuestAccountCard(onSignIn: () -> Unit) {
+    ProfileCard {
+        NavigationRow(stringResource(R.string.onb_have_account), onSignIn, ProfileIcons.Login)
     }
 }
 
@@ -327,7 +391,7 @@ private fun ThisDevice(name: String, isTablet: Boolean) {
 
 /** PRF-016, PRF-021, PRF-023: apariencia y "Solo con Wi-Fi" funcionan; la descarga automática avisa al tocarla. */
 @Composable
-private fun AppCard(appearance: Appearance, wifiOnly: Boolean, actions: ProfileActions) {
+private fun AppCard(appearance: Appearance, wifiOnly: Boolean, actions: ProfileActions, showWifiOnly: Boolean = true) {
     val onComingSoon = actions.onComingSoon
     ProfileCard {
         Column(
@@ -345,9 +409,12 @@ private fun AppCard(appearance: Appearance, wifiOnly: Boolean, actions: ProfileA
                 onSelect = { actions.onAppearance(APPEARANCE_ORDER[it]) },
             )
         }
-        CardDivider()
-        SwitchRow(stringResource(R.string.profile_wifi_only), stringResource(R.string.profile_wifi_only_hint), wifiOnly) {
-            actions.onWifiOnly(!wifiOnly)
+        // GST-009: sin cuenta no hay sincronización.
+        if (showWifiOnly) {
+            CardDivider()
+            SwitchRow(stringResource(R.string.profile_wifi_only), stringResource(R.string.profile_wifi_only_hint), wifiOnly) {
+                actions.onWifiOnly(!wifiOnly)
+            }
         }
         CardDivider()
         SwitchRow(stringResource(R.string.profile_auto_download), stringResource(R.string.profile_auto_download_hint), false, onComingSoon)

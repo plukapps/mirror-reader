@@ -34,6 +34,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
@@ -47,6 +48,8 @@ data class StorageUi(
 )
 
 data class ProfileUiState(
+    /** GST-009: sin sesión, Perfil invita a crear la cuenta y no muestra lo de la cuenta. */
+    val signedIn: Boolean = true,
     /** Nombre de la cuenta, o null si no tiene: entonces la cabecera muestra solo el email (PRF-005). */
     val name: String? = null,
     val email: String? = null,
@@ -91,7 +94,7 @@ private const val BASE_FONT_POINTS = 18
 
 @HiltViewModel
 class ProfileViewModel @Inject constructor(
-    account: AccountRepository,
+    private val account: AccountRepository,
     private val quotaSource: QuotaSource,
     private val quotaCache: QuotaCache,
     syncPreferences: SyncPreferences,
@@ -111,6 +114,7 @@ class ProfileViewModel @Inject constructor(
         combine(settings.settings, appearancePreferences.appearance, wifiOnlyPreference.wifiOnly, ::Triple), signOutState,
     ) { user, quota, failed, (reading, appearance, wifiOnly), signingOut ->
         ProfileUiState(
+            signedIn = user != null,
             name = user?.displayName,
             email = user?.email,
             initial = user.initial(),
@@ -133,9 +137,10 @@ class ProfileViewModel @Inject constructor(
         refreshQuota()
     }
 
-    /** PRF-006: muestra el último valor guardado y lo reemplaza por el del servidor cuando llega. */
+    /** PRF-006: muestra el último valor guardado y lo reemplaza por el del servidor cuando llega. GST-009: sin sesión, nada. */
     fun refreshQuota() {
         viewModelScope.launch {
+            if (account.user.first() == null) return@launch
             if (quota.value == null) quota.value = quotaCache.last()
             quotaSource.current()
                 .onSuccess {
