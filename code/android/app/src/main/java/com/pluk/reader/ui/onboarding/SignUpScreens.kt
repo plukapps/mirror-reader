@@ -76,6 +76,7 @@ fun SignUpScreen(
     onVerifyEmail: () -> Unit,
     onGoal: () -> Unit,
     onSignIn: () -> Unit,
+    inApp: Boolean = false,
     viewModel: SignUpViewModel = hiltViewModel(),
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
@@ -100,8 +101,15 @@ fun SignUpScreen(
             )
         },
     ) {
-        StepHeader(onBack, stepLabel = stringResource(R.string.onb_step, 1, STEPS))
-        StepBar(step = 1)
+        // GST-011: desde adentro de la app, cruz en lugar de flecha y dos pasos.
+        val total = if (inApp) SHORT_STEPS else STEPS
+        StepHeader(
+            onBack,
+            backIcon = if (inApp) OnboardingIcons.Close else OnboardingIcons.ArrowBack,
+            backLabel = stringResource(if (inApp) R.string.onb_close else R.string.onb_back),
+            stepLabel = stringResource(R.string.onb_step, 1, total),
+        )
+        StepBar(step = 1, total = total)
         OnbTitle(stringResource(R.string.onb_signup_title), Modifier.padding(top = 20.dp))
         GoogleButton(google, enabled = !state.busy, modifier = Modifier.padding(start = 20.dp, end = 20.dp, top = 18.dp))
         OrDivider(stringResource(R.string.onb_or_email), Modifier.padding(top = 16.dp))
@@ -159,6 +167,7 @@ internal fun PasswordStrength.label(): String = when (this) {
 fun VerifyEmailScreen(
     onVerified: () -> Unit,
     onChange: (name: String, email: String) -> Unit,
+    inApp: Boolean = false,
     viewModel: VerifyEmailViewModel = hiltViewModel(),
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
@@ -177,8 +186,9 @@ fun VerifyEmailScreen(
     }
     BackHandler(onBack = viewModel::change)
     OnboardingPage(background = MarginColors.Paper) {
-        StepHeader(viewModel::change, stepLabel = stringResource(R.string.onb_step, 2, STEPS))
-        StepBar(step = 2)
+        val total = if (inApp) SHORT_STEPS else STEPS
+        StepHeader(viewModel::change, stepLabel = stringResource(R.string.onb_step, 2, total))
+        StepBar(step = 2, total = total)
         IconBadge(OnboardingIcons.MarkEmailUnread, Modifier.padding(top = 22.dp))
         OnbTitle(stringResource(R.string.onb_verify_title), Modifier.padding(top = 16.dp))
         OnbBody(stringResource(R.string.onb_verify_body, state.email), Modifier.padding(top = 10.dp))
@@ -206,6 +216,45 @@ fun VerifyEmailScreen(
             },
             style = onbText(13.sp, FontWeight.Medium, if (state.error != null) OnbColors.Error else MarginColors.Muted),
             modifier = Modifier.padding(start = 20.dp, end = 20.dp, top = 16.dp),
+        )
+    }
+}
+
+/** "Ya estás adentro" del alta corta, B3 (GST-021). "Volver a la biblioteca" abre la Biblioteca. */
+@Composable
+fun ShortAllSetScreen(onLibrary: () -> Unit, viewModel: ShortAllSetViewModel = hiltViewModel()) {
+    val state by viewModel.state.collectAsStateWithLifecycle()
+    ShortAllSetContent(state.name, state.bookCount, onLibrary)
+}
+
+/** B3 sin ViewModel, para poder probarla. */
+@Composable
+fun ShortAllSetContent(name: String?, bookCount: Int, onLibrary: () -> Unit) {
+    OnboardingPage(
+        background = MarginColors.Yellow,
+        bottom = {
+            PrimaryButton(
+                stringResource(R.string.onb_short_back_to_library),
+                onLibrary,
+                Modifier.padding(start = 20.dp, end = 20.dp, bottom = 16.dp).testTag("short-allset-library"),
+            )
+        },
+    ) {
+        Brand(Modifier.padding(start = 28.dp, end = 28.dp, top = 28.dp))
+        Spacer(Modifier.height(28.dp))
+        OnbTitle(
+            name?.let { stringResource(R.string.onb_allset_title, it) } ?: stringResource(R.string.onb_allset_title_anonymous),
+            size = 54.sp,
+            padding = 28.dp,
+        )
+        Text(
+            if (bookCount > 0) {
+                pluralStringResource(R.plurals.onb_short_allset_books, bookCount, bookCount)
+            } else {
+                stringResource(R.string.onb_short_allset_no_books)
+            },
+            style = onbText(15.sp, color = OnbColors.SoftOnYellow, lineHeight = 1.45.em),
+            modifier = Modifier.padding(start = 28.dp, end = 28.dp, top = 16.dp).widthIn(max = 270.dp),
         )
     }
 }

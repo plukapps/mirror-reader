@@ -69,6 +69,13 @@
 
     <string name="onb_allset_title">Ya estás adentro,\n%1$s.</string>
     <string name="onb_allset_title_anonymous">Ya estás\nadentro.</string>
+    <!-- Alta corta, B3 (GST-021) -->
+    <plurals name="onb_short_allset_books">
+        <item quantity="one">Tu libro, con su progreso y sus notas, pasa a tu cuenta. Iniciá sesión en otro dispositivo para tenerlo ahí.</item>
+        <item quantity="other">Tus %d libros, con su progreso y sus notas, pasan a tu cuenta. Iniciá sesión en otro dispositivo para tenerlos ahí.</item>
+    </plurals>
+    <string name="onb_short_allset_no_books">Iniciá sesión en otro dispositivo para tener ahí tus libros.</string>
+    <string name="onb_short_back_to_library">Volver a la biblioteca</string>
     <string name="onb_allset_goal_reminder">%1$d minutos por día, recordatorio a las %2$s.</string>
     <string name="onb_allset_goal">%1$d minutos por día.</string>
     <string name="onb_allset_generic">Tu biblioteca te espera. Importá tus EPUB y empezá cuando quieras.</string>

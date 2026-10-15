@@ -38,6 +38,7 @@ import com.pluk.reader.ui.onboarding.GoalScreen
 import com.pluk.reader.ui.onboarding.ResetPasswordScreen
 import com.pluk.reader.ui.onboarding.ResetPasswordViewModel
 import com.pluk.reader.ui.onboarding.SignInScreen
+import com.pluk.reader.ui.onboarding.ShortAllSetScreen
 import com.pluk.reader.ui.onboarding.SignUpScreen
 import com.pluk.reader.ui.onboarding.SignUpViewModel
 import com.pluk.reader.ui.onboarding.VerifyEmailScreen
@@ -73,13 +74,20 @@ object Routes {
     const val HOME = "home"
     const val WELCOME = "welcome"
 
-    // Onboarding (ONB): alta, verificación, intereses, meta, listo; ingreso, olvido y contraseña nueva.
-    const val SIGNUP = "signup?${SignUpViewModel.ARG_NAME}={${SignUpViewModel.ARG_NAME}}&${SignUpViewModel.ARG_EMAIL}={${SignUpViewModel.ARG_EMAIL}}"
-    const val VERIFY = "verify?${VerifyEmailViewModel.ARG_JUST_SENT}={${VerifyEmailViewModel.ARG_JUST_SENT}}"
+    /** GST-011, GST-022: alta, verificación e ingreso abiertos desde adentro de la app (Perfil o el aviso sin cuenta). */
+    const val ARG_IN_APP = "inApp"
+
+    // Onboarding (ONB): alta, verificación, meta, listo; ingreso, olvido y contraseña nueva.
+    const val SIGNUP = "signup?${SignUpViewModel.ARG_NAME}={${SignUpViewModel.ARG_NAME}}&${SignUpViewModel.ARG_EMAIL}={${SignUpViewModel.ARG_EMAIL}}&$ARG_IN_APP={$ARG_IN_APP}"
+    const val VERIFY = "verify?${VerifyEmailViewModel.ARG_JUST_SENT}={${VerifyEmailViewModel.ARG_JUST_SENT}}&$ARG_IN_APP={$ARG_IN_APP}"
+
+
+    /** "Ya estás adentro" del alta corta, B3 (GST-021). */
+    const val SHORT_ALL_SET = "allset/short"
     const val GOAL = "goal"
     const val ALL_SET = "allset"
     const val GUEST_READY = "guestready"
-    const val SIGNIN = "signin"
+    const val SIGNIN = "signin?$ARG_IN_APP={$ARG_IN_APP}"
     const val FORGOT = "forgot?${ForgotPasswordViewModel.ARG_EMAIL}={${ForgotPasswordViewModel.ARG_EMAIL}}"
     const val RESET = "reset?${ResetPasswordViewModel.ARG_CODE}={${ResetPasswordViewModel.ARG_CODE}}"
     const val LIBRARY = "library?${LibraryViewModel.ARG_FILTER}={${LibraryViewModel.ARG_FILTER}}"
@@ -103,10 +111,16 @@ object Routes {
     fun reader(bookId: String, noteId: String? = null): String =
         if (noteId == null) "reader/$bookId" else "reader/$bookId?${ReaderViewModel.ARG_NOTE_ID}=${Uri.encode(noteId)}"
 
-    fun signUp(name: String = "", email: String = ""): String =
-        "signup?${SignUpViewModel.ARG_NAME}=${Uri.encode(name)}&${SignUpViewModel.ARG_EMAIL}=${Uri.encode(email)}"
+    fun signUp(name: String = "", email: String = "", inApp: Boolean = false): String =
+        "signup?${SignUpViewModel.ARG_NAME}=${Uri.encode(name)}&${SignUpViewModel.ARG_EMAIL}=${Uri.encode(email)}&$ARG_IN_APP=$inApp"
 
-    fun verify(justSent: Boolean = false): String = "verify?${VerifyEmailViewModel.ARG_JUST_SENT}=$justSent"
+    fun verify(justSent: Boolean = false, inApp: Boolean = false): String =
+        "verify?${VerifyEmailViewModel.ARG_JUST_SENT}=$justSent&$ARG_IN_APP=$inApp"
+
+    fun signIn(inApp: Boolean = false): String = "signin?$ARG_IN_APP=$inApp"
+
+    /** Con la cuenta creada: la meta diaria del alta completa (O5) o, desde adentro de la app, B3 (GST-011). */
+    fun afterAccountCreated(inApp: Boolean): String = if (inApp) SHORT_ALL_SET else GOAL
 
     fun forgot(email: String): String = "forgot?${ForgotPasswordViewModel.ARG_EMAIL}=${Uri.encode(email)}"
 
@@ -153,8 +167,8 @@ fun AppNavHost(
                         val welcome: WelcomeViewModel = hiltViewModel()
                         WelcomeScreen(
                             onStartReading = { welcome.startReading { navController.startOver(Routes.GUEST_READY) } },
-                            onCreateAccount = { navController.navigate(Routes.signUp()) },
-                            onSignIn = { navController.navigate(Routes.SIGNIN) },
+                            onCreateAccount = { navController.navigate(Routes.signUp(inApp = true)) },
+                            onSignIn = { navController.navigate(Routes.signIn(inApp = true)) },
                         )
                     }
                     lightComposable(
@@ -162,28 +176,41 @@ fun AppNavHost(
                         arguments = listOf(
                             navArgument(SignUpViewModel.ARG_NAME) { type = NavType.StringType; defaultValue = "" },
                             navArgument(SignUpViewModel.ARG_EMAIL) { type = NavType.StringType; defaultValue = "" },
+                            inAppArgument(),
                         ),
-                    ) {
+                    ) { entry ->
+                        val inApp = entry.inApp()
                         SignUpScreen(
-                            onBack = { navController.popOrStartOver() },
+                            // GST-011: la cruz vuelve a donde estaba (sin cuenta, nunca a la bienvenida).
+                            onBack = { if (inApp) navController.popOrHome() else navController.popOrStartOver() },
                             // Con la cuenta creada, crear cuenta ya no está detrás.
-                            onVerifyEmail = { navController.navigate(Routes.verify(justSent = true)) { popUpTo(Routes.SIGNUP) { inclusive = true } } },
-                            onGoal = { navController.startOver(Routes.GOAL) },
-                            onSignIn = { navController.navigate(Routes.SIGNIN) { popUpTo(Routes.SIGNUP) { inclusive = true } } },
+                            onVerifyEmail = { navController.navigate(Routes.verify(justSent = true, inApp = inApp)) { popUpTo(Routes.SIGNUP) { inclusive = true } } },
+                            onGoal = { navController.startOver(Routes.afterAccountCreated(inApp)) },
+                            onSignIn = { navController.navigate(Routes.signIn(inApp)) { popUpTo(Routes.SIGNUP) { inclusive = true } } },
+                            inApp = inApp,
                         )
                     }
                     lightComposable(
                         Routes.VERIFY,
-                        arguments = listOf(navArgument(VerifyEmailViewModel.ARG_JUST_SENT) { type = NavType.BoolType; defaultValue = false }),
-                    ) {
+                        arguments = listOf(
+                            navArgument(VerifyEmailViewModel.ARG_JUST_SENT) { type = NavType.BoolType; defaultValue = false },
+                            inAppArgument(),
+                        ),
+                    ) { entry ->
+                        val inApp = entry.inApp()
                         VerifyEmailScreen(
-                            onVerified = { navController.startOver(Routes.GOAL) },
-                            // ONB-008: de vuelta a crear cuenta, con la bienvenida detrás.
+                            // GST-011: el alta corta termina en B3, sin meta diaria.
+                            onVerified = { navController.startOver(Routes.afterAccountCreated(inApp)) },
+                            // ONB-008: de vuelta a crear cuenta, con la bienvenida detrás (desde adentro, con Inicio detrás).
                             onChange = { name, email ->
-                                navController.startOver(Routes.WELCOME)
-                                navController.navigate(Routes.signUp(name, email))
+                                navController.startOver(if (inApp) Routes.HOME else Routes.WELCOME)
+                                navController.navigate(Routes.signUp(name, email, inApp))
                             },
+                            inApp = inApp,
                         )
+                    }
+                    lightComposable(Routes.SHORT_ALL_SET) {
+                        ShortAllSetScreen(onLibrary = { navController.startOverAtLibrary() })
                     }
                     lightComposable(Routes.GOAL) {
                         GoalScreen(
@@ -210,13 +237,15 @@ fun AppNavHost(
                             },
                         )
                     }
-                    lightComposable(Routes.SIGNIN) {
+                    lightComposable(Routes.SIGNIN, arguments = listOf(inAppArgument())) { entry ->
+                        val inApp = entry.inApp()
                         SignInScreen(
-                            onBack = { navController.popOrStartOver() },
-                            onHome = { navController.startOver(Routes.HOME) },
-                            onVerifyEmail = { justSent -> navController.startOver(Routes.verify(justSent)) },
+                            onBack = { if (inApp) navController.popOrHome() else navController.popOrStartOver() },
+                            // GST-022: desde adentro de la app, al entrar se abre la Biblioteca.
+                            onHome = { if (inApp) navController.startOverAtLibrary() else navController.startOver(Routes.HOME) },
+                            onVerifyEmail = { justSent -> navController.startOver(Routes.verify(justSent, inApp)) },
                             onForgot = { email -> navController.navigate(Routes.forgot(email)) },
-                            onCreateAccount = { navController.navigate(Routes.signUp()) { popUpTo(Routes.SIGNIN) { inclusive = true } } },
+                            onCreateAccount = { navController.navigate(Routes.signUp(inApp = inApp)) { popUpTo(Routes.SIGNIN) { inclusive = true } } },
                         )
                     }
                     lightComposable(
@@ -234,11 +263,11 @@ fun AppNavHost(
                             onHome = { navController.startOver(Routes.HOME) },
                             onSignIn = {
                                 navController.startOver(Routes.WELCOME)
-                                navController.navigate(Routes.SIGNIN)
+                                navController.navigate(Routes.signIn())
                             },
                             onRequestLink = { email ->
                                 navController.startOver(Routes.WELCOME)
-                                navController.navigate(Routes.SIGNIN)
+                                navController.navigate(Routes.signIn())
                                 navController.navigate(Routes.forgot(email))
                             },
                         )
@@ -249,7 +278,7 @@ fun AppNavHost(
                             onSeeAll = { filter -> navController.navigateTo(Routes.library(filter)) },
                             openImportPicker = pendingImport,
                             onImportPickerOpened = { pendingImport = false },
-                            onCreateAccount = { navController.navigate(Routes.signUp()) },
+                            onCreateAccount = { navController.navigate(Routes.signUp(inApp = true)) },
                         )
                     }
                     composable(
@@ -261,7 +290,7 @@ fun AppNavHost(
                         LibraryScreen(
                             onBookClick = { bookId -> navController.navigate(Routes.reader(bookId)) },
                             onSeePlans = { navController.navigate(Routes.PLANS) },
-                            onCreateAccount = { navController.navigate(Routes.signUp()) },
+                            onCreateAccount = { navController.navigate(Routes.signUp(inApp = true)) },
                         )
                     }
                     composable(Routes.SEARCH) {
@@ -271,8 +300,8 @@ fun AppNavHost(
                         // PRF-009: con la sesión cerrada, a la bienvenida sin poder volver atrás.
                         ProfileScreen(
                             onSignedOut = { navController.startOver(Routes.WELCOME) },
-                            onCreateAccount = { navController.navigate(Routes.signUp()) },
-                            onSignIn = { navController.navigate(Routes.SIGNIN) },
+                            onCreateAccount = { navController.navigate(Routes.signUp(inApp = true)) },
+                            onSignIn = { navController.navigate(Routes.signIn(inApp = true)) },
                             onFaq = { navController.navigate(Routes.faqAnswer(it.key)) },
                             onAllFaq = { navController.navigate(Routes.FAQ_LIST) },
                             onChangePassword = { navController.navigate(Routes.CHANGE_PASSWORD) },
@@ -356,7 +385,7 @@ fun AppNavHost(
 
 /** Rutas del onboarding (O1 a O9): siempre con la paleta clara (PRF-021). */
 private val LightOnlyRoutes = setOf(
-    Routes.WELCOME, Routes.SIGNUP, Routes.VERIFY, Routes.GOAL, Routes.ALL_SET, Routes.GUEST_READY,
+    Routes.WELCOME, Routes.SIGNUP, Routes.VERIFY, Routes.GOAL, Routes.ALL_SET, Routes.GUEST_READY, Routes.SHORT_ALL_SET,
     Routes.SIGNIN, Routes.FORGOT, Routes.RESET,
 )
 
@@ -381,6 +410,22 @@ private fun NavHostController.startOver(route: String) {
         popUpTo(graph.id) { inclusive = true }
         launchSingleTop = true
     }
+}
+
+/** GST-011, GST-022: alta, verificación o ingreso abiertos desde adentro de la app. */
+private fun inAppArgument() = navArgument(Routes.ARG_IN_APP) { type = NavType.BoolType; defaultValue = false }
+
+private fun NavBackStackEntry.inApp(): Boolean = arguments?.getBoolean(Routes.ARG_IN_APP) ?: false
+
+/** GST-011: atrás desde el alta corta; si no hay nada detrás, a Inicio (sin cuenta no se vuelve a la bienvenida). */
+private fun NavHostController.popOrHome() {
+    if (!popBackStack()) startOver(Routes.HOME)
+}
+
+/** GST-021, GST-022: con la cuenta lista, la Biblioteca con Inicio como base. */
+private fun NavHostController.startOverAtLibrary() {
+    startOver(Routes.HOME)
+    navigateTo(Routes.library())
 }
 
 /** Atrás dentro del onboarding; si no hay nada detrás (se entró por un enlace), a la bienvenida. */
