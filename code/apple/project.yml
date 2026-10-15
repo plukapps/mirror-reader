@@ -74,7 +74,9 @@ targets:
         "CODE_SIGN_IDENTITY[sdk=iphoneos*]": Apple Development
         "CODE_SIGN_STYLE[sdk=macosx*]": Automatic
         "CODE_SIGN_IDENTITY[sdk=macosx*]": Apple Development
-        PRODUCT_NAME: Reader
+        # Nombre visible de la app (Tuck); el módulo de Swift sigue siendo Reader para no tocar imports ni tests.
+        PRODUCT_NAME: Tuck
+        PRODUCT_MODULE_NAME: Reader
         # Crashlytics necesita los dSYM también en Debug para mostrar los cierres legibles (ADR 0018).
         DEBUG_INFORMATION_FORMAT: dwarf-with-dsym
         GENERATE_INFOPLIST_FILE: YES
@@ -82,7 +84,7 @@ targets:
         INFOPLIST_FILE: App/Info.plist
         # En iOS, además, el tipo de documento EPUB para "Abrir con" (LIB-001).
         "INFOPLIST_FILE[sdk=iphone*]": App/Info-iOS.plist
-        INFOPLIST_KEY_CFBundleDisplayName: Reader
+        INFOPLIST_KEY_CFBundleDisplayName: Tuck
         # La App Store de Mac exige el sandbox (App/Reader.entitlements).
         "CODE_SIGN_ENTITLEMENTS[sdk=macosx*]": App/Reader.entitlements
         "INFOPLIST_KEY_LSApplicationCategoryType[sdk=macosx*]": public.app-category.books
@@ -125,8 +127,10 @@ targets:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.pluk.reader.tests
         TARGETED_DEVICE_FAMILY: "1"
-        # Con varios destinos XcodeGen arma la ruta de iOS; en la Mac el ejecutable está en Contents/MacOS.
-        "TEST_HOST[sdk=macosx*]": $(BUILT_PRODUCTS_DIR)/Reader.app/Contents/MacOS/Reader
+        # XcodeGen arma la ruta con el nombre del target (Reader); la app se llama Tuck (PRODUCT_NAME).
+        # En la Mac el ejecutable está en Contents/MacOS.
+        TEST_HOST: $(BUILT_PRODUCTS_DIR)/Tuck.app/Tuck
+        "TEST_HOST[sdk=macosx*]": $(BUILT_PRODUCTS_DIR)/Tuck.app/Contents/MacOS/Tuck
         GENERATE_INFOPLIST_FILE: YES
         CODE_SIGN_STYLE: Manual
         CODE_SIGN_IDENTITY: "-"

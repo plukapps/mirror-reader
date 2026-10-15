@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">Reader</string>
+    <string name="app_name">Tuck</string>
 
     <!-- Bienvenida (WEL-004) -->
     <string name="welcome_brand">margin.</string>

@@ -36,12 +36,12 @@ Desde la terminal, sin abrir Xcode:
 ```bash
 # Compilar la app
 xcodebuild -project Reader.xcodeproj -scheme Reader -destination 'platform=macOS' -derivedDataPath .build/xcode -allowProvisioningUpdates build
-open .build/xcode/Build/Products/Debug/Reader.app
+open .build/xcode/Build/Products/Debug/Tuck.app
 
 # Compilar y correr en el simulador de iPhone
 xcodebuild -project Reader.xcodeproj -scheme Reader -destination 'platform=iOS Simulator,name=iPhone 16' -derivedDataPath .build/xcode build
 xcrun simctl boot "iPhone 16"; open -a Simulator
-xcrun simctl install booted .build/xcode/Build/Products/Debug-iphonesimulator/Reader.app && xcrun simctl launch booted com.pluk.reader
+xcrun simctl install booted .build/xcode/Build/Products/Debug-iphonesimulator/Tuck.app && xcrun simctl launch booted com.pluk.reader
 
 # Tests de la app; corren solo en local, nunca contra Firebase (cambiar el destino para correrlos en la Mac: 'platform=macOS')
 xcodebuild -project Reader.xcodeproj -scheme Reader -destination 'platform=iOS Simulator,name=iPhone 16' -derivedDataPath .build/xcode test
@@ -50,7 +50,7 @@ xcodebuild -project Reader.xcodeproj -scheme Reader -destination 'platform=iOS S
 # con DEVELOPMENT_TEAM (ver Signing.xcconfig), agregar el Apple ID en Xcode → Settings → Accounts
 # y activar el Modo de desarrollador en el iPhone. La app instalada así vence a los 7 días.
 xcodebuild -project Reader.xcodeproj -scheme Reader -destination 'generic/platform=iOS' -derivedDataPath .build/xcode -allowProvisioningUpdates build
-xcrun devicectl device install app --device <id de devicectl list devices> .build/xcode/Build/Products/Debug-iphoneos/Reader.app
+xcrun devicectl device install app --device <id de devicectl list devices> .build/xcode/Build/Products/Debug-iphoneos/Tuck.app
 
 # Tests del dominio
 cd Packages/ReaderDomain && swift test
