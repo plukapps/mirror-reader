@@ -46,7 +46,8 @@ class BookActionsViewModelTest {
 
     private val positions = FakePositions()
     private val editor = FakeEditor()
-    private val vm by lazy { BookActionsViewModel(BookActions(positions, editor, {}, {})) }
+    private val session = com.pluk.reader.remote.FakeSession(com.pluk.reader.domain.account.AccountUser("u1", null))
+    private val vm by lazy { BookActionsViewModel(BookActions(positions, editor, {}, {}), session) }
 
     private fun book(id: String, progress: Int?) = LibraryBook(id, "Drácula", "Bram Stoker", null, progress)
 
@@ -115,5 +116,16 @@ class BookActionsViewModelTest {
 
         assertEquals(listOf("b"), editor.removed)
         assertEquals(BookActionMessage.Removed("Drácula"), message.await())
+    }
+
+    // GST-008: la confirmación de quitar sabe si hay sesión
+    @Test
+    fun knowsWhetherThereIsASession() = runTest(dispatcher) {
+        val signedIn = vm.signedIn
+        advanceUntilIdle()
+        assertEquals(true, signedIn.value)
+        session.state.value = null
+        advanceUntilIdle()
+        assertEquals(false, signedIn.value)
     }
 }

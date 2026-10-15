@@ -12,7 +12,7 @@
 - La sincronización ya no hace nada sin sesión: `LibrarySync`, `PositionSync`, `NoteSync`, `RemovalSync`, `LibraryWatcher` y las clases de Firebase se cuidan del usuario nulo.
 - Ninguna tabla ni clave de DataStore lleva el uid. Las subidas se guían por marcas de pendiente en cada fila, así que lo hecho sin cuenta sube solo en la primera pasada con sesión (GST-012, ADR 0019).
 - La línea de estado de la Biblioteca ya exige sesión (`showSyncStatus`), y `planOf(null)` ya es Free (GST-007).
-- **Riesgo encontrado:** quitar un libro sin sesión escribe `RemovedBookEntity(cloudDeleted = false)`, y la primera pasada con sesión lo borraría de la nube de esa cuenta. Lo corrige K-341 (GST-020).
+- **Riesgo revisado:** quitar un libro escribe `RemovedBookEntity`, pero con `cloudDeleted = true` si el libro nunca se subió, y sin sesión ninguno se sube. La primera pasada con sesión no borra nada de la nube y el libro vuelve si la cuenta lo tiene (GST-020). K-341 lo deja cubierto con un test, sin cambiar la lógica.
 - **Otro desvío:** `quotaBlock` muestra la hoja de archivo muy grande aunque no haya cuota (compara con el máximo de Free). Sin sesión no debe aparecer (GST-006).
 
 ## Tareas
@@ -35,7 +35,7 @@ Cada tarea: tarjeta a "En curso", test primero (JVM con fakes cuando se pueda; C
 - Tests: `GuestReadyScreenTest` (textos y botones) y el recorrido bienvenida → L0 → Inicio.
 
 ### K-341 — Quitar sin cuenta (GST-008, GST-020)
-- `BookActions.remove` / `BookEditor`: sin sesión, borra del dispositivo y no escribe `RemovedBookEntity`.
+- `BookActions.remove` / `BookEditor`: sin sesión no queda borrado pendiente para la nube (ya pasa: el libro nunca se subió). Test que lo fija.
 - Texto de la confirmación según haya sesión. Sin sesión: "Se borra el libro de este dispositivo, con su progreso y sus notas."
 - FAQ "¿Cómo quito un libro?" y "¿Dónde están mis libros?" con el caso sin cuenta (GST-017).
 - Tests JVM: sin sesión no queda borrado pendiente, y al aparecer la sesión `RemovalSync` no borra nada; con sesión, igual que hoy.

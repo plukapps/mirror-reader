@@ -2,6 +2,7 @@ package com.pluk.reader.ui.actions
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.pluk.reader.domain.account.AccountRepository
 import com.pluk.reader.domain.model.LibraryBook
 import com.pluk.reader.domain.model.ReadingStatus
 import com.pluk.reader.domain.usecase.BookActions
@@ -9,6 +10,10 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.SharedFlow
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.launch
 
@@ -36,7 +41,11 @@ sealed interface BookActionMessage {
 @HiltViewModel
 class BookActionsViewModel @Inject constructor(
     private val actions: BookActions,
+    account: AccountRepository,
 ) : ViewModel() {
+    /** GST-008: sin sesión, la confirmación de quitar habla solo de este dispositivo. */
+    val signedIn: StateFlow<Boolean> = account.user.map { it != null }.stateIn(viewModelScope, SharingStarted.Eagerly, false)
+
     private val _messages = MutableSharedFlow<BookActionMessage>(extraBufferCapacity = MESSAGE_BUFFER)
     val messages: SharedFlow<BookActionMessage> = _messages.asSharedFlow()
 
