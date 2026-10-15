@@ -57,12 +57,15 @@ class OnboardingRulesTest {
         assertFalse(isValidEmail(""))
     }
 
-    // ONB-019
+    // GST-003, GST-004
     @Test
-    fun startDependsOnSessionAndVerification() {
-        assertEquals(StartDestination.Welcome, startDestination(null))
-        assertEquals(StartDestination.VerifyEmail, startDestination(AccountUser("u", "a@b.c", needsEmailVerification = true)))
-        assertEquals(StartDestination.Home, startDestination(AccountUser("u", "a@b.c")))
+    fun startDependsOnSessionVerificationAndWelcome() {
+        assertEquals(StartDestination.Welcome, startDestination(null, welcomeSeen = false))
+        assertEquals(StartDestination.Home, startDestination(null, welcomeSeen = true))
+        for (seen in listOf(false, true)) {
+            assertEquals(StartDestination.VerifyEmail, startDestination(AccountUser("u", "a@b.c", needsEmailVerification = true), seen))
+            assertEquals(StartDestination.Home, startDestination(AccountUser("u", "a@b.c"), seen))
+        }
     }
 
     // ONB-009

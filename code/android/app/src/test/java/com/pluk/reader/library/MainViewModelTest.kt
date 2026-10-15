@@ -66,6 +66,7 @@ class MainViewModelTest {
             account,
             com.pluk.reader.onboarding.FakeAuth(),
             com.pluk.reader.domain.plans.ImportQuotaCheck(quotaCache, pendingUploads, prompts),
+            com.pluk.reader.onboarding.FakeWelcomePreference(),
         )
     }
 

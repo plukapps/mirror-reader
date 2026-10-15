@@ -42,7 +42,6 @@ Plan de referencia: `specs/plans/2026-10-06-android-epub-viewer.md`
 
 ## Listo
 
-- **K-340** Uso sin cuenta, Android: pantalla "Listo" (L0) sin libros de regalo. GST-019. Plan `2026-10-15-android-no-account.md`, rama `feature/no-account`.
 - **K-341** Uso sin cuenta, Android: quitar un libro sin sesión no deja borrado pendiente para la nube; textos de la confirmación y FAQ. GST-008, GST-017, GST-020. Plan `2026-10-15-android-no-account.md`, rama `feature/no-account`.
 - **K-342** Uso sin cuenta, Android: sin hojas de cuota, archivo muy grande ni aviso del 80 % sin sesión. GST-006. Plan `2026-10-15-android-no-account.md`, rama `feature/no-account`.
 - **K-343** Uso sin cuenta, Android: aviso "Tus libros están solo en este dispositivo" en Inicio y Biblioteca. GST-010. Plan `2026-10-15-android-no-account.md`, rama `feature/no-account`.
@@ -56,11 +55,12 @@ Plan de referencia: `specs/plans/2026-10-06-android-epub-viewer.md`
 
 ## En curso
 
-- **K-339** Uso sin cuenta, Android: arranque y bienvenida O1 v2 ("Empezar a leer", clave `welcome_seen`). GST-001 a GST-004. Plan `2026-10-15-android-no-account.md`, rama `feature/no-account`.
+- **K-340** Uso sin cuenta, Android: pantalla "Listo" (L0) sin libros de regalo. GST-019. Plan `2026-10-15-android-no-account.md`, rama `feature/no-account`.
 - **K-176** Posición exacta, Tarea 5: verificación a mano entre el teléfono y el iPhone, cierre de docs. SYN-014.
 
 ## Revisión
 
+- **K-339** Uso sin cuenta, Android: arranque y bienvenida O1 v2 ("Empezar a leer", clave `welcome_seen`). GST-001 a GST-004. Plan `2026-10-15-android-no-account.md`, rama `feature/no-account`. Hecho: `WelcomePreference` (`welcome_seen`), `startDestination(user, welcomeSeen)`, bienvenida O1 v2 y `WelcomeViewModel`. Tests: `StartTest`, `OnboardingRulesTest`, `WelcomeViewModelTest` (JVM); `WelcomeScreenTest`, `LocalDataWiperTest` (instrumentados, compilados sin correr).
 - **K-337** Renombrar la app a Tuck: nombre visible en Android (`app_name`), iOS y Mac (`CFBundleDisplayName`, `PRODUCT_NAME`, con `PRODUCT_MODULE_NAME: Reader`), y en la visión. Identificadores (`com.pluk.reader`) sin cambios. La marca escrita "margin." pasa a "tuck." en la bienvenida, el ingreso, el pie de Perfil, las preguntas frecuentes y la etiqueta de accesibilidad del logo (Android e iOS), con sus tests y specs (WEL-007, ONB-001, ONB-014, PRF-019). El logo de cuatro barras se mantiene por ahora. Hecho: `xcodegen` genera `PRODUCT_NAME = Tuck`, `PRODUCT_MODULE_NAME = Reader` y `TEST_HOST` a `Tuck.app` en iOS y Mac. Sin compilar en el worktree (falta `google-services.json`, y Readium no resuelve: K-202). Android compila (app y tests instrumentados, sin correrlos) e instalado en el SM-S711B. Falta: build y verlo en el teléfono, el iPhone y la Mac; nombre en la pantalla de consentimiento de Google (manual).
 - **K-331** Sync de notas iOS (#38): cierre y prueba cruzada Android ↔ iPhone.
 - **K-327** Notas iOS (#37): cierre de docs y verificación en el iPhone. Crear una nota en el iPhone 13 verificado por el usuario (2026-10-14, después de K-332); falta el resto de la lista.

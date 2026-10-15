@@ -10,6 +10,7 @@ import com.pluk.reader.domain.onboarding.Genre
 import com.pluk.reader.domain.onboarding.OnboardingPreferences
 import com.pluk.reader.domain.onboarding.ReadingGoal
 import com.pluk.reader.domain.onboarding.ReminderScheduler
+import com.pluk.reader.domain.onboarding.WelcomePreference
 import kotlinx.coroutines.flow.MutableStateFlow
 
 fun authFailure(error: AuthError) = Result.failure<Nothing>(AuthException(error))
@@ -98,6 +99,17 @@ open class FakeAuth : AccountRepository, AuthRepository {
     override suspend fun changePassword(current: String, newPassword: String): Result<Unit> {
         passwordChanges += current to newPassword
         return changePasswordResult
+    }
+}
+
+/** GST-002: bienvenida vista en este dispositivo. */
+class FakeWelcomePreference(seen: Boolean = false) : WelcomePreference {
+    override val seen = MutableStateFlow(seen)
+    var marks = 0
+
+    override suspend fun markSeen() {
+        marks++
+        seen.value = true
     }
 }
 

@@ -1,11 +1,13 @@
 <resources>
     <string name="app_name">Tuck</string>
 
-    <!-- Bienvenida (WEL-004) -->
+    <!-- Bienvenida (GST-001) -->
     <string name="welcome_brand">tuck.</string>
     <string name="welcome_headline">Leé más.\nScrolleá menos.\nPensá despacio.</string>
-    <string name="welcome_body">Tus EPUB, en un lugar tranquilo. Sincronizados en todos tus dispositivos.</string>
-    <string name="welcome_footer">tuck. 2026 ©</string>
+    <string name="welcome_body">Tus EPUB, en un lugar tranquilo, en todos tus dispositivos.</string>
+    <string name="welcome_start_reading">Empezar a leer</string>
+    <string name="welcome_want_sync">¿Querés sincronizar?</string>
+    <string name="welcome_sign_in">Iniciar sesión</string>
 
     <!-- Onboarding (ONB-001 a ONB-022) -->
     <string name="onb_create_account">Crear cuenta</string>

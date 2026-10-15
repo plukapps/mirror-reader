@@ -18,36 +18,39 @@ class WelcomeScreenTest {
     @get:Rule
     val compose = createComposeRule()
 
-    // ONB-001: el contenido del diseño O1
+    // GST-001: el contenido del diseño O1 v2
     @Test
     fun showsTheDesignContent() {
-        compose.setContent { WelcomeScreen(onCreateAccount = {}, onSignIn = {}) }
+        compose.setContent { WelcomeScreen(onStartReading = {}, onCreateAccount = {}, onSignIn = {}) }
         compose.onNodeWithTag("welcome-headline").assertExists()
-        compose.onNodeWithText("Tus EPUB, en un lugar tranquilo. Sincronizados en todos tus dispositivos.").assertExists()
+        compose.onNodeWithText("Tus EPUB, en un lugar tranquilo, en todos tus dispositivos.").assertExists()
+        compose.onNodeWithText("Empezar a leer").assertExists()
+        compose.onNodeWithText("¿Querés sincronizar?").assertExists()
         compose.onNodeWithText("Crear cuenta").assertExists()
-        compose.onNodeWithText("Ya tengo una cuenta").assertExists()
-        compose.onNodeWithText("tuck. 2026 ©").assertExists()
+        compose.onNodeWithText("Iniciar sesión").assertExists()
     }
 
-    // WEL-007, ONB-022: logo y botones con nombre para TalkBack
+    // WEL-007, GST-018: logo y botones con nombre para TalkBack
     @Test
     fun logoAndButtonsHaveAccessibleNames() {
-        compose.setContent { WelcomeScreen(onCreateAccount = {}, onSignIn = {}) }
+        compose.setContent { WelcomeScreen(onStartReading = {}, onCreateAccount = {}, onSignIn = {}) }
         compose.onNodeWithContentDescription("tuck.").assertExists()
+        compose.onNodeWithTag("welcome-start").assertHasClickAction()
         compose.onNodeWithTag("welcome-create").assertHasClickAction()
         compose.onNodeWithTag("welcome-signin").assertHasClickAction()
     }
 
-    // ONB-002
+    // GST-002
     @Test
-    fun buttonsLeadToSignUpAndSignIn() {
+    fun buttonsLeadToReadingSignUpAndSignIn() {
+        var start = 0
         var create = 0
         var signIn = 0
-        compose.setContent { WelcomeScreen(onCreateAccount = { create++ }, onSignIn = { signIn++ }) }
+        compose.setContent { WelcomeScreen(onStartReading = { start++ }, onCreateAccount = { create++ }, onSignIn = { signIn++ }) }
+        compose.onNodeWithTag("welcome-start").performClick()
         compose.onNodeWithTag("welcome-create").performClick()
         compose.onNodeWithTag("welcome-signin").performClick()
         compose.waitForIdle()
-        assertEquals(1, create)
-        assertEquals(1, signIn)
+        assertEquals(listOf(1, 1, 1), listOf(start, create, signIn))
     }
 }

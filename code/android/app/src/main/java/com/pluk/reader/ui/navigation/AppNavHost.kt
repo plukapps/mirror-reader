@@ -53,6 +53,8 @@ import com.pluk.reader.ui.plans.MyPlanScreen
 import com.pluk.reader.ui.plans.PlanPromptHost
 import com.pluk.reader.ui.search.SearchScreen
 import com.pluk.reader.ui.welcome.WelcomeScreen
+import com.pluk.reader.ui.welcome.WelcomeViewModel
+import androidx.hilt.navigation.compose.hiltViewModel
 import android.net.Uri
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.LocalActivity
@@ -148,7 +150,9 @@ fun AppNavHost(
             CompositionLocalProvider(LocalBottomBarPadding provides bottomPadding, LocalBookActions provides bookActions) {
                 NavHost(navController = navController, startDestination = startDestination, modifier = Modifier.fillMaxSize()) {
                     lightComposable(Routes.WELCOME) {
+                        val welcome: WelcomeViewModel = hiltViewModel()
                         WelcomeScreen(
+                            onStartReading = { welcome.startReading { navController.startOver(Routes.HOME) } },
                             onCreateAccount = { navController.navigate(Routes.signUp()) },
                             onSignIn = { navController.navigate(Routes.SIGNIN) },
                         )

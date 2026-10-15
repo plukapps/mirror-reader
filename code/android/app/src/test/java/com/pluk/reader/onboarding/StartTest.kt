@@ -29,7 +29,7 @@ import org.junit.Assert.assertEquals
 import org.junit.Before
 import org.junit.Test
 
-/** ONB-019, WEL-006: qué pantalla abre la app. */
+/** GST-003 (reemplaza ONB-019), WEL-006: qué pantalla abre la app. */
 @OptIn(ExperimentalCoroutinesApi::class)
 class StartTest {
     private val dispatcher = StandardTestDispatcher()
@@ -53,7 +53,7 @@ class StartTest {
     @After
     fun tearDown() = Dispatchers.resetMain()
 
-    private fun viewModel(user: Flow<AccountUser?>) =
+    private fun viewModel(user: Flow<AccountUser?>, welcomeSeen: Boolean = false) =
         MainViewModel(
             NoLibrary,
             LibrarySync(FakeSyncBackend().useCase(), FakeAccount(user), CoroutineScope(dispatcher)),
@@ -66,6 +66,7 @@ class StartTest {
                 com.pluk.reader.plans.FakePendingUploads(),
                 com.pluk.reader.domain.plans.PlanPrompts(),
             ),
+            FakeWelcomePreference(welcomeSeen),
         )
 
     @Test
@@ -73,6 +74,21 @@ class StartTest {
         val vm = viewModel(flowOf(null))
         advanceUntilIdle()
         assertEquals(Start.Welcome, vm.start.value)
+    }
+
+    // GST-003: sin sesión, quien ya pasó por la bienvenida en este dispositivo entra a Inicio
+    @Test
+    fun withoutSessionAfterTheWelcomeOpensHome() = runTest(dispatcher) {
+        val vm = viewModel(flowOf(null), welcomeSeen = true)
+        advanceUntilIdle()
+        assertEquals(Start.Home, vm.start.value)
+    }
+
+    // GST-004: con sesión no importa la bienvenida (quien actualiza la app con sesión no la vio "sin cuenta")
+    @Test
+    fun withSessionTheWelcomeFlagDoesNotMatter() = runTest(dispatcher) {
+        assertEquals(Start.Home, viewModel(flowOf(verified), welcomeSeen = false).also { advanceUntilIdle() }.start.value)
+        assertEquals(Start.VerifyEmail, viewModel(flowOf(unverified), welcomeSeen = true).also { advanceUntilIdle() }.start.value)
     }
 
     @Test

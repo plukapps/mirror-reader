@@ -1,7 +1,7 @@
 package com.pluk.reader.ui.welcome
 
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.widthIn
@@ -9,9 +9,11 @@ import androidx.compose.foundation.text.BasicText
 import androidx.compose.foundation.text.TextAutoSize
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
@@ -25,45 +27,49 @@ import com.pluk.reader.ui.onboarding.Brand
 import com.pluk.reader.ui.onboarding.OnbColors
 import com.pluk.reader.ui.onboarding.OnboardingPage
 import com.pluk.reader.ui.onboarding.PrimaryButton
-import com.pluk.reader.ui.onboarding.SecondaryButton
+import com.pluk.reader.ui.onboarding.TextLink
 import com.pluk.reader.ui.onboarding.TermsText
 import com.pluk.reader.ui.onboarding.onbText
 import com.pluk.reader.ui.theme.MarginColors
 import com.pluk.reader.ui.theme.ReaderTheme
 
 /**
- * Bienvenida, diseño O1 (ONB-001): "Crear cuenta" y "Ya tengo una cuenta" (ONB-002). Si no entra en la pantalla
- * (apaisado), se desplaza (WEL-007, ONB-022).
+ * Bienvenida, diseño O1 v2 (GST-001): "Empezar a leer" sin cuenta y, para sincronizar, "Crear cuenta" e "Iniciar
+ * sesión" (GST-002). Si no entra en la pantalla (apaisado), se desplaza (WEL-007, ONB-022).
  */
 @Composable
-fun WelcomeScreen(onCreateAccount: () -> Unit, onSignIn: () -> Unit, modifier: Modifier = Modifier) {
+fun WelcomeScreen(onStartReading: () -> Unit, onCreateAccount: () -> Unit, onSignIn: () -> Unit, modifier: Modifier = Modifier) {
     OnboardingPage(
         background = MarginColors.Yellow,
         modifier = modifier,
         bottom = {
-            Column(Modifier.padding(horizontal = 20.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                PrimaryButton(stringResource(R.string.onb_create_account), onCreateAccount, Modifier.testTag("welcome-create"))
-                SecondaryButton(stringResource(R.string.onb_have_account), onSignIn, Modifier.testTag("welcome-signin"))
+            Column(Modifier.padding(horizontal = 20.dp), horizontalAlignment = Alignment.CenterHorizontally) {
+                PrimaryButton(stringResource(R.string.welcome_start_reading), onStartReading, Modifier.testTag("welcome-start"))
+                Text(
+                    stringResource(R.string.welcome_want_sync),
+                    style = onbText(13.sp, FontWeight.Medium, OnbColors.SoftOnYellow),
+                    modifier = Modifier.padding(top = 12.dp),
+                )
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    TextLink(stringResource(R.string.onb_create_account), onCreateAccount, Modifier.testTag("welcome-create"))
+                    Text("·", style = onbText(14.sp, FontWeight.SemiBold, OnbColors.SoftOnYellow), modifier = Modifier.clearAndSetSemantics {})
+                    TextLink(stringResource(R.string.welcome_sign_in), onSignIn, Modifier.testTag("welcome-signin"))
+                }
             }
             TermsText(
                 R.string.onb_terms_notice,
                 style = onbText(11.sp, color = OnbColors.SoftOnYellow, lineHeight = 1.45.em).copy(textAlign = TextAlign.Center),
-                modifier = Modifier.fillMaxWidth().padding(start = 28.dp, end = 28.dp, top = 16.dp),
-            )
-            Text(
-                stringResource(R.string.welcome_footer),
-                style = onbText(11.sp, color = OnbColors.SoftOnYellow).copy(textAlign = TextAlign.Center),
-                modifier = Modifier.fillMaxWidth().padding(top = 8.dp, bottom = 14.dp),
+                modifier = Modifier.fillMaxWidth().padding(start = 28.dp, end = 28.dp, top = 4.dp, bottom = 14.dp),
             )
         },
     ) {
         Brand(Modifier.padding(start = 28.dp, end = 28.dp, top = 28.dp))
         BasicText(
             text = stringResource(R.string.welcome_headline),
-            style = onbText(54.sp, FontWeight.Normal, letterSpacing = (-0.045).em, lineHeight = 1.02.em),
-            // "Scrolleá menos." no entra a 54 sp en un teléfono angosto: se achica antes de cortar la línea.
+            style = onbText(44.sp, FontWeight.Normal, letterSpacing = (-0.045).em, lineHeight = 1.02.em),
+            // "Scrolleá menos." no entra a 44 sp en un teléfono angosto: se achica antes de cortar la línea.
             maxLines = 3,
-            autoSize = TextAutoSize.StepBased(minFontSize = 32.sp, maxFontSize = 54.sp),
+            autoSize = TextAutoSize.StepBased(minFontSize = 32.sp, maxFontSize = 44.sp),
             modifier = Modifier
                 .padding(start = 28.dp, end = 28.dp, top = 64.dp)
                 .semantics { heading() }
@@ -80,5 +86,5 @@ fun WelcomeScreen(onCreateAccount: () -> Unit, onSignIn: () -> Unit, modifier: M
 @Preview(widthDp = 360, heightDp = 780)
 @Composable
 private fun WelcomeScreenPreview() {
-    ReaderTheme { WelcomeScreen(onCreateAccount = {}, onSignIn = {}) }
+    ReaderTheme { WelcomeScreen(onStartReading = {}, onCreateAccount = {}, onSignIn = {}) }
 }
