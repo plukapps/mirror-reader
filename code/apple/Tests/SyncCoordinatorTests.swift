@@ -101,6 +101,16 @@ struct SyncCoordinatorTests {
         #expect(viewModel.syncStatus?.text == "2 libros sin subir")
         #expect(viewModel.syncStatus?.canRetry == false)
     }
+
+    @Test("GST-006: sin sesión no hay línea de estado, ni el \"Sincronizando…\" del arranque")
+    func noStatusWithoutSession() async {
+        let library = MutableLibrary()
+        await library.set([book("a", uploaded: false)])
+        let coordinator = SyncCoordinator(pass: { _ in .done(SyncReport()) }) {}
+        let viewModel = LibraryViewModel(library: library, sync: coordinator, isSignedIn: { false })
+        await viewModel.load()
+        #expect(viewModel.syncStatus == nil)
+    }
 }
 
 struct SyncStatusLineTests {

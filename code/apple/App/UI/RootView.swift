@@ -107,7 +107,10 @@ struct RootView: View {
                 Button("Cancelar", role: .cancel) { bookActions.cancelRemove() }
                 Button("Quitar", role: .destructive) { Task { await bookActions.confirmRemove(book) } }
             } message: { _ in
-                Text("Se borra de tu cuenta y de todos tus dispositivos, con su progreso. Podés volver a importarlo.")
+                // GST-008: sin cuenta, solo este dispositivo (L3).
+                Text(library.signedIn
+                    ? "Se borra de tu cuenta y de todos tus dispositivos, con su progreso. Podés volver a importarlo."
+                    : "Se borra el libro de este dispositivo, con su progreso y sus notas.")
             }
     }
 
