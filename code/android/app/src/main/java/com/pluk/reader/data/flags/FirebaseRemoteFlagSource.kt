@@ -7,6 +7,7 @@ import com.google.firebase.remoteconfig.FirebaseRemoteConfig
 import com.google.firebase.remoteconfig.FirebaseRemoteConfigException
 import com.pluk.reader.data.plans.PlanCatalogJson
 import com.pluk.reader.domain.flags.Feature
+import com.pluk.reader.domain.flags.Setting
 import com.pluk.reader.domain.flags.RemoteFlagSource
 import com.pluk.reader.domain.plans.DefaultPlans
 import com.pluk.reader.domain.plans.Plan
@@ -25,6 +26,7 @@ class FirebaseRemoteFlagSource @Inject constructor() : RemoteFlagSource {
             // Todos los valores por defecto juntos: cada llamada reemplaza los anteriores (ADR 0017).
             config.setDefaultsAsync(
                 Feature.entries.associate<Feature, String, Any> { it.key to it.default } +
+                    Setting.entries.associate<Setting, String, Any> { it.key to it.default } +
                     (PlanCatalogJson.KEY to PlanCatalogJson.toJson(DefaultPlans.all)),
             )
         }
@@ -46,6 +48,10 @@ class FirebaseRemoteFlagSource @Inject constructor() : RemoteFlagSource {
         // Sin valor remoto ni por defecto, la fuente es STATIC: se usa el de la app. Un valor que no es booleano, también.
         config.getValue(key).takeIf { it.source != FirebaseRemoteConfig.VALUE_SOURCE_STATIC }
             ?.let { runCatching { it.asBoolean() }.getOrNull() }
+
+    override fun number(key: String): Long? =
+        config.getValue(key).takeIf { it.source != FirebaseRemoteConfig.VALUE_SOURCE_STATIC }
+            ?.let { runCatching { it.asString().trim().toLong() }.getOrNull() }
 
     override fun plans(): List<Plan>? = PlanCatalogJson.parse(config.getString(PlanCatalogJson.KEY))
 

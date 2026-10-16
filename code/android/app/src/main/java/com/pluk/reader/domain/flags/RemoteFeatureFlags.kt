@@ -26,9 +26,12 @@ class RemoteFeatureFlags @Inject constructor(
     @ApplicationScope private val scope: CoroutineScope,
 ) : FeatureFlags, CloudListener {
     private val states = Feature.entries.associateWith { MutableStateFlow(it.default) }
+    private val settings = Setting.entries.associateWith { MutableStateFlow(it.default) }
     private var stopUpdates: (() -> Unit)? = null
 
     override fun state(feature: Feature): StateFlow<Boolean> = states.getValue(feature).asStateFlow()
+
+    override fun setting(setting: Setting): StateFlow<Long> = settings.getValue(setting).asStateFlow()
 
     override fun startListening() {
         if (stopUpdates != null) return
@@ -50,6 +53,7 @@ class RemoteFeatureFlags @Inject constructor(
 
     private fun publish() {
         states.forEach { (feature, state) -> state.value = source.value(feature.key) ?: feature.default }
+        settings.forEach { (setting, state) -> state.value = source.number(setting.key) ?: setting.default }
         // ACC-007, ACC-008, K-290: el catálogo de planes viaja con la misma configuración; inválido, los por defecto.
         PlanCatalog.update(source.plans())
     }

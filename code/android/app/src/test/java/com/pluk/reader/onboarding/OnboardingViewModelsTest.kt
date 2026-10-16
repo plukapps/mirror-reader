@@ -4,12 +4,10 @@ import androidx.lifecycle.SavedStateHandle
 import com.pluk.reader.domain.account.AccountUser
 import com.pluk.reader.domain.account.AuthError
 import com.pluk.reader.domain.onboarding.DailyReminder
-import com.pluk.reader.domain.onboarding.Genre
 import com.pluk.reader.domain.onboarding.ReadingGoal
 import com.pluk.reader.ui.onboarding.AllSetViewModel
 import com.pluk.reader.ui.onboarding.ForgotPasswordViewModel
 import com.pluk.reader.ui.onboarding.GoalViewModel
-import com.pluk.reader.ui.onboarding.InterestsViewModel
 import com.pluk.reader.ui.onboarding.ResetPasswordViewModel
 import com.pluk.reader.ui.onboarding.SignInViewModel
 import com.pluk.reader.ui.onboarding.SignUpViewModel
@@ -103,11 +101,11 @@ class OnboardingViewModelsTest {
 
     // ONB-006: Google salta la verificación
     @Test
-    fun googleSignUpGoesToInterests() = runTest(dispatcher) {
+    fun googleSignUpGoesToTheGoal() = runTest(dispatcher) {
         val vm = SignUpViewModel(auth, SavedStateHandle())
         vm.onGoogleToken("token")
         advanceUntilIdle()
-        assertEquals(SignUpViewModel.Next.Interests, vm.state.value.next)
+        assertEquals(SignUpViewModel.Next.Goal, vm.state.value.next)
     }
 
     // ONB-008: los datos vuelven sin contraseña
@@ -130,7 +128,7 @@ class OnboardingViewModelsTest {
 
         auth.verified = Result.success(true)
         advanceTimeBy(VerifyEmailViewModel.POLL_MS + 1)
-        assertEquals(VerifyEmailViewModel.Next.Interests, vm.state.value.next)
+        assertEquals(VerifyEmailViewModel.Next.Goal, vm.state.value.next)
 
         vm.onHidden()
     }
@@ -191,40 +189,7 @@ class OnboardingViewModelsTest {
         advanceUntilIdle()
 
         assertEquals(0, auth.discarded)
-        assertEquals(VerifyEmailViewModel.Next.Interests, vm.state.value.next)
-    }
-
-    // ONB-009
-    @Test
-    fun interestsNeedThreeAndAreSaved() = runTest(dispatcher) {
-        val prefs = FakePreferences()
-        val vm = InterestsViewModel(prefs)
-        vm.toggle(Genre.Poetry)
-        vm.toggle(Genre.Essays)
-        vm.continueOn()
-        advanceUntilIdle()
-        assertFalse(vm.state.value.done)
-
-        vm.toggle(Genre.Drama)
-        vm.toggle(Genre.Poetry)
-        vm.toggle(Genre.Poetry) // marcar y desmarcar
-        vm.continueOn()
-        advanceUntilIdle()
-
-        assertEquals(setOf(Genre.Poetry, Genre.Essays, Genre.Drama), prefs.interests.value)
-        assertTrue(vm.state.value.done)
-    }
-
-    // ONB-009
-    @Test
-    fun skippingInterestsSavesNothing() = runTest(dispatcher) {
-        val prefs = FakePreferences()
-        val vm = InterestsViewModel(prefs)
-        vm.toggle(Genre.Poetry)
-        vm.skip()
-        advanceUntilIdle()
-        assertTrue(vm.state.value.done)
-        assertEquals(emptySet<Genre>(), prefs.interests.value)
+        assertEquals(VerifyEmailViewModel.Next.Goal, vm.state.value.next)
     }
 
     // ONB-010, ONB-012

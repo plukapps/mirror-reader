@@ -27,7 +27,7 @@ class VerifyEmailViewModel @Inject constructor(
 ) : ViewModel() {
 
     sealed interface Next {
-        data object Interests : Next
+        data object Goal : Next
 
         /** Volver a crear cuenta con estos datos (ONB-008). */
         data class Change(val name: String, val email: String) : Next
@@ -66,7 +66,7 @@ class VerifyEmailViewModel @Inject constructor(
         polling = viewModelScope.launch {
             while (true) {
                 if (auth.refreshEmailVerified().getOrDefault(false)) {
-                    _state.update { it.copy(next = Next.Interests) }
+                    _state.update { it.copy(next = Next.Goal) }
                     return@launch
                 }
                 delay(POLL_MS)
@@ -99,7 +99,7 @@ class VerifyEmailViewModel @Inject constructor(
         _state.update { it.copy(busy = true, error = null) }
         viewModelScope.launch {
             if (auth.refreshEmailVerified().getOrDefault(false)) {
-                _state.update { it.copy(busy = false, next = Next.Interests) }
+                _state.update { it.copy(busy = false, next = Next.Goal) }
                 return@launch
             }
             auth.discardUnverifiedAccount().fold(

@@ -17,11 +17,16 @@ final class HomeViewModel {
     private(set) var messages: [String] = []
     /// P02: un libro recién importado no entra en la nube (PLN-007 a PLN-009), o nil.
     private(set) var quotaBlock: QuotaBlockNotice?
+    /// HOM-012: la inicial de la cuenta para el avatar, o nil sin cuenta (ícono de persona).
+    private(set) var avatarInitial: String?
+    /// GST-010, GST-023: el banner sin cuenta con la opción elegida (GST-025), o nil.
+    private(set) var guestBanner: GuestBannerVariant?
 
     private let library: LibraryRepository
     private let importer: BookImporter?
     private let requestSync: @MainActor () -> Void
     private let quotaCheck: ImportQuotaCheck?
+    private let guest: GuestContext?
 
     /// - Parameters:
     ///   - importer: nil donde no hay motor de EPUB (la Mac, ADR 0013): no se importa ni se abre el lector.
@@ -33,8 +38,10 @@ final class HomeViewModel {
         calendar: Calendar = .current,
         importer: BookImporter? = nil,
         quotaCheck: ImportQuotaCheck? = nil,
+        guest: GuestContext? = nil,
         requestSync: @escaping @MainActor () -> Void = {}
     ) {
+        self.guest = guest
         self.library = library
         self.importer = importer
         self.quotaCheck = quotaCheck
@@ -119,7 +126,19 @@ final class HomeViewModel {
 
     /// Vuelve a leer la base, sin sincronizar. Lo usa la pantalla al aparecer y al cerrar el lector (cambió el progreso).
     func reload() async {
-        content = homeContent(await library.books())
+        let books = await library.books()
+        content = homeContent(books)
+        if let guest {
+            let state = await guest.state(hasBooks: !books.isEmpty)
+            avatarInitial = state.user.map(\.initial).flatMap { $0.isEmpty ? nil : $0 }
+            guestBanner = state.showNotice ? state.variant : nil
+        }
         loading = false
+    }
+
+    /// GST-010: la cruz esconde el banner (y el aviso de la Biblioteca) por unos días.
+    func dismissGuestNotice() {
+        guest?.dismiss()
+        guestBanner = nil
     }
 }

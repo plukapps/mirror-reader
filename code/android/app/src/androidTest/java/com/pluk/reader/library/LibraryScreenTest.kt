@@ -4,6 +4,7 @@ import androidx.compose.material3.SnackbarHostState
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertIsSelected
 import androidx.compose.ui.test.junit4.createComposeRule
+import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
@@ -93,6 +94,28 @@ class LibraryScreenTest {
         }
         compose.onNodeWithText("Usás 12 MB de 15 MB").assertIsDisplayed()
         compose.onNodeWithTag("usage-notice-close").performClick()
+        assertEquals(1, dismissed)
+    }
+
+    // GST-010, GST-018 (L1): el aviso sin cuenta, con "Crear cuenta" y la cruz con nombre
+    @Test
+    fun guestNoticeShowsAndCloses() {
+        var dismissed = 0
+        var create = 0
+        compose.setContent {
+            LibraryContent(
+                LibraryUiState(loading = false, books = books, allCount = 3, guestNotice = true),
+                SnackbarHostState(),
+                {},
+                onImport = {},
+                onBookClick = {},
+                onDismissGuestNotice = { dismissed++ },
+                onCreateAccount = { create++ },
+            )
+        }
+        compose.onNodeWithText("Tus libros están solo en este dispositivo.").assertIsDisplayed()
+        compose.onNodeWithContentDescription("Cerrar aviso").assertIsDisplayed()
+        compose.onNodeWithTag("guest-notice-close").performClick()
         assertEquals(1, dismissed)
     }
 }

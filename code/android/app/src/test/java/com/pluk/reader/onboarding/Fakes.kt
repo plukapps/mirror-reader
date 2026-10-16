@@ -6,10 +6,10 @@ import com.pluk.reader.domain.account.AuthError
 import com.pluk.reader.domain.account.AuthException
 import com.pluk.reader.domain.account.AuthRepository
 import com.pluk.reader.domain.onboarding.DailyReminder
-import com.pluk.reader.domain.onboarding.Genre
 import com.pluk.reader.domain.onboarding.OnboardingPreferences
 import com.pluk.reader.domain.onboarding.ReadingGoal
 import com.pluk.reader.domain.onboarding.ReminderScheduler
+import com.pluk.reader.domain.onboarding.WelcomePreference
 import kotlinx.coroutines.flow.MutableStateFlow
 
 fun authFailure(error: AuthError) = Result.failure<Nothing>(AuthException(error))
@@ -101,14 +101,20 @@ open class FakeAuth : AccountRepository, AuthRepository {
     }
 }
 
+/** GST-002: bienvenida vista en este dispositivo. */
+class FakeWelcomePreference(seen: Boolean = false) : WelcomePreference {
+    override val seen = MutableStateFlow(seen)
+    var marks = 0
+
+    override suspend fun markSeen() {
+        marks++
+        seen.value = true
+    }
+}
+
 class FakePreferences : OnboardingPreferences {
-    override val interests = MutableStateFlow<Set<Genre>>(emptySet())
     override val goal = MutableStateFlow<ReadingGoal?>(null)
     override val reminder = MutableStateFlow<DailyReminder?>(null)
-
-    override suspend fun saveInterests(genres: Set<Genre>) {
-        interests.value = genres
-    }
 
     override suspend fun saveGoal(goal: ReadingGoal, reminder: DailyReminder) {
         this.goal.value = goal

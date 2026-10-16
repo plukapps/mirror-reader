@@ -119,6 +119,19 @@ class BookEditorTest {
         assertTrue(editor.pendingCloudRemovals().isEmpty())
     }
 
+    // GST-020, ADR 0019: sin cuenta ningún libro se sube; quitarlo no deja un borrado para la nube y, si la cuenta en la
+    // que se entra después lo tiene, vuelve a la biblioteca
+    @Test
+    fun removedWithoutAccountComesBackFromTheAccount() = runBlocking {
+        val id = importMinimal()
+
+        editor.remove(id)
+        assertTrue(editor.pendingCloudRemovals().isEmpty())
+
+        cloud.addCloudOnly(listOf(remote(id)))
+        assertEquals(listOf(id), db.bookDao().getAllIds())
+    }
+
     // LIB-008: un borrado de otro dispositivo quita aquí solo los libros que ya estaban en la nube
     @Test
     fun deletedInCloudRemovesOnlyUploadedBooks() = runBlocking {

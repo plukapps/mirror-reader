@@ -1,11 +1,12 @@
 <resources>
     <string name="app_name">Tuck</string>
 
-    <!-- Bienvenida (WEL-004) -->
+    <!-- Bienvenida (GST-001) -->
     <string name="welcome_brand">tuck.</string>
     <string name="welcome_headline">Leé más.\nScrolleá menos.\nPensá despacio.</string>
-    <string name="welcome_body">Tus EPUB, en un lugar tranquilo. Sincronizados en todos tus dispositivos.</string>
-    <string name="welcome_footer">tuck. 2026 ©</string>
+    <string name="welcome_body">Tus EPUB, en un lugar tranquilo, en todos tus dispositivos.</string>
+    <string name="welcome_want_sync">¿Querés sincronizar?</string>
+    <string name="welcome_sign_in">Iniciar sesión</string>
 
     <!-- Onboarding (ONB-001 a ONB-022) -->
     <string name="onb_create_account">Crear cuenta</string>
@@ -50,27 +51,6 @@
     <string name="onb_no_email_app">No encontramos una app de correo.</string>
     <string name="onb_verify_waiting">Esperando la confirmación…</string>
 
-    <string name="onb_email_verified">Paso 3 de 4 · Email verificado</string>
-    <string name="onb_interests_title">¿Qué te gusta\nleer?</string>
-    <string name="onb_interests_body">Elegí al menos 3.</string>
-    <plurals name="onb_interests_selected">
-        <item quantity="one">%d elegido</item>
-        <item quantity="other">%d elegidos</item>
-    </plurals>
-    <string name="onb_continue">Continuar</string>
-    <string name="genre_philosophy">Filosofía</string>
-    <string name="genre_classics">Clásicos</string>
-    <string name="genre_poetry">Poesía</string>
-    <string name="genre_scifi">Ciencia ficción</string>
-    <string name="genre_history">Historia</string>
-    <string name="genre_essays">Ensayo</string>
-    <string name="genre_mystery">Misterio</string>
-    <string name="genre_romance">Romance</string>
-    <string name="genre_biography">Biografía</string>
-    <string name="genre_horror">Terror</string>
-    <string name="genre_science">Ciencia</string>
-    <string name="genre_travel">Viajes</string>
-    <string name="genre_drama">Drama</string>
 
     <string name="onb_goal_title">¿Cuánto querés\nleer por día?</string>
     <string name="goal_casual">Tranquilo</string>
@@ -89,11 +69,32 @@
 
     <string name="onb_allset_title">Ya estás adentro,\n%1$s.</string>
     <string name="onb_allset_title_anonymous">Ya estás\nadentro.</string>
+    <!-- Alta corta, B3 (GST-021) -->
+    <plurals name="onb_short_allset_books">
+        <item quantity="one">Tu libro, con su progreso y sus notas, pasa a tu cuenta. Iniciá sesión en otro dispositivo para tenerlo ahí.</item>
+        <item quantity="other">Tus %d libros, con su progreso y sus notas, pasan a tu cuenta. Iniciá sesión en otro dispositivo para tenerlos ahí.</item>
+    </plurals>
+    <string name="onb_short_allset_no_books">Iniciá sesión en otro dispositivo para tener ahí tus libros.</string>
+    <string name="onb_short_back_to_library">Volver a la biblioteca</string>
     <string name="onb_allset_goal_reminder">%1$d minutos por día, recordatorio a las %2$s.</string>
     <string name="onb_allset_goal">%1$d minutos por día.</string>
     <string name="onb_allset_generic">Tu biblioteca te espera. Importá tus EPUB y empezá cuando quieras.</string>
     <string name="onb_start_reading">Empezar a leer</string>
     <string name="onb_import_books">Importar mis libros</string>
+    <!-- Listo sin cuenta, L0 (GST-019) -->
+    <string name="guest_ready_title">Ya podés\nleer.</string>
+    <!-- Banner sin cuenta de Inicio, opciones A y B (GST-023) -->
+    <string name="guest_banner_all_title">Tus libros, en todos tus dispositivos</string>
+    <string name="guest_banner_free">gratis</string>
+    <string name="guest_banner_backup_title">Tus libros sin respaldo</string>
+    <string name="guest_banner_backup_body">Si cambiás de celu, se pierden. Guardalos gratis.</string>
+    <!-- Avatar de Inicio (HOM-012) -->
+    <string name="home_open_profile">Abrir perfil</string>
+    <!-- Aviso sin cuenta, H0 y L1 (GST-010) -->
+    <string name="guest_notice_title">Tus libros están solo en este dispositivo.</string>
+    <string name="guest_notice_body">Creá una cuenta para tenerlos en todos.</string>
+    <string name="guest_notice_create_account">Crear cuenta</string>
+    <string name="guest_ready_body">Empezá importando tus libros. Todo queda en este dispositivo, sin cuenta.</string>
 
     <string name="onb_signin_title">Te damos la\nbienvenida.</string>
     <string name="onb_forgot">¿Olvidaste tu contraseña?</string>
@@ -180,6 +181,10 @@
 
     <!-- Perfil (PRF-001 a PRF-019), diseño 09 Profile -->
     <string name="profile_account_header">Cuenta de %1$s</string>
+    <!-- Perfil sin cuenta, 09g (GST-009, GST-018) -->
+    <string name="profile_guest_title">Sin cuenta</string>
+    <string name="profile_guest_body">Creá una cuenta para tener tus libros en todos tus dispositivos.</string>
+    <string name="profile_guest_header">Sin cuenta. Crear una cuenta</string>
     <string name="profile_section_account">Cuenta</string>
     <string name="profile_storage">Espacio</string>
     <string name="profile_plan_free">GRATIS</string>
@@ -236,14 +241,14 @@
     <string name="faq_books_question">¿Dónde están mis libros?</string>
     <string name="faq_space_question">¿Cuánto espacio tengo?</string>
     <string name="faq_epub_answer">tuck. abre libros EPUB sin protección. Los que vienen con DRM (la protección que ponen algunas tiendas) no se pueden abrir: hay que leerlos en la app de esa tienda.\n\nSi el archivo no tiene DRM y aun así no abre, puede estar dañado o incompleto. Probá descargarlo otra vez desde donde lo conseguiste y volvé a importarlo.</string>
-    <string name="faq_books_answer">Tus libros están en tu cuenta, en la nube, y en cada dispositivo donde entrás con ella. Un libro que agregás en un dispositivo aparece solo en los demás.\n\nSi un libro todavía no está en este dispositivo, se descarga cuando lo abrís. Para eso hace falta conexión; después se lee sin ella.</string>
+    <string name="faq_books_answer">Con una cuenta, tus libros están en la nube y en cada dispositivo donde entrás con ella. Un libro que agregás en un dispositivo aparece solo en los demás. Si un libro todavía no está en este dispositivo, se descarga cuando lo abrís. Para eso hace falta conexión; después se lee sin ella.\n\nSin cuenta, tus libros están solo en este dispositivo: si desinstalás la app o cambiás de teléfono, se pierden. Para guardarlos en la nube, creá una cuenta desde Perfil; los libros que ya tenés pasan a ella.</string>
     <string name="faq_space_answer">Tu plan define cuánto podés guardar en la nube. Lo ves arriba de todo en Perfil, en Espacio: cuánto usás y cuánto te queda.\n\nCuentan los archivos de los libros; las portadas no. Si llegás al límite, los libros nuevos quedan solo en este dispositivo y podés seguir leyendo todo. Para liberar espacio, quitá libros que ya no quieras.</string>
     <string name="faq_add_question">¿Cómo agrego libros?</string>
-    <string name="faq_add_answer">Desde Inicio o Estantes, con Importar, elegí uno o varios archivos EPUB del teléfono. También podés abrir un EPUB desde otra app (por ejemplo, el correo o Archivos) y elegir tuck.\n\nLos libros nuevos se suben a tu cuenta cuando hay conexión.</string>
+    <string name="faq_add_answer">Desde Inicio o Estantes, con Importar, elegí uno o varios archivos EPUB del teléfono. También podés abrir un EPUB desde otra app (por ejemplo, el correo o Archivos) y elegir tuck.\n\nCon una cuenta, los libros nuevos se suben a ella cuando hay conexión.</string>
     <string name="faq_sync_question">¿Cómo se sincroniza mi lectura?</string>
     <string name="faq_sync_answer">Cada vez que leés, tuck. guarda en qué página quedaste y la sube a tu cuenta cuando hay conexión. Al abrir el mismo libro en otro dispositivo, sigue desde ahí.\n\nSi leíste sin conexión, la posición se sube sola la próxima vez que la app tenga red.</string>
     <string name="faq_remove_question">¿Cómo quito un libro?</string>
-    <string name="faq_remove_answer">Mantené presionada la portada del libro y elegí Quitar de la biblioteca. Se borra de tu cuenta y de todos tus dispositivos, con su progreso.\n\nSi lo querés de vuelta, importá el archivo otra vez.</string>
+    <string name="faq_remove_answer">Mantené presionada la portada del libro y elegí Quitar de la biblioteca. Con una cuenta, se borra de tu cuenta y de todos tus dispositivos, con su progreso. Sin cuenta, se borra solo de este dispositivo.\n\nSi lo querés de vuelta, importá el archivo otra vez.</string>
 
     <string name="home_greeting_morning">Buenos días.</string>
     <string name="home_greeting_afternoon">Buenas tardes.</string>
@@ -317,6 +322,8 @@
     <string name="book_actions_status_new">Sin empezar</string>
     <string name="book_actions_remove_title">¿Quitar «%1$s»?</string>
     <string name="book_actions_remove_body">Se borra de tu cuenta y de todos tus dispositivos, con su progreso. Podés volver a importarlo.</string>
+    <!-- GST-008: sin cuenta, solo este dispositivo (L3) -->
+    <string name="book_actions_remove_body_local">Se borra el libro de este dispositivo, con su progreso y sus notas.</string>
     <string name="book_actions_remove_confirm">Quitar</string>
     <string name="book_actions_cancel">Cancelar</string>
     <string name="book_actions_marked_finished">Marcado como terminado</string>

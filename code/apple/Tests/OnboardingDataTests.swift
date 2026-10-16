@@ -17,25 +17,21 @@ struct OnboardingPreferencesTests {
         defaults.removePersistentDomain(forName: suite)
     }
 
-    @Test("ONB-009, ONB-010: sin elegir nada no hay intereses, meta ni recordatorio")
+    @Test("ONB-010: sin elegir nada no hay meta ni recordatorio")
     func emptyByDefault() {
         let prefs = UserDefaultsOnboardingPreferences(defaults: defaults)
-        #expect(prefs.interests().isEmpty)
         #expect(prefs.goal() == nil)
         #expect(prefs.reminder() == nil)
     }
 
-    @Test("ONB-009, ONB-010: lo elegido se guarda con las claves de Android")
+    @Test("ONB-010: lo elegido se guarda con las claves de Android")
     func savesAndReads() {
         let prefs = UserDefaultsOnboardingPreferences(defaults: defaults)
-        prefs.saveInterests([.poetry, .sciFi, .drama])
         prefs.saveGoal(.serious, reminder: DailyReminder(enabled: false, hour: 22, minute: 5)!)
 
         let reread = UserDefaultsOnboardingPreferences(defaults: defaults)
-        #expect(reread.interests() == [.poetry, .sciFi, .drama])
         #expect(reread.goal() == .serious)
         #expect(reread.reminder() == DailyReminder(enabled: false, hour: 22, minute: 5))
-        #expect(defaults.stringArray(forKey: "onboardingInterests") == ["Drama", "Poetry", "SciFi"])
         #expect(defaults.integer(forKey: "readingGoalMinutes") == 30)
     }
 }

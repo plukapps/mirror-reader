@@ -1,6 +1,8 @@
 package com.pluk.reader.plans
 
+import com.pluk.reader.domain.account.AccountUser
 import com.pluk.reader.domain.account.StorageQuota
+import com.pluk.reader.remote.FakeSession
 import com.pluk.reader.domain.model.ImportOutcome
 import com.pluk.reader.domain.plans.ImportQuotaCheck
 import com.pluk.reader.domain.plans.PlanPrompt
@@ -86,8 +88,18 @@ class ImportQuotaCheckTest {
         assertEquals(QuotaBlock.Full, quotaBlock(quota, 3 * MIB, 1))
     }
 
-    private fun check(cache: FakeQuotaCache, uploads: FakePendingUploads, prompts: PlanPrompts) =
-        ImportQuotaCheck(cache, uploads, prompts)
+    private fun check(cache: FakeQuotaCache, uploads: FakePendingUploads, prompts: PlanPrompts, signedIn: Boolean = true) =
+        ImportQuotaCheck(cache, uploads, prompts, FakeSession(if (signedIn) AccountUser("u1", null) else null))
+
+    // GST-006: sin cuenta nada se sube, así que no hay hoja, ni de espacio ni de archivo muy grande
+    @Test
+    fun withoutSessionNothingIsShown() = runTest {
+        val prompts = PlanPrompts()
+        check(FakeQuotaCache(quota), FakePendingUploads("a" to 3 * MIB, "b" to 14 * MIB), prompts, signedIn = false)(
+            listOf(ImportOutcome.Imported("a", "A"), ImportOutcome.Imported("b", "B")),
+        )
+        assertNull(prompts.current.value)
+    }
 
     // PLN-008, PLN-009: el libro importado no cuenta como pendiente propio; los otros pendientes sí
     @Test

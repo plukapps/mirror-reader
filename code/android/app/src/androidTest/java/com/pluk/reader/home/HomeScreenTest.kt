@@ -3,10 +3,12 @@ package com.pluk.reader.home
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.createComposeRule
+import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.test.ext.junit.runners.AndroidJUnit4
+import com.pluk.reader.domain.account.GuestBannerVariant
 import com.pluk.reader.domain.home.Greeting
 import com.pluk.reader.domain.home.homeContent
 import com.pluk.reader.domain.model.LibraryBook
@@ -71,5 +73,47 @@ class HomeScreenTest {
     fun readingRowIsHiddenWithoutOtherBooksInProgress() {
         show(listOf(books[1], books[3]))
         compose.onNodeWithTag("reading-row").assertDoesNotExist()
+    }
+
+    // GST-023 (H0b): sin cuenta, el banner A debajo del saludo; toda la tarjeta crea la cuenta y la cruz lo cierra
+    @Test
+    fun guestBannerAllDevices() {
+        var dismissed = 0
+        var create = 0
+        compose.setContent {
+            HomeContentView(
+                false, homeContent(books), Greeting.Night, SnackbarHostState(), {}, {}, {},
+                guestBanner = GuestBannerVariant.AllDevices,
+                onDismissGuestNotice = { dismissed++ },
+                onCreateAccount = { create++ },
+            )
+        }
+        compose.onNodeWithText("Tus libros, en todos tus dispositivos").assertIsDisplayed().performClick()
+        compose.onNodeWithContentDescription("Cerrar aviso").performClick()
+        compose.waitForIdle()
+        assertEquals(listOf(1, 1), listOf(create, dismissed))
+    }
+
+    // GST-023 (H0): la opción B
+    @Test
+    fun guestBannerNoBackup() {
+        compose.setContent {
+            HomeContentView(false, homeContent(books), Greeting.Night, SnackbarHostState(), {}, {}, {}, guestBanner = GuestBannerVariant.NoBackup)
+        }
+        compose.onNodeWithText("Tus libros sin respaldo").assertIsDisplayed()
+        compose.onNodeWithText("Si cambiás de celu, se pierden. Guardalos gratis.").assertIsDisplayed()
+    }
+
+    // HOM-012: avatar con la inicial o, sin cuenta, el ícono; tocarlo abre Perfil
+    @Test
+    fun avatarOpensTheProfile() {
+        var opened = 0
+        compose.setContent {
+            HomeContentView(false, homeContent(books), Greeting.Night, SnackbarHostState(), {}, {}, {}, avatarInitial = "A", onOpenProfile = { opened++ })
+        }
+        compose.onNodeWithText("A").assertIsDisplayed()
+        compose.onNodeWithContentDescription("Abrir perfil").performClick()
+        compose.waitForIdle()
+        assertEquals(1, opened)
     }
 }

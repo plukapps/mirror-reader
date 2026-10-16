@@ -55,12 +55,68 @@ class HomeViewModelTest {
     private val quotaCache = FakeQuotaCache()
     private val pendingUploads = FakePendingUploads()
 
-    private fun viewModel(library: FakeLibrary) = HomeViewModel(
-        library,
-        ImportBooksUseCase(library),
-        { syncRequests++ },
-        ImportQuotaCheck(quotaCache, pendingUploads, prompts),
-    )
+    private val guestPreference = com.pluk.reader.account.FakeGuestNoticePreference()
+    private val flags = com.pluk.reader.flags.FakeFeatureFlags()
+
+    private fun viewModel(
+        library: FakeLibrary,
+        signedIn: Boolean = true,
+        user: com.pluk.reader.domain.account.AccountUser = com.pluk.reader.domain.account.AccountUser("u1", null),
+    ): HomeViewModel {
+        val session = com.pluk.reader.remote.FakeSession(if (signedIn) user else null)
+        return HomeViewModel(
+            library,
+            ImportBooksUseCase(library),
+            { syncRequests++ },
+            ImportQuotaCheck(quotaCache, pendingUploads, prompts, session),
+            com.pluk.reader.domain.account.GuestNotice(session, library, guestPreference, flags),
+            session,
+            flags,
+        )
+    }
+
+    // GST-023, GST-025: sin cuenta, el banner usa la opción A salvo que el flag pida la B
+    @Test
+    fun guestBannerVariantComesFromTheFlag() = runTest(dispatcher) {
+        val vm = viewModel(FakeLibrary(listOf(book("a", null))), signedIn = false)
+        val collected = backgroundScope.launch { vm.uiState.collect {} }
+        advanceUntilIdle()
+        assertEquals(com.pluk.reader.domain.account.GuestBannerVariant.AllDevices, vm.uiState.value.guestBanner)
+
+        flags.set(com.pluk.reader.domain.flags.Feature.GuestBannerNoBackup, true)
+        advanceUntilIdle()
+        assertEquals(com.pluk.reader.domain.account.GuestBannerVariant.NoBackup, vm.uiState.value.guestBanner)
+        collected.cancel()
+    }
+
+    // HOM-012: con sesión, la inicial del nombre (o del email); sin cuenta, ninguna (ícono de persona)
+    @Test
+    fun avatarShowsTheInitialOnlyWithASession() = runTest(dispatcher) {
+        val named = viewModel(FakeLibrary(), user = com.pluk.reader.domain.account.AccountUser("u1", "b@mail.com", "ana Ruiz"))
+        assertEquals("A", named.uiState.first { !it.loading }.avatarInitial)
+        val emailOnly = viewModel(FakeLibrary(), user = com.pluk.reader.domain.account.AccountUser("u1", "bea@mail.com"))
+        assertEquals("B", emailOnly.uiState.first { !it.loading }.avatarInitial)
+        val guest = viewModel(FakeLibrary(), signedIn = false)
+        assertEquals(null, guest.uiState.first { !it.loading }.avatarInitial)
+    }
+
+    // GST-010 (H0): sin cuenta y con libros, Inicio muestra el aviso; descartarlo lo saca
+    @Test
+    fun guestNoticeShowsWithoutSessionUntilDismissed() = runTest(dispatcher) {
+        val vm = viewModel(FakeLibrary(listOf(book("a", null))), signedIn = false)
+        assertTrue(vm.uiState.first { !it.loading }.guestBanner != null)
+
+        vm.onDismissGuestNotice()
+        advanceUntilIdle()
+        assertFalse(vm.uiState.first { !it.loading }.guestBanner != null)
+        assertTrue(guestPreference.dismissedAt.value != null)
+    }
+
+    @Test
+    fun noGuestNoticeWithASession() = runTest(dispatcher) {
+        val vm = viewModel(FakeLibrary(listOf(book("a", null))))
+        assertFalse(vm.uiState.first { !it.loading }.guestBanner != null)
+    }
 
     // HOM-002, HOM-004
     @Test

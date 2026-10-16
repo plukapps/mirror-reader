@@ -21,6 +21,9 @@ struct LocalAccountWiperTests {
         defaults.set(5, forKey: "sync.lastPositionsSeenAt")
         defaults.set(6, forKey: "sync.lastNotesSeenAt")
         defaults.set(20, forKey: "readingGoalMinutes")
+        // GST-016: al cerrar sesión se vuelve a la bienvenida y el aviso sin cuenta empieza de cero.
+        UserDefaultsWelcome(defaults: defaults).markSeen()
+        UserDefaultsGuestNotice(defaults: defaults).dismiss(at: Date())
         UserDefaultsQuotaCache(defaults: defaults).save(StorageQuota(usedBytes: 1, quotaBytes: 2, maxFileBytes: 3))
         UserDefaultsUsageNotice(defaults: defaults).dismiss()
 
@@ -37,6 +40,8 @@ struct LocalAccountWiperTests {
         #expect(UserDefaultsQuotaCache(defaults: defaults).last() == nil)
         #expect(defaults.object(forKey: UserDefaultsQuotaCache.Key.maxFileBytes) == nil)
         #expect(!UserDefaultsUsageNotice(defaults: defaults).isDismissed())
+        #expect(!UserDefaultsWelcome(defaults: defaults).seen())
+        #expect(UserDefaultsGuestNotice(defaults: defaults).dismissedAt() == nil)
     }
 
     @Test("PRF-009: sin nada guardado, borrar no falla")

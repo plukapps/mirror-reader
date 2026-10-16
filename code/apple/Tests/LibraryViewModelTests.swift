@@ -51,6 +51,17 @@ struct LibraryViewModelTests {
         #expect(viewModel.usageNotice != nil)
     }
 
+    @Test("GST-006: sin sesión no hay aviso del 80 %, aunque quede una cuota guardada")
+    func noUsageNoticeWithoutSession() async {
+        let cache = PlansMemoryQuotaCache(StorageQuota(usedBytes: 12 * mib, quotaBytes: 15 * mib))
+        let viewModel = LibraryViewModel(
+            library: MutableLibrary([]), quotaCache: cache, usageNotice: MemoryUsageNotice(), isSignedIn: { false }
+        )
+        await viewModel.load()
+        #expect(viewModel.usageNotice == nil)
+        #expect(!viewModel.signedIn)
+    }
+
     private let books = [book("nuevo", nil), book("leyendo", 42), book("terminado", 100)]
 
     @Test("LIB-010: al cargar muestra todos los libros y las cantidades de cada pestaña")

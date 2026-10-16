@@ -25,6 +25,8 @@ data class LibraryUiState(
     val signedIn: Boolean = false,
     /** Aviso del 80 % (PLN-011): el uso a mostrar, o null si no corresponde. */
     val usageNotice: StorageUsage? = null,
+    /** GST-010: aviso "solo en este dispositivo". */
+    val guestNotice: Boolean = false,
 ) {
     /** Hay algo que decir sobre la sincronización: corriendo, con un problema o con libros por subir. Solo con sesión. */
     val showSyncStatus: Boolean get() = signedIn && (sync.running || sync.issue != null || pendingUploadCount > 0)

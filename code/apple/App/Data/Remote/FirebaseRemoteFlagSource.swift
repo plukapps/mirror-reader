@@ -12,6 +12,7 @@ struct FirebaseRemoteFlagSource: RemoteFlagSource {
         let config = RemoteConfig.remoteConfig()
         // Todos los valores por defecto juntos: cada llamada reemplaza los anteriores (ADR 0017).
         var defaults: [String: NSObject] = Dictionary(uniqueKeysWithValues: Feature.allCases.map { ($0.key, NSNumber(value: $0.defaultValue)) })
+        for setting in Setting.allCases { defaults[setting.key] = NSNumber(value: setting.defaultValue) }
         defaults[PlanCatalogJSON.key] = NSString(string: PlanCatalogJSON.json(DefaultPlans.all))
         config.setDefaults(defaults)
         return config
@@ -33,6 +34,12 @@ struct FirebaseRemoteFlagSource: RemoteFlagSource {
         // Sin valor remoto ni por defecto la fuente es `.static`: se usa el de la app.
         let value = config.configValue(forKey: key)
         return value.source == .static ? nil : value.boolValue
+    }
+
+    func number(_ key: String) async -> Int? {
+        let value = config.configValue(forKey: key)
+        guard value.source != .static else { return nil }
+        return Int(value.stringValue.trimmingCharacters(in: .whitespaces))
     }
 
     func plans() async -> [Plan]? {

@@ -19,6 +19,8 @@ struct LocalAccountWiper: LocalAccountData, @unchecked Sendable {
         UserDefaultsQuotaCache.Key.usedBytes, UserDefaultsQuotaCache.Key.quotaBytes, UserDefaultsQuotaCache.Key.plan,
         UserDefaultsQuotaCache.Key.maxFileBytes,
         UserDefaultsUsageNotice.key,
+        // GST-016: al cerrar sesión se vuelve a la bienvenida y el aviso sin cuenta empieza de cero.
+        UserDefaultsWelcome.key, UserDefaultsGuestNotice.key,
     ]
 
     func wipe() async throws {

@@ -1,5 +1,6 @@
 package com.pluk.reader.domain.plans
 
+import com.pluk.reader.domain.account.AccountRepository
 import com.pluk.reader.domain.account.StorageQuota
 import com.pluk.reader.domain.model.ImportOutcome
 import com.pluk.reader.domain.profile.QuotaCache
@@ -7,6 +8,7 @@ import com.pluk.reader.domain.repository.BookUploadRepository
 import javax.inject.Inject
 import javax.inject.Singleton
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 
@@ -76,16 +78,18 @@ class PlanPrompts @Inject constructor() {
 
 /**
  * PLN-007 a PLN-009: después de importar, comprueba si lo importado entra en la nube y, si no, muestra una sola hoja
- * con el primero que no entra. Cada libro que entra cuenta para los siguientes del mismo lote.
+ * con el primero que no entra. Cada libro que entra cuenta para los siguientes del mismo lote. GST-006: sin sesión
+ * nada se sube, así que no hay hoja.
  */
 class ImportQuotaCheck @Inject constructor(
     private val quotaCache: QuotaCache,
     private val uploads: BookUploadRepository,
     private val prompts: PlanPrompts,
+    private val account: AccountRepository,
 ) {
     suspend operator fun invoke(outcomes: List<ImportOutcome>) {
         val imported = outcomes.filterIsInstance<ImportOutcome.Imported>()
-        if (imported.isEmpty()) return
+        if (imported.isEmpty() || account.user.first() == null) return
         val quota = quotaCache.last()
         val pending = uploads.pending()
         val importedIds = imported.map { it.bookId }.toSet()

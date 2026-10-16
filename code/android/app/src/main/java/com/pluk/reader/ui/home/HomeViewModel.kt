@@ -2,6 +2,12 @@ package com.pluk.reader.ui.home
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.pluk.reader.domain.account.AccountRepository
+import com.pluk.reader.domain.account.GuestBannerVariant
+import com.pluk.reader.domain.account.GuestNotice
+import com.pluk.reader.domain.flags.Feature
+import com.pluk.reader.domain.flags.FeatureFlags
+import com.pluk.reader.domain.account.initial
 import com.pluk.reader.domain.home.HomeContent
 import com.pluk.reader.domain.home.homeContent
 import com.pluk.reader.domain.repository.LibraryRepository
@@ -20,13 +26,17 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.flow
-import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
 data class HomeUiState(
     val loading: Boolean = true,
     val content: HomeContent = HomeContent.Empty,
+    /** GST-010, GST-023: el banner sin cuenta debajo del saludo, con la opción elegida (GST-025), o null. */
+    val guestBanner: GuestBannerVariant? = null,
+    /** HOM-012: la inicial de la cuenta para el avatar, o null sin cuenta (ícono de persona). */
+    val avatarInitial: String? = null,
 )
 
 @HiltViewModel
@@ -35,12 +45,26 @@ class HomeViewModel @Inject constructor(
     private val importBooks: ImportBooksUseCase,
     private val librarySync: LibrarySyncRequester,
     private val importQuotaCheck: ImportQuotaCheck,
+    private val guestNotice: GuestNotice,
+    account: AccountRepository,
+    flags: FeatureFlags,
 ) : ViewModel() {
     private val _messages = MutableSharedFlow<LibraryMessage>(extraBufferCapacity = MESSAGE_BUFFER)
     val messages: SharedFlow<LibraryMessage> = _messages.asSharedFlow()
 
-    val uiState: StateFlow<HomeUiState> = library.books
-        .map { HomeUiState(loading = false, content = homeContent(it)) }
+    val uiState: StateFlow<HomeUiState> = combine(
+        library.books,
+        guestNotice.visible,
+        account.user,
+        flags.state(Feature.GuestBannerNoBackup),
+    ) { books, guest, user, noBackup ->
+        HomeUiState(
+            loading = false,
+            content = homeContent(books),
+            guestBanner = if (!guest) null else if (noBackup) GuestBannerVariant.NoBackup else GuestBannerVariant.AllDevices,
+            avatarInitial = user?.initial()?.ifEmpty { null },
+        )
+    }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(STOP_TIMEOUT_MS), HomeUiState())
 
     /** HOM-003 con LIB-001: importa desde Inicio cuando la biblioteca está vacía. */
@@ -54,6 +78,11 @@ class HomeViewModel @Inject constructor(
             // SYN-001: lo importado se sube solo, igual que desde la Biblioteca.
             if (outcomes.any { it is ImportOutcome.Imported }) librarySync.request()
         }
+    }
+
+    /** GST-010: la cruz esconde el banner por 7 días en Inicio y en la Biblioteca. */
+    fun onDismissGuestNotice() {
+        viewModelScope.launch { guestNotice.dismiss() }
     }
 
     private companion object {

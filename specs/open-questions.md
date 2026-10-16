@@ -7,4 +7,4 @@
 | 4 | Idiomas de la interfaz | platforms/android.md |
 | 5 | Exportar notas y subrayados (ej. Markdown) | ANN |
 | 6 | Nombre del producto y de la cuenta de desarrollador en las tiendas | CMP |
-| 7 | Uso sin cuenta (solo local) en el futuro | ACC |
+| 7 | ~~Uso sin cuenta (solo local) en el futuro~~ Resuelta (2026-10-15): se usa sin cuenta, solo en el dispositivo; la cuenta es para sincronizar (`13-no-account.md`) | ACC |
