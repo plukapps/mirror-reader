@@ -53,6 +53,9 @@ final class LibraryViewModel {
         guestNotice = false
     }
 
+    /// GST-021: cuántos libros hay en el dispositivo (los que pasan a la cuenta al crearla).
+    func bookCount() async -> Int { await library.books().count }
+
     /// Libros importados en este dispositivo que aún no están en la nube (SYN-008).
     var pendingUploadCount: Int { allBooks.count { $0.isDownloaded && !$0.isUploaded } }
 

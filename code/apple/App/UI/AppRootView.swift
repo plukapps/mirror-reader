@@ -53,7 +53,15 @@ struct AppRootView: View {
                 OnboardingFlow(
                     router: router,
                     dependencies: onboarding,
-                    onFinish: { importBooks in start.enterHome(importBooks: importBooks) },
+                    onFinish: { importBooks in
+                        router.inApp = false
+                        start.enterHome(importBooks: importBooks)
+                    },
+                    onFinishInApp: {
+                        router.inApp = false
+                        start.enterHome(importBooks: false, openLibrary: true)
+                    },
+                    localBookCount: { await screens.library.bookCount() },
                     onStartReading: { start.markWelcomeSeen() }
                 )
                 // PRF-021: el onboarding se ve siempre como su diseño (O1 a O9).
@@ -64,9 +72,12 @@ struct AppRootView: View {
                 home: screens.home, search: screens.search, library: screens.library, sync: screens.sync, profile: screens.profile,
                 bookActions: screens.bookActions, makeReader: screens.makeReader, makeDetail: screens.makeDetail, plans: screens.plans,
                 importOnAppear: start.pendingImport, onImportOpened: start.importOpened,
+                libraryOnAppear: start.pendingLibrary, onLibraryOpened: start.libraryOpened,
                 onSignedOut: { backToOnboarding(.welcome, then: []) },
-                onCreateAccount: { backToOnboarding(.welcome, then: [.signUp(name: "", email: "")]) },
-                onSignIn: { backToOnboarding(.welcome, then: [.signIn]) }
+                // GST-011, GST-022: el alta corta y el ingreso salen de Inicio y vuelven a entrar, así RootView se arma de
+                // nuevo y la primera pasada con la sesión sube lo que había en el dispositivo (GST-012).
+                onCreateAccount: { backToOnboarding(.signUp(name: "", email: ""), then: [], inApp: true) },
+                onSignIn: { backToOnboarding(.signIn, then: [], inApp: true) }
             )
             .sheet(item: $resetFromHome) { link in
                 if let onboarding = screens.onboarding {
@@ -111,7 +122,13 @@ struct AppRootView: View {
         Task { await screens.home.openIncoming(url) }
     }
 
-    private func backToOnboarding(_ route: OnboardingRoute, then: [OnboardingRoute]) {
+    private func backToOnboarding(_ route: OnboardingRoute, then: [OnboardingRoute], inApp: Bool = false) {
+        router.inApp = inApp
+        // GST-011: la cruz del alta corta vuelve a Inicio, donde estaba.
+        router.onExitInApp = {
+            router.inApp = false
+            start.enterHome(importBooks: false)
+        }
         router.startOver(route, then: then)
         start.leaveHome()
     }

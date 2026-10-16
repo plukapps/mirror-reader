@@ -40,18 +40,18 @@ Plan de referencia: `specs/plans/2026-10-06-android-epub-viewer.md`
 
 ## Listo
 
-- **K-362** Uso sin cuenta, iOS: cierre de docs y verificación en el simulador. Plan `2026-10-16-ios-no-account.md`, rama `feature/no-account-ios`.
 - **K-134** Lector iOS, Tarea 7: cierre de docs y verificación a mano en el simulador. Rama `feature/ios-reader`. Era K-125 hasta el merge con `master`.
 - **K-038** Inicio, Tarea 4: cierre de docs y verificación a mano. Rama `feature/home`.
 - **K-024** Quitar el padding vertical de Readium (40 dp arriba y abajo en modo paginado) y reservar la barra de estado desde la pantalla. RDR-002. Rama `feat/page-turn-animation`.
 
 ## En curso
 
-- **K-361** Uso sin cuenta, iOS: alta corta (B1 → O3 → B3) e ingreso desde adentro. GST-011, GST-021, GST-022. Plan `2026-10-16-ios-no-account.md`, rama `feature/no-account-ios`.
+- **K-362** Uso sin cuenta, iOS: cierre de docs y verificación en el simulador. Plan `2026-10-16-ios-no-account.md`, rama `feature/no-account-ios`.
 - **K-176** Posición exacta, Tarea 5: verificación a mano entre el teléfono y el iPhone, cierre de docs. SYN-014.
 
 ## Revisión
 
+- **K-361** Uso sin cuenta, iOS: alta corta (B1 → O3 → B3) e ingreso desde adentro. GST-011, GST-021, GST-022. Plan `2026-10-16-ios-no-account.md`, rama `feature/no-account-ios`. Hecho: `OnboardingRouter.inApp` (la cruz o atrás en el primer paso vuelven a Inicio), B1 con cruz y "Paso 1 de 2", O3 "Paso 2 de 2", `ShortAllSetView` (B3) y ruta `.shortAllSet`; el ingreso desde Perfil termina en la Biblioteca (`pendingLibrary`). Alta e ingreso salen de Inicio y vuelven, así se sincroniza al entrar. Tests: `ShortSignUpTests` (256 en iPhone).
 - **K-360** Uso sin cuenta, iOS: Perfil sin cuenta (09g). GST-009, GST-018. Plan `2026-10-16-ios-no-account.md`, rama `feature/no-account-ios`. Hecho: `ProfileViewModel.signedIn`; sin sesión, tarjeta "Sin cuenta" con el logo, "Ya tengo una cuenta" (asset `ProfileLogin`, el `login` oficial de Material Symbols), sin espacio, contraseña, cerrar sesión, eliminar cuenta ni Wi-Fi, y sin leer la cuota. Tests: `ProfileViewModelTests` (253 en iPhone).
 - **K-359** Uso sin cuenta, iOS: cabecera de Inicio con avatar, banner A/B y aviso de la Biblioteca. HOM-012, GST-010, GST-023, GST-025, GST-026. Plan `2026-10-16-ios-no-account.md`, rama `feature/no-account-ios`. Hecho: `GuestContext` (sesión, aviso, flags y días), `HomeHeader` con avatar que abre Perfil, `GuestBanner` A/B con `BannerCovers` y SF Symbols, `GuestNoticeCard` en la Biblioteca. "Crear cuenta" abre por ahora el alta completa (el alta corta llega en K-361). Tests: `GuestTests` (251 en iPhone).
 - **K-358** Uso sin cuenta, iOS: sin hojas de cuota, aviso del 80 % ni línea de estado sin sesión; texto de quitar y FAQ. GST-006, GST-008, GST-017. Plan `2026-10-16-ios-no-account.md`, rama `feature/no-account-ios`. Hecho: `LibraryViewModel.signedIn` (pregunta la sesión en cada lectura): sin línea de estado ni aviso del 80 %; las hojas de cuota ya las corta `ImportQuotaCheck` (K-356); texto de quitar según la sesión; FAQ con el caso sin cuenta. Tests: `LibraryViewModelTests`, `SyncCoordinatorTests` (246 en iPhone).

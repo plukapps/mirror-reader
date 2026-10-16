@@ -11,6 +11,8 @@ final class AppStartViewModel {
     private(set) var start: Start = .loading
     /// ONB-013: "Importar mis libros" abre el selector apenas aparece Inicio.
     private(set) var pendingImport = false
+    /// GST-021, GST-022: al terminar el alta corta o el ingreso desde adentro, se abre la Biblioteca.
+    private(set) var pendingLibrary = false
 
     /// nil si la app funciona solo en local (sin Firebase): no hay cuenta que crear y abre Inicio (ADR 0015).
     @ObservationIgnored private let account: AccountRepository?
@@ -42,12 +44,15 @@ final class AppStartViewModel {
     func markWelcomeSeen() { welcome.markSeen() }
 
     /// Fin del onboarding: a Inicio, y atrás ya no vuelve (ONB-013, ONB-016).
-    func enterHome(importBooks: Bool) {
+    func enterHome(importBooks: Bool, openLibrary: Bool = false) {
         pendingImport = importBooks
+        pendingLibrary = openLibrary
         start = .home
     }
 
     func importOpened() { pendingImport = false }
+
+    func libraryOpened() { pendingLibrary = false }
 
     /// Vuelve al onboarding (por ejemplo, para iniciar sesión desde el enlace de una contraseña nueva).
     func leaveHome() { start = .welcome }

@@ -86,6 +86,43 @@ struct GuestReadyView: View {
     }
 }
 
+/// "Ya estás adentro" del alta corta, B3 (GST-021): el nombre y cuántos libros pasan a la cuenta (GST-012).
+/// "Volver a la biblioteca" abre la Biblioteca.
+struct ShortAllSetView: View {
+    let name: String?
+    let bookCount: Int
+    let onLibrary: () -> Void
+
+    var body: some View {
+        OnboardingPage(background: MarginColors.yellow) {
+            Brand().padding(.horizontal, 28).padding(.top, 28)
+            Spacer().frame(height: 28)
+            OnbTitle(text: name.map { "Ya estás\nadentro,\n\($0)." } ?? "Ya estás\nadentro.", size: 54, padding: 28)
+                .minimumScaleFactor(0.6)
+            Text(summary)
+                .font(.app(15))
+                .foregroundStyle(OnbColors.softOnYellow)
+                .lineSpacing(5)
+                .frame(maxWidth: 270, alignment: .leading)
+                .fixedSize(horizontal: false, vertical: true)
+                .padding(.horizontal, 28)
+                .padding(.top, 16)
+        } bottom: {
+            PrimaryButton(text: "Volver a la biblioteca", action: onLibrary)
+                .padding(.horizontal, 20)
+                .padding(.bottom, 16)
+        }
+    }
+
+    var summary: String {
+        switch bookCount {
+        case 0: "Iniciá sesión en otro dispositivo para tener ahí tus libros."
+        case 1: "Tu libro, con su progreso y sus notas, pasa a tu cuenta. Iniciá sesión en otro dispositivo para tenerlo ahí."
+        default: "Tus \(bookCount) libros, con su progreso y sus notas, pasan a tu cuenta. Iniciá sesión en otro dispositivo para tenerlos ahí."
+        }
+    }
+}
+
 /// Crear cuenta, O2 (ONB-003 a ONB-006).
 struct SignUpView: View {
     @State private var viewModel: SignUpViewModel
@@ -93,14 +130,18 @@ struct SignUpView: View {
     let onBack: () -> Void
     let onNext: (SignUpViewModel.Next) -> Void
     let onSignIn: () -> Void
+    /// GST-011: desde adentro de la app, cruz en lugar de flecha y dos pasos.
+    let inApp: Bool
 
     init(
         viewModel: SignUpViewModel,
         google: @escaping () async -> GoogleSignInResult,
         onBack: @escaping () -> Void,
         onNext: @escaping (SignUpViewModel.Next) -> Void,
-        onSignIn: @escaping () -> Void
+        onSignIn: @escaping () -> Void,
+        inApp: Bool = false
     ) {
+        self.inApp = inApp
         _viewModel = State(initialValue: viewModel)
         self.google = google
         self.onBack = onBack
@@ -111,8 +152,12 @@ struct SignUpView: View {
     var body: some View {
         @Bindable var vm = viewModel
         OnboardingPage(background: MarginColors.paper) {
-            StepHeader(onBack: onBack, stepLabel: stepLabel(1))
-            StepBar(step: 1)
+            let total = inApp ? shortOnboardingSteps : onboardingSteps
+            StepHeader(
+                onBack: onBack, backIcon: inApp ? "xmark" : "arrow.left", backLabel: inApp ? "Cerrar" : "Atrás",
+                stepLabel: stepLabel(1, of: total)
+            )
+            StepBar(step: 1, total: total)
             OnbTitle(text: "Creá tu\ncuenta").padding(.top, 20)
             GoogleButton(enabled: !vm.busy) { Task { await vm.google(await google()) } }
                 .padding(.horizontal, 20)
@@ -167,19 +212,23 @@ struct SignUpView: View {
 struct VerifyEmailView: View {
     @State private var viewModel: VerifyEmailViewModel
     let onNext: (VerifyEmailViewModel.Next) -> Void
+    /// GST-011: "Paso 2 de 2" en el alta corta.
+    let inApp: Bool
     @Environment(\.scenePhase) private var scenePhase
     @Environment(\.openURL) private var openURL
 
-    init(viewModel: VerifyEmailViewModel, onNext: @escaping (VerifyEmailViewModel.Next) -> Void) {
+    init(viewModel: VerifyEmailViewModel, inApp: Bool = false, onNext: @escaping (VerifyEmailViewModel.Next) -> Void) {
         _viewModel = State(initialValue: viewModel)
+        self.inApp = inApp
         self.onNext = onNext
     }
 
     var body: some View {
         let vm = viewModel
         OnboardingPage(background: MarginColors.paper) {
-            StepHeader(onBack: { Task { await vm.change() } }, stepLabel: stepLabel(2))
-            StepBar(step: 2)
+            let total = inApp ? shortOnboardingSteps : onboardingSteps
+            StepHeader(onBack: { Task { await vm.change() } }, stepLabel: stepLabel(2, of: total))
+            StepBar(step: 2, total: total)
             IconBadge(systemName: "envelope.badge").padding(.top, 22)
             OnbTitle(text: "Revisá tu bandeja").padding(.top, 16)
             OnbBody(text: "Confirmá \(vm.email) con el enlace que te enviamos por email y volvé acá. Si no lo encontrás, revisá spam o reenvialo.")

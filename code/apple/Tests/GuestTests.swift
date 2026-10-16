@@ -129,3 +129,38 @@ struct GuestTests {
         #expect(library.guestNotice)
     }
 }
+
+@MainActor
+struct ShortSignUpTests {
+    @Test("GST-011: desde adentro, atrás en el primer paso vuelve a Inicio; desde la bienvenida, a la bienvenida")
+    func popAtTheRoot() {
+        let router = OnboardingRouter(root: .signUp(name: "", email: ""))
+        var exited = 0
+        router.inApp = true
+        router.onExitInApp = { exited += 1 }
+        router.pop()
+        #expect(exited == 1)
+
+        let fromWelcome = OnboardingRouter(root: .signUp(name: "", email: ""))
+        fromWelcome.pop()
+        #expect(fromWelcome.root == .welcome)
+    }
+
+    @Test("GST-021: B3 dice cuántos libros pasan a la cuenta")
+    func shortAllSetSummary() {
+        #expect(ShortAllSetView(name: "Ana", bookCount: 6, onLibrary: {}).summary
+            == "Tus 6 libros, con su progreso y sus notas, pasan a tu cuenta. Iniciá sesión en otro dispositivo para tenerlos ahí.")
+        #expect(ShortAllSetView(name: nil, bookCount: 0, onLibrary: {}).summary
+            == "Iniciá sesión en otro dispositivo para tener ahí tus libros.")
+    }
+
+    @Test("GST-021, GST-022: al terminar desde adentro, Inicio abre la Biblioteca una sola vez")
+    func finishOpensTheLibrary() {
+        let start = AppStartViewModel(account: nil, welcome: MemoryWelcome())
+        start.enterHome(importBooks: false, openLibrary: true)
+        #expect(start.start == .home)
+        #expect(start.pendingLibrary)
+        start.libraryOpened()
+        #expect(!start.pendingLibrary)
+    }
+}

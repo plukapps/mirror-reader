@@ -21,6 +21,9 @@ struct RootView: View {
     /// ONB-013: al llegar desde "Importar mis libros" abre el selector de Archivos.
     var importOnAppear = false
     var onImportOpened: () -> Void = {}
+    /// GST-021, GST-022: al volver del alta corta o del ingreso, la Biblioteca.
+    var libraryOnAppear = false
+    var onLibraryOpened: () -> Void = {}
     /// PRF-009: la sesión se cerró desde Perfil.
     var onSignedOut: () -> Void = {}
     /// GST-011: el alta corta, desde el banner, el aviso o Perfil.
@@ -46,6 +49,12 @@ struct RootView: View {
                     onImportOpened()
                     importAction?()
                 }
+                #if os(iOS)
+                if libraryOnAppear {
+                    onLibraryOpened()
+                    tabs.select(.shelves)
+                }
+                #endif
                 await home.load()
                 sync.request()
                 // Al llegar desde el onboarding la app ya estaba activa: la posición empieza a escucharse ahora (SYN-012).
