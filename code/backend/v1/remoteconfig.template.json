@@ -13,6 +13,13 @@
       },
       "description": "Sincronización de notas (ACC-011, SYN-017, ADR 0016). true: las notas suben y bajan. false: quedan solo en el dispositivo. Se puede condicionar por la señal personalizada plan o por instalación.",
       "valueType": "BOOLEAN"
+    },
+    "guest_banner_no_backup_enabled": {
+      "defaultValue": {
+        "value": "false"
+      },
+      "description": "Banner sin cuenta de Inicio (GST-023, GST-025, ADR 0016). false: opción A, \"Tus libros, en todos tus dispositivos\". true: opción B, \"Tus libros sin respaldo\". Para una prueba A/B, una condición por porcentaje de usuarios.",
+      "valueType": "BOOLEAN"
     }
   }
 }

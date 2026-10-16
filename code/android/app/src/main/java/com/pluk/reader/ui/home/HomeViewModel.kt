@@ -3,7 +3,10 @@ package com.pluk.reader.ui.home
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.pluk.reader.domain.account.AccountRepository
+import com.pluk.reader.domain.account.GuestBannerVariant
 import com.pluk.reader.domain.account.GuestNotice
+import com.pluk.reader.domain.flags.Feature
+import com.pluk.reader.domain.flags.FeatureFlags
 import com.pluk.reader.domain.account.initial
 import com.pluk.reader.domain.home.HomeContent
 import com.pluk.reader.domain.home.homeContent
@@ -30,8 +33,8 @@ import kotlinx.coroutines.launch
 data class HomeUiState(
     val loading: Boolean = true,
     val content: HomeContent = HomeContent.Empty,
-    /** GST-010: aviso "solo en este dispositivo", debajo del saludo. */
-    val guestNotice: Boolean = false,
+    /** GST-010, GST-023: el banner sin cuenta debajo del saludo, con la opción elegida (GST-025), o null. */
+    val guestBanner: GuestBannerVariant? = null,
     /** HOM-012: la inicial de la cuenta para el avatar, o null sin cuenta (ícono de persona). */
     val avatarInitial: String? = null,
 )
@@ -44,12 +47,23 @@ class HomeViewModel @Inject constructor(
     private val importQuotaCheck: ImportQuotaCheck,
     private val guestNotice: GuestNotice,
     account: AccountRepository,
+    flags: FeatureFlags,
 ) : ViewModel() {
     private val _messages = MutableSharedFlow<LibraryMessage>(extraBufferCapacity = MESSAGE_BUFFER)
     val messages: SharedFlow<LibraryMessage> = _messages.asSharedFlow()
 
-    val uiState: StateFlow<HomeUiState> = combine(library.books, guestNotice.visible, account.user) { books, guest, user ->
-        HomeUiState(loading = false, content = homeContent(books), guestNotice = guest, avatarInitial = user?.initial()?.ifEmpty { null })
+    val uiState: StateFlow<HomeUiState> = combine(
+        library.books,
+        guestNotice.visible,
+        account.user,
+        flags.state(Feature.GuestBannerNoBackup),
+    ) { books, guest, user, noBackup ->
+        HomeUiState(
+            loading = false,
+            content = homeContent(books),
+            guestBanner = if (!guest) null else if (noBackup) GuestBannerVariant.NoBackup else GuestBannerVariant.AllDevices,
+            avatarInitial = user?.initial()?.ifEmpty { null },
+        )
     }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(STOP_TIMEOUT_MS), HomeUiState())
 

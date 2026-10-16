@@ -77,7 +77,7 @@ import com.pluk.reader.domain.home.HomeContent
 import com.pluk.reader.domain.home.greetingFor
 import com.pluk.reader.domain.model.LibraryBook
 import com.pluk.reader.ui.library.BookCover
-import com.pluk.reader.ui.library.GuestNoticeCard
+import com.pluk.reader.domain.account.GuestBannerVariant
 import com.pluk.reader.ui.library.toText
 import com.pluk.reader.ui.navigation.LocalBottomBarPadding
 import com.pluk.reader.ui.theme.MarginColors
@@ -110,7 +110,7 @@ fun HomeScreen(
         onSeeAll = onSeeAll,
         openImportPicker = openImportPicker,
         onImportPickerOpened = onImportPickerOpened,
-        guestNotice = state.guestNotice,
+        guestBanner = state.guestBanner,
         avatarInitial = state.avatarInitial,
         onOpenProfile = onOpenProfile,
         onDismissGuestNotice = viewModel::onDismissGuestNotice,
@@ -133,7 +133,7 @@ fun HomeContentView(
     onSeeAll: (LibraryFilter?) -> Unit,
     openImportPicker: Boolean = false,
     onImportPickerOpened: () -> Unit = {},
-    guestNotice: Boolean = false,
+    guestBanner: GuestBannerVariant? = null,
     onDismissGuestNotice: () -> Unit = {},
     onCreateAccount: () -> Unit = {},
     avatarInitial: String? = null,
@@ -162,7 +162,7 @@ fun HomeContentView(
                 .padding(bottom = 24.dp + bottomBarPadding),
         ) {
             HomeHeader(greeting, avatarInitial, onOpenProfile)
-            if (guestNotice) GuestNoticeCard(onCreateAccount, onDismissGuestNotice)
+            guestBanner?.let { GuestBanner(it, onCreateAccount, onDismissGuestNotice) }
             if (!loading) {
                 val reading = content.continueReading
                 if (reading != null) {

@@ -65,6 +65,7 @@ Parámetros:
 |---|---|---|
 | `plans` | JSON | Catálogo de planes (ACC-007, ADR 0017, otra rama). |
 | `notes_sync_enabled` | booleano | Sincronización de notas (ACC-011, SYN-017). Por defecto `true`. |
+| `guest_banner_no_backup_enabled` | booleano | Banner sin cuenta de Inicio (GST-023, GST-025): `false` opción A, `true` opción B. Para una prueba A/B, condición por porcentaje. Por defecto `false`. |
 
 ## Despliegue
 

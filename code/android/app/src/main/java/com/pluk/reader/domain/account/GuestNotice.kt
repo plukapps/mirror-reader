@@ -16,6 +16,15 @@ interface GuestNoticePreference {
     suspend fun dismiss()
 }
 
+/** GST-023: las dos opciones del banner de Inicio. GST-025 elige cuál. */
+enum class GuestBannerVariant {
+    /** A: "Tus libros, en todos tus dispositivos". */
+    AllDevices,
+
+    /** B: "Tus libros sin respaldo". */
+    NoBackup,
+}
+
 /** GST-010: un solo aviso para Inicio y la Biblioteca. */
 class GuestNotice @Inject constructor(
     account: AccountRepository,

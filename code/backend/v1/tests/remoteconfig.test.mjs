@@ -19,6 +19,14 @@ describe("Remote Config (ADR 0016)", () => {
     assert.equal(param.defaultValue.value, "true");
   });
 
+  // GST-025: el banner sin cuenta de Inicio arranca en la opción A
+  it("guest_banner_no_backup_enabled es booleano y apagado por defecto", () => {
+    const param = template.parameters.guest_banner_no_backup_enabled;
+    assert.ok(param, "falta guest_banner_no_backup_enabled");
+    assert.equal(param.valueType, "BOOLEAN");
+    assert.equal(param.defaultValue.value, "false");
+  });
+
   it("las condiciones que usan los parámetros existen", () => {
     const names = new Set((template.conditions ?? []).map((c) => c.name));
     for (const [key, param] of Object.entries(template.parameters)) {

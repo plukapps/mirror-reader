@@ -10,6 +10,9 @@ import kotlinx.coroutines.flow.StateFlow
 enum class Feature(val key: String, val default: Boolean) {
     /** SYN-017: sincronizar las notas. Si no se sabe, vale prendida. */
     NotesSync("notes_sync_enabled", default = true),
+
+    /** GST-025: el banner sin cuenta de Inicio usa la opción B ("Tus libros sin respaldo"). Si no se sabe, la A. */
+    GuestBannerNoBackup("guest_banner_no_backup_enabled", default = false),
 }
 
 interface FeatureFlags {

@@ -10,7 +10,7 @@ La sincronización de notas (SYN-016 y SYN-017, rebanada de notas) tiene que pod
 
 ### Remote Config, un parámetro booleano por función
 
-- Primer parámetro: `notes_sync_enabled`. Los nombres siguen `<función>_enabled`.
+- Primer parámetro: `notes_sync_enabled`. Los nombres siguen `<función>_enabled`. También sirve para elegir entre dos opciones de una pantalla: `guest_banner_no_backup_enabled` (GST-025, 2026-10-16) elige el texto del banner sin cuenta; para una prueba A/B se usa una condición por porcentaje de usuarios.
 - El valor por defecto dentro de la app es `true` (SYN-017: si no se sabe, vale prendida; hoy todas las cuentas tienen todo, ACC-011). El valor por defecto en la consola también es `true`.
 - **Por plan:** la app manda la señal personalizada `plan` (`free`, o el que tenga `users/{uid}.plan`) con `setCustomSignals`. Una condición de la consola, por ejemplo `app.customSignal['plan'] == 'free'`, cambia el valor para ese plan. Requiere firebase-config 22.1.0 o posterior en Android (el BoM 35 trae la 24.0.0) y 11.8.0 o posterior en iOS (el proyecto usa la 12.14.0). Fuente: documentación de Remote Config, "Custom signal conditions".
 - **Para una cuenta o una instalación** (pruebas): una condición por `app.firebaseInstallationId`.

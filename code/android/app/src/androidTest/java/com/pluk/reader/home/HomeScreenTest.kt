@@ -8,6 +8,7 @@ import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.test.ext.junit.runners.AndroidJUnit4
+import com.pluk.reader.domain.account.GuestBannerVariant
 import com.pluk.reader.domain.home.Greeting
 import com.pluk.reader.domain.home.homeContent
 import com.pluk.reader.domain.model.LibraryBook
@@ -74,26 +75,33 @@ class HomeScreenTest {
         compose.onNodeWithTag("reading-row").assertDoesNotExist()
     }
 
-    // GST-010 (H0): sin cuenta, el aviso va debajo del saludo y "Crear cuenta" avisa
+    // GST-023 (H0b): sin cuenta, el banner A debajo del saludo; toda la tarjeta crea la cuenta y la cruz lo cierra
     @Test
-    fun guestNoticeShowsUnderTheGreeting() {
+    fun guestBannerAllDevices() {
         var dismissed = 0
+        var create = 0
         compose.setContent {
             HomeContentView(
-                false,
-                homeContent(books),
-                Greeting.Night,
-                SnackbarHostState(),
-                {},
-                {},
-                {},
-                guestNotice = true,
+                false, homeContent(books), Greeting.Night, SnackbarHostState(), {}, {}, {},
+                guestBanner = GuestBannerVariant.AllDevices,
                 onDismissGuestNotice = { dismissed++ },
+                onCreateAccount = { create++ },
             )
         }
-        compose.onNodeWithTag("guest-notice").assertIsDisplayed()
-        compose.onNodeWithTag("guest-notice-close").performClick()
-        assertEquals(1, dismissed)
+        compose.onNodeWithText("Tus libros, en todos tus dispositivos").assertIsDisplayed().performClick()
+        compose.onNodeWithContentDescription("Cerrar aviso").performClick()
+        compose.waitForIdle()
+        assertEquals(listOf(1, 1), listOf(create, dismissed))
+    }
+
+    // GST-023 (H0): la opción B
+    @Test
+    fun guestBannerNoBackup() {
+        compose.setContent {
+            HomeContentView(false, homeContent(books), Greeting.Night, SnackbarHostState(), {}, {}, {}, guestBanner = GuestBannerVariant.NoBackup)
+        }
+        compose.onNodeWithText("Tus libros sin respaldo").assertIsDisplayed()
+        compose.onNodeWithText("Si cambiás de celu, se pierden. Guardalos gratis.").assertIsDisplayed()
     }
 
     // HOM-012: avatar con la inicial o, sin cuenta, el ícono; tocarlo abre Perfil

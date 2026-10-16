@@ -56,6 +56,7 @@ class HomeViewModelTest {
     private val pendingUploads = FakePendingUploads()
 
     private val guestPreference = com.pluk.reader.account.FakeGuestNoticePreference()
+    private val flags = com.pluk.reader.flags.FakeFeatureFlags()
 
     private fun viewModel(
         library: FakeLibrary,
@@ -70,7 +71,22 @@ class HomeViewModelTest {
             ImportQuotaCheck(quotaCache, pendingUploads, prompts, session),
             com.pluk.reader.domain.account.GuestNotice(session, library, guestPreference),
             session,
+            flags,
         )
+    }
+
+    // GST-023, GST-025: sin cuenta, el banner usa la opción A salvo que el flag pida la B
+    @Test
+    fun guestBannerVariantComesFromTheFlag() = runTest(dispatcher) {
+        val vm = viewModel(FakeLibrary(listOf(book("a", null))), signedIn = false)
+        val collected = backgroundScope.launch { vm.uiState.collect {} }
+        advanceUntilIdle()
+        assertEquals(com.pluk.reader.domain.account.GuestBannerVariant.AllDevices, vm.uiState.value.guestBanner)
+
+        flags.set(com.pluk.reader.domain.flags.Feature.GuestBannerNoBackup, true)
+        advanceUntilIdle()
+        assertEquals(com.pluk.reader.domain.account.GuestBannerVariant.NoBackup, vm.uiState.value.guestBanner)
+        collected.cancel()
     }
 
     // HOM-012: con sesión, la inicial del nombre (o del email); sin cuenta, ninguna (ícono de persona)
@@ -88,18 +104,18 @@ class HomeViewModelTest {
     @Test
     fun guestNoticeShowsWithoutSessionUntilDismissed() = runTest(dispatcher) {
         val vm = viewModel(FakeLibrary(listOf(book("a", null))), signedIn = false)
-        assertTrue(vm.uiState.first { !it.loading }.guestNotice)
+        assertTrue(vm.uiState.first { !it.loading }.guestBanner != null)
 
         vm.onDismissGuestNotice()
         advanceUntilIdle()
-        assertFalse(vm.uiState.first { !it.loading }.guestNotice)
+        assertFalse(vm.uiState.first { !it.loading }.guestBanner != null)
         assertTrue(guestPreference.dismissed.value)
     }
 
     @Test
     fun noGuestNoticeWithASession() = runTest(dispatcher) {
         val vm = viewModel(FakeLibrary(listOf(book("a", null))))
-        assertFalse(vm.uiState.first { !it.loading }.guestNotice)
+        assertFalse(vm.uiState.first { !it.loading }.guestBanner != null)
     }
 
     // HOM-002, HOM-004

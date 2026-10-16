@@ -83,6 +83,11 @@
     <string name="onb_import_books">Importar mis libros</string>
     <!-- Listo sin cuenta, L0 (GST-019) -->
     <string name="guest_ready_title">Ya podés\nleer.</string>
+    <!-- Banner sin cuenta de Inicio, opciones A y B (GST-023) -->
+    <string name="guest_banner_all_title">Tus libros, en todos tus dispositivos</string>
+    <string name="guest_banner_free">gratis</string>
+    <string name="guest_banner_backup_title">Tus libros sin respaldo</string>
+    <string name="guest_banner_backup_body">Si cambiás de celu, se pierden. Guardalos gratis.</string>
     <!-- Avatar de Inicio (HOM-012) -->
     <string name="home_open_profile">Abrir perfil</string>
     <!-- Aviso sin cuenta, H0 y L1 (GST-010) -->
