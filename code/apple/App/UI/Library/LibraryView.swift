@@ -10,6 +10,8 @@ struct LibraryView: View {
     var onOpen: (String) -> Void = { _ in }
     /// PLN-011: "Ver planes" del aviso del 80 %.
     var onSeePlans: () -> Void = {}
+    /// GST-010: "Crear cuenta" del aviso sin cuenta.
+    var onCreateAccount: () -> Void = {}
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
@@ -27,6 +29,11 @@ struct LibraryView: View {
                     onClose: viewModel.dismissUsageNotice
                 )
                 .padding(EdgeInsets(top: 16, leading: WindowLayout.horizontalPadding, bottom: 0, trailing: WindowLayout.horizontalPadding))
+            }
+            if viewModel.guestNotice {
+                // GST-010: "Crear cuenta" no esconde el aviso.
+                GuestNoticeCard(onCreateAccount: onCreateAccount, onClose: viewModel.dismissGuestNotice)
+                    .padding(EdgeInsets(top: 16, leading: WindowLayout.horizontalPadding, bottom: 0, trailing: WindowLayout.horizontalPadding))
             }
             Tabs(viewModel: viewModel)
             if viewModel.isLibraryEmpty {

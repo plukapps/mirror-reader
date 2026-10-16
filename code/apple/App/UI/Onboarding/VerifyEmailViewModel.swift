@@ -7,7 +7,7 @@ import ReaderDomain
 @Observable
 final class VerifyEmailViewModel {
     enum Next: Equatable {
-        case interests
+        case goal
         /// Volver a crear cuenta con estos datos (ONB-008).
         case change(name: String, email: String)
     }
@@ -66,7 +66,7 @@ final class VerifyEmailViewModel {
             while !Task.isCancelled {
                 guard let self else { return }
                 if (try? await self.auth.refreshEmailVerified()) == true {
-                    self.next = .interests
+                    self.next = .goal
                     self.polling = nil
                     return
                 }
@@ -102,7 +102,7 @@ final class VerifyEmailViewModel {
         error = nil
         defer { busy = false }
         if (try? await auth.refreshEmailVerified()) == true {
-            next = .interests
+            next = .goal
             return
         }
         do {

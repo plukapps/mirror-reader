@@ -17,14 +17,24 @@ final class LibraryViewModel {
     private let usageNoticePreference: UsageNoticePreference?
     /// PLN-011: el uso, si corresponde mostrar el aviso del 80 %; nil, sin aviso.
     private(set) var usageNotice: PlanUsage?
+    /// GST-006: sin sesión no hay nada de la nube a la vista (estado de sincronización, aviso del 80 %).
+    private(set) var signedIn = true
+    /// GST-010 (L1): el aviso "Tus libros están solo en este dispositivo".
+    private(set) var guestNotice = false
+    private let guest: GuestContext?
+    private let isSignedIn: @Sendable () async -> Bool
 
     /// - Parameters:
     ///   - sync: nil si no se muestra el estado de la sincronización.
     ///   - quotaCache, usageNotice: la última cuota y si el aviso del 80 % ya se descartó (PLN-011); nil, sin aviso.
+    ///   - isSignedIn: si hay sesión; se pregunta en cada lectura (al crear la cuenta, Inicio se arma de nuevo).
     init(
         library: LibraryRepository, sync: SyncCoordinator? = nil, quotaCache: QuotaCache? = nil,
-        usageNotice: UsageNoticePreference? = nil
+        usageNotice: UsageNoticePreference? = nil, isSignedIn: @escaping @Sendable () async -> Bool = { true },
+        guest: GuestContext? = nil
     ) {
+        self.guest = guest
+        self.isSignedIn = isSignedIn
         self.library = library
         self.sync = sync
         self.quotaCache = quotaCache
@@ -37,12 +47,21 @@ final class LibraryViewModel {
         usageNotice = nil
     }
 
+    /// GST-010: la cruz esconde el aviso (y el banner de Inicio) por unos días. "Crear cuenta" no lo esconde.
+    func dismissGuestNotice() {
+        guest?.dismiss()
+        guestNotice = false
+    }
+
+    /// GST-021: cuántos libros hay en el dispositivo (los que pasan a la cuenta al crearla).
+    func bookCount() async -> Int { await library.books().count }
+
     /// Libros importados en este dispositivo que aún no están en la nube (SYN-008).
     var pendingUploadCount: Int { allBooks.count { $0.isDownloaded && !$0.isUploaded } }
 
     /// Línea de estado de la sincronización (SYN-008), como `SyncStatus` de Android, o nil si no hay nada que decir.
     var syncStatus: SyncStatusLine? {
-        guard let state = sync?.state else { return nil }
+        guard signedIn, let state = sync?.state else { return nil }
         return SyncStatusLine(state: state, pendingUploads: pendingUploadCount)
     }
 
@@ -67,9 +86,13 @@ final class LibraryViewModel {
     /// Lee la base local. Se llama al abrir la pantalla y cada vez que la sincronización la cambia (SYN-001).
     func load() async {
         allBooks = await library.books()
+        signedIn = await isSignedIn()
+        guestNotice = await guest?.state(hasBooks: !allBooks.isEmpty).showNotice ?? false
         loading = false
         // La cuota guardada cambia con cada pasada de sincronización, que vuelve a llamar aquí.
-        if let quotaCache, let usageNoticePreference {
+        if !signedIn {
+            usageNotice = nil
+        } else if let quotaCache, let usageNoticePreference {
             let quota = quotaCache.last()
             usageNotice = shouldShowUsageNotice(quota, dismissed: usageNoticePreference.isDismissed()) ? PlanUsage(quota) : nil
         }

@@ -23,6 +23,9 @@ struct ProfileActions {
     var notify: (String) -> Void = { _ in }
     /// La pantalla de cambiar la contraseña va sin barra inferior, como en Android.
     var setTabBarHidden: (Bool) -> Void = { _ in }
+    /// GST-009: sin cuenta, la tarjeta de arriba abre el alta corta y "Ya tengo una cuenta", el ingreso. nil: avisan.
+    var createAccount: (() -> Void)?
+    var signIn: (() -> Void)?
 }
 
 
@@ -146,9 +149,9 @@ struct ProfileContent: View {
 
     var body: some View {
         VStack(spacing: 0) {
-            header
+            if viewModel.signedIn { header } else { guestHeader }
             ProfileSectionTitle(text: "Cuenta")
-            accountCard
+            if viewModel.signedIn { accountCard } else { guestAccountCard }
             ProfileSectionTitle(text: "Ajustes de lectura", bottom: 4)
             Text("Se aplican a todos tus libros.")
                 .font(.app(12))
@@ -198,6 +201,52 @@ struct ProfileContent: View {
         .accessibilityElement(children: .ignore)
         .accessibilityLabel(Text("Cuenta de \([viewModel.name, viewModel.email].compactMap { $0 }.joined(separator: ", "))"))
         .accessibilityAddTraits(.isButton)
+    }
+
+    // MARK: Sin cuenta (GST-009, 09g)
+
+    private var guestHeader: some View {
+        Button(action: actions.createAccount ?? actions.comingSoon) {
+            HStack(spacing: 14) {
+                MarginLogo()
+                    .fill(MarginColors.yellow)
+                    .frame(width: 26, height: 21)
+                    .frame(width: 56, height: 56)
+                    // Va sobre la cabecera amarilla: tinta fija en los dos modos (PRF-022).
+                    .background(Circle().fill(MarginColors.onYellow))
+                VStack(alignment: .leading, spacing: 4) {
+                    Text("Sin cuenta")
+                        .font(.app(20, .bold))
+                        .tracking(-20 * 0.02)
+                        .foregroundStyle(MarginColors.onYellow)
+                    Text("Creá una cuenta para tener tus libros en todos tus dispositivos.")
+                        .font(.app(13))
+                        .foregroundStyle(MarginColors.onYellowMuted)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
+                .frame(maxWidth: .infinity, alignment: .leading)
+                ProfileIcon(name: "ChevronRight", size: 24, color: MarginColors.onYellow)
+            }
+            .padding(16)
+            .background(MarginColors.yellow, in: RoundedRectangle(cornerRadius: 24))
+            .contentShape(RoundedRectangle(cornerRadius: 24))
+        }
+        .buttonStyle(.plain)
+        .padding(EdgeInsets(top: 16, leading: 16, bottom: 0, trailing: 16))
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel(Text("Sin cuenta. Crear una cuenta"))
+        .accessibilityAddTraits(.isButton)
+    }
+
+    private var guestAccountCard: some View {
+        ProfileCard {
+            ProfileRow(action: actions.signIn ?? actions.comingSoon) {
+                ProfileIcon(name: "Login", color: MarginColors.ink2)
+                Text("Ya tengo una cuenta").font(.app(15, .medium)).foregroundStyle(MarginColors.ink)
+                Spacer(minLength: 0)
+                ProfileIcon(name: "ChevronRight", color: MarginColors.muted)
+            }
+        }
     }
 
     // MARK: Cuenta (PRF-006 a PRF-010)
@@ -325,10 +374,12 @@ struct ProfileContent: View {
             }
             .padding(.horizontal, 16)
             .padding(.vertical, 14)
-            CardDivider()
-            // PRF-023.
-            switchRow("Sincronizar solo con Wi-Fi", "Ahorra datos móviles", isOn: viewModel.wifiOnly ?? false) {
-                if let on = viewModel.wifiOnly { viewModel.setWifiOnly(!on) } else { actions.comingSoon() }
+            // PRF-023. GST-009: sin cuenta no hay sincronización.
+            if viewModel.signedIn {
+                CardDivider()
+                switchRow("Sincronizar solo con Wi-Fi", "Ahorra datos móviles", isOn: viewModel.wifiOnly ?? false) {
+                    if let on = viewModel.wifiOnly { viewModel.setWifiOnly(!on) } else { actions.comingSoon() }
+                }
             }
             CardDivider()
             // PRF-016: todavía avisa que llega más adelante.

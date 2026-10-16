@@ -9,10 +9,6 @@ final class UserDefaultsOnboardingPreferences: OnboardingPreferences, @unchecked
         self.defaults = defaults
     }
 
-    func interests() -> Set<Genre> {
-        Set((defaults.stringArray(forKey: Keys.interests) ?? []).compactMap(Genre.init(rawValue:)))
-    }
-
     func goal() -> ReadingGoal? {
         (defaults.object(forKey: Keys.goalMinutes) as? Int).flatMap(ReadingGoal.init(rawValue:))
     }
@@ -26,10 +22,6 @@ final class UserDefaultsOnboardingPreferences: OnboardingPreferences, @unchecked
         return DailyReminder(enabled: enabled, hour: hour, minute: minute)
     }
 
-    func saveInterests(_ genres: Set<Genre>) {
-        defaults.set(genres.map(\.rawValue).sorted(), forKey: Keys.interests)
-    }
-
     func saveGoal(_ goal: ReadingGoal, reminder: DailyReminder) {
         defaults.set(goal.minutes, forKey: Keys.goalMinutes)
         defaults.set(reminder.enabled, forKey: Keys.reminderEnabled)
@@ -38,7 +30,6 @@ final class UserDefaultsOnboardingPreferences: OnboardingPreferences, @unchecked
     }
 
     private enum Keys {
-        static let interests = "onboardingInterests"
         static let goalMinutes = "readingGoalMinutes"
         static let reminderEnabled = "reminderEnabled"
         static let reminderHour = "reminderHour"

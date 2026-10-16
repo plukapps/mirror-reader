@@ -21,8 +21,15 @@ struct RootView: View {
     /// ONB-013: al llegar desde "Importar mis libros" abre el selector de Archivos.
     var importOnAppear = false
     var onImportOpened: () -> Void = {}
+    /// GST-021, GST-022: al volver del alta corta o del ingreso, la Biblioteca.
+    var libraryOnAppear = false
+    var onLibraryOpened: () -> Void = {}
     /// PRF-009: la sesión se cerró desde Perfil.
     var onSignedOut: () -> Void = {}
+    /// GST-011: el alta corta, desde el banner, el aviso o Perfil.
+    var onCreateAccount: () -> Void = {}
+    /// GST-022: el ingreso, desde Perfil.
+    var onSignIn: () -> Void = {}
     @Environment(\.scenePhase) private var scenePhase
     @State private var tabs = TabBarModel()
     /// LIB-001: selector de Archivos, desde Inicio o desde la biblioteca.
@@ -42,6 +49,12 @@ struct RootView: View {
                     onImportOpened()
                     importAction?()
                 }
+                #if os(iOS)
+                if libraryOnAppear {
+                    onLibraryOpened()
+                    tabs.select(.shelves)
+                }
+                #endif
                 await home.load()
                 sync.request()
                 // Al llegar desde el onboarding la app ya estaba activa: la posición empieza a escucharse ahora (SYN-012).
@@ -107,7 +120,10 @@ struct RootView: View {
                 Button("Cancelar", role: .cancel) { bookActions.cancelRemove() }
                 Button("Quitar", role: .destructive) { Task { await bookActions.confirmRemove(book) } }
             } message: { _ in
-                Text("Se borra de tu cuenta y de todos tus dispositivos, con su progreso. Podés volver a importarlo.")
+                // GST-008: sin cuenta, solo este dispositivo (L3).
+                Text(library.signedIn
+                    ? "Se borra de tu cuenta y de todos tus dispositivos, con su progreso. Podés volver a importarlo."
+                    : "Se borra el libro de este dispositivo, con su progreso y sus notas.")
             }
     }
 
@@ -189,7 +205,7 @@ struct RootView: View {
         case .search: SearchView(viewModel: search, onOpen: home.open(bookId:))
         case .shelves: LibraryView(
             viewModel: library, onImport: importAction ?? tabs.showComingSoon, onOpen: home.open(bookId:),
-            onSeePlans: plans.openPlans
+            onSeePlans: plans.openPlans, onCreateAccount: onCreateAccount
         )
         case .profile:
             ProfileView(
@@ -200,11 +216,16 @@ struct RootView: View {
                     openPlansAfterSheet: plans.openPlansAfterSheet,
                     sheetDismissed: plans.sheetDismissed,
                     notify: { home.show($0) },
-                    setTabBarHidden: { tabs.barHidden = $0 }
+                    setTabBarHidden: { tabs.barHidden = $0 },
+                    createAccount: onCreateAccount,
+                    signIn: onSignIn
                 ),
                 onSignedOut: onSignedOut
             )
-        default: HomeView(viewModel: home, onOpenLibrary: openLibrary, onImport: importAction)
+        default: HomeView(
+            viewModel: home, onOpenLibrary: openLibrary, onImport: importAction,
+            onOpenProfile: { tabs.select(.profile) }, onCreateAccount: onCreateAccount
+        )
         }
     }
     #endif

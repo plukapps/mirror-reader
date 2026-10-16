@@ -17,11 +17,11 @@ extension FaqId {
     var answer: LocalizedStringKey {
         switch self {
         case .epub: "tuck. abre libros EPUB sin protección. Los que vienen con DRM (la protección que ponen algunas tiendas) no se pueden abrir: hay que leerlos en la app de esa tienda.\n\nSi el archivo no tiene DRM y aun así no abre, puede estar dañado o incompleto. Probá descargarlo otra vez desde donde lo conseguiste y volvé a importarlo."
-        case .books: "Tus libros están en tu cuenta, en la nube, y en cada dispositivo donde entrás con ella. Un libro que agregás en un dispositivo aparece solo en los demás.\n\nSi un libro todavía no está en este dispositivo, se descarga cuando lo abrís. Para eso hace falta conexión; después se lee sin ella."
+        case .books: "Con una cuenta, tus libros están en la nube y en cada dispositivo donde entrás con ella. Un libro que agregás en un dispositivo aparece solo en los demás. Si un libro todavía no está en este dispositivo, se descarga cuando lo abrís. Para eso hace falta conexión; después se lee sin ella.\n\nSin cuenta, tus libros están solo en este dispositivo: si desinstalás la app o cambiás de teléfono, se pierden. Para guardarlos en la nube, creá una cuenta desde Perfil; los libros que ya tenés pasan a ella."
         case .space: "Tu plan define cuánto podés guardar en la nube. Lo ves arriba de todo en Perfil, en Espacio: cuánto usás y cuánto te queda.\n\nCuentan los archivos de los libros; las portadas no. Si llegás al límite, los libros nuevos quedan solo en este dispositivo y podés seguir leyendo todo. Para liberar espacio, quitá libros que ya no quieras."
-        case .add: "Desde Inicio o Estantes, con Importar, elegí uno o varios archivos EPUB del teléfono. También podés abrir un EPUB desde otra app (por ejemplo, el correo o Archivos) y elegir tuck.\n\nLos libros nuevos se suben a tu cuenta cuando hay conexión."
+        case .add: "Desde Inicio o Estantes, con Importar, elegí uno o varios archivos EPUB del teléfono. También podés abrir un EPUB desde otra app (por ejemplo, el correo o Archivos) y elegir tuck.\n\nCon una cuenta, los libros nuevos se suben a ella cuando hay conexión."
         case .sync: "Cada vez que leés, tuck. guarda en qué página quedaste y la sube a tu cuenta cuando hay conexión. Al abrir el mismo libro en otro dispositivo, sigue desde ahí.\n\nSi leíste sin conexión, la posición se sube sola la próxima vez que la app tenga red."
-        case .remove: "Mantené presionada la portada del libro y elegí Quitar de la biblioteca. Se borra de tu cuenta y de todos tus dispositivos, con su progreso.\n\nSi lo querés de vuelta, importá el archivo otra vez."
+        case .remove: "Mantené presionada la portada del libro y elegí Quitar de la biblioteca. Con una cuenta, se borra de tu cuenta y de todos tus dispositivos, con su progreso. Sin cuenta, se borra solo de este dispositivo.\n\nSi lo querés de vuelta, importá el archivo otra vez."
         }
     }
 }

@@ -35,6 +35,8 @@ final class ProfileViewModel {
     private(set) var name: String?
     private(set) var email: String?
     private(set) var initial = ""
+    /// GST-009: sin sesión, Perfil invita a crear la cuenta y no muestra lo de la cuenta.
+    private(set) var signedIn = true
     private(set) var canChangePassword = false
     /// nil mientras no hay ningún valor (ni leído ni guardado).
     private(set) var storage: StorageSummary?
@@ -90,8 +92,15 @@ final class ProfileViewModel {
         let user = await account?.currentUser()
         name = user?.displayName
         email = user?.email
-        initial = (user?.displayName ?? user?.email)?.trimmingCharacters(in: .whitespaces).first.map { String($0).uppercased() } ?? ""
+        initial = user?.initial ?? ""
         canChangePassword = user?.signInMethod == .password
+        // GST-009: sin cuenta (con Firebase o sin él) no se lee ni se muestra el espacio.
+        signedIn = user != nil
+        guard signedIn else {
+            storage = nil
+            storageFailed = false
+            return
+        }
         if storage == nil, let saved = cache.last() { storage = summary(saved) }
         guard let quota else {
             storageFailed = storage == nil
