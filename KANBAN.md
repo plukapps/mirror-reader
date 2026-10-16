@@ -42,12 +42,16 @@ Plan de referencia: `specs/plans/2026-10-06-android-epub-viewer.md`
 
 ## Listo
 
+- **K-350** Uso sin cuenta, Android: L0 con las tres portadas decorativas del diseño. GST-019. Rama `feature/no-account`.
+- **K-351** Inicio, Android: cabecera del diseño (marca, saludo a 34 y avatar con la inicial o el ícono de persona, que abre Perfil). GST-024. Rama `feature/no-account`.
+- **K-352** Uso sin cuenta, Android: banner de Inicio (opción A "Tus libros, en todos tus dispositivos", opción B "Tus libros sin respaldo") elegido por Remote Config (`guest_banner_no_backup`, ADR 0016). GST-023, GST-025. Rama `feature/no-account`.
 - **K-134** Lector iOS, Tarea 7: cierre de docs y verificación a mano en el simulador. Rama `feature/ios-reader`. Era K-125 hasta el merge con `master`.
 - **K-038** Inicio, Tarea 4: cierre de docs y verificación a mano. Rama `feature/home`.
 - **K-024** Quitar el padding vertical de Readium (40 dp arriba y abajo en modo paginado) y reservar la barra de estado desde la pantalla. RDR-002. Rama `feat/page-turn-animation`.
 
 ## En curso
 
+- **K-349** Uso sin cuenta: diseño nuevo (H0 "6b" y H0b "6e") y spec del banner de Inicio con dos opciones por feature flag (GST-023 a GST-025), avatar de Inicio y portadas de L0. Rama `feature/no-account`.
 - **K-176** Posición exacta, Tarea 5: verificación a mano entre el teléfono y el iPhone, cierre de docs. SYN-014.
 
 ## Revisión
