@@ -17,11 +17,25 @@ android {
         versionCode = 1
         versionName = "1.0"
         testInstrumentationRunner = "com.pluk.reader.HiltTestRunner"
+    }
 
-        // Enlaces de los emails de la cuenta (ONB-007, ONB-018, ADR 0014): página de acción de Firebase del proyecto.
-        val authLinkHost = "mirror-reading-staging.firebaseapp.com"
-        manifestPlaceholders["authLinkHost"] = authLinkHost
-        resValue("string", "auth_link_host", authLinkHost)
+    // Entornos (AND-007, AND-008, ADR 0020). Lo que cambia por entorno se declara solo aquí.
+    flavorDimensions += "environment"
+    productFlavors {
+        create("dev") {
+            dimension = "environment"
+            applicationIdSuffix = ".dev"
+            environment(name = "dev", authLinkHost = "mirror-reading-staging.firebaseapp.com")
+        }
+        create("stage") {
+            dimension = "environment"
+            applicationIdSuffix = ".stage"
+            environment(name = "stage", authLinkHost = "mirror-reading-staging.firebaseapp.com")
+        }
+        create("prod") {
+            dimension = "environment"
+            environment(name = "prod", authLinkHost = "mirror-reading-staging.firebaseapp.com")
+        }
     }
 
     buildTypes {
@@ -53,6 +67,16 @@ android {
         excludes += "/META-INF/{AL2.0,LGPL2.1}"
       }
     }
+}
+
+/**
+ * Valores de un entorno (ADR 0020). `authLinkHost`: página de acción de Firebase de los emails de la cuenta
+ * (ONB-007, ONB-018, ADR 0014).
+ */
+fun com.android.build.api.dsl.ApplicationProductFlavor.environment(name: String, authLinkHost: String) {
+    buildConfigField("String", "ENVIRONMENT", "\"$name\"")
+    manifestPlaceholders["authLinkHost"] = authLinkHost
+    resValue("string", "auth_link_host", authLinkHost)
 }
 
 kotlin {
