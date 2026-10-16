@@ -28,6 +28,8 @@ class GuestReadyScreenTest {
         compose.onNodeWithText("Empezá importando tus libros. Todo queda en este dispositivo, sin cuenta.").assertExists()
         compose.onNodeWithTag("guest-ready-start").assertHasClickAction()
         compose.onNodeWithTag("guest-ready-import").assertHasClickAction()
+        // Las portadas son ilustración: el lector de pantalla no las anuncia
+        compose.onNodeWithText("Letters from a Stoic").assertDoesNotExist()
     }
 
     // GST-019: "Empezar a leer" e "Importar mis libros"

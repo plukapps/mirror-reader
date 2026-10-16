@@ -29,8 +29,8 @@ import com.pluk.reader.ui.theme.MarginColors
 import com.pluk.reader.ui.theme.ReaderTheme
 
 /**
- * "Listo" sin cuenta, diseño L0 (GST-019), sin los libros de regalo del diseño: la app no trae contenido. Se llega
- * desde "Empezar a leer" de la bienvenida.
+ * "Listo" sin cuenta, diseño L0 (GST-019): las portadas son ilustración, no libros de regalo (la app no trae
+ * contenido). Se llega desde "Empezar a leer" de la bienvenida.
  */
 @Composable
 fun GuestReadyScreen(onStartReading: () -> Unit, onImportBooks: () -> Unit, modifier: Modifier = Modifier) {
@@ -56,6 +56,8 @@ fun GuestReadyScreen(onStartReading: () -> Unit, onImportBooks: () -> Unit, modi
             style = onbText(15.sp, color = OnbColors.SoftOnYellow, lineHeight = 1.45.em),
             modifier = Modifier.padding(start = 28.dp, end = 28.dp, top = 16.dp).widthIn(max = 270.dp),
         )
+        // GST-019: ilustración, no libros de la biblioteca.
+        ReadyCovers(Modifier.padding(start = 28.dp, end = 28.dp, top = 28.dp))
     }
 }
 
