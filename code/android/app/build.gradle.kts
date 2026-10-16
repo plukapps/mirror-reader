@@ -17,11 +17,33 @@ android {
         versionCode = 1
         versionName = "1.0"
         testInstrumentationRunner = "com.pluk.reader.HiltTestRunner"
+    }
 
-        // Enlaces de los emails de la cuenta (ONB-007, ONB-018, ADR 0014): página de acción de Firebase del proyecto.
-        val authLinkHost = "mirror-reading-staging.firebaseapp.com"
-        manifestPlaceholders["authLinkHost"] = authLinkHost
-        resValue("string", "auth_link_host", authLinkHost)
+    // Entornos (AND-007, AND-008, ADR 0020). Lo que cambia por entorno se declara solo aquí; cada uno se
+    // construye con un solo tipo de build (ENVIRONMENT_BUILD_TYPE).
+    flavorDimensions += "environment"
+    productFlavors {
+        create("dev") {
+            dimension = "environment"
+            applicationIdSuffix = ".dev"
+            environment(name = "dev", authLinkHost = "mirror-reading-staging.firebaseapp.com")
+        }
+        create("stage") {
+            dimension = "environment"
+            applicationIdSuffix = ".stage"
+            environment(name = "stage", authLinkHost = "mirror-reading-staging.firebaseapp.com")
+        }
+        create("beta") {
+            dimension = "environment"
+            applicationIdSuffix = ".beta"
+            environment(name = "beta", authLinkHost = "mirror-reading-staging.firebaseapp.com")
+            // Sin clave de release todavía: se firma con la de debug para poder instalarla (ADR 0020).
+            signingConfig = signingConfigs.getByName("debug")
+        }
+        create("prod") {
+            dimension = "environment"
+            environment(name = "prod", authLinkHost = "mirror-reading-staging.firebaseapp.com")
+        }
     }
 
     buildTypes {
@@ -53,6 +75,26 @@ android {
         excludes += "/META-INF/{AL2.0,LGPL2.1}"
       }
     }
+}
+
+/** Tipo de build de cada entorno (AND-007, ADR 0020): las demás combinaciones no se generan. */
+val ENVIRONMENT_BUILD_TYPE = mapOf("dev" to "debug", "stage" to "debug", "beta" to "release", "prod" to "release")
+
+androidComponents {
+    beforeVariants { variant ->
+        val environment = variant.productFlavors.single { it.first == "environment" }.second
+        variant.enable = ENVIRONMENT_BUILD_TYPE.getValue(environment) == variant.buildType
+    }
+}
+
+/**
+ * Valores de un entorno (ADR 0020). `authLinkHost`: página de acción de Firebase de los emails de la cuenta
+ * (ONB-007, ONB-018, ADR 0014).
+ */
+fun com.android.build.api.dsl.ApplicationProductFlavor.environment(name: String, authLinkHost: String) {
+    buildConfigField("String", "ENVIRONMENT", "\"$name\"")
+    manifestPlaceholders["authLinkHost"] = authLinkHost
+    resValue("string", "auth_link_host", authLinkHost)
 }
 
 kotlin {

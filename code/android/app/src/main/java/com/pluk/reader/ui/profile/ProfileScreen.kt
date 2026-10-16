@@ -114,6 +114,7 @@ fun ProfileScreen(
     }
     ProfileContent(
         state = state,
+        version = viewModel.environment.versionLabel(BuildConfig.VERSION_NAME),
         actions = ProfileActions(
             onComingSoon = { Toast.makeText(context, R.string.nav_coming_soon, Toast.LENGTH_SHORT).show() },
             onSignOut = viewModel::onSignOutRequested,

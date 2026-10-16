@@ -780,7 +780,7 @@ private const val PREVIEW_PAGE_TEXT =
 /**
  * Solo en builds de depuración: si existe el archivo `block_external_links` en la carpeta de la app, los
  * enlaces externos no se abren. Sirve para probar a mano o con adb sin que un toque abra el navegador.
- * Se activa con `adb shell run-as com.pluk.reader touch files/block_external_links` y se quita con `rm`.
+ * Se activa con `adb shell run-as com.pluk.reader.dev touch files/block_external_links` (con el paquete del entorno, ADR 0020) y se quita con `rm`.
  */
 private fun externalLinksBlockedForTests(context: Context): Boolean {
     val debuggable = context.applicationInfo.flags and android.content.pm.ApplicationInfo.FLAG_DEBUGGABLE != 0
