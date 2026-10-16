@@ -5,6 +5,7 @@ Plan de referencia: `specs/plans/2026-10-06-android-epub-viewer.md`
 
 ## Backlog
 
+- **K-166** Bug: un checkout nuevo de `code/apple` no compila. Readium movió la etiqueta `3.9.0` de `de07026e9f825a5791f27a7ac4cd6bb1a784ab8d` a `ed9cee0` (visto el 2026-10-16), que exige Swift tools 6.2 (Xcode 26), y `Package.resolved` no está en el repo (el `.xcodeproj` se genera). Solo compila una carpeta que ya tenía bajado el paquete viejo: en el worktree de K-163 se compiló con `-clonedSourcePackagesDirPath` apuntando a una copia de los paquetes del checkout principal y `-disableAutomaticPackageResolution`. Arreglo propuesto: fijar Readium por `revision: de07026…` en `project.yml` (y anotarlo en el ADR 0013). ADR 0013.
 - **K-156** Términos de uso y política de privacidad públicos (CMP-002, CMP-003). Cargar sus URL en `onb_terms_url` y `onb_privacy_url` (`strings.xml`): hoy el onboarding los muestra subrayados pero sin enlace. ONB-001, ONB-004.
 - **K-157** Publicar `/.well-known/assetlinks.json` en Firebase Hosting de `mirror-reading-staging` (paquete `com.pluk.reader` y SHA-256 de las firmas de debug y release) para que los enlaces de verificación y de contraseña nueva abran la app (O9) en lugar de la página de Firebase. Despliegue al proyecto real: pedirlo al usuario. ONB-018, ADR 0014.
 - **K-158** Cerrar sesión y perfil (ACC-006): hoy la única forma de volver a ver el onboarding es borrar los datos de la app. Definir qué pasa con la biblioteca local de la cuenta anterior.
@@ -33,7 +34,6 @@ Plan de referencia: `specs/plans/2026-10-06-android-epub-viewer.md`
 
 ## Listo
 
-- **K-164** Ícono, Tarea 5: arranque amarillo de iOS con los libros al centro (`UILaunchScreen`). WEL-001, WEL-002.
 - **K-165** Ícono, Tarea 6: cierre de docs y verificación a mano.
 - **K-134** Lector iOS, Tarea 7: cierre de docs y verificación a mano en el simulador. Rama `feature/ios-reader`. Era K-125 hasta el merge con `master`.
 - **K-038** Inicio, Tarea 4: cierre de docs y verificación a mano. Rama `feature/home`.
@@ -41,10 +41,11 @@ Plan de referencia: `specs/plans/2026-10-06-android-epub-viewer.md`
 
 ## En curso
 
-- **K-163** Ícono, Tarea 4: ícono de iOS (claro, oscuro, tintado) y de Mac (forma redondeada generada con un script). WEL-009.
+- **K-164** Ícono, Tarea 5: arranque amarillo de iOS con los libros al centro (`UILaunchScreen`). WEL-001, WEL-002.
 
 ## Revisión
 
+- **K-163** Ícono, Tarea 4: ícono de iOS (claro, oscuro, tintado) y de Mac (forma redondeada generada con un script). WEL-009. Hecho: `design/icons/mac/make_mac_icon.swift` genera los 10 PNG de Mac (forma redondeada de 824 sobre 1024, sombra suave); `AppIcon.appiconset` con Mac e iOS (claro, oscuro, tintado). Compila en Mac y en el simulador sin advertencias del catálogo; el `AppIcon.icns` del build se ve bien. Falta verlo en el Dock y en el simulador.
 - **K-162** Ícono, Tarea 3: logo de los libros dentro de Android (bienvenida y onboarding, arranque, notificación del recordatorio) en lugar de las cuatro barras. WEL-001, WEL-007. Hecho: `ic_logo.xml` (trazado del SVG recortado, en `margin_ink`) en `Brand()` y en el arranque de Android 8 a 11; `splash_icon.xml` con los libros dentro del círculo seguro; `ic_stat_libros` en la notificación; se borró `ic_margin_logo.xml`. Compila, pasan los tests JVM y compilan los de emulador. Falta verlo en el teléfono.
 - **K-161** Ícono, Tarea 2: ícono de Android (adaptable, monocromo y PNG clásicos) desde `design/icons/`. WEL-009. Plan `2026-10-16-app-icon.md`, rama `claude/word-tree-iconos-f95ca0`. Hecho: recursos del paquete, sin los de la plantilla (robot verde). Compila y pasan los tests JVM. Falta verlo en el teléfono.
 - **K-159** Bug: al iniciar sesión con una cuenta de email sin verificar, la app pasaba a O3 sin enviar el email de verificación (solo salía al crear la cuenta), y O3 decía "te enviamos un enlace". Visto por el usuario en el SM-S711B (2026-10-10) con la cuenta de desarrollo, que nunca se verificó. ONB-007, ONB-016. Rama `feature/onboarding`. Hecho: `SignInViewModel` envía el email al ingresar con la cuenta sin verificar y O3 arranca con la espera de 60 s si salió; texto de O3 que no promete un envío; ONB-016 actualizado. 2 tests JVM nuevos (vistos en rojo); 317 pasan. Falta verlo en el teléfono.
