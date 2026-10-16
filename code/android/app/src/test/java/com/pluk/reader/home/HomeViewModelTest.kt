@@ -57,15 +57,31 @@ class HomeViewModelTest {
 
     private val guestPreference = com.pluk.reader.account.FakeGuestNoticePreference()
 
-    private fun viewModel(library: FakeLibrary, signedIn: Boolean = true): HomeViewModel {
-        val session = com.pluk.reader.remote.FakeSession(if (signedIn) com.pluk.reader.domain.account.AccountUser("u1", null) else null)
+    private fun viewModel(
+        library: FakeLibrary,
+        signedIn: Boolean = true,
+        user: com.pluk.reader.domain.account.AccountUser = com.pluk.reader.domain.account.AccountUser("u1", null),
+    ): HomeViewModel {
+        val session = com.pluk.reader.remote.FakeSession(if (signedIn) user else null)
         return HomeViewModel(
             library,
             ImportBooksUseCase(library),
             { syncRequests++ },
             ImportQuotaCheck(quotaCache, pendingUploads, prompts, session),
             com.pluk.reader.domain.account.GuestNotice(session, library, guestPreference),
+            session,
         )
+    }
+
+    // HOM-012: con sesión, la inicial del nombre (o del email); sin cuenta, ninguna (ícono de persona)
+    @Test
+    fun avatarShowsTheInitialOnlyWithASession() = runTest(dispatcher) {
+        val named = viewModel(FakeLibrary(), user = com.pluk.reader.domain.account.AccountUser("u1", "b@mail.com", "ana Ruiz"))
+        assertEquals("A", named.uiState.first { !it.loading }.avatarInitial)
+        val emailOnly = viewModel(FakeLibrary(), user = com.pluk.reader.domain.account.AccountUser("u1", "bea@mail.com"))
+        assertEquals("B", emailOnly.uiState.first { !it.loading }.avatarInitial)
+        val guest = viewModel(FakeLibrary(), signedIn = false)
+        assertEquals(null, guest.uiState.first { !it.loading }.avatarInitial)
     }
 
     // GST-010 (H0): sin cuenta y con libros, Inicio muestra el aviso; descartarlo lo saca

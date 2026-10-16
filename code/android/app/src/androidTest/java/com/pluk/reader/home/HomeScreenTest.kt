@@ -3,6 +3,7 @@ package com.pluk.reader.home
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.createComposeRule
+import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
@@ -93,5 +94,18 @@ class HomeScreenTest {
         compose.onNodeWithTag("guest-notice").assertIsDisplayed()
         compose.onNodeWithTag("guest-notice-close").performClick()
         assertEquals(1, dismissed)
+    }
+
+    // HOM-012: avatar con la inicial o, sin cuenta, el ícono; tocarlo abre Perfil
+    @Test
+    fun avatarOpensTheProfile() {
+        var opened = 0
+        compose.setContent {
+            HomeContentView(false, homeContent(books), Greeting.Night, SnackbarHostState(), {}, {}, {}, avatarInitial = "A", onOpenProfile = { opened++ })
+        }
+        compose.onNodeWithText("A").assertIsDisplayed()
+        compose.onNodeWithContentDescription("Abrir perfil").performClick()
+        compose.waitForIdle()
+        assertEquals(1, opened)
     }
 }

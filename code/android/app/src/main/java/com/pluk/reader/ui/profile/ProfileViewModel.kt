@@ -3,6 +3,7 @@ package com.pluk.reader.ui.profile
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.pluk.reader.domain.account.AccountRepository
+import com.pluk.reader.domain.account.initial
 import com.pluk.reader.domain.account.AccountUser
 import com.pluk.reader.domain.account.QuotaSource
 import com.pluk.reader.domain.account.SignInMethod
@@ -117,7 +118,7 @@ class ProfileViewModel @Inject constructor(
             signedIn = user != null,
             name = user?.displayName,
             email = user?.email,
-            initial = user.initial(),
+            initial = user?.initial().orEmpty(),
             canChangePassword = user?.signInMethod == SignInMethod.PASSWORD,
             storage = quota?.toUi(),
             storageFailed = failed && quota == null,
@@ -208,9 +209,6 @@ class ProfileViewModel @Inject constructor(
     private fun updateReading(transform: (ReaderSettings) -> ReaderSettings) {
         viewModelScope.launch { settings.update(transform) }
     }
-
-    private fun AccountUser?.initial(): String =
-        (this?.displayName ?: this?.email)?.trim()?.firstOrNull()?.uppercase() ?: ""
 
     private fun StorageQuota.toUi(): StorageUi {
         val usage = storageUsage(this)

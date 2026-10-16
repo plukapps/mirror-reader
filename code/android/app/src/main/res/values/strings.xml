@@ -83,6 +83,8 @@
     <string name="onb_import_books">Importar mis libros</string>
     <!-- Listo sin cuenta, L0 (GST-019) -->
     <string name="guest_ready_title">Ya podés\nleer.</string>
+    <!-- Avatar de Inicio (HOM-012) -->
+    <string name="home_open_profile">Abrir perfil</string>
     <!-- Aviso sin cuenta, H0 y L1 (GST-010) -->
     <string name="guest_notice_title">Tus libros están solo en este dispositivo.</string>
     <string name="guest_notice_body">Creá una cuenta para tenerlos en todos.</string>

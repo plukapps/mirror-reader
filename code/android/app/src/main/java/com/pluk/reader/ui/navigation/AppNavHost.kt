@@ -279,6 +279,7 @@ fun AppNavHost(
                             openImportPicker = pendingImport,
                             onImportPickerOpened = { pendingImport = false },
                             onCreateAccount = { navController.navigate(Routes.signUp(inApp = true)) },
+                            onOpenProfile = { navController.navigateTo(Routes.PROFILE) },
                         )
                     }
                     composable(

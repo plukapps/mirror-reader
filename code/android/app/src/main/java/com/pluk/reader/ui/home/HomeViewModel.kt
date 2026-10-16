@@ -2,7 +2,9 @@ package com.pluk.reader.ui.home
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.pluk.reader.domain.account.AccountRepository
 import com.pluk.reader.domain.account.GuestNotice
+import com.pluk.reader.domain.account.initial
 import com.pluk.reader.domain.home.HomeContent
 import com.pluk.reader.domain.home.homeContent
 import com.pluk.reader.domain.repository.LibraryRepository
@@ -30,6 +32,8 @@ data class HomeUiState(
     val content: HomeContent = HomeContent.Empty,
     /** GST-010: aviso "solo en este dispositivo", debajo del saludo. */
     val guestNotice: Boolean = false,
+    /** HOM-012: la inicial de la cuenta para el avatar, o null sin cuenta (ícono de persona). */
+    val avatarInitial: String? = null,
 )
 
 @HiltViewModel
@@ -39,12 +43,13 @@ class HomeViewModel @Inject constructor(
     private val librarySync: LibrarySyncRequester,
     private val importQuotaCheck: ImportQuotaCheck,
     private val guestNotice: GuestNotice,
+    account: AccountRepository,
 ) : ViewModel() {
     private val _messages = MutableSharedFlow<LibraryMessage>(extraBufferCapacity = MESSAGE_BUFFER)
     val messages: SharedFlow<LibraryMessage> = _messages.asSharedFlow()
 
-    val uiState: StateFlow<HomeUiState> = combine(library.books, guestNotice.visible) { books, guest ->
-        HomeUiState(loading = false, content = homeContent(books), guestNotice = guest)
+    val uiState: StateFlow<HomeUiState> = combine(library.books, guestNotice.visible, account.user) { books, guest, user ->
+        HomeUiState(loading = false, content = homeContent(books), guestNotice = guest, avatarInitial = user?.initial()?.ifEmpty { null })
     }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(STOP_TIMEOUT_MS), HomeUiState())
 
