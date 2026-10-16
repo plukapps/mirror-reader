@@ -3,6 +3,7 @@ package com.pluk.reader.ui.profile
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.pluk.reader.domain.account.AccountRepository
+import com.pluk.reader.domain.environment.AppEnvironment
 import com.pluk.reader.domain.account.initial
 import com.pluk.reader.domain.account.AccountUser
 import com.pluk.reader.domain.account.QuotaSource
@@ -104,6 +105,8 @@ class ProfileViewModel @Inject constructor(
     private val appearancePreferences: AppearancePreferences,
     private val wifiOnlyPreference: WifiOnlyPreference,
     private val planPrompts: PlanPrompts,
+    /** AND-007: Perfil muestra el entorno junto a la versión fuera de producción. */
+    val environment: AppEnvironment = AppEnvironment.PROD,
 ) : ViewModel() {
     private val signOutState = MutableStateFlow(SignOutState())
     private val quota = MutableStateFlow<StorageQuota?>(null)
