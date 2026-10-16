@@ -85,6 +85,26 @@ Cada tarea: tarjeta a "En curso", test primero (JVM con fakes cuando se pueda; C
   - cerrar sesión → bienvenida;
   - actualizar una instalación con sesión → Inicio sin cambios.
 
+## Segunda vuelta: diseño del 2026-10-16
+
+Pedido del usuario: portadas en L0, banner de Inicio con dos opciones por feature flag y avatar en Inicio.
+
+### K-349 — Diseño y spec
+- Commit del diseño (H0 "6b", H0b "6e"; se quitó O4). GST-019, GST-023, GST-025 y HOM-012.
+
+### K-350 — L0 con portadas
+- Las tres portadas inclinadas del diseño, dibujadas en Compose (ilustración, sin semántica). Se reutilizan en el banner (K-352).
+
+### K-351 — Cabecera de Inicio
+- Marca ("tuck." con el punto ocre), saludo a 34 y avatar de 44: inicial con sesión, ícono de persona sin cuenta. Toca → Perfil. `HomeViewModel` expone la inicial.
+- Tests: `HomeViewModelTest` (inicial o null) y `HomeScreenTest` (avatar y clic).
+
+### K-352 — Banner con feature flag
+- `Feature.GuestBannerNoBackup` (`guest_banner_no_backup_enabled`, por defecto `false`, ADR 0016) en Android y en `remoteconfig.template.json`, con su test del backend. `FeatureTemplateTest` ya exige que esté en el template.
+- `HomeUiState.guestBanner`: `null`, `A` o `B`. `GuestBanner` en Compose con las dos opciones. La Biblioteca sigue con el aviso de L1.
+- Tests: `HomeViewModelTest` (A por defecto, B con el flag), `HomeScreenTest` (textos de cada opción, cruz y "Crear cuenta").
+- La prueba A/B se arma en la consola con una condición por porcentaje de usuarios (`percent`), que entra también en el template.
+
 ## Criterios de terminado
 - Todos los GST de Android con al menos un test que los nombra.
 - `./gradlew :app:testDebugUnitTest` en verde y los instrumentados de las pantallas tocadas en verde en el emulador.

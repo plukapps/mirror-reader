@@ -42,20 +42,20 @@ Plan de referencia: `specs/plans/2026-10-06-android-epub-viewer.md`
 
 ## Listo
 
-- **K-350** Uso sin cuenta, Android: L0 con las tres portadas decorativas del diseño. GST-019. Rama `feature/no-account`.
-- **K-351** Inicio, Android: cabecera del diseño (marca, saludo a 34 y avatar con la inicial o el ícono de persona, que abre Perfil). GST-024. Rama `feature/no-account`.
-- **K-352** Uso sin cuenta, Android: banner de Inicio (opción A "Tus libros, en todos tus dispositivos", opción B "Tus libros sin respaldo") elegido por Remote Config (`guest_banner_no_backup`, ADR 0016). GST-023, GST-025. Rama `feature/no-account`.
+- **K-351** Inicio, Android: cabecera del diseño (marca, saludo a 34 y avatar con la inicial o el ícono de persona, que abre Perfil). HOM-012. Rama `feature/no-account`.
+- **K-352** Uso sin cuenta, Android: banner de Inicio (opción A "Tus libros, en todos tus dispositivos", opción B "Tus libros sin respaldo") elegido por Remote Config (`guest_banner_no_backup_enabled`, ADR 0016). GST-023, GST-025. Rama `feature/no-account`.
 - **K-134** Lector iOS, Tarea 7: cierre de docs y verificación a mano en el simulador. Rama `feature/ios-reader`. Era K-125 hasta el merge con `master`.
 - **K-038** Inicio, Tarea 4: cierre de docs y verificación a mano. Rama `feature/home`.
 - **K-024** Quitar el padding vertical de Readium (40 dp arriba y abajo en modo paginado) y reservar la barra de estado desde la pantalla. RDR-002. Rama `feat/page-turn-animation`.
 
 ## En curso
 
-- **K-349** Uso sin cuenta: diseño nuevo (H0 "6b" y H0b "6e") y spec del banner de Inicio con dos opciones por feature flag (GST-023 a GST-025), avatar de Inicio y portadas de L0. Rama `feature/no-account`.
+- **K-350** Uso sin cuenta, Android: L0 con las tres portadas decorativas del diseño. GST-019. Rama `feature/no-account`.
 - **K-176** Posición exacta, Tarea 5: verificación a mano entre el teléfono y el iPhone, cierre de docs. SYN-014.
 
 ## Revisión
 
+- **K-349** Uso sin cuenta: diseño nuevo (H0 "6b" y H0b "6e") y spec del banner de Inicio con dos opciones por feature flag (GST-023, GST-025, HOM-012), avatar de Inicio y portadas de L0. Rama `feature/no-account`. Hecho: diseño commiteado; GST-019, GST-023, GST-025 y HOM-012 en los specs; tareas en el plan.
 - **K-347** Uso sin cuenta, Android: cierre de docs y verificación a mano en el teléfono y la tablet. Plan `2026-10-15-android-no-account.md`, rama `feature/no-account`. Hecho: notas en `android.md` y AGENTS.md. Falta la verificación a mano en el teléfono y la tablet (lista en el plan).
 - **K-346** Uso sin cuenta, Android: alta corta (B1 → O3 → B3) e ingreso desde Perfil a la Biblioteca. GST-011, GST-021, GST-022. Plan `2026-10-15-android-no-account.md`, rama `feature/no-account`. Hecho: argumento `inApp` en alta, verificación e ingreso; B1 con cruz y "Paso 1 de 2", O3 con "Paso 2 de 2", B3 (`ShortAllSetScreen`) y "Volver a la biblioteca"; Inicio, Biblioteca y Perfil abren el alta corta y el ingreso desde adentro, que termina en la Biblioteca. Tests: `ShortSignUpTest` (JVM), `ShortAllSetScreenTest` (instrumentado, compilado sin correr).
 - **K-345** Onboarding, Android: quitar los intereses (O4) del alta, pasos 1 a 3. ONB-003, ONB-009. Plan `2026-10-15-android-no-account.md`, rama `feature/no-account`. Hecho: sin ruta, pantalla, ViewModel, strings ni guardado de intereses; verificar y Google van a la meta (O5), que pasa a "Paso 3 de 3" sin flecha atrás. Tests JVM actualizados (`OnboardingViewModelsTest`, `OnboardingRulesTest`).

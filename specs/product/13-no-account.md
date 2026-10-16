@@ -6,9 +6,10 @@ Que quien instala la app pueda importar y leer sus libros enseguida, sin registr
 
 Sin cuenta todo vive en este dispositivo: nada se sube, nada se baja y no hay nada en la nube a nombre de nadie. No hay cuentas provisorias ni anónimas en la nube.
 
-Diseño: sección "5a — sin cuenta" de `design/Margin Ebook App.dc.html`: O1 v2, L0, H0, L1, L2, L3, 09g, la variante B del alta corta (B1 a B3) y T05 en tablet. Diferencias decididas con el usuario (2026-10-15):
+Diseño: sección "5a — sin cuenta" de `design/Margin Ebook App.dc.html`: O1 v2, L0, H0 (banner "6b"), H0b (banner "6e"), L1, L2, L3, 09g, la variante B del alta corta (B1 a B3) y T05 en tablet. Diferencias decididas con el usuario (2026-10-15):
 
-- **L0 no regala libros.** La app no trae contenido (visión): el texto invita a importar y no hay portadas de clásicos.
+- **L0 no regala libros.** La app no trae contenido (visión): el texto invita a importar. Las tres portadas del diseño quedan como ilustración (pedido del usuario, 2026-10-16), no como libros.
+- **El banner B dice "Tus libros sin respaldo"** y no "5 libros sin respaldo" (pedido del usuario, 2026-10-16).
 - **Sin código de 6 dígitos.** B2 no se construye: la verificación sigue siendo con el enlace del email (O3, ONB-007).
 - **Se quitan los intereses (O4)** de todo el alta, no solo del alta corta.
 - **Sin "Iniciar sesión con Apple"** en Android (B1 lo muestra; llega con iOS, K-168).
@@ -21,7 +22,7 @@ Primera rebanada: Android (teléfono y tablet). iPhone después, con su propio p
 
 - **GST-001** La bienvenida (O1) sigue el diseño O1 v2: fondo amarillo, logo y "tuck.", titular "Leé más. / Scrolleá menos. / Pensá despacio.", bajada "Tus EPUB, en un lugar tranquilo, en todos tus dispositivos.", botón principal "Empezar a leer" con flecha y, debajo, "¿Querés sincronizar?" con "Crear cuenta" · "Iniciar sesión". Al pie, el aviso de Términos y Política de privacidad. Cambia ONB-001 y ONB-002.
 - **GST-002** "Empezar a leer" abre "Listo" (GST-019) y deja registrado en este dispositivo que ya se pasó por la bienvenida. "Crear cuenta" lleva al alta completa (O2) e "Iniciar sesión" al ingreso (O7), como hoy.
-- **GST-019** "Listo" (L0), sin cuenta: fondo amarillo, "Ya podés / leer.", "Empezá importando tus libros. Todo queda en este dispositivo, sin cuenta.", "Empezar a leer" (abre Inicio) e "Importar mis libros" (abre Inicio y el selector de EPUB, como ONB-013). Sin portadas de libros. Atrás desde Inicio sale de la app.
+- **GST-019** "Listo" (L0), sin cuenta: fondo amarillo, "Ya podés / leer.", "Empezá importando tus libros. Todo queda en este dispositivo, sin cuenta.", "Empezar a leer" (abre Inicio) e "Importar mis libros" (abre Inicio y el selector de EPUB, como ONB-013). Entre el texto y los botones, las tres portadas inclinadas del diseño como ilustración: no son libros de la biblioteca, no se tocan y el lector de pantalla no las anuncia. Atrás desde Inicio sale de la app.
 - **GST-003** Al abrir la app: con sesión de email sin verificar, verificar (O3); con sesión, Inicio; sin sesión, Inicio si ya se pasó por la bienvenida en este dispositivo, y la bienvenida si no. Reemplaza a ONB-019. La pantalla de arranque sigue sin esperar nada (WEL-002).
 - **GST-004** Quien ya tenía la app con sesión no ve ningún cambio al actualizar: sigue entrando a Inicio con su cuenta.
 
@@ -36,7 +37,11 @@ Primera rebanada: Android (teléfono y tablet). iPhone después, con su propio p
 ### Invitar a crear la cuenta
 
 - **GST-009** Perfil sin cuenta (09g): la tarjeta amarilla de arriba (PRF-005) muestra el logo en el círculo, "Sin cuenta" y "Creá una cuenta para tener tus libros en todos tus dispositivos.", con flecha. Tocarla abre el alta corta (GST-011). En la sección "Cuenta", una sola fila: "Ya tengo una cuenta", que abre el ingreso (O7). No se muestran el espacio (PRF-006), "Cambiar contraseña", "Cerrar sesión" ni "Eliminar cuenta". En "App" no se muestra "Sincronizar solo con Wi-Fi". Los ajustes de lectura, el resto de "App" y la ayuda se ven como siempre.
-- **GST-010** Sin cuenta, Inicio (H0, debajo del saludo) y la Biblioteca (L1, arriba de la lista) muestran el aviso "Tus libros están solo en este dispositivo." / "Creá una cuenta para tenerlos en todos. Crear cuenta", con una cruz, cuando ya hay al menos un libro. Es un solo aviso por dispositivo: cerrarlo o tocar "Crear cuenta" en cualquiera de las dos pantallas lo descarta para siempre en las dos (L2). Tiene el aspecto del aviso de PLN-011. "Crear cuenta" abre el alta corta (GST-011).
+- **GST-010** Sin cuenta, Inicio (el banner de GST-023, debajo del saludo) y la Biblioteca (L1, arriba de la lista) muestran el aviso "Tus libros están solo en este dispositivo." / "Creá una cuenta para tenerlos en todos. Crear cuenta", con una cruz, cuando ya hay al menos un libro. Es un solo aviso por dispositivo: cerrarlo o tocar "Crear cuenta" en cualquiera de las dos pantallas lo descarta para siempre en las dos (L2). En la Biblioteca tiene el aspecto del aviso de PLN-011; en Inicio es el banner de GST-023. "Crear cuenta" abre el alta corta (GST-011).
+- **GST-023** Banner de Inicio sin cuenta: tarjeta beige con tres portadas inclinadas de ilustración y una insignia amarilla, una cruz arriba a la derecha y "Crear cuenta" con flecha. Toda la tarjeta, salvo la cruz, abre el alta corta. Hay dos opciones:
+  - **A** (H0b, "6e", la de siempre): insignia de sincronizar, "Tus libros, en todos tus dispositivos" y los íconos de teléfono, tablet y computadora con "gratis".
+  - **B** (H0, "6b"): insignia de subir a la nube, "Tus libros sin respaldo" y "Si cambiás de celu, se pierden. Guardalos gratis."
+- **GST-025** La opción del banner se elige desde la administración del producto, sin publicar una versión nueva (como ACC-011). Si la app todavía no lo sabe, vale A. Sirve para probar cuál lleva a más gente a crear la cuenta.
 - **GST-011** Alta corta, desde Perfil o desde el aviso (variante B): B1 es crear cuenta (O2) con una cruz arriba a la izquierda en lugar de la flecha y "Paso 1 de 2"; después, si hace falta, verificar el email (O3, con el enlace) con "Paso 2 de 2"; y al final B3. Sin meta diaria ni recordatorio. La cruz de B1 vuelve a donde estaba. Con Google se pasa de B1 directo a B3.
 - **GST-021** "Ya estás adentro" corto (B3): fondo amarillo, "Ya estás / adentro, {nombre}.", "Tus {N} libros, con su progreso y sus notas, pasan a tu cuenta. Iniciá sesión en otro dispositivo para tenerlos ahí." (sin libros: "Iniciá sesión en otro dispositivo para tener ahí tus libros.") y "Volver a la biblioteca", que abre la Biblioteca. Atrás desde ahí no vuelve al alta.
 - **GST-022** "Ya tengo una cuenta" abre el ingreso (O7) de siempre. Al iniciar sesión se abre la Biblioteca; si la cuenta tiene el email sin verificar, verificar (O3, ONB-016).
@@ -62,7 +67,8 @@ Primera rebanada: Android (teléfono y tablet). iPhone después, con su propio p
 - Dado que instalo la app, cuando toco "Empezar a leer", entonces veo "Ya podés leer."; cuando toco "Importar mis libros", veo Inicio y el selector de EPUB, sin haber creado una cuenta.
 - Dado que entré sin cuenta, cuando cierro la app y la vuelvo a abrir, entonces voy directo a Inicio, sin bienvenida.
 - Dado que uso la app sin cuenta, cuando abro la Biblioteca, entonces no veo ningún estado de sincronización ni aviso de cuota, aunque mis libros pesen más que el espacio de Free.
-- Dado que importo mi primer libro sin cuenta, cuando vuelvo a Inicio, entonces veo "Tus libros están solo en este dispositivo."; si lo cierro, no aparece más ni en Inicio ni en la Biblioteca.
+- Dado que importo mi primer libro sin cuenta, cuando vuelvo a Inicio, entonces veo el banner "Tus libros, en todos tus dispositivos"; si lo cierro, no aparece más ni en Inicio ni en la Biblioteca.
+- Dado que la administración eligió la opción B, cuando abro Inicio sin cuenta y con libros, entonces el banner dice "Tus libros sin respaldo".
 - Dado que uso la app sin cuenta, cuando toco Sepia en el lector, entonces se abre la hoja "Leé con tus temas y fuentes" y el tema no cambia.
 - Dado que tengo 3 libros y notas sin cuenta, cuando creo una cuenta desde Perfil, entonces veo "Paso 1 de 2", después "Ya estás adentro" con "Tus 3 libros…", y en otro dispositivo con la misma cuenta aparecen después de sincronizar.
 - Dado que tengo sin cuenta un libro que mi cuenta ya tenía en la nube, cuando inicio sesión, entonces lo veo una sola vez, abierto en la lectura más reciente.
