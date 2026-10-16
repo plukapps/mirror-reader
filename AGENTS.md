@@ -73,19 +73,20 @@ Arquitectura MVVM en capas, un solo módulo Gradle, paquetes `com.pluk.reader.{u
 - `di`: módulos de Hilt (con KSP, no kapt).
 - Coroutines y Flow para lo asíncrono. Sin `SharedPreferences`. Sin dependencias sin uso.
 
-- Raíz del proyecto Gradle: `code/android`. Namespace y applicationId `com.pluk.reader`. `minSdk 26`.
+- Raíz del proyecto Gradle: `code/android`. Namespace `com.pluk.reader`. `minSdk 26`.
+- Entornos (ADR 0020, AND-007): flavors `dev` (`com.pluk.reader.dev`, "Tuck Dev"), `stage` (`com.pluk.reader.stage`, "Tuck Stage") y `prod` (`com.pluk.reader`), cruzados con `debug`/`release`. Se trabaja con `devDebug` y se publica `prodRelease`. Lo que cambia por entorno se declara solo en `environment(...)` de `app/build.gradle.kts`; el código lo recibe como `AppEnvironment` (Hilt). Por ahora los tres usan `mirror-reading-staging`. Instalar: `./gradlew :app:installDevDebug`. El ícono de `dev`, `stage` y `prodDebug` lleva una etiqueta generada por `tools/make_env_icons.py` (requiere `fonttools` en un venv); volver a correrlo si cambia el ícono de `main`.
 - Motor de EPUB: Readium Kotlin Toolkit 3.4.0 (ADR 0004, provisional).
-- Tests JVM: `./gradlew :app:testDebugUnitTest`
-- Tests en emulador: `./gradlew :app:connectedDebugAndroidTest` (requiere un emulador encendido; listar con `~/Library/Android/sdk/emulator/emulator -list-avds`).
-- Un solo test o clase en emulador (AGP 9 no acepta `--tests`): `./gradlew :app:connectedDebugAndroidTest -Pandroid.testInstrumentationRunnerArguments.class=com.pluk.reader.reader.NombreTest`.
+- Tests JVM: `./gradlew :app:testDevDebugUnitTest`
+- Tests en emulador: `./gradlew :app:connectedDevDebugAndroidTest` (requiere un emulador encendido; listar con `~/Library/Android/sdk/emulator/emulator -list-avds`).
+- Un solo test o clase en emulador (AGP 9 no acepta `--tests`): `./gradlew :app:connectedDevDebugAndroidTest -Pandroid.testInstrumentationRunnerArguments.class=com.pluk.reader.reader.NombreTest`.
 - Los tests que tocan clases de Readium (`EpubPreferences`, `Locator`), Room, DataStore o la pantalla del lector corren en emulador, no en JVM. Los de `ReaderViewModel` y la lógica pura corren en JVM con repositorios falsos.
 - Los tests de emulador usan Hilt: `HiltTestRunner` y `TestStorageModule` (Room en memoria y DataStore temporal reemplazan a `StorageModule`). En tests con Compose, los bucles de espera deben llamar `compose.waitForIdle()`.
 - Toolchain: AGP 9.1.0, Gradle 9.3.1, `compileSdk 37` (lo exige Readium 3.4.0) y core library desugaring. La API de Readium se verifica con `javap` sobre `~/.gradle/caches/.../readium-*-api.jar` cuando la documentación no alcanza.
-- Si hay más de un dispositivo conectado, `connectedDebugAndroidTest` corre en todos (también en un teléfono físico). Para limitarlo al emulador: `ANDROID_SERIAL=emulator-5554 ./gradlew ...`.
+- Si hay más de un dispositivo conectado, `connectedDevDebugAndroidTest` corre en todos (también en un teléfono físico). Para limitarlo al emulador: `ANDROID_SERIAL=emulator-5554 ./gradlew ...`.
 - Fixture de pruebas: `code/android/tools/make_fixture_epub.py`.
-- Pruebas con adb: los enlaces web del libro abren el navegador al tocarlos. En builds de depuración se bloquean con `adb shell run-as com.pluk.reader touch files/block_external_links` y se vuelven a permitir con `rm files/block_external_links`.
-- Cuenta (ADR 0014): Firebase Auth con email y Google (Credential Manager). La app se usa sin cuenta (GST, ADR 0019): "Empezar a leer" en la bienvenida; la cuenta se crea desde Perfil o desde la bienvenida. Google exige el SHA-1 de la máquina registrado en Firebase. Para volver a ver la bienvenida: con cuenta, Perfil → Cerrar sesión (PRF-009), que borra los libros de este dispositivo (los que no se subieron se pierden); sin cuenta, borrar los datos de la app (`adb shell pm clear com.pluk.reader`).
-- Firebase (ADR 0005, ADR 0007): `code/android/app/google-services.json` se descarga de la consola (Configuración del proyecto → app `com.pluk.reader`) y NO va al repo (está en `.gitignore`). Sin él, el build falla. Revisar `git status` antes de commitear: nunca `git add -A` a ciegas.
+- Pruebas con adb: los enlaces web del libro abren el navegador al tocarlos. En builds de depuración se bloquean con `adb shell run-as com.pluk.reader.dev touch files/block_external_links` y se vuelven a permitir con `rm files/block_external_links`.
+- Cuenta (ADR 0014): Firebase Auth con email y Google (Credential Manager). La app se usa sin cuenta (GST, ADR 0019): "Empezar a leer" en la bienvenida; la cuenta se crea desde Perfil o desde la bienvenida. Google exige el SHA-1 de la máquina registrado en Firebase. Para volver a ver la bienvenida: con cuenta, Perfil → Cerrar sesión (PRF-009), que borra los libros de este dispositivo (los que no se subieron se pierden); sin cuenta, borrar los datos de la app (`adb shell pm clear com.pluk.reader.dev`; en otro entorno, su paquete).
+- Firebase (ADR 0005, ADR 0007): `code/android/app/google-services.json` se descarga de la consola (Configuración del proyecto → cualquiera de las apps; trae los clientes de `com.pluk.reader`, `.dev` y `.stage`) y NO va al repo (está en `.gitignore`). Sin él, o sin el cliente del paquete de la variante, el build falla ("No matching client found"). Un proyecto de producción aparte iría en `app/src/prod/google-services.json`. Revisar `git status` antes de commitear: nunca `git add -A` a ciegas.
 
 ## Apple (Mac e iOS)
 

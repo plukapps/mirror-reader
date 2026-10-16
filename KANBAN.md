@@ -40,6 +40,8 @@ Plan de referencia: `specs/plans/2026-10-06-android-epub-viewer.md`
 
 ## Listo
 
+- **K-374** Entornos Android: docs (AGENTS, `android.md`) y verificación a mano en el teléfono (dev y prod instalados juntos). AND-007. Docs hechos (AGENTS, `android.md`, comentario de `ReaderScreen`); `devDebug` y `stageDebug` instalados en el SM-S711B y dev arranca sin cierres; falta mirar el lanzador, Perfil e ingreso con Google (el usuario). Plan `2026-10-16-android-environments.md`, rama `claude/android-multi-environment-setup-aa0245`.
+
 - **K-134** Lector iOS, Tarea 7: cierre de docs y verificación a mano en el simulador. Rama `feature/ios-reader`. Era K-125 hasta el merge con `master`.
 - **K-038** Inicio, Tarea 4: cierre de docs y verificación a mano. Rama `feature/home`.
 - **K-024** Quitar el padding vertical de Readium (40 dp arriba y abajo en modo paginado) y reservar la barra de estado desde la pantalla. RDR-002. Rama `feat/page-turn-animation`.
@@ -49,6 +51,13 @@ Plan de referencia: `specs/plans/2026-10-06-android-epub-viewer.md`
 - **K-176** Posición exacta, Tarea 5: verificación a mano entre el teléfono y el iPhone, cierre de docs. SYN-014.
 
 ## Revisión
+
+- **K-375** Entornos Android: ícono con la etiqueta del entorno (DEV, STAGE, DEBUG en `prodDebug`), como Chrome Beta. AND-007. Pedido del usuario (2026-10-16). Plan `2026-10-16-android-environments.md`, rama `claude/android-multi-environment-setup-aa0245`. Hecho: `tools/make_env_icons.py`, `ic_launcher_foreground` e `ic_launcher_monochrome` en `src/dev`, `src/stage` y `src/prodDebug`. Las cuatro variantes compilan; dev y stage instalados en el SM-S711B.
+- **K-373** Entornos Android: registrar `com.pluk.reader.dev` y `.stage` en `mirror-reading-staging` con el SHA-1 de debug y bajar el `google-services.json` nuevo. Manual, con el usuario. ADR 0020. Plan `2026-10-16-android-environments.md`, rama `claude/android-multi-environment-setup-aa0245`. Hecho (2026-10-16, con el MCP de Firebase, pedido del usuario): apps `1:327635508467:android:36738c002f0130cd7feb86` (dev) y `…:841b082fe8be48207feb86` (stage) con el SHA-1 de debug; `google-services.json` con los tres clientes en el worktree y en el checkout principal.
+
+- **K-372** Entornos Android: `AppEnvironment` en el dominio, provisto por Hilt, y el entorno junto a la versión en Perfil. AND-008. Plan `2026-10-16-android-environments.md`, rama `claude/android-multi-environment-setup-aa0245`. Hecho: `domain/environment/AppEnvironment` (`fromName`, `isProduction`, `versionLabel`), `di/EnvironmentModule`, `ProfileViewModel.environment` y la versión de Perfil. Tests JVM: `AppEnvironmentTest`, `BuildEnvironmentTest` (542 en verde en `prodDebug`, y en `devDebug` y `stageDebug` con el json temporal).
+
+- **K-371** Entornos Android: flavors `dev`, `stage` y `prod` (paquete, nombre, `ENVIRONMENT` y `authLinkHost` por flavor). AND-007, AND-008. Plan `2026-10-16-android-environments.md`, rama `claude/android-multi-environment-setup-aa0245`. Hecho: dimensión `environment`, `environment(name, authLinkHost)` en `build.gradle.kts`, `app_name` en `src/dev` y `src/stage`. `prodDebug` compila con el json actual; `devDebug` y `stageDebug` compilaron con un json temporal (paquetes `.dev`/`.stage`, nombres Tuck Dev/Tuck Stage). Con el json real esperan a K-373.
 
 - **K-369** Uso sin cuenta, iOS: cierre de docs y verificación en el simulador. Plan `2026-10-16-ios-no-account.md`, rama `feature/no-account-ios`. Hecho: notas en `apple.md`, README y AGENTS. En el simulador "Sin cuenta iPhone 16": bienvenida O1 v2; con la bienvenida vista, un EPUB por "Abrir con" se importa y se abre sin cuenta; Inicio con la cabecera y el banner (leyó la opción B que está publicada en Firebase). La app compila para Mac. Falta recorrer a mano L0, Perfil, el alta corta y el ingreso (necesitan tocar la pantalla).
 - **K-368** Uso sin cuenta, iOS: alta corta (B1 → O3 → B3) e ingreso desde adentro. GST-011, GST-021, GST-022. Plan `2026-10-16-ios-no-account.md`, rama `feature/no-account-ios`. Hecho: `OnboardingRouter.inApp` (la cruz o atrás en el primer paso vuelven a Inicio), B1 con cruz y "Paso 1 de 2", O3 "Paso 2 de 2", `ShortAllSetView` (B3) y ruta `.shortAllSet`; el ingreso desde Perfil termina en la Biblioteca (`pendingLibrary`). Alta e ingreso salen de Inicio y vuelven, así se sincroniza al entrar. Tests: `ShortSignUpTests` (256 en iPhone).
@@ -222,6 +231,8 @@ Plan de referencia: `specs/plans/2026-10-06-android-epub-viewer.md`
 - **K-023** Margen de página de Readium en 0 (`pageMargins`), para que el texto use todo el ancho y alto disponibles. RDR-002. Rama `feat/page-turn-animation`.
 
 ## Hecho
+
+- **K-370** Entornos Android: ADR 0020, AND-007 y AND-008, plan y tarjetas. Pedido del usuario (2026-10-16). Plan `2026-10-16-android-environments.md`, rama `claude/android-multi-environment-setup-aa0245`. Plan aprobado por el usuario (2026-10-16).
 
 - **K-362** Uso sin cuenta, iOS: plan `2026-10-16-ios-no-account.md` y tarjetas. Reemplaza a la tarjeta de iOS del Backlog (era K-348). Pedido del usuario (2026-10-16): armar el plan y ejecutarlo. Era K-355 hasta integrar `develop`.
 - **K-345** Uso sin cuenta: spec `13-no-account.md` (GST), ADR 0019 y plan `2026-10-15-android-no-account.md`. Reemplaza a K-288. Aprobado por el usuario (2026-10-15).
