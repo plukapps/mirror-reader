@@ -48,11 +48,11 @@ Plan de referencia: `specs/plans/2026-10-06-android-epub-viewer.md`
 
 ## En curso
 
-- **K-344** Ícono, Tarea 7: logo de los libros en `Brand` de iOS (onboarding) en lugar de las cuatro barras (`MarginLogo`). WEL-007, WEL-009. Plan `2026-10-16-app-icon.md`. Apareció al integrar `develop`.
 - **K-176** Posición exacta, Tarea 5: verificación a mano entre el teléfono y el iPhone, cierre de docs. SYN-014.
 
 ## Revisión
 
+- **K-344** Ícono, Tarea 7: logo de los libros en `Brand` de iOS (onboarding) en lugar de las cuatro barras (`MarginLogo`). WEL-007, WEL-009. Plan `2026-10-16-app-icon.md`. Apareció al integrar `develop`. Hecho: `Logo.imageset` (SVG recortado, plantilla) en `Brand`; se borró `MarginLogo`. Visto en el simulador. Pasan los tests de la app en Mac (236) y en iPhone (243).
 - **K-339** Ícono, Tarea 2: ícono de Android (adaptable, monocromo y PNG clásicos) desde `design/icons/`. WEL-009. Plan `2026-10-16-app-icon.md`, rama `claude/word-tree-iconos-f95ca0`. Hecho: recursos del paquete, sin los de la plantilla (robot verde). Compila y pasan los tests JVM. Falta verlo en el teléfono.
 - **K-340** Ícono, Tarea 3: logo de los libros dentro de Android (bienvenida y onboarding, arranque, notificación del recordatorio) en lugar de las cuatro barras. WEL-001, WEL-007. Hecho: `ic_logo.xml` (trazado del SVG recortado, en `margin_ink`) en `Brand()` y en el arranque de Android 8 a 11; `splash_icon.xml` con los libros dentro del círculo seguro; `ic_stat_libros` en la notificación; se borró `ic_margin_logo.xml`. Compila, pasan los tests JVM y compilan los de emulador. Falta verlo en el teléfono.
 - **K-341** Ícono, Tarea 4: ícono de iOS (claro, oscuro, tintado) y de Mac (forma redondeada generada con un script). WEL-009. Hecho: `design/icons/mac/make_mac_icon.swift` genera los 10 PNG de Mac (forma redondeada de 824 sobre 1024, sombra suave); `AppIcon.appiconset` con Mac e iOS (claro, oscuro, tintado). Compila en Mac y en el simulador sin advertencias del catálogo; el `AppIcon.icns` del build se ve bien. Falta verlo en el Dock y en el simulador.
