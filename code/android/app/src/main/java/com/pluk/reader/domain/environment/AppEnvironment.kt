@@ -7,6 +7,7 @@ package com.pluk.reader.domain.environment
 enum class AppEnvironment(val id: String) {
     DEV("dev"),
     STAGE("stage"),
+    BETA("beta"),
     PROD("prod");
 
     val isProduction: Boolean get() = this == PROD

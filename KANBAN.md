@@ -5,6 +5,8 @@ Plan de referencia: `specs/plans/2026-10-06-android-epub-viewer.md`
 
 ## Backlog
 
+- **K-377** Android: clave de firma de release para `betaRelease` y `prodRelease` (hoy beta usa la de debug y prod sale sin firmar), guardada fuera del repo, y su SHA-1 registrado en Firebase para Google. Junto con la publicación (K-011). ADR 0020.
+
 - **K-240** Planes, iOS: al importar con "Abrir con" desde otra app, la comprobación de cuota (P02) no corre porque el lector se abre enseguida a pantalla completa. Mostrar la hoja al cerrar el lector, o antes de abrirlo. PLN-007 a PLN-009. Encontrado en K-224.
 - **K-209** Android, modo oscuro: en "Cambiar contraseña" (PRF-020) los campos conservan el borde claro del onboarding y "Guardar" deshabilitado se ve gris claro sobre el fondo oscuro. Se lee, pero desentona con el resto. Pasar `OnbTextField` y `PrimaryButton` a los tokens de la paleta fuera del onboarding (PRF-022). Visto en el SM-S711B el 2026-10-13.
 - **K-201** Apple: los tests de la Mac no arrancan (`Early unexpected exit`): con `Signing.local.xcconfig` la app se firma con el equipo y el framework `ReaderDomain` del paquete queda firmado ad hoc, y dyld lo rechaza al cargarlo. Pasa también en `library-actions`, sin cambios de Perfil. Revisar la firma de los productos de paquete en Mac (o `disable-library-validation` solo en Debug). Visto el 2026-10-12.
@@ -51,6 +53,8 @@ Plan de referencia: `specs/plans/2026-10-06-android-epub-viewer.md`
 - **K-176** Posición exacta, Tarea 5: verificación a mano entre el teléfono y el iPhone, cierre de docs. SYN-014.
 
 ## Revisión
+
+- **K-376** Entornos Android: entorno `beta` nuevo y un solo tipo de build por entorno (dev y stage en debug; beta y prod en release). Beta se firma por ahora con la clave de debug. AND-007, ADR 0020. Pedido del usuario (2026-10-16). Plan `2026-10-16-android-environments.md`, rama `claude/android-multi-environment-setup-aa0245`. Hecho: flavor `beta`, `ENVIRONMENT_BUILD_TYPE` con `beforeVariants`, ícono BETA (sale `prodDebug`), `AppEnvironment.BETA`, app `…:7d1ed923f263006f7feb86` en Firebase con el SHA-1 de debug. Tests JVM: 543 en dev y stage. Beta, Dev y Stage instaladas en el SM-S711B.
 
 - **K-375** Entornos Android: ícono con la etiqueta del entorno (DEV, STAGE, DEBUG en `prodDebug`), como Chrome Beta. AND-007. Pedido del usuario (2026-10-16). Plan `2026-10-16-android-environments.md`, rama `claude/android-multi-environment-setup-aa0245`. Hecho: `tools/make_env_icons.py`, `ic_launcher_foreground` e `ic_launcher_monochrome` en `src/dev`, `src/stage` y `src/prodDebug`. Las cuatro variantes compilan; dev y stage instalados en el SM-S711B.
 - **K-373** Entornos Android: registrar `com.pluk.reader.dev` y `.stage` en `mirror-reading-staging` con el SHA-1 de debug y bajar el `google-services.json` nuevo. Manual, con el usuario. ADR 0020. Plan `2026-10-16-android-environments.md`, rama `claude/android-multi-environment-setup-aa0245`. Hecho (2026-10-16, con el MCP de Firebase, pedido del usuario): apps `1:327635508467:android:36738c002f0130cd7feb86` (dev) y `…:841b082fe8be48207feb86` (stage) con el SHA-1 de debug; `google-services.json` con los tres clientes en el worktree y en el checkout principal.

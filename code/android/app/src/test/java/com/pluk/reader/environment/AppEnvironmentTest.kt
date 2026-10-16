@@ -13,6 +13,7 @@ class AppEnvironmentTest {
     fun `AND-008 cada flavor tiene su entorno`() {
         assertEquals(AppEnvironment.DEV, AppEnvironment.fromName("dev"))
         assertEquals(AppEnvironment.STAGE, AppEnvironment.fromName("stage"))
+        assertEquals(AppEnvironment.BETA, AppEnvironment.fromName("beta"))
         assertEquals(AppEnvironment.PROD, AppEnvironment.fromName("prod"))
     }
 
@@ -26,12 +27,14 @@ class AppEnvironmentTest {
         assertTrue(AppEnvironment.PROD.isProduction)
         assertFalse(AppEnvironment.DEV.isProduction)
         assertFalse(AppEnvironment.STAGE.isProduction)
+        assertFalse(AppEnvironment.BETA.isProduction)
     }
 
     @Test
     fun `AND-007 la version muestra el entorno fuera de produccion`() {
         assertEquals("1.0 · dev", AppEnvironment.DEV.versionLabel("1.0"))
         assertEquals("1.0 · stage", AppEnvironment.STAGE.versionLabel("1.0"))
+        assertEquals("1.0 · beta", AppEnvironment.BETA.versionLabel("1.0"))
         assertEquals("1.0", AppEnvironment.PROD.versionLabel("1.0"))
     }
 }

@@ -2,7 +2,7 @@
 """Íconos del lanzador con la etiqueta del entorno (AND-007, ADR 0020).
 
 Toma `ic_launcher_foreground.xml` e `ic_launcher_monochrome.xml` de `src/main` y escribe una copia con la
-etiqueta (DEV, STAGE, DEBUG) en el source set de cada variante, que pisa a la de `main`. `prodRelease` usa el
+etiqueta (DEV, STAGE, BETA) en el source set de cada entorno, que pisa a la de `main`. `prodRelease` usa el
 ícono sin etiqueta.
 
 El texto se convierte en trazados con Host Grotesk Bold (`assets/fonts`), así el ícono sigue siendo vectorial.
@@ -20,7 +20,7 @@ from fontTools.varLib.instancer import instantiateVariableFont
 
 ROOT = Path(__file__).resolve().parent.parent / "app" / "src"
 FONT = ROOT / "main" / "assets" / "fonts" / "HostGrotesk.ttf"
-VARIANTS = {"dev": "DEV", "stage": "STAGE", "prodDebug": "DEBUG"}
+VARIANTS = {"dev": "DEV", "stage": "STAGE", "beta": "BETA"}
 
 INK = "#FF1C0A06"  # libros del ícono
 PAPER = "#FFFFFFFF"

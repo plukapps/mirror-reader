@@ -3,7 +3,7 @@
 **Objetivo:** tres variantes de la app Android que se instalan juntas (`com.pluk.reader.dev`, `.stage` y `com.pluk.reader`), con la configuración de cada entorno en un solo lugar del build, lista para apuntar a servidores distintos más adelante.
 
 **Specs:** AND-007 y AND-008 (nuevos, `specs/platforms/android.md`). **Decisión técnica:** ADR 0020.
-**Rama:** `claude/android-multi-environment-setup-aa0245`, desde `develop`. PR contra `develop`. **Tarjetas:** K-370 a K-375.
+**Rama:** `claude/android-multi-environment-setup-aa0245`, desde `develop`. PR contra `develop`. **Tarjetas:** K-370 a K-376.
 **Pedido del usuario (2026-10-16):** entornos debug (dev), stage y producción con paquetes distintos; primero Android, después iOS. Decisiones: flavors de entorno cruzados con debug/release; los tres contra `mirror-reading-staging` por ahora; sufijos `.dev` y `.stage`. Después: que registre yo los paquetes con el MCP de Firebase (K-373), el PR, y un ícono con etiqueta por entorno (K-375).
 
 ## Tareas
@@ -42,9 +42,16 @@
 - `tools/make_env_icons.py` toma `ic_launcher_foreground.xml` e `ic_launcher_monochrome.xml` de `main` y escribe la copia con la etiqueta en `src/<variante>/res/drawable/`. El texto son trazados de Host Grotesk Bold (sin PNG). La etiqueta entra en la zona segura de 66 dp; los libros se recortan alrededor de ella. En el ícono temático las letras quedan caladas.
 - **Terminado:** las cuatro variantes compilan; vista previa revisada (máscara redonda, temático y tamaño chico); `devDebug` y `stageDebug` instalados en el SM-S711B.
 
+### K-376 — Beta y un tipo de build por entorno (S)
+- Pedido del usuario (2026-10-16): dev y stage en debug; un entorno nuevo, beta, en release; prod en release. Nada más por ahora; más adelante dev, stage o beta pueden apuntar a otro servidor.
+- Flavor `beta` (`com.pluk.reader.beta`, "Tuck Beta", etiqueta BETA, firmado con la clave de debug), mapa `ENVIRONMENT_BUILD_TYPE` y `beforeVariants` que apaga el resto. `prodDebug` y su ícono DEBUG se van.
+- `AppEnvironment.BETA`; `BuildEnvironmentTest` comprueba que dev y stage son depurables. Beta y prod se revisan en el APK (AGP 9 no arma tests JVM de release).
+- App `com.pluk.reader.beta` en `mirror-reading-staging` con el SHA-1 de debug (MCP de Firebase).
+- **Terminado:** solo existen `devDebug`, `stageDebug`, `betaRelease` y `prodRelease`; tests JVM en verde en dev y stage; Tuck Beta instalada en el teléfono.
+
 ## Fuera de alcance
 - Proyecto de Firebase de producción separado (tarjeta nueva en Backlog cuando se decida).
-- Firma de release y publicación.
+- Clave de firma de release y publicación (beta usa la de debug mientras tanto).
 - iOS (plan propio después).
 
 ## Riesgos
@@ -57,3 +64,4 @@
 ## Resultado
 - 2026-10-16: `com.pluk.reader.dev` y `com.pluk.reader.stage` registradas en `mirror-reading-staging` (MCP de Firebase) con el SHA-1 de debug; el `google-services.json` nuevo trae los tres clientes con su cliente OAuth. Las cuatro variantes compilan; 542 tests JVM en verde en `devDebug`, `stageDebug` y `prodDebug`. `devDebug` y `stageDebug` instalados en el SM-S711B junto a la app que ya estaba; `devDebug` arranca sin cierres.
 - Pendiente (K-374): mirar el lanzador, Perfil (`· dev`) e ingreso con Google en dev; `connectedDevDebugAndroidTest` en un emulador.
+- 2026-10-16 (K-376): `beta` agregado; solo existen `devDebug`, `stageDebug`, `betaRelease` (no depurable, firmada con el SHA-1 de debug) y `prodRelease` (sin firmar). 543 tests JVM en verde en dev y stage. Tuck Beta, Dev y Stage instaladas en el SM-S711B; Beta abre sin cierres.
