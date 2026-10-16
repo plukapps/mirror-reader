@@ -223,6 +223,7 @@ Plan de referencia: `specs/plans/2026-10-06-android-epub-viewer.md`
 
 ## Hecho
 
+- **K-370** Perfil: marca de la app (logo y "tuck.") arriba de la tarjeta del usuario, con o sin cuenta, en Android e iOS. PRF-024. Rama `claude/profile-app-icon-name-a99a8f`, PR #48. Plan `2026-10-16-profile-brand.md`. Pedido del usuario (2026-10-16). Era K-338 en la rama, renumerada al integrar `develop`. Hecho: `Brand` (Android) acepta un color y tiñe el logo de los libros (WEL-009); Perfil lo muestra antes de la tarjeta en Android e iOS, con el color de texto del modo. `ProfileScreenTest.showsAppBrandAboveAccount` (PRF-024, instrumentado). Verificado en el SM-S711B sin cuenta (2026-10-16); falta verlo con cuenta, en modo oscuro y en el iPhone. Aprobado con el merge del PR #48.
 - **K-362** Uso sin cuenta, iOS: plan `2026-10-16-ios-no-account.md` y tarjetas. Reemplaza a la tarjeta de iOS del Backlog (era K-348). Pedido del usuario (2026-10-16): armar el plan y ejecutarlo. Era K-355 hasta integrar `develop`.
 - **K-345** Uso sin cuenta: spec `13-no-account.md` (GST), ADR 0019 y plan `2026-10-15-android-no-account.md`. Reemplaza a K-288. Aprobado por el usuario (2026-10-15).
 - **K-339** Ícono, Tarea 2: ícono de Android (adaptable, monocromo y PNG clásicos) desde `design/icons/`. WEL-009. Plan `2026-10-16-app-icon.md`, rama `claude/word-tree-iconos-f95ca0`. Hecho: recursos del paquete, sin los de la plantilla (robot verde). Compila y pasan los tests JVM. Aprobado por el usuario e integrado con el PR #46 (2026-10-16).
