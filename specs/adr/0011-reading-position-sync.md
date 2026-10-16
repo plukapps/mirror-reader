@@ -51,4 +51,5 @@ El listener aplica las posiciones nuevas en cuanto llegan, con la app a la vista
 
 - Solo se ve en vivo el avance de un dispositivo cuando este cierra el libro o pasa a segundo plano. Leer en dos a la vez no se refleja al instante (K-092 lo resolvería).
 - La posición pasa a depender del formato de locator de Readium. Apple lo comparte; hay que verificarlo al llevar esto a esa plataforma (K-079).
+- Ubicación exacta (SYN-014, 2026-10-12, plan `2026-10-12-exact-position.md`): el `currentLocator` de Readium solo trae la proporción dentro del capítulo, y al restaurar en otra pantalla se caía una página antes o después. Ahora el locator lleva además `text` (`before`, `highlight` y `after`, 32 caracteres cada uno) desde el primer carácter visible de la página, que la app calcula con un script propio. Readium, en Kotlin y en Swift, busca ese texto al restaurar. Consecuencia: el documento de posición guarda ~100 caracteres del libro del usuario, dentro de su propia cuenta. El modelo y las reglas no cambian.
 - Reglas nuevas en Firestore: hay que desplegarlas al proyecto real, acción del usuario.

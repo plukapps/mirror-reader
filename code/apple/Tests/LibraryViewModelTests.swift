@@ -15,8 +15,42 @@ private func book(_ id: String, _ progress: Int?) -> LibraryBook {
     LibraryBook(id: id, title: "T\(id)", author: nil, coverPath: nil, progressPercent: progress)
 }
 
+private final class MemoryUsageNotice: UsageNoticePreference, @unchecked Sendable {
+    var dismissed = false
+    func isDismissed() -> Bool { dismissed }
+    func dismiss() { dismissed = true }
+}
+
+private let mib: Int64 = 1024 * 1024
+
 @MainActor
 struct LibraryViewModelTests {
+    @Test("PLN-011: con 12 MB de 15 MB aparece el aviso; cerrarlo lo descarta y no vuelve")
+    func usageNotice() async {
+        let cache = PlansMemoryQuotaCache(StorageQuota(usedBytes: 12 * mib, quotaBytes: 15 * mib))
+        let preference = MemoryUsageNotice()
+        let viewModel = LibraryViewModel(library: MutableLibrary([]), quotaCache: cache, usageNotice: preference)
+        await viewModel.load()
+        #expect(viewModel.usageNotice?.text == "Usás 12 MB de 15 MB")
+        #expect(viewModel.usageNotice?.free == "3 MB")
+        viewModel.dismissUsageNotice()
+        #expect(viewModel.usageNotice == nil)
+        #expect(preference.dismissed)
+        await viewModel.load()
+        #expect(viewModel.usageNotice == nil)
+    }
+
+    @Test("PLN-011: la cuota que trae una pasada se ve al recargar; debajo del 80 % no hay aviso")
+    func usageNoticeFollowsCache() async {
+        let cache = PlansMemoryQuotaCache(StorageQuota(usedBytes: 2 * mib, quotaBytes: 15 * mib))
+        let viewModel = LibraryViewModel(library: MutableLibrary([]), quotaCache: cache, usageNotice: MemoryUsageNotice())
+        await viewModel.load()
+        #expect(viewModel.usageNotice == nil)
+        cache.saved = StorageQuota(usedBytes: 13 * mib, quotaBytes: 15 * mib)
+        await viewModel.load()
+        #expect(viewModel.usageNotice != nil)
+    }
+
     private let books = [book("nuevo", nil), book("leyendo", 42), book("terminado", 100)]
 
     @Test("LIB-010: al cargar muestra todos los libros y las cantidades de cada pestaña")

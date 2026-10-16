@@ -1,5 +1,8 @@
 package com.pluk.reader.ui.library
 
+import com.pluk.reader.ui.actions.bookClickable
+import com.pluk.reader.ui.actions.coverAnchor
+import com.pluk.reader.ui.actions.rememberCoverAnchor
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
@@ -26,6 +29,17 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
+import com.pluk.reader.ui.plans.PlanIcons
+import com.pluk.reader.domain.profile.StorageUsage
+import androidx.compose.foundation.border
+import androidx.compose.foundation.layout.offset
+import androidx.compose.foundation.layout.size
+import androidx.compose.ui.text.LinkAnnotation
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.TextLinkStyles
+import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.style.TextDecoration
+import androidx.compose.ui.text.withLink
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -58,7 +72,11 @@ import com.pluk.reader.ui.theme.MarginColors
 
 /** Pantalla de inicio: la biblioteca del usuario (LIB-001, LIB-010, LIB-011). */
 @Composable
-fun LibraryScreen(onBookClick: (bookId: String) -> Unit, viewModel: LibraryViewModel = hiltViewModel()) {
+fun LibraryScreen(
+    onBookClick: (bookId: String) -> Unit,
+    onSeePlans: () -> Unit = {},
+    viewModel: LibraryViewModel = hiltViewModel(),
+) {
     val state = viewModel.uiState.collectAsStateWithLifecycle().value
     val snackbar = remember { SnackbarHostState() }
     val context = LocalContext.current
@@ -72,6 +90,11 @@ fun LibraryScreen(onBookClick: (bookId: String) -> Unit, viewModel: LibraryViewM
         onImport = viewModel::onImport,
         onBookClick = onBookClick,
         onRetrySync = viewModel::onRetrySync,
+        onDismissUsageNotice = viewModel::onDismissUsageNotice,
+        onSeePlans = {
+            viewModel.onDismissUsageNotice()
+            onSeePlans()
+        },
     )
 }
 
@@ -84,6 +107,8 @@ fun LibraryContent(
     onImport: (List<String>) -> Unit,
     onBookClick: (String) -> Unit,
     onRetrySync: () -> Unit = {},
+    onDismissUsageNotice: () -> Unit = {},
+    onSeePlans: () -> Unit = {},
 ) {
     // El libro se copia a la app (ADR 0006), así que no hace falta permiso persistente.
     val picker = rememberLauncherForActivityResult(ActivityResultContracts.OpenMultipleDocuments()) { uris ->
@@ -96,6 +121,7 @@ fun LibraryContent(
         Column(Modifier.fillMaxSize().statusBarsPadding()) {
             Header(importing = state.importing, onImport = launchPicker)
             if (state.showSyncStatus) SyncStatus(state, onRetrySync)
+            state.usageNotice?.let { UsageNotice(it, onSeePlans, onDismissUsageNotice) }
             Tabs(state, onFilterSelected)
             when {
                 state.loading -> Unit
@@ -132,10 +158,10 @@ private fun Header(importing: Boolean, onImport: () -> Unit) {
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(4.dp),
         ) {
-            Icon(LibraryIcons.Add, contentDescription = null, tint = MarginColors.Ink)
+            Icon(LibraryIcons.Add, contentDescription = null, tint = MarginColors.OnYellow)
             Text(
                 text = stringResource(if (importing) R.string.library_importing else R.string.library_import),
-                color = MarginColors.Ink,
+                color = MarginColors.OnYellow,
                 fontSize = 13.sp,
                 fontWeight = FontWeight.Bold,
             )
@@ -152,11 +178,13 @@ private fun SyncStatus(state: LibraryUiState, onRetry: () -> Unit) {
     val text = when {
         state.sync.running -> stringResource(R.string.library_syncing)
         issue is SyncIssue.Offline -> stringResource(R.string.library_sync_offline)
+        issue is SyncIssue.WaitingForWifi -> stringResource(R.string.library_sync_waiting_wifi)
         issue is SyncIssue.NotEnoughSpace -> pluralStringResource(R.plurals.library_no_space, issue.count, issue.count)
         issue is SyncIssue.Failed -> pluralStringResource(R.plurals.library_sync_failed, issue.count, issue.count)
         else -> pluralStringResource(R.plurals.library_pending_upload, state.pendingUploadCount, state.pendingUploadCount)
     }
-    val retry = !state.sync.running && issue != null
+    // PRF-023: esperar el Wi-Fi no es un error: no se ofrece reintentar.
+    val retry = !state.sync.running && issue != null && issue != SyncIssue.WaitingForWifi
     Text(
         text = if (retry) stringResource(R.string.library_sync_retry, text) else text,
         color = MarginColors.Muted,
@@ -167,6 +195,64 @@ private fun SyncStatus(state: LibraryUiState, onRetry: () -> Unit) {
             .padding(start = 20.dp, end = 20.dp, top = 14.dp)
             .testTag("sync-status"),
     )
+}
+
+/** PLN-011: aviso suave del 80 %, una sola vez por cuenta. */
+@Composable
+private fun UsageNotice(usage: StorageUsage, onSeePlans: () -> Unit, onDismiss: () -> Unit) {
+    val seePlans = stringResource(R.string.plans_see_plans)
+    Row(
+        Modifier
+            .padding(start = 20.dp, end = 20.dp, top = 16.dp)
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(20.dp))
+            .background(MarginColors.Field)
+            .border(1.5.dp, MarginColors.Off, RoundedCornerShape(20.dp))
+            .padding(start = 16.dp, end = 6.dp, top = 14.dp, bottom = 12.dp)
+            .testTag("usage-notice"),
+        horizontalArrangement = Arrangement.spacedBy(10.dp),
+    ) {
+        Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+            Text(
+                stringResource(R.string.plans_usage, usage.used, usage.total),
+                color = MarginColors.Ink,
+                fontSize = 14.sp,
+                fontWeight = FontWeight.SemiBold,
+            )
+            Box(Modifier.fillMaxWidth().height(6.dp).clip(RoundedCornerShape(3.dp)).background(MarginColors.Off)) {
+                Box(Modifier.fillMaxWidth(usage.fraction).height(6.dp).clip(RoundedCornerShape(3.dp)).background(MarginColors.Ink))
+            }
+            Text(
+                buildAnnotatedString {
+                    append(stringResource(R.string.plans_notice_free, usage.free))
+                    append(' ')
+                    withLink(
+                        LinkAnnotation.Clickable(
+                            "plans",
+                            TextLinkStyles(SpanStyle(color = MarginColors.Ink, fontWeight = FontWeight.Bold, textDecoration = TextDecoration.Underline)),
+                        ) { onSeePlans() },
+                    ) { append(seePlans) }
+                },
+                color = MarginColors.Ink2,
+                fontSize = 13.sp,
+                fontWeight = FontWeight.Medium,
+                lineHeight = 1.4.em,
+            )
+        }
+        val close = stringResource(R.string.plans_notice_close)
+        Box(
+            Modifier
+                .offset(y = (-10).dp)
+                .size(44.dp)
+                .clip(RoundedCornerShape(22.dp))
+                .clickable(role = Role.Button, onClick = onDismiss)
+                .semantics { contentDescription = close }
+                .testTag("usage-notice-close"),
+            contentAlignment = Alignment.Center,
+        ) {
+            Icon(PlanIcons.Close, null, tint = MarginColors.Muted, modifier = Modifier.size(22.dp))
+        }
+    }
 }
 
 @Composable
@@ -219,7 +305,7 @@ private fun Tab(
 @Composable
 private fun BookGrid(books: List<LibraryBook>, onBookClick: (String) -> Unit, bottomPadding: Dp) {
     LazyVerticalGrid(
-        columns = GridCells.Adaptive(minSize = 96.dp),
+        columns = GridCells.Adaptive(minSize = 104.dp),
         contentPadding = PaddingValues(start = 20.dp, end = 20.dp, top = 18.dp, bottom = 24.dp + bottomPadding),
         horizontalArrangement = Arrangement.spacedBy(12.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp),
@@ -238,14 +324,15 @@ private fun BookCell(book: LibraryBook, onClick: () -> Unit) {
     }
     val cloudText = stringResource(R.string.library_status_cloud)
     val description = listOfNotNull(book.title, book.author, statusText, cloudText.takeIf { !book.isDownloaded }).joinToString(". ")
+    val anchor = rememberCoverAnchor()
     Column(
         Modifier
-            .clickable(role = Role.Button, onClick = onClick)
+            .bookClickable(book, anchor, onClick)
             .clearAndSetSemantics { contentDescription = description; role = Role.Button }
             .testTag("book-${book.id}"),
         verticalArrangement = Arrangement.spacedBy(6.dp),
     ) {
-        BookCover(book)
+        BookCover(book, Modifier.coverAnchor(anchor))
         // LIB-007: un libro solo en la nube se distingue de los descargados.
         if (!book.isDownloaded) {
             Text(cloudText, color = MarginColors.Muted, fontSize = 11.sp, fontWeight = FontWeight.SemiBold, modifier = Modifier.testTag("cloud-${book.id}"))
@@ -291,7 +378,7 @@ private fun EmptyLibrary(onImport: () -> Unit, modifier: Modifier = Modifier) {
             Modifier
                 .height(44.dp)
                 .clip(RoundedCornerShape(22.dp))
-                .background(MarginColors.Ink)
+                .background(MarginColors.InkFill)
                 .clickable(role = Role.Button, onClick = onImport)
                 .padding(horizontal = 20.dp),
             verticalAlignment = Alignment.CenterVertically,
@@ -322,3 +409,29 @@ private fun LibraryPreview() {
         onBookClick = {},
     )
 }
+
+@Preview(
+    name = "Galaxy S25",
+    widthDp = 412,
+    heightDp = 892,
+    showBackground = true
+)
+@Composable
+private fun LibraryPreview2() {
+    val books = listOf(
+        LibraryBook("a", "MEDI-\nTATIONS", "Marcus Aurelius", null, 42),
+        LibraryBook("b", "MOBY\n—DICK", null, null, 8),
+        LibraryBook("c", "The Odyssey", null, null, 71),
+        LibraryBook("d", "Pride & Prejudice", null, null, 100),
+        LibraryBook("e", "DRAC-\nULA", null, null, null),
+        LibraryBook("f", "Walden", null, null, 100),
+    )
+    LibraryContent(
+        state = LibraryUiState(loading = false, books = books, allCount = 24, readingCount = 3, finishedCount = 12),
+        snackbar = remember { SnackbarHostState() },
+        onFilterSelected = {},
+        onImport = {},
+        onBookClick = {},
+    )
+}
+

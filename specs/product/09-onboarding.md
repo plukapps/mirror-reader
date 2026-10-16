@@ -13,7 +13,7 @@ Recorridos:
 
 ### Bienvenida (O1)
 
-- **ONB-001** La bienvenida sigue el diseño O1: fondo amarillo, logo y "margin." arriba; titular "Leé más. / Scrolleá menos. / Pensá despacio."; bajada; botón principal "Crear cuenta" con flecha; botón secundario "Ya tengo una cuenta"; aviso "Al continuar aceptás los Términos y la Política de privacidad". Reemplaza a WEL-004 y WEL-005.
+- **ONB-001** La bienvenida sigue el diseño O1: fondo amarillo, logo y "tuck." arriba; titular "Leé más. / Scrolleá menos. / Pensá despacio."; bajada; botón principal "Crear cuenta" con flecha; botón secundario "Ya tengo una cuenta"; aviso "Al continuar aceptás los Términos y la Política de privacidad". Reemplaza a WEL-004 y WEL-005.
 - **ONB-002** "Crear cuenta" lleva al alta (O2). "Ya tengo una cuenta" lleva al ingreso (O7).
 
 ### Alta (O2 a O6)
@@ -32,7 +32,7 @@ Recorridos:
 
 ### Ingreso (O7 a O9)
 
-- **ONB-014** Iniciar sesión (O7): "Te damos la bienvenida de nuevo.", email y contraseña (con ver u ocultar), "¿Olvidaste tu contraseña?", "Iniciar sesión", Google, y "¿Nuevo en margin.? Crear cuenta".
+- **ONB-014** Iniciar sesión (O7): "Te damos la bienvenida de nuevo.", email y contraseña (con ver u ocultar), "¿Olvidaste tu contraseña?", "Iniciar sesión", Google, y "¿Nuevo en tuck.? Crear cuenta".
 - **ONB-015** Si el ingreso falla, el error se muestra bajo el campo de contraseña en rojo, con un texto claro: email o contraseña incorrectos, cuenta deshabilitada, demasiados intentos o sin conexión. La app no revela si un email tiene cuenta.
 - **ONB-016** Al iniciar sesión con una cuenta de email sin verificar, se envía el email de verificación y se pasa a verificar (O3). Si no, a Inicio, sin poder volver atrás al ingreso.
 - **ONB-017** Olvidé mi contraseña (O8): email (precargado con el de O7), "Enviar enlace"; luego "Enlace enviado / ¿No llegó? Revisá spam.", "Abrir app de correo" y "Reenviar" con espera de 30 s. Se responde igual exista o no la cuenta.
@@ -43,7 +43,7 @@ Recorridos:
 - **ONB-019** Al abrir la app: sin sesión, bienvenida (O1); con sesión de email sin verificar, verificar (O3); si no, Inicio. Reemplaza la regla de WEL-003.
 - **ONB-020** Con Google, si el usuario cancela la elección de cuenta no se muestra error; si falla, se avisa en la pantalla.
 - **ONB-021** Mientras una acción espera al servidor, su botón muestra que está trabajando y no se puede tocar de nuevo.
-- **ONB-022** Todas las pantallas funcionan en teléfono y tablet, vertical y apaisado (se desplazan si no entran, columna de ancho máximo en tablet), con el teclado abierto sin tapar el botón principal, y con TalkBack (cada control con su nombre, los chips y opciones con su estado).
+- **ONB-022** Todas las pantallas funcionan en teléfono y tablet, vertical y apaisado (se desplazan si no entran, columna de ancho máximo en tablet), con el teclado abierto sin tapar el botón principal, y con el lector de pantalla (TalkBack, VoiceOver: cada control con su nombre, los chips y opciones con su estado).
 
 ## Escenarios
 

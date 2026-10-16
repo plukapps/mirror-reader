@@ -6,7 +6,13 @@ import com.google.firebase.firestore.DocumentReference
 import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
 import com.pluk.reader.domain.remote.RemoteBook
+import com.pluk.reader.domain.remote.RemoteBookChanges
 import com.pluk.reader.domain.remote.RemoteLibrary
+import com.google.firebase.Timestamp
+import java.util.Date
+import kotlinx.coroutines.channels.awaitClose
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.callbackFlow
 import com.pluk.reader.domain.remote.RemoteUnavailableException
 import kotlinx.coroutines.tasks.await
 import javax.inject.Inject
@@ -18,14 +24,14 @@ import javax.inject.Inject
 class FirestoreRemoteLibrary @Inject constructor(
     private val db: FirebaseFirestore,
     private val auth: FirebaseAuth,
-) : RemoteLibrary {
+) : RemoteLibrary, RemoteBookChanges {
     override suspend fun listBooks(): Result<List<RemoteBook>> = remoteCall("listBooks") {
         val uid = uid()
         db.collection("users/$uid/books").whereEqualTo(DELETED_AT, null).get().await().documents.mapNotNull { doc ->
             val title = doc.getString(TITLE) ?: return@mapNotNull null
             @Suppress("UNCHECKED_CAST")
             val authors = (doc.get(AUTHORS) as? List<String>).orEmpty()
-            RemoteBook(doc.id, title, authors, doc.getLong(SIZE_BYTES) ?: 0L)
+            RemoteBook(doc.id, title, authors, doc.getLong(SIZE_BYTES) ?: 0L, (doc.getTimestamp(ADDED_AT) ?: doc.getTimestamp(CREATED_AT))?.toDate()?.time)
         }
     }.onSuccess { Log.i(TAG, "Libros en la nube: ${it.size}") }
         .onFailure { Log.w(TAG, "No se pudo listar la nube: $it") }
@@ -35,8 +41,18 @@ class FirestoreRemoteLibrary @Inject constructor(
         val ref: DocumentReference = db.document("users/$uid/books/${book.id}")
         db.runTransaction { tx ->
             if (tx.get(ref).exists()) {
-                // Solo lo editable: la regla rechaza cambios en filePath, sizeBytes y createdAt.
-                tx.update(ref, mapOf(TITLE to book.title, AUTHORS to book.authors, UPDATED_AT to FieldValue.serverTimestamp()))
+                // Solo lo editable: la regla rechaza cambios en filePath, sizeBytes y createdAt. Un libro borrado que se
+                // vuelve a importar revive (LIB-020) y vuelve a entrar a la biblioteca (LIB-021).
+                tx.update(
+                    ref,
+                    mapOf(
+                        TITLE to book.title,
+                        AUTHORS to book.authors,
+                        ADDED_AT to FieldValue.serverTimestamp(),
+                        UPDATED_AT to FieldValue.serverTimestamp(),
+                        DELETED_AT to null,
+                    ),
+                )
             } else {
                 tx.set(
                     ref,
@@ -46,6 +62,7 @@ class FirestoreRemoteLibrary @Inject constructor(
                         FILE_PATH to "users/$uid/books/${book.id}.epub",
                         SIZE_BYTES to book.sizeBytes,
                         CREATED_AT to FieldValue.serverTimestamp(),
+                        ADDED_AT to FieldValue.serverTimestamp(),
                         UPDATED_AT to FieldValue.serverTimestamp(),
                         DELETED_AT to null,
                     ),
@@ -54,6 +71,26 @@ class FirestoreRemoteLibrary @Inject constructor(
             null
         }.await()
         Unit
+    }
+
+    override fun observeAliveSince(sinceMillis: Long): Flow<Result<List<String>>> = callbackFlow {
+        val uid = auth.currentUser?.uid
+        if (uid == null) {
+            trySend(Result.failure(RemoteUnavailableException("No hay sesión iniciada.")))
+            close()
+            return@callbackFlow
+        }
+        // Una sola desigualdad sobre updatedAt: no hace falta índice compuesto. deletedAt se filtra aquí.
+        val registration = db.collection("users/$uid/books").whereGreaterThan(UPDATED_AT, Timestamp(Date(sinceMillis)))
+            .addSnapshotListener { snapshot, error ->
+                if (error != null || snapshot == null) {
+                    trySend(Result.failure(error?.toRemoteError() ?: RemoteUnavailableException("Sin datos de la nube.")))
+                    close()
+                    return@addSnapshotListener
+                }
+                trySend(Result.success(snapshot.documents.filter { it.get(DELETED_AT) == null }.map { it.id }))
+            }
+        awaitClose { registration.remove() }
     }
 
     private fun uid(): String = auth.currentUser?.uid ?: throw RemoteUnavailableException("No hay sesión iniciada.")
@@ -65,6 +102,7 @@ class FirestoreRemoteLibrary @Inject constructor(
         const val FILE_PATH = "filePath"
         const val SIZE_BYTES = "sizeBytes"
         const val CREATED_AT = "createdAt"
+        const val ADDED_AT = "addedAt"
         const val UPDATED_AT = "updatedAt"
         const val DELETED_AT = "deletedAt"
     }

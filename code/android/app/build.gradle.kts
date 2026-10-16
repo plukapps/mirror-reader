@@ -4,6 +4,7 @@ plugins {
   alias(libs.plugins.ksp)
   alias(libs.plugins.hilt.android)
   alias(libs.plugins.google.services)
+  alias(libs.plugins.firebase.crashlytics)
 }
 
 android {
@@ -85,6 +86,8 @@ dependencies {
   // Local tests: jUnit, coroutines, Android runner
   testImplementation(libs.junit)
   testImplementation(libs.kotlinx.coroutines.test)
+  // `org.json` de verdad en los tests JVM: el de Android es un stub fuera del dispositivo (catálogo de planes, K-302).
+  testImplementation(libs.org.json)
 
   // Instrumented tests: jUnit rules and runners
   androidTestImplementation(libs.androidx.test.core)
@@ -120,6 +123,10 @@ dependencies {
   implementation(libs.firebase.auth)
   implementation(libs.firebase.firestore)
   implementation(libs.firebase.storage)
+  // ACC-011, ADR 0016: funciones que se prenden y apagan con Remote Config.
+  implementation(libs.firebase.config)
+  // CMP-010, ADR 0018: cierres inesperados.
+  implementation(libs.firebase.crashlytics)
   implementation(libs.kotlinx.coroutines.play.services)
 
   // Ingreso con Google (ADR 0014)

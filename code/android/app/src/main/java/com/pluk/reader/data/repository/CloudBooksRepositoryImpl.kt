@@ -8,8 +8,10 @@ import com.pluk.reader.data.remote.toCloudOnlyEntity
 import com.pluk.reader.domain.model.BookOpenException
 import com.pluk.reader.domain.model.ImportOutcome
 import com.pluk.reader.domain.remote.RemoteBook
+import com.pluk.reader.domain.remote.cloudAddedAt
 import com.pluk.reader.domain.repository.CloudBooksRepository
 import com.pluk.reader.domain.repository.CoverFile
+import com.pluk.reader.domain.repository.KnownBooks
 import java.io.File
 import javax.inject.Inject
 
@@ -17,12 +19,19 @@ class CloudBooksRepositoryImpl @Inject constructor(
     private val dao: BookDao,
     private val files: LibraryFiles,
     private val importer: EpubImporter,
-) : CloudBooksRepository {
+) : CloudBooksRepository, KnownBooks {
 
     override suspend fun addCloudOnly(books: List<RemoteBook>) {
         val now = System.currentTimeMillis()
-        // El orden de la nube se conserva: el primero de la lista queda como el más reciente.
-        dao.insertAll(books.mapIndexed { index, book -> book.toCloudOnlyEntity(now - index) })
+        // LIB-020: un libro quitado aquí que la nube todavía no tiene borrado no vuelve. Si el borrado ya se completó y
+        // la nube lo lista vivo, alguien lo volvió a importar: se olvida la marca y vuelve.
+        dao.deleteCompletedRemovals(books.map { it.id })
+        val removed = dao.getPendingCloudRemovals().toSet()
+        val alive = books.filter { it.id !in removed }
+        val known = dao.getAddedAts().associate { it.id to it.addedAt }
+        val addedAt = cloudAddedAt(alive, known, now)
+        dao.insertAll(alive.filter { it.id in addedAt.inserts }.map { it.toCloudOnlyEntity(now, addedAt.inserts.getValue(it.id)) })
+        addedAt.updates.forEach { (id, date) -> dao.updateAddedAt(id, date) }
     }
 
     override suspend fun markCoverUploaded(bookId: String) = dao.markCoverUploaded(bookId)
@@ -40,6 +49,8 @@ class CloudBooksRepositoryImpl @Inject constructor(
     }
 
     override suspend fun cloudOnlyBookIds(): List<String> = dao.getCloudOnlyIds()
+
+    override suspend fun knownBookIds(): Set<String> = dao.getAllIds().toSet()
 
     override suspend fun isDownloaded(bookId: String) = dao.get(bookId)?.isDownloaded == true
 

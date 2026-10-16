@@ -22,6 +22,8 @@ public struct LibraryBook: Identifiable, Equatable, Sendable {
     public let isDownloaded: Bool
     /// Ya está en la nube. Falso: importado en este dispositivo y pendiente de subir (SYN-001, SYN-008).
     public let isUploaded: Bool
+    /// Cambia cuando el usuario reemplaza la portada (LIB-019): la ruta es la misma.
+    public let coverVersion: Int64
 
     public var status: ReadingStatus { readingStatus(progressPercent: progressPercent) }
 
@@ -34,7 +36,8 @@ public struct LibraryBook: Identifiable, Equatable, Sendable {
         lastReadAt: Date? = nil,
         addedAt: Date = Date(timeIntervalSince1970: 0),
         isDownloaded: Bool = true,
-        isUploaded: Bool = true
+        isUploaded: Bool = true,
+        coverVersion: Int64 = 0
     ) {
         self.id = id
         self.title = title
@@ -45,6 +48,7 @@ public struct LibraryBook: Identifiable, Equatable, Sendable {
         self.addedAt = addedAt
         self.isDownloaded = isDownloaded
         self.isUploaded = isUploaded
+        self.coverVersion = coverVersion
     }
 }
 

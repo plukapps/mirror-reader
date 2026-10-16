@@ -17,11 +17,11 @@ struct ReaderSettingsSheet: View {
                 .padding(.top, 10)
                 .accessibilityHidden(true)
 
-            FontChips(selected: settings.font, onSelect: viewModel.setFont)
+            FontChips(selected: settings.font, onSelect: viewModel.setFont, locked: viewModel.isLocked)
             SizeButtons(onSmaller: viewModel.smallerFont, onBigger: viewModel.biggerFont)
 
             HStack(alignment: .top) {
-                ThemeSwatches(selected: settings.theme, onSelect: viewModel.setTheme)
+                ThemeSwatches(selected: settings.theme, onSelect: viewModel.setTheme, locked: viewModel.isLocked)
                 Spacer(minLength: 12)
                 LineSpacingPicker(selected: settings.lineSpacing, onSelect: viewModel.setLineSpacing)
             }
@@ -50,27 +50,47 @@ struct ReaderSettingsSheet: View {
     }
 }
 
+/// Colores de los chips de letra y los botones de tamaño. El panel del lector usa `dark`; Perfil (PRF-013) los
+/// reutiliza sobre fondo claro con su propia paleta.
+struct FontControlsPalette {
+    let ink: Color
+    let accent: Color
+    let onAccent: Color
+    let border: Color
+
+    static let dark = FontControlsPalette(ink: SheetColors.ink, accent: SheetColors.accent, onAccent: MarginColors.onYellow, border: SheetColors.border)
+}
+
 /// Tres opciones, cada una con su propia tipografía; la elegida en amarillo.
-private struct FontChips: View {
+struct FontChips: View {
     let selected: ReaderFont
     let onSelect: (ReaderFont) -> Void
+    /// PLN-015: las letras de Plus llevan su marca y abren la hoja de función paga.
+    var locked: (ReaderFont) -> Bool = { _ in false }
+    var palette = FontControlsPalette.dark
 
     var body: some View {
         HStack(spacing: 8) {
             ForEach(ReaderFont.allCases, id: \.self) { font in
                 let isSelected = font == selected
                 Button { onSelect(font) } label: {
-                    Text(font.chipLabel)
-                        .font(.custom(font.familyName, size: 15))
-                        .foregroundStyle(isSelected ? MarginColors.ink : SheetColors.ink)
+                    HStack(spacing: 5) {
+                        Text(font.chipLabel)
+                            .font(.custom(font.familyName, size: 15))
+                            .lineLimit(1)
+                            .minimumScaleFactor(0.8)
+                        if locked(font) { PlanMark() }
+                    }
+                        .foregroundStyle(isSelected ? palette.onAccent : palette.ink)
                         .frame(maxWidth: .infinity)
                         .frame(height: 40)
-                        .background(isSelected ? SheetColors.accent : .clear, in: Capsule())
-                        .overlay(Capsule().stroke(isSelected ? .clear : SheetColors.border, lineWidth: 1.5))
+                        .background(isSelected ? palette.accent : .clear, in: Capsule())
+                        .overlay(Capsule().stroke(isSelected ? .clear : palette.border, lineWidth: 1.5))
                         .contentShape(Capsule())
                 }
                 .buttonStyle(.plain)
                 .accessibilityAddTraits(isSelected ? .isSelected : [])
+                .accessibilityHint(locked(font) ? Text("Incluido en Plus") : Text(""))
             }
         }
     }
@@ -87,25 +107,26 @@ private extension ReaderFont {
 }
 
 /// "A−" y "A+" en una fila con borde, partida en dos (RDR-002).
-private struct SizeButtons: View {
+struct SizeButtons: View {
     let onSmaller: () -> Void
     let onBigger: () -> Void
+    var palette = FontControlsPalette.dark
 
     var body: some View {
         HStack(spacing: 0) {
             sizeButton("A−", size: 14, label: "Letra más chica", action: onSmaller)
-            Rectangle().fill(SheetColors.border).frame(width: 1.5, height: 28)
+            Rectangle().fill(palette.border).frame(width: 1.5, height: 28)
             sizeButton("A+", size: 22, label: "Letra más grande", action: onBigger)
         }
         .frame(height: 48)
-        .overlay(Capsule().stroke(SheetColors.border, lineWidth: 1.5))
+        .overlay(Capsule().stroke(palette.border, lineWidth: 1.5))
     }
 
     private func sizeButton(_ text: String, size: CGFloat, label: LocalizedStringKey, action: @escaping () -> Void) -> some View {
         Button(action: action) {
             Text(text)
                 .font(.custom(ReaderFont.serif.familyName, size: size))
-                .foregroundStyle(SheetColors.ink)
+                .foregroundStyle(palette.ink)
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
                 .contentShape(Rectangle())
         }
@@ -118,6 +139,7 @@ private struct SizeButtons: View {
 private struct ThemeSwatches: View {
     let selected: ReadingTheme
     let onSelect: (ReadingTheme) -> Void
+    var locked: (ReadingTheme) -> Bool = { _ in false }
 
     var body: some View {
         HStack(spacing: 10) {
@@ -131,6 +153,9 @@ private struct ThemeSwatches: View {
                             .frame(width: 44, height: 44)
                             .padding(5)
                             .overlay(Circle().stroke(isSelected ? SheetColors.accent : .clear, lineWidth: 2))
+                            .overlay(alignment: .topTrailing) {
+                                if locked(theme) { PlanMark().offset(x: 6, y: -2) }
+                            }
                         Text(theme.label)
                             .font(.app(11, isSelected ? .semibold : .regular))
                             .foregroundStyle(isSelected ? SheetColors.accent : SheetColors.label)
@@ -140,6 +165,7 @@ private struct ThemeSwatches: View {
                 .buttonStyle(.plain)
                 .accessibilityLabel(theme.label)
                 .accessibilityAddTraits(isSelected ? .isSelected : [])
+                .accessibilityHint(locked(theme) ? Text("Incluido en Plus") : Text(""))
             }
         }
     }

@@ -21,6 +21,13 @@ Una biblioteca única y ordenada de los EPUB del usuario.
 - **LIB-013** La búsqueda (LIB-006) es sobre los libros de mi biblioteca, también los que están solo en la nube, y funciona sin conexión. No distingue mayúsculas ni acentos, y con varias palabras muestra los libros que contienen todas, cada una en el título o en el autor. Los resultados aparecen mientras escribo. La búsqueda por colección llega con LIB-005.
 - **LIB-014** Cada resultado muestra portada, título, autor y su estado: el progreso si lo estoy leyendo, nuevo, terminado o solo en la nube. Arriba se ve la cantidad de resultados. Tocar un resultado abre el libro en su última posición.
 - **LIB-015** La búsqueda tiene dos filtros: "Todo" (título o autor) y "Autores" (solo los libros cuyo autor coincide). Los primeros resultados son los libros cuyo título empieza con lo buscado.
+- **LIB-016** Mantener presionada la portada de un libro (en la biblioteca, en Inicio y en los resultados de búsqueda; en la Mac, clic secundario) debe abrir un menú de acciones sobre ese libro, con su título y "Autor · estado" arriba (el progreso, "Sin empezar" o "Terminado"). El resto de la pantalla se oscurece; tocar fuera cierra el menú sin hacer nada. Diseño: "05b — Library · Long press".
+- **LIB-017** "Leer libro" abre el libro en su última posición, igual que tocarlo.
+- **LIB-018** "Marcar como terminado" deja el libro al 100 %: pasa a "Terminados" y conserva su última posición. "Marcar como no leído" deja el libro sin empezar (no está en "Leyendo" ni en "Terminados") y se abre desde el principio. Un libro sin empezar ofrece solo la primera, uno terminado solo la segunda y uno en lectura las dos. Los dos cambios llegan a mis otros dispositivos como cualquier avance de lectura (SYN).
+- **LIB-019** "Subir foto de portada" debe dejar elegir una foto del dispositivo y usarla como portada del libro en todas las pantallas. Por ahora la portada nueva se ve solo en este dispositivo (excepción a LIB-012 hasta sincronizar cambios de portada).
+- **LIB-020** "Quitar de la biblioteca" pide confirmación y borra el libro de mi cuenta (LIB-008): desaparece al instante de este dispositivo, con su archivo, su portada y su progreso, también sin conexión. En cuanto hay conexión se borra de la nube (el archivo y la portada dejan de ocupar espacio) y de mis otros dispositivos: los que tienen la app abierta lo quitan en segundos; el resto, al sincronizar. Si el libro está abierto en el lector de otro dispositivo, se quita al cerrarlo. Importar el mismo archivo otra vez lo devuelve a la biblioteca y a la nube.
+- **LIB-021** La biblioteca muestra primero el último libro que entró a mi biblioteca. Un libro entra cuando lo importo por primera vez, en cualquiera de mis dispositivos. Todos mis dispositivos muestran el mismo orden, también para los libros que todavía no descargué. Un libro importado sin conexión aparece primero en ese dispositivo; al subirse toma la fecha en que entró a la nube. Quitar un libro y volver a importarlo cuenta como entrada nueva.
+- **LIB-022** Cada libro tiene una pantalla de detalle con su portada, título, autor, la cantidad de notas, la lista de notas (ANN-010) y un botón "Continuar leyendo" con el progreso, que abre el libro en su última posición (LIB-017). Se llega desde el menú de acciones del libro (LIB-016), con "Ver detalle". Diseño: "04 — Book detail"; los datos que la app no conoce (páginas, tiempo de lectura, descripción, marcadores) no se muestran.
 
 ## Escenarios
 
@@ -34,6 +41,15 @@ Una biblioteca única y ordenada de los EPUB del usuario.
 - Dado "Cartas a Lucilio" de Séneca, cuando busco "seneca cartas", entonces aparece; cuando busco "seneca diario", no.
 - Dado que busco "seneca" con el filtro "Autores", entonces veo solo los libros de Séneca, no los que lo nombran en el título.
 - Dado que busco algo que no está, entonces veo que no hay resultados.
+- Dado "Drácula" sin empezar, cuando mantengo presionada su portada, entonces veo el menú con "Bram Stoker · Sin empezar" y las cuatro acciones; cuando toco fuera, se cierra y nada cambia.
+- Dado un libro al 42 %, cuando elijo "Marcar como terminado", entonces aparece en "Terminados" y no en "Leyendo"; cuando después elijo "Marcar como no leído", entonces no está en ninguna de las dos y al abrirlo empieza desde el principio.
+- Dado un libro sin portada, cuando elijo "Subir foto de portada" y una foto, entonces la grilla, Inicio y la búsqueda muestran esa foto.
+- Dado un libro que está en la nube, cuando elijo "Quitar de la biblioteca" y confirmo, entonces desaparece y no vuelve después de sincronizar; cuando cancelo, sigue ahí.
+- Dado un libro en mi teléfono y en mi tablet con la app abierta, cuando lo quito en el teléfono, entonces desaparece de la tablet sin tocar nada; si la tablet estaba apagada, desaparece al abrir la app.
+- Dado que quito un libro sin conexión, entonces desaparece del dispositivo y se borra de la nube y de los demás cuando vuelve la conexión.
+- Dado que importé "Drácula" en el teléfono el lunes y "Walden" en el iPhone el martes, cuando abro la biblioteca en cualquiera de los dos, entonces "Walden" aparece antes que "Drácula".
+- Dado un dispositivo que ya tenía libros, cuando sincroniza por primera vez y baja libros de la nube, entonces cada uno queda en su lugar según cuándo entró a mi biblioteca, no todos arriba.
+- Dado "Drácula" que importé hace un mes, cuando lo quito de la biblioteca y lo vuelvo a importar, entonces aparece primero en todos mis dispositivos y sigue primero después de sincronizar.
 
 ## Fuera de alcance
 

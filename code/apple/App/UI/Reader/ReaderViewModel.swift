@@ -81,6 +81,26 @@ final class ReaderViewModel {
         let id: Int
     }
 
+    /// ANN-008, ANN-009: la nota que se está escribiendo o mirando. `noteId` es nil para una nota nueva sobre la
+    /// selección. Como `NoteEditor` de Android.
+    struct NoteEditor: Equatable, Identifiable {
+        let noteId: String?
+        let quote: String
+        let text: String
+        let locatorJson: String
+        let progression: Double
+        var id: String { noteId ?? "nueva|\(locatorJson)" }
+    }
+
+    /// ANN-008, K-332: el texto seleccionado en el libro y dónde está en la pantalla (coordenadas del navegador), para el
+    /// menú propio de la selección.
+    struct TextSelection: Equatable {
+        let locatorJson: String
+        let quote: String
+        let progression: Double?
+        let frame: CGRect
+    }
+
     /// SYN-013: lectura más adelantada de otro dispositivo que se ofrece seguir.
     struct ContinueFrom: Equatable {
         let deviceName: String
@@ -88,7 +108,12 @@ final class ReaderViewModel {
     }
 
     private(set) var phase: Phase = .loading
-    private(set) var settings: ReaderSettings
+    /// Lo guardado (RDR-014). El lector aplica `settings`, que en Free es Clásico y serifa (PLN-015).
+    private(set) var savedSettings: ReaderSettings
+    /// PLN-015: la hoja de función paga a la vista, o nil.
+    private(set) var paidFeature: PaidFeature?
+    /// PLN-015: P01 sobre el lector, después de "Ver planes".
+    var plansOpen = false
     /// RDR-013: vacío si el libro no tiene índice o la posición está antes del primer capítulo.
     private(set) var chapterTitle = ""
     /// RDR-010: posición del libro, sin total.
@@ -101,11 +126,22 @@ final class ReaderViewModel {
     private(set) var notice: String?
     private(set) var jump: Jump?
     private(set) var continueFrom: ContinueFrom?
+    /// ANN-008: las notas del libro, que el lector muestra subrayadas.
+    private(set) var bookNotes: [Note] = []
+    /// ANN-008, ANN-009: el editor de nota a la vista, o nil.
+    private(set) var noteEditor: NoteEditor?
+    /// ANN-008, K-332: la selección con su menú a la vista, o nil.
+    private(set) var selection: TextSelection?
+    /// Cambia cada vez que hay que quitar la selección del libro.
+    private(set) var clearSelectionRequest = 0
 
     private let bookId: String
     private let source: ReaderBookSource
     private let positions: ReadingPositionRepository
     private let settingsRepository: ReaderSettingsRepository
+    private let plan: @MainActor () -> PlanId
+    private var paidAfterSettings = false
+    private var plansAfterPaid = false
     private let saveDelay: Duration
     private var chapters: [ChapterEntry] = []
     private var readingOrder: [String] = []
@@ -118,27 +154,52 @@ final class ReaderViewModel {
     private var remoteAhead: RemotePosition?
     private var currentProgression: Double?
     private var updatesTask: Task<Void, Never>?
+    private let notes: NoteRepository?
+    /// ANN-010: se abrió desde una nota; el libro abre en su lugar y no en la última posición.
+    private let noteId: String?
+    private let clock: @Sendable () -> Date
+    /// SYN-016: se guardó o borró una nota; la sincronización la sube enseguida.
+    private let notesChanged: @MainActor () -> Void
 
-    /// - Parameter sync: nil si la app funciona solo en local.
+    /// - Parameters:
+    ///   - sync: nil si la app funciona solo en local.
+    ///   - plan: el plan de la cuenta (PLN-015); sin dato, Free.
+    ///   - notes: las notas del dispositivo (ANN-003); nil, sin notas.
+    ///   - noteId: abrir en el lugar de esta nota (ANN-010).
     init(
         bookId: String,
         source: ReaderBookSource,
         positions: ReadingPositionRepository,
         settings: ReaderSettingsRepository,
         saveDelay: Duration = .milliseconds(250),
-        sync: ReaderPositionSync? = nil
+        sync: ReaderPositionSync? = nil,
+        plan: @escaping @MainActor () -> PlanId = { .free },
+        notes: NoteRepository? = nil,
+        noteId: String? = nil,
+        clock: @escaping @Sendable () -> Date = { .now },
+        notesChanged: @escaping @MainActor () -> Void = {}
     ) {
+        self.notesChanged = notesChanged
+        self.notes = notes
+        self.noteId = noteId
+        self.clock = clock
         self.bookId = bookId
         self.source = source
         self.positions = positions
         settingsRepository = settings
         self.saveDelay = saveDelay
         self.sync = sync
-        self.settings = settings.load()
+        self.plan = plan
+        savedSettings = settings.load()
     }
 
     func load() async {
         guard phase == .loading, choice == nil else { return }
+        // ANN-010: abrir en una nota no pregunta por la posición de otro dispositivo: el usuario eligió el lugar.
+        if let noteId, let note = await notes?.note(id: noteId), note.bookId == bookId {
+            await openBook(startAt: note.locatorJson)
+            return
+        }
         // SYN-003, SYN-012: antes de mostrar el libro se consulta su posición más reciente en la nube.
         if let sync, case let .confirm(remote, local) = await sync.resolve(bookId: bookId) {
             choice = (remote, local)
@@ -158,13 +219,21 @@ final class ReaderViewModel {
         await openBook()
     }
 
-    private func openBook() async {
+    /// - Parameter startAt: locator donde abrir en lugar de la última posición (ANN-010).
+    private func openBook(startAt: String? = nil) async {
         do {
-            let book = try await source.open(bookId: bookId)
+            var book = try await source.open(bookId: bookId)
+            if let startAt {
+                book = OpenedBook(
+                    title: book.title, toc: book.toc, readingOrder: book.readingOrder, initialLocatorJson: startAt,
+                    publication: book.publication
+                )
+            }
             chapters = book.toc.map { ChapterEntry(title: $0.title, href: $0.href) }
             readingOrder = book.readingOrder
             let topLevel = book.toc.filter { $0.depth == 0 }.map { BodyEntry(title: $0.title, href: $0.href) }
             bodyEnd = BodyEndDetector(readingOrder: readingOrder, backMatterStart: backMatterStart(toc: topLevel, readingOrder: readingOrder))
+            await reloadNotes()
             phase = .ready(book)
             listenForOtherDevices()
         } catch let error as BookOpenError {
@@ -232,6 +301,83 @@ final class ReaderViewModel {
 
     func dismissNotice() { notice = nil }
 
+    // MARK: Notas (ANN-008, ANN-009)
+
+    /// K-332: el navegador avisa la selección nueva, o nil cuando desapareció.
+    func selectionChanged(_ selection: TextSelection?) {
+        guard notes != nil || selection == nil else { return }
+        self.selection = selection
+    }
+
+    /// ANN-008: "Nota" en el menú de la selección.
+    func noteFromSelection() {
+        guard let selection else { return }
+        onTextSelected(locatorJson: selection.locatorJson, quote: selection.quote, progression: selection.progression)
+        dismissSelection()
+    }
+
+    /// Cierra el menú y quita la selección del libro (después de Nota, Copiar o Compartir).
+    func dismissSelection() {
+        selection = nil
+        clearSelectionRequest += 1
+    }
+
+    /// ANN-008: el usuario eligió "Nota" sobre un texto seleccionado. Una selección vacía no abre nada.
+    func onTextSelected(locatorJson: String, quote: String, progression: Double?) {
+        let text = quote.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard notes != nil, !text.isEmpty else { return }
+        settingsOpen = false
+        noteEditor = NoteEditor(noteId: nil, quote: text, text: "", locatorJson: locatorJson, progression: progression ?? 0)
+    }
+
+    /// ANN-009: el usuario tocó un subrayado: se muestra su nota para leerla, editarla o borrarla.
+    func openNote(id: String) async {
+        guard let note = await notes?.note(id: id) else { return }
+        settingsOpen = false
+        noteEditor = NoteEditor(
+            noteId: note.id, quote: note.quote, text: note.text, locatorJson: note.locatorJson, progression: note.progression
+        )
+    }
+
+    /// ANN-008, ANN-005: guarda la nota y cierra el editor. Una nota sin texto no se guarda y el editor sigue abierto.
+    func saveNote(_ text: String) async {
+        guard let editor = noteEditor, let notes else { return }
+        let body = text.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !body.isEmpty else { return }
+        noteEditor = nil
+        let now = Int64((clock().timeIntervalSince1970 * 1000).rounded())
+        if let id = editor.noteId, var existing = await notes.note(id: id) {
+            existing.text = body
+            existing.updatedAt = now
+            await notes.save(existing)
+        } else {
+            await notes.save(
+                Note(
+                    id: UUID().uuidString.lowercased(), bookId: bookId, locatorJson: editor.locatorJson, quote: editor.quote,
+                    text: body, progression: editor.progression, createdAt: now, updatedAt: now
+                )
+            )
+        }
+        notesChanged()
+        await reloadNotes()
+    }
+
+    /// ANN-009: borra la nota abierta (la pantalla ya pidió confirmación); el subrayado se va con ella.
+    func deleteNote() async {
+        guard let id = noteEditor?.noteId, let notes else { return }
+        noteEditor = nil
+        await notes.delete(id: id)
+        notesChanged()
+        await reloadNotes()
+    }
+
+    /// ANN-008: cancelar no guarda nada.
+    func closeNote() { noteEditor = nil }
+
+    private func reloadNotes() async {
+        bookNotes = await notes?.notes(bookId: bookId) ?? []
+    }
+
     // MARK: Controles (RDR-011, RDR-013, RDR-014)
 
     func toggleControls() {
@@ -261,16 +407,65 @@ final class ReaderViewModel {
 
     // MARK: Ajustes (RDR-002, RDR-003, RDR-014)
 
-    func setTheme(_ theme: ReadingTheme) { update(settings.withTheme(theme)) }
-    func setFont(_ font: ReaderFont) { update(settings.withFont(font)) }
-    func setLineSpacing(_ spacing: LineSpacing) { update(settings.withLineSpacing(spacing)) }
-    func biggerFont() { update(settings.biggerFont()) }
-    func smallerFont() { update(settings.smallerFont()) }
+    /// Lo que el lector aplica: en Free, Clásico y serifa (PLN-015).
+    var settings: ReaderSettings { effectiveReaderSettings(savedSettings, plan: plan()) }
+
+    /// PLN-015: la opción lleva la marca "Plus" y abre la hoja de función paga.
+    func isLocked(_ theme: ReadingTheme) -> Bool { theme.isPaid && !plan().hasThemesAndFonts }
+    func isLocked(_ font: ReaderFont) -> Bool { font.isPaid && !plan().hasThemesAndFonts }
+
+    func setTheme(_ theme: ReadingTheme) {
+        guard !isLocked(theme) else { return requestThemesAndFonts() }
+        update(savedSettings.withTheme(theme))
+    }
+
+    func setFont(_ font: ReaderFont) {
+        guard !isLocked(font) else { return requestThemesAndFonts() }
+        update(savedSettings.withFont(font))
+    }
+
+    func setLineSpacing(_ spacing: LineSpacing) { update(savedSettings.withLineSpacing(spacing)) }
+    func biggerFont() { update(savedSettings.biggerFont()) }
+    func smallerFont() { update(savedSettings.smallerFont()) }
 
     private func update(_ newSettings: ReaderSettings) {
-        guard newSettings != settings else { return }
-        settings = newSettings
+        guard newSettings != savedSettings else { return }
+        savedSettings = newSettings
         settingsRepository.save(newSettings)
+    }
+
+    // MARK: Función paga (PLN-015)
+
+    /// El panel se cierra y, cuando terminó de cerrarse, aparece la hoja: dos hojas a la vez no se pueden.
+    private func requestThemesAndFonts() {
+        if settingsOpen {
+            paidAfterSettings = true
+            settingsOpen = false
+        } else {
+            paidFeature = .themesAndFonts
+        }
+    }
+
+    /// El panel terminó de cerrarse.
+    func settingsDismissed() {
+        guard paidAfterSettings else { return }
+        paidAfterSettings = false
+        paidFeature = .themesAndFonts
+    }
+
+    /// "Ahora no".
+    func dismissPaidFeature() { paidFeature = nil }
+
+    /// "Ver planes": cierra la hoja y abre P01 cuando terminó de cerrarse.
+    func seePlans() {
+        plansAfterPaid = true
+        paidFeature = nil
+    }
+
+    func paidFeatureDismissed() {
+        guard plansAfterPaid else { return }
+        plansAfterPaid = false
+        plansOpen = true
     }
 
     // MARK: Posición (RDR-006)

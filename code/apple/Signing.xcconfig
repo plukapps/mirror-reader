@@ -1,10 +1,8 @@
-// Firma para correr en un iPhone físico (K-098). La Mac y el simulador usan firma local y no lo necesitan.
+// Firma para correr en un iPhone físico (K-098) y datos de Google de esta máquina. La Mac y el simulador usan firma local y no lo necesitan.
 // Los datos de cada máquina van en Signing.local.xcconfig, que no va al repo:
 //   DEVELOPMENT_TEAM = ABCDE12345     (Xcode → Settings → Accounts, o el equipo personal gratuito)
 //   BUNDLE_ID_SUFFIX = .santilod      (opcional, si Apple no acepta com.pluk.reader para el equipo)
-//   DEV_ACCOUNT_EMAIL = ...           (cuenta de desarrollo de Firebase, solo Debug; ver tools/copy-dev-account.sh)
-//   DEV_ACCOUNT_PASSWORD = ...
+//   GOOGLE_REVERSED_CLIENT_ID = ...   (esquema de URL de vuelta de Google, ADR 0015; ver tools/copy-google-client.sh)
 BUNDLE_ID_SUFFIX =
-DEV_ACCOUNT_EMAIL =
-DEV_ACCOUNT_PASSWORD =
+GOOGLE_REVERSED_CLIENT_ID =
 #include? "Signing.local.xcconfig"

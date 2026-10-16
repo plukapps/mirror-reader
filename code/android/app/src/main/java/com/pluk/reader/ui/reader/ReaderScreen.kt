@@ -1,6 +1,9 @@
 package com.pluk.reader.ui.reader
 
 import android.app.Activity
+import android.content.ClipData
+import android.content.ClipboardManager
+import android.content.Intent
 import android.content.Context
 import android.content.ContextWrapper
 import android.widget.Toast
@@ -22,6 +25,7 @@ import androidx.compose.ui.graphics.BlendMode
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.zIndex
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
@@ -37,6 +41,7 @@ import androidx.core.view.WindowInsetsControllerCompat
 import androidx.compose.ui.platform.testTag
 import androidx.compose.runtime.withFrameNanos
 import kotlin.math.roundToInt
+import kotlinx.coroutines.flow.collectLatest
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Box
@@ -73,6 +78,7 @@ import androidx.compose.ui.unit.dp
 import androidx.fragment.compose.AndroidFragment
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.pluk.reader.domain.model.Note
 import com.pluk.reader.domain.model.OpenedBook
 import com.pluk.reader.R
 import com.pluk.reader.domain.model.LineSpacing
@@ -84,6 +90,8 @@ import com.pluk.reader.ui.theme.ReaderTheme
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.emptyFlow
 import org.json.JSONObject
+import org.readium.r2.navigator.Decoration
+import org.readium.r2.navigator.DecorableNavigator
 import org.readium.r2.navigator.epub.EpubNavigatorFragment
 import org.readium.r2.navigator.input.InputListener
 import org.readium.r2.navigator.input.TapEvent
@@ -100,6 +108,8 @@ fun ReaderScreen(
     viewModel: ReaderViewModel = hiltViewModel(),
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
+    val noteEditor by viewModel.noteEditor.collectAsStateWithLifecycle()
+    val notes by viewModel.bookNotes.collectAsStateWithLifecycle()
     val uriHandler = LocalUriHandler.current
     val context = LocalContext.current
 
@@ -150,6 +160,9 @@ fun ReaderScreen(
             chapterTitle = current.chapterTitle,
             settingsOpen = current.settingsOpen,
             continueFrom = current.continueFrom,
+            readingOptionsLocked = current.readingOptionsLocked,
+            noteEditor = noteEditor,
+            notes = notes,
             jumps = viewModel.jumps,
             onBack = onBack,
             actions = ReaderActions.of(viewModel),
@@ -197,10 +210,15 @@ private fun ReaderContent(
     onBack: () -> Unit,
     actions: ReaderActions,
     continueFrom: ContinueFrom? = null,
+    readingOptionsLocked: Boolean = false,
+    noteEditor: NoteEditor? = null,
+    notes: List<Note> = emptyList(),
     jumps: Flow<String> = emptyFlow(),
 ) {
     var showToc by remember { mutableStateOf(false) }
     var navigator by remember { mutableStateOf<EpubNavigatorFragment?>(null) }
+    // SYN-014: texto que ancla la posición actual; se reemplaza cuando sale de la página visible.
+    var keptText by remember(navigator) { mutableStateOf<Locator.Text?>(null) }
     var area by remember { mutableStateOf<Rect?>(null) }
     val scope = rememberCoroutineScope()
     val controller = remember(scope) { PageTurnController(scope) }
@@ -217,7 +235,7 @@ private fun ReaderContent(
     val animated = settings.pageAnimation
     val outgoingTint = settings.theme.outgoingTint()
     val controlsVisible by rememberUpdatedState(controlsVisible)
-    ImmersiveSystemBars(window, hidden = !controlsVisible)
+    ImmersiveSystemBars(window, hidden = !controlsVisible, darkIcons = settings.theme != ReadingTheme.DARK)
     // Al pasar de página los controles se quitan de golpe: esperar a que se desvanezcan retrasa el inicio de la animación.
     var hideControlsInstantly by remember { mutableStateOf(false) }
     LaunchedEffect(controlsVisible) { if (controlsVisible) hideControlsInstantly = false }
@@ -269,9 +287,22 @@ private fun ReaderContent(
                 return true
             }
         })
-        nav.currentLocator.collect { locator ->
+        // SYN-014: el locator guarda además el texto del comienzo de la página. El primero que llega es la posición
+        // desde la que se abrió: su texto se conserva mientras siga a la vista.
+        nav.currentLocator.collectLatest { locator ->
+            val anchored = if (locator.text.highlight != null) {
+                keptText = locator.text
+                locator
+            } else {
+                when (val visible = nav.firstVisibleText(keptText)) {
+                    VisibleText.Kept -> Unit
+                    is VisibleText.Found -> keptText = visible.anchor.toLocatorText()
+                    VisibleText.None -> keptText = null
+                }
+                keptText?.let { locator.copy(text = it) } ?: locator
+            }
             actions.onLocatorChanged(
-                locator.toJSON().toString(),
+                anchored.toJSON().toString(),
                 locator.locations.totalProgression,
                 locator.locations.position,
                 locator.href.toString(),
@@ -279,11 +310,56 @@ private fun ReaderContent(
         }
     }
 
+    // ANN-008: menú de selección. La selección se lee antes de cerrar el menú, que la quita.
+    val context = LocalContext.current
+    SelectionMenu.labels = mapOf(
+        SelectionAction.Note to stringResource(R.string.selection_note),
+        SelectionAction.Copy to stringResource(R.string.selection_copy),
+        SelectionAction.Share to stringResource(R.string.selection_share),
+    )
+    LaunchedEffect(navigator) {
+        val nav = navigator ?: return@LaunchedEffect
+        SelectionMenu.requests.collect { request ->
+            val selection = nav.currentSelection()
+            request.finish()
+            nav.clearSelection()
+            val locator = selection?.locator ?: return@collect
+            val quote = locator.text.highlight.orEmpty()
+            when (request.action) {
+                SelectionAction.Note ->
+                    actions.onTextSelected(locator.toJSON().toString(), quote, locator.locations.totalProgression)
+                SelectionAction.Copy -> context.getSystemService(ClipboardManager::class.java)
+                    ?.setPrimaryClip(ClipData.newPlainText(null, quote))
+                SelectionAction.Share -> context.startActivity(
+                    Intent.createChooser(Intent(Intent.ACTION_SEND).setType("text/plain").putExtra(Intent.EXTRA_TEXT, quote), null),
+                )
+            }
+        }
+    }
+
+    // ANN-008, ANN-009: las notas se ven subrayadas; tocar un subrayado abre su nota.
+    LaunchedEffect(navigator) {
+        val nav = navigator ?: return@LaunchedEffect
+        nav.addDecorationListener(NOTES_GROUP, object : DecorableNavigator.Listener {
+            override fun onDecorationActivated(event: DecorableNavigator.OnActivatedEvent): Boolean {
+                actions.onNoteTapped(event.decoration.id)
+                return true
+            }
+        })
+    }
+    LaunchedEffect(navigator, notes) {
+        val nav = navigator ?: return@LaunchedEffect
+        nav.applyDecorations(notes.mapNotNull { it.toDecoration() }, NOTES_GROUP)
+    }
+
     // SYN-013: el usuario eligió seguir desde otro dispositivo.
     LaunchedEffect(navigator) {
         val nav = navigator ?: return@LaunchedEffect
         jumps.collect { json ->
-            runCatching { Locator.fromJSON(JSONObject(json)) }.getOrNull()?.let { nav.go(it, animated = false) }
+            runCatching { Locator.fromJSON(JSONObject(json)) }.getOrNull()?.let {
+                keptText = it.text.takeIf { text -> text.highlight != null }
+                nav.go(it, animated = false)
+            }
         }
     }
 
@@ -410,10 +486,20 @@ private fun ReaderContent(
                     },
                     onTogglePageAnimation = actions.onTogglePageAnimation,
                 ),
+                locked = readingOptionsLocked,
             )
         }
         // SYN-013: aviso discreto, sin mover la página; se toca para seguir o se descarta.
         continueFrom?.let { ContinueFromChip(it, settings.theme, actions.onContinueFrom, actions.onDismissContinueFrom) }
+        // ANN-008, ANN-009
+        noteEditor?.let { editor ->
+            NoteEditorSheet(
+                editor = editor,
+                onSave = actions.onSaveNote,
+                onDismiss = actions.onCloseNote,
+                onDelete = if (editor.noteId != null) actions.onDeleteNote else null,
+            )
+        }
         if (showToc) {
             ReaderTocDialog(
                 toc = toc,
@@ -509,9 +595,16 @@ private fun ReadingTheme.pageTextColor() = when (this) {
  * visibilidad de las barras, así el texto no se mueve. Al salir de la pantalla se vuelven a mostrar.
  */
 @Composable
-private fun ImmersiveSystemBars(window: Window?, hidden: Boolean) {
+private fun ImmersiveSystemBars(window: Window?, hidden: Boolean, darkIcons: Boolean) {
     if (window == null) return
     val view = LocalView.current
+    // K-200, PRF-021: íconos de las barras según el tema del libro, no según la apariencia de la app.
+    LaunchedEffect(window, darkIcons) {
+        WindowCompat.getInsetsController(window, view).apply {
+            isAppearanceLightStatusBars = darkIcons
+            isAppearanceLightNavigationBars = darkIcons
+        }
+    }
     LaunchedEffect(window, hidden) {
         val controller = WindowCompat.getInsetsController(window, view)
         controller.systemBarsBehavior = WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
@@ -547,6 +640,18 @@ private fun ReadingTheme.outgoingTint() = when (this) {
     ReadingTheme.SEPIA -> OutgoingTint(Color(0xFFEBE6D9), BlendMode.Multiply)
 }
 
+/** Grupo de decoraciones de las notas (ANN-008). */
+private const val NOTES_GROUP = "notes"
+
+/** Amarillo del subrayado, el del diseño (pantalla 06). Readium le baja la opacidad al dibujarlo. */
+private val NOTE_HIGHLIGHT = Color(0xFFFBD256)
+
+/** Un locator dañado no se dibuja; la nota sigue en el detalle del libro con su texto citado (ANN-006). */
+private fun Note.toDecoration(): Decoration? =
+    runCatching { Locator.fromJSON(JSONObject(locatorJson)) }.getOrNull()?.let {
+        Decoration(id = id, locator = it, style = Decoration.Style.Highlight(tint = NOTE_HIGHLIGHT.toArgb()))
+    }
+
 private const val SNAPSHOT_TAG = "page-turn-snapshot"
 private const val PAGE_NUMBER_TAG = "page-number"
 private val PAGE_NUMBER_HEIGHT = 32.dp
@@ -571,6 +676,11 @@ private class ReaderActions(
     val onSetLineSpacing: (LineSpacing) -> Unit,
     val onContinueFrom: () -> Unit = {},
     val onDismissContinueFrom: () -> Unit = {},
+    val onTextSelected: (json: String, quote: String, totalProgression: Double?) -> Unit = { _, _, _ -> },
+    val onSaveNote: (String) -> Unit = {},
+    val onCloseNote: () -> Unit = {},
+    val onDeleteNote: () -> Unit = {},
+    val onNoteTapped: (String) -> Unit = {},
 ) {
     companion object {
         fun of(viewModel: ReaderViewModel) = ReaderActions(
@@ -589,6 +699,11 @@ private class ReaderActions(
             onSetLineSpacing = viewModel::setLineSpacing,
             onContinueFrom = viewModel::continueFromOtherDevice,
             onDismissContinueFrom = viewModel::dismissContinueFrom,
+            onTextSelected = viewModel::onTextSelected,
+            onSaveNote = viewModel::saveNote,
+            onCloseNote = viewModel::closeNote,
+            onDeleteNote = viewModel::deleteNote,
+            onNoteTapped = viewModel::openNote,
         )
 
         val None = ReaderActions({}, {}, { _, _, _, _ -> }, {}, {}, {}, {}, {}, {}, {}, {})

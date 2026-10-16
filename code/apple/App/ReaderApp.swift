@@ -11,17 +11,12 @@ struct ReaderApp: App {
 
     var body: some Scene {
         WindowGroup {
-            RootView(
-                home: screens.home, search: screens.search, library: screens.library, sync: screens.sync,
-                makeReader: screens.makeReader
-            )
+            AppRootView(screens: screens)
                 .windowMinimumSize()
-                #if os(iOS)
-                // La paleta del diseño es clara y no hay tema oscuro: la barra de estado va oscura (IOS-002).
+                #if os(macOS)
+                // La Mac todavía no llega a Perfil (K-078): sigue clara, como su diseño.
                 .preferredColorScheme(.light)
                 #endif
-                // "Abrir con" desde otra app, o un EPUB tocado en Archivos (LIB-001).
-                .onOpenURL { url in Task { await screens.home.openIncoming(url) } }
         }
         #if os(macOS)
         .defaultSize(WindowLayout.defaultSize)

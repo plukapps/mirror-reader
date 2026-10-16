@@ -1,4 +1,4 @@
-// Arma el ícono de Mac desde el ícono cuadrado de 1024 (WEL-009, K-163).
+// Arma el ícono de Mac desde el ícono cuadrado de 1024 (WEL-009, K-341).
 //
 // macOS 14 no recorta el ícono como iOS: hay que entregarlo ya con la forma redondeada y el
 // margen de la grilla de macOS (824 × 824 sobre un lienzo de 1024, esquinas de 185, sombra suave).

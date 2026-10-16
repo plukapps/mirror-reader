@@ -17,11 +17,12 @@ Alcance del backend v1 y modelo de datos. Decisión técnica: `specs/adr/0007-ba
 | Campo | Tipo | Notas |
 |---|---|---|
 | `plan` | string | `"free"` en v1. Nuevos planes sin cambiar el modelo (ACC-005). |
-| `quotaBytes` | int | Cuota del plan, en bytes. Plan gratuito: 15 MiB (15 728 640). |
+| `quotaBytes` | int | Espacio total del plan, en bytes. Sale del catálogo de planes (ADR 0017). Plan gratuito: 15 MiB (15 728 640), como antes del catálogo. |
+| `maxFileBytes` | int | Tamaño máximo por archivo del plan, en bytes (ACC-010). Sale del catálogo (ADR 0017). |
 | `usedBytes` | int | Bytes usados por los archivos del usuario (ACC-003). Lo mantiene una Cloud Function con el tamaño real (ADR 0008). |
 | `createdAt` | timestamp | Alta de la cuenta. |
 
-Reglas: el dueño puede leer (así la app muestra el espacio usado y libre, ACC-003). **Nadie puede escribir desde el cliente.** `usedBytes` lo escribe el servidor (ADR 0008). El documento lo crea la función `onUserCreated` al registrarse (email o Google, ACC-001) con `plan: "free"`, `quotaBytes` de 15 MiB (provisional, open-questions #2) y `usedBytes: 0`. Es idempotente: un evento repetido no pisa un documento existente. Subir un libro antes de que exista el documento se rechaza (la regla de Storage lo exige), así que la app debe esperar a que aparezca tras el registro.
+Reglas: el dueño puede leer (así la app muestra el espacio usado y libre, ACC-003). **Nadie puede escribir desde el cliente.** `usedBytes` lo escribe el servidor (ADR 0008). El documento lo crea la función `onUserCreated` al registrarse (email o Google, ACC-001) con `plan: "free"`, `quotaBytes` y `maxFileBytes` del plan `free` del catálogo (ADR 0017) y `usedBytes: 0`. Cuando cambia el catálogo, `onPlansUpdated` actualiza `quotaBytes` y `maxFileBytes` de los usuarios de cada plan (ACC-009). Es idempotente: un evento repetido no pisa un documento existente. Subir un libro antes de que exista el documento se rechaza (la regla de Storage lo exige), así que la app debe esperar a que aparezca tras el registro.
 
 ### `users/{uid}/storedFiles/{sha256}`
 
@@ -45,6 +46,7 @@ Reglas: **ni el dueño puede leer ni escribir.** Solo el servidor.
 | `filePath` | string | Debe ser `users/{uid}/books/{bookId}.epub`. No cambia. |
 | `sizeBytes` | int | Tamaño del archivo, mayor o igual a 0. No cambia. |
 | `createdAt` | timestamp | Del servidor. No cambia. |
+| `addedAt` | timestamp, opcional | Cuándo el libro entró a la biblioteca (LIB-021). Del servidor; se renueva cada vez que un dispositivo sube el libro tras importarlo, también al volver a importar uno borrado. Si falta (documentos viejos), vale `createdAt`. |
 | `updatedAt` | timestamp | Del servidor, en cada escritura. |
 | `deletedAt` | timestamp o null | Marca de borrado (SYN-007, LIB-008). `null` si el libro está vivo. |
 
@@ -84,13 +86,43 @@ Reglas: el dueño lee, crea y actualiza. **No hay borrado desde el cliente.** Se
 
 Desvío del principio de marcas de tiempo del servidor: para la posición, "más reciente" es el momento en que se leyó, no el momento en que llegó al servidor. Un dispositivo que estuvo sin conexión un día enviaría una lectura vieja con hora de servidor nueva y pisaría una lectura más nueva (ADR 0011).
 
+### `users/{uid}/notes/{noteId}`
+
+Nota sobre un texto del libro (ANN-003, SYN-016). `noteId` es el UUID de la nota, en minúscula. Plan: `specs/plans/2026-10-14-notes-sync.md`. La sincronización se prende o apaga con Remote Config (`notes_sync_enabled`, SYN-017, ADR 0016); las reglas no lo leen.
+
+| Campo | Tipo | Notas |
+|---|---|---|
+| `bookId` | string | SHA-256 del libro. El libro debe existir en `users/{uid}/books/{bookId}`. No cambia. |
+| `locatorJson` | string | Lugar del texto, de 1 a 8192 caracteres. El servidor no lo interpreta. No cambia. |
+| `quote` | string | Texto citado, de 1 a 4000 caracteres. No cambia. |
+| `text` | string | La nota, hasta 10 000 caracteres. Vacía solo si está borrada. |
+| `progression` | número | Lugar en el libro, de 0 a 1. No cambia. |
+| `createdAt` | int | Milisegundos, reloj del dispositivo que la creó. No cambia. |
+| `editedAt` | int | Milisegundos, reloj del dispositivo en la última edición o borrado. Decide quién gana (SYN-005). |
+| `deletedAt` | int o null | Marca de borrado (SYN-007), reloj del dispositivo. |
+| `updatedAt` | timestamp | Del servidor, en cada escritura. Solo para pedir lo que cambió. |
+
+Reglas: el dueño lee, crea y actualiza. **No hay borrado desde el cliente.** Se rechaza:
+
+- un `noteId` que no sea un UUID, un `bookId` que no sea un SHA-256 o un libro que no existe;
+- campos de más o de menos, tipos o tamaños fuera de lo indicado, y una nota viva sin texto;
+- fechas del dispositivo más de una hora en el futuro;
+- crear una nota ya borrada;
+- cambiar `bookId`, `locatorJson`, `quote`, `progression` o `createdAt`;
+- un `editedAt` menor que el guardado (**gana la edición más reciente**, como `readAt` en las posiciones, ADR 0011). Repetirlo se acepta (reenvío);
+- revivir una nota borrada con un `editedAt` que no sea posterior al borrado. Una edición hecha después del borrado la revive: también ahí gana el último cambio (SYN-005, SYN-010).
+
 ## Archivos (Storage)
 
-Ruta `users/{uid}/books/{sha256}.epub`. Solo el dueño lee, sube y borra (ACC-004). Solo `application/epub+zip`, de 1 byte a 100 MB, y un archivo no se sobrescribe: el nombre es su hash (LIB-002).
+Ruta `users/{uid}/books/{sha256}.epub`. Solo el dueño lee, sube y borra (ACC-004). Solo `application/epub+zip`, de 1 byte a `maxFileBytes` del usuario (el máximo de su plan, ACC-010, ADR 0017); sin ese campo se rechaza, y un archivo no se sobrescribe: el nombre es su hash (LIB-002).
 
 ### Portadas
 
 Ruta `users/{uid}/covers/{sha256}.jpg`, con el hash del libro (LIB-012). Solo el dueño lee, sube y borra. Solo `image/jpeg`, de 1 byte a 1 MiB, sin sobrescribir, y solo si existe el documento del libro (`users/{uid}/books/{sha256}`). **No cuentan para la cuota** (ADR 0008): la regla no consulta `usedBytes` y las funciones de cuota solo miran `books/*.epub`. Cada portada pesa unas decenas de KB y la cantidad queda acotada por la de libros.
+
+### Catálogo de planes (Remote Config)
+
+Parámetro JSON `plans` en `code/backend/v1/remoteconfig.template.json` (ADR 0017, ACC-007). Por plan: `storageGb`, `maxFileMb`, `priceMonthly`, `priceYearly`, `currency`. Solo vale el valor por defecto, sin condiciones. La app lo lee para mostrar los planes; los límites que se aplican están en `users/{uid}`.
 
 ### Cuota
 
@@ -113,4 +145,4 @@ Revisado y sin hallazgos: acceso por usuario en Firestore y Storage, denegado po
 
 ## Fuera de este modelo por ahora
 
-Preferencias y anotaciones (SYN-002, ANN): su modelo y sus reglas llegan con esas rebanadas. Mientras tanto están denegadas.
+Preferencias, marcadores y subrayados sin nota (SYN-002, ANN): su modelo y sus reglas llegan con esas rebanadas. Mientras tanto están denegadas.

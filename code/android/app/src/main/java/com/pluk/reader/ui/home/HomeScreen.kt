@@ -1,5 +1,8 @@
 package com.pluk.reader.ui.home
 
+import com.pluk.reader.ui.actions.bookClickable
+import com.pluk.reader.ui.actions.coverAnchor
+import com.pluk.reader.ui.actions.rememberCoverAnchor
 import android.app.Activity
 import androidx.annotation.StringRes
 import androidx.compose.foundation.layout.ColumnScope
@@ -179,19 +182,20 @@ private fun ContinueCard(book: LibraryBook, onClick: () -> Unit) {
     val percent = book.progressPercent ?: 0
     val description = listOfNotNull(stringResource(R.string.home_continue), book.title, book.author, "$percent %")
         .joinToString(". ")
+    val anchor = rememberCoverAnchor()
     Row(
         Modifier
             .padding(start = 20.dp, end = 20.dp, top = 24.dp)
             .fillMaxWidth()
             .clip(RoundedCornerShape(20.dp))
-            .background(MarginColors.Ink)
-            .clickable(role = Role.Button, onClick = onClick)
+            .background(MarginColors.InkFill)
+            .bookClickable(book, anchor, onClick)
             .clearAndSetSemantics { contentDescription = description; role = Role.Button }
             .padding(16.dp)
             .testTag("continue-card"),
         horizontalArrangement = Arrangement.spacedBy(16.dp),
     ) {
-        BookCover(book, Modifier.width(96.dp))
+        BookCover(book, Modifier.width(96.dp).coverAnchor(anchor))
         Column(Modifier
             .weight(1f)
             .heightIn(min = 144.dp), verticalArrangement = Arrangement.SpaceBetween) {
@@ -215,7 +219,7 @@ private fun ContinueCard(book: LibraryBook, onClick: () -> Unit) {
                 book.author?.let {
                     Text(
                         it,
-                        color = MarginColors.Line,
+                        color = MarginColors.OnInkFillMuted,
                         fontSize = 13.sp,
                         lineHeight = 13.sp,
                         maxLines = 1,
@@ -250,7 +254,7 @@ private fun NothingReading(libraryEmpty: Boolean, onAction: () -> Unit) {
             .padding(start = 20.dp, end = 20.dp, top = 24.dp)
             .fillMaxWidth()
             .clip(RoundedCornerShape(20.dp))
-            .background(Color.White)
+            .background(MarginColors.Card)
             .padding(20.dp)
             .testTag("nothing-reading"),
         verticalArrangement = Arrangement.spacedBy(8.dp),
@@ -262,7 +266,7 @@ private fun NothingReading(libraryEmpty: Boolean, onAction: () -> Unit) {
                 .padding(top = 8.dp)
                 .height(44.dp)
                 .clip(RoundedCornerShape(22.dp))
-                .background(MarginColors.Ink)
+                .background(MarginColors.InkFill)
                 .clickable(role = Role.Button, onClick = onAction)
                 .padding(horizontal = 20.dp)
                 .testTag("nothing-reading-action"),
@@ -309,18 +313,18 @@ private fun BookRow(
     Row(
         Modifier
             .fillMaxWidth()
-            .padding(start = 20.dp, end = 20.dp, top = 26.dp, bottom = 12.dp),
+            .padding(start = 24.dp, end = 20.dp, top = 48.dp, bottom = 12.dp),
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.Bottom) {
-            Text(stringResource(title), color = MarginColors.Ink, fontSize = 18.sp, fontWeight = FontWeight.Bold, letterSpacing = (-0.02).em)
-            Text("$count", color = MarginColors.Muted, fontSize = 13.sp, fontWeight = FontWeight.Medium)
+            Text(stringResource(title), color = MarginColors.Ink, fontSize = 15.sp, fontWeight = FontWeight.Bold, letterSpacing = (-0.02).em)
+            Text("$count", color = MarginColors.Muted, fontSize = 11.sp, fontWeight = FontWeight.Medium)
         }
         Text(
             stringResource(R.string.home_see_all),
             color = MarginColors.Ink,
-            fontSize = 13.sp,
+            fontSize = 12.sp,
             fontWeight = FontWeight.SemiBold,
             textDecoration = TextDecoration.Underline,
             modifier = Modifier
@@ -342,18 +346,19 @@ private fun RowItem(
     book: LibraryBook,
     description: String,
     onClick: () -> Unit,
-    cover: @Composable () -> Unit = { BookCover(book) },
+    cover: @Composable (Modifier) -> Unit = { BookCover(book, it) },
     details: @Composable ColumnScope.() -> Unit,
 ) {
+    val anchor = rememberCoverAnchor()
     Column(
         Modifier
             .width(104.dp)
-            .clickable(role = Role.Button, onClick = onClick)
+            .bookClickable(book, anchor, onClick)
             .clearAndSetSemantics { contentDescription = description; role = Role.Button }
             .testTag("home-book-${book.id}"),
         verticalArrangement = Arrangement.spacedBy(4.dp),
     ) {
-        cover()
+        cover(Modifier.coverAnchor(anchor))
         Column(verticalArrangement = Arrangement.spacedBy(1.dp), content = details)
     }
 }
@@ -436,8 +441,8 @@ private fun FinishedItem(book: LibraryBook, onBookClick: (String) -> Unit) {
         book,
         description,
         onClick = { onBookClick(book.id) },
-        cover = {
-            Box {
+        cover = { modifier ->
+            Box(modifier) {
                 BookCover(book)
                 Box(
                     Modifier
@@ -448,7 +453,7 @@ private fun FinishedItem(book: LibraryBook, onBookClick: (String) -> Unit) {
                         .background(MarginColors.Yellow),
                     contentAlignment = Alignment.Center,
                 ) {
-                    Icon(LibraryIcons.Check, contentDescription = null, tint = MarginColors.Ink, modifier = Modifier.size(15.dp))
+                    Icon(LibraryIcons.Check, contentDescription = null, tint = MarginColors.OnYellow, modifier = Modifier.size(15.dp))
                 }
             }
         },

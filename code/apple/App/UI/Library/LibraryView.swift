@@ -8,12 +8,25 @@ struct LibraryView: View {
     /// nil: sin botón "Importar" (la Mac no tiene dónde mostrar el aviso hasta K-078).
     var onImport: (() -> Void)?
     var onOpen: (String) -> Void = { _ in }
+    /// PLN-011: "Ver planes" del aviso del 80 %.
+    var onSeePlans: () -> Void = {}
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
             Header(onImport: onImport)
             if let status = viewModel.syncStatus {
                 SyncStatusView(status: status, onRetry: viewModel.retrySync)
+            }
+            if let usage = viewModel.usageNotice {
+                UsageNoticeCard(
+                    usage: usage,
+                    onSeePlans: {
+                        viewModel.dismissUsageNotice()
+                        onSeePlans()
+                    },
+                    onClose: viewModel.dismissUsageNotice
+                )
+                .padding(EdgeInsets(top: 16, leading: WindowLayout.horizontalPadding, bottom: 0, trailing: WindowLayout.horizontalPadding))
             }
             Tabs(viewModel: viewModel)
             if viewModel.isLibraryEmpty {
@@ -47,7 +60,7 @@ private struct Header: View {
                         Image(systemName: "plus").font(.system(size: 17, weight: .semibold))
                         Text("Importar").font(.app(13, .bold))
                     }
-                    .foregroundStyle(MarginColors.ink)
+                    .foregroundStyle(MarginColors.onYellow)
                     .padding(.leading, 10)
                     .padding(.trailing, 14)
                     .frame(height: 40)
@@ -122,6 +135,7 @@ private struct BookGrid: View {
                 ForEach(books) { book in
                     Button { onOpen(book.id) } label: { BookCell(book: book).contentShape(Rectangle()) }
                         .buttonStyle(.plain)
+                        .bookContextMenu(book) { onOpen(book.id) }
                 }
             }
             .padding(.horizontal, WindowLayout.horizontalPadding)
@@ -205,7 +219,7 @@ private struct EmptyLibrary: View {
                         .foregroundStyle(MarginColors.yellow)
                         .padding(.horizontal, 20)
                         .frame(height: 44)
-                        .background(MarginColors.ink, in: Capsule())
+                        .background(MarginColors.inkFill, in: Capsule())
                 }
                 .buttonStyle(.plain)
                 .padding(.top, 20)

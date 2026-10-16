@@ -46,3 +46,50 @@ val MIGRATION_4_5 = object : Migration(4, 5) {
         db.execSQL("ALTER TABLE `reading_positions` ADD COLUMN `isSynced` INTEGER NOT NULL DEFAULT 0")
     }
 }
+
+/**
+ * Acciones del libro (LIB-019, LIB-020): tabla de libros quitados de este dispositivo y versión de la portada que
+ * eligió el usuario. Aditiva: los datos existentes no cambian.
+ */
+val MIGRATION_5_6 = object : Migration(5, 6) {
+    override fun migrate(db: SupportSQLiteDatabase) {
+        db.execSQL(
+            "CREATE TABLE IF NOT EXISTS `removed_books` (`id` TEXT NOT NULL, `removedAt` INTEGER NOT NULL, PRIMARY KEY(`id`))",
+        )
+        db.execSQL("ALTER TABLE `books` ADD COLUMN `coverVersion` INTEGER NOT NULL DEFAULT 0")
+    }
+}
+
+/**
+ * Quitar borra de la cuenta (LIB-020): cada libro quitado recuerda si la nube ya lo tiene borrado. Los quitados antes
+ * de esta versión se quitaron solo de este dispositivo: quedan como hechos y no se borran de la nube.
+ */
+val MIGRATION_6_7 = object : Migration(6, 7) {
+    override fun migrate(db: SupportSQLiteDatabase) {
+        db.execSQL("ALTER TABLE `removed_books` ADD COLUMN `cloudDeleted` INTEGER NOT NULL DEFAULT 0")
+        db.execSQL("UPDATE `removed_books` SET `cloudDeleted` = 1")
+    }
+}
+
+/** Notas sobre un texto del libro (ANN-003). */
+val MIGRATION_7_8 = object : Migration(7, 8) {
+    override fun migrate(db: SupportSQLiteDatabase) {
+        db.execSQL(
+            "CREATE TABLE IF NOT EXISTS `notes` (`id` TEXT NOT NULL, `bookId` TEXT NOT NULL, `locatorJson` TEXT NOT NULL, " +
+                "`quote` TEXT NOT NULL, `text` TEXT NOT NULL, `progression` REAL NOT NULL, `createdAt` INTEGER NOT NULL, " +
+                "`updatedAt` INTEGER NOT NULL, PRIMARY KEY(`id`))",
+        )
+        db.execSQL("CREATE INDEX IF NOT EXISTS `index_notes_bookId` ON `notes` (`bookId`)")
+    }
+}
+
+/**
+ * Sincronizar notas (SYN-016): marca de borrado (SYN-007) y la versión que la nube ya tiene. Las notas de antes nunca
+ * llegaron a la nube: quedan pendientes y se suben una vez.
+ */
+val MIGRATION_8_9 = object : Migration(8, 9) {
+    override fun migrate(db: SupportSQLiteDatabase) {
+        db.execSQL("ALTER TABLE `notes` ADD COLUMN `deletedAt` INTEGER")
+        db.execSQL("ALTER TABLE `notes` ADD COLUMN `syncedAt` INTEGER")
+    }
+}

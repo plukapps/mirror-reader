@@ -1,5 +1,8 @@
 package com.pluk.reader.data.account
 
+import android.content.Context
+import androidx.credentials.ClearCredentialStateRequest
+import androidx.credentials.CredentialManager
 import com.google.firebase.auth.EmailAuthProvider
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
@@ -10,6 +13,8 @@ import com.pluk.reader.domain.account.AccountUser
 import com.pluk.reader.domain.account.AuthError
 import com.pluk.reader.domain.account.AuthException
 import com.pluk.reader.domain.account.AuthRepository
+import com.pluk.reader.domain.account.SignInMethod
+import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
@@ -23,6 +28,7 @@ import javax.inject.Singleton
 @Singleton
 class FirebaseAccountRepository @Inject constructor(
     private val auth: FirebaseAuth,
+    @ApplicationContext private val context: Context,
 ) : AccountRepository, AuthRepository {
 
     // El listener del token avisa al iniciar y cerrar sesión, y también al refrescar el token: así una
@@ -66,6 +72,14 @@ class FirebaseAccountRepository @Inject constructor(
         verified
     }
 
+    override suspend fun signOut(): Result<Unit> = runAuth {
+        auth.signOut()
+        // Olvida la cuenta de Google elegida, así el próximo ingreso vuelve a ofrecer todas (ADR 0014). Si falla,
+        // la sesión ya está cerrada: no vale la pena informarlo.
+        runCatching { CredentialManager.create(context).clearCredentialState(ClearCredentialStateRequest()) }
+        Unit
+    }
+
     override suspend fun discardUnverifiedAccount(): Result<Unit> = runAuth {
         val current = auth.currentUser
         if (current != null && current.toAccountUser().needsEmailVerification) current.delete().await()
@@ -86,6 +100,16 @@ class FirebaseAccountRepository @Inject constructor(
 
     override suspend fun confirmPasswordReset(code: String, newPassword: String): Result<Unit> = runAuth {
         auth.confirmPasswordReset(code, newPassword).await()
+        Unit
+    }
+
+    override suspend fun changePassword(current: String, newPassword: String): Result<Unit> = runAuth {
+        val user = auth.currentUser.required()
+        val email = user.email ?: throw IllegalStateException("La cuenta no tiene email")
+        // Firebase pide un ingreso reciente para cambiar la contraseña: se verifica la actual y, si es
+        // incorrecta, falla con FirebaseAuthInvalidCredentialsException (InvalidCredentials).
+        user.reauthenticate(EmailAuthProvider.getCredential(email, current)).await()
+        user.updatePassword(newPassword).await()
         Unit
     }
 
@@ -115,5 +139,10 @@ class FirebaseAccountRepository @Inject constructor(
         needsEmailVerification = !isEmailVerified &&
             providerData.any { it.providerId == EmailAuthProvider.PROVIDER_ID } &&
             providerData.none { it.providerId == GoogleAuthProvider.PROVIDER_ID },
+        signInMethod = when {
+            providerData.any { it.providerId == EmailAuthProvider.PROVIDER_ID } -> SignInMethod.PASSWORD
+            providerData.any { it.providerId == GoogleAuthProvider.PROVIDER_ID } -> SignInMethod.GOOGLE
+            else -> SignInMethod.OTHER
+        },
     )
 }

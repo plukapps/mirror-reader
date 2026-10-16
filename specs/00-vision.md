@@ -10,7 +10,7 @@ Persona que lee EPUB que ya tiene (dominio público, comprados sin DRM, propios)
 
 ## Producto
 
-Lector de EPUB para Android, iOS, Mac y web. La app no trae, vende ni recomienda libros: cada usuario sube los suyos. Se publica en las tiendas de aplicaciones.
+**Tuck**: lector de EPUB para Android, iOS, Mac y web. La app no trae, vende ni recomienda libros: cada usuario sube los suyos. Se publica en las tiendas de aplicaciones.
 
 ## Principios
 

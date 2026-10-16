@@ -24,17 +24,21 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.em
 import androidx.compose.ui.unit.sp
 import com.pluk.reader.domain.model.LibraryBook
+import com.pluk.reader.ui.theme.LightMarginPalette
 import com.pluk.reader.ui.theme.MarginColors
 import kotlin.math.abs
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
-private val CoverShape = RoundedCornerShape(6.dp)
+private val CoverShape = RoundedCornerShape(8.dp)
 
-/** Portada 2:3 (LIB-011). Sin portada en el EPUB se genera una con color y título. */
+/**
+ * Portada 2:3 (LIB-011). Sin portada en el EPUB se genera una con color y título. Se vuelve a leer cuando el usuario
+ * la reemplaza (LIB-019): la ruta es la misma y cambia la versión.
+ */
 @Composable
 fun BookCover(book: LibraryBook, modifier: Modifier = Modifier) {
-    val bitmap by produceState<ImageBitmap?>(initialValue = null, book.coverPath) {
+    val bitmap by produceState<ImageBitmap?>(initialValue = null, book.coverPath, book.coverVersion) {
         value = book.coverPath?.let { path ->
             withContext(Dispatchers.IO) { BitmapFactory.decodeFile(path)?.asImageBitmap() }
         }
@@ -52,7 +56,7 @@ fun BookCover(book: LibraryBook, modifier: Modifier = Modifier) {
         Box(frame.background(background).padding(7.dp)) {
             Text(
                 text = book.title,
-                color = if (background.isLight()) MarginColors.Ink else Color.White,
+                color = if (background.isLight()) LightMarginPalette.ink else Color.White, // la portada no cambia con el modo
                 fontSize = 13.sp,
                 lineHeight = 13.sp,
                 fontWeight = FontWeight.ExtraBold,

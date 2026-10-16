@@ -1,5 +1,6 @@
 package com.pluk.reader.onboarding
 
+import com.pluk.reader.remote.NoRemovals
 import com.pluk.reader.domain.account.AccountRepository
 import com.pluk.reader.domain.account.AccountUser
 import com.pluk.reader.domain.model.ImportOutcome
@@ -57,8 +58,14 @@ class StartTest {
             NoLibrary,
             LibrarySync(FakeSyncBackend().useCase(), FakeAccount(user), CoroutineScope(dispatcher)),
             FakePositionBackend().sync(FakeAccount(user), CoroutineScope(dispatcher)),
+            NoRemovals,
             FakeAccount(user),
             FakeAuth(),
+            com.pluk.reader.domain.plans.ImportQuotaCheck(
+                com.pluk.reader.plans.FakeQuotaCache(),
+                com.pluk.reader.plans.FakePendingUploads(),
+                com.pluk.reader.domain.plans.PlanPrompts(),
+            ),
         )
 
     @Test

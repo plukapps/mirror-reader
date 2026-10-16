@@ -9,6 +9,7 @@ import com.pluk.reader.domain.ChapterEntry
 import com.pluk.reader.domain.currentChapterTitle
 import com.pluk.reader.domain.backMatterStart
 import com.pluk.reader.domain.model.LineSpacing
+import com.pluk.reader.domain.model.Note
 import com.pluk.reader.domain.model.OpenedBook
 import com.pluk.reader.domain.model.ReaderFont
 import com.pluk.reader.domain.model.ReaderSettings
@@ -17,11 +18,14 @@ import com.pluk.reader.domain.model.RemotePosition
 import com.pluk.reader.domain.progressPercent
 import com.pluk.reader.domain.shouldOfferJump
 import com.pluk.reader.domain.repository.BookRepository
+import com.pluk.reader.domain.repository.NoteRepository
 import com.pluk.reader.domain.repository.PositionRepository
 import com.pluk.reader.domain.repository.SettingsRepository
 import com.pluk.reader.domain.usecase.DownloadBookUseCase
+import com.pluk.reader.domain.usecase.NoteFlushRequester
 import com.pluk.reader.domain.usecase.OpeningPosition
 import com.pluk.reader.domain.usecase.PositionSync
+import com.pluk.reader.domain.usecase.ReadingSession
 import com.pluk.reader.domain.usecase.ResolveOpeningPositionUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.FlowPreview
@@ -31,6 +35,7 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asSharedFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.filter
@@ -38,7 +43,17 @@ import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import java.util.UUID
 import javax.inject.Inject
+import com.pluk.reader.domain.plans.PlanCatalog
+import com.pluk.reader.domain.plans.PlanId
+import com.pluk.reader.domain.plans.PlanPrompts
+import com.pluk.reader.domain.plans.allowReadingOption
+import com.pluk.reader.domain.plans.effectiveReaderSettings
+import com.pluk.reader.domain.plans.hasThemesAndFonts
+import com.pluk.reader.domain.plans.isPaid
+import com.pluk.reader.domain.profile.QuotaCache
+import kotlinx.coroutines.flow.map
 
 @HiltViewModel
 class ReaderViewModel @Inject constructor(
@@ -50,6 +65,11 @@ class ReaderViewModel @Inject constructor(
     private val downloadBook: DownloadBookUseCase,
     private val positionSync: PositionSync,
     private val resolveOpeningPosition: ResolveOpeningPositionUseCase,
+    private val readingSession: ReadingSession,
+    quotaCache: QuotaCache,
+    private val planPrompts: PlanPrompts,
+    private val notes: NoteRepository,
+    private val noteUploads: NoteFlushRequester,
 ) : ViewModel() {
 
     private data class PendingPosition(val locatorJson: String, val totalProgression: Double?)
@@ -64,6 +84,8 @@ class ReaderViewModel @Inject constructor(
     }
 
     private val bookId: String = checkNotNull(savedStateHandle[ARG_BOOK_ID]) { "Falta el argumento $ARG_BOOK_ID" }
+    /** ANN-010: se abrió desde una nota; el libro abre en su lugar y no en la última posición. */
+    private val noteId: String? = savedStateHandle[ARG_NOTE_ID]
     private val phase = MutableStateFlow<Phase>(Phase.Loading)
     private val progress = MutableStateFlow<Int?>(null)
     private val pageNumber = MutableStateFlow<Int?>(null)
@@ -90,6 +112,15 @@ class ReaderViewModel @Inject constructor(
     /** SYN-013: locator al que la pantalla debe navegar porque el usuario eligió seguir desde otro dispositivo. */
     val jumps: SharedFlow<String> = _jumps.asSharedFlow()
 
+    private val _noteEditor = MutableStateFlow<NoteEditor?>(null)
+
+    /** ANN-008, ANN-009: la nota que se está escribiendo o mirando. Null si el editor está cerrado. */
+    val noteEditor: StateFlow<NoteEditor?> = _noteEditor.asStateFlow()
+
+    /** ANN-008: las notas del libro, que el lector muestra subrayadas. */
+    val bookNotes: StateFlow<List<Note>> =
+        notes.observe(bookId).stateIn(viewModelScope, SharingStarted.WhileSubscribed(STOP_TIMEOUT_MS), emptyList())
+
     private data class Reading(val progress: Int?, val page: Int?, val chapter: String, val continueFrom: ContinueFrom?)
 
     private val position = combine(progress, pageNumber, chapterTitle, remoteAhead) { progress, page, chapter, remote ->
@@ -99,9 +130,18 @@ class ReaderViewModel @Inject constructor(
         )
     }
 
+    /** PLN-015: plan de la cuenta según la última cuota conocida; sin dato, Free. */
+    private val plan = quotaCache.quota.map { PlanCatalog.planOf(it) }
+        .stateIn(viewModelScope, SharingStarted.Eagerly, PlanId.FREE)
+
+    /** PLN-015: ajustes con los que se lee (en Free, Clásico y serifa); lo guardado no cambia. */
+    private val effectiveSettings = combine(settingsRepository.settings, plan) { saved, plan ->
+        effectiveReaderSettings(saved, plan)
+    }
+
     val uiState: StateFlow<ReaderUiState> = combine(
-        phase, settingsRepository.settings, position, controlsVisible, settingsOpen,
-    ) { phase, settings, position, controls, settingsOpen ->
+        phase, combine(effectiveSettings, plan, ::Pair), position, controlsVisible, settingsOpen,
+    ) { phase, (settings, plan), position, controls, settingsOpen ->
         when (phase) {
             Phase.Loading -> ReaderUiState.Loading
             is Phase.Failed -> ReaderUiState.Failed(phase.message)
@@ -112,11 +152,13 @@ class ReaderViewModel @Inject constructor(
             is Phase.Opened -> ReaderUiState.Ready(
                 phase.book, phase.toc, settings, position.progress, position.page, controls, position.chapter, settingsOpen,
                 position.continueFrom,
+                readingOptionsLocked = !plan.hasThemesAndFonts,
             )
         }
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(STOP_TIMEOUT_MS), ReaderUiState.Loading)
 
     init {
+        readingSession.opened(bookId)
         open()
         savePositionWhileReading()
         offerPositionsFromOtherDevices()
@@ -150,6 +192,12 @@ class ReaderViewModel @Inject constructor(
                 phase.value = Phase.Failed(it.message ?: "No se pudo descargar el libro.")
                 return@launch
             }
+            // ANN-010: abrir en una nota no pregunta por la posición de otro dispositivo: el usuario eligió el lugar.
+            val note = noteId?.let { notes.get(it) }?.takeIf { it.bookId == bookId }
+            if (note != null) {
+                openBook(startAt = note.locatorJson)
+                return@launch
+            }
             // SYN-003, SYN-012: antes de mostrar el libro se consulta su posición más reciente en la nube.
             val resolved = resolveOpeningPosition(bookId)
             if (resolved is OpeningPosition.Confirm) {
@@ -173,10 +221,12 @@ class ReaderViewModel @Inject constructor(
         }
     }
 
-    private suspend fun openBook() {
+    /** [startAt]: locator donde abrir en lugar de la última posición (ANN-010). */
+    private suspend fun openBook(startAt: String? = null) {
         books.open(bookId).fold(
-            onSuccess = { book ->
-                val settings: ReaderSettings = settingsRepository.settings.first()
+            onSuccess = { opened ->
+                val book = if (startAt != null) opened.copy(resumeLocatorJson = startAt) else opened
+                val settings: ReaderSettings = effectiveSettings.first()
                 navigatorHost.install(book, settings) { url ->
                     _events.tryEmit(ReaderEvent.OpenExternalLink(url))
                 }
@@ -221,8 +271,66 @@ class ReaderViewModel @Inject constructor(
         if (href != null && bodyEnd?.onResource(href) == true) _events.tryEmit(ReaderEvent.BodyEnded)
     }
 
-    fun setTheme(theme: ReadingTheme) = updateSettings { it.withTheme(theme) }
-    fun setFont(font: ReaderFont) = updateSettings { it.withFont(font) }
+    /**
+     * ANN-008: el usuario eligió "Nota" sobre un texto seleccionado. [locatorJson] es el lugar de la selección y
+     * [quote] el texto. Una selección vacía no abre nada.
+     */
+    fun onTextSelected(locatorJson: String, quote: String, totalProgression: Double?) {
+        val text = quote.trim()
+        if (text.isEmpty()) return
+        _noteEditor.value = NoteEditor(null, text, "", locatorJson, totalProgression ?: 0.0)
+    }
+
+    /** ANN-008: guarda la nota y cierra el editor. Una nota sin texto no se guarda y el editor sigue abierto. */
+    fun saveNote(text: String) {
+        val editor = _noteEditor.value ?: return
+        val body = text.trim()
+        if (body.isEmpty()) return
+        _noteEditor.value = null
+        viewModelScope.launch {
+            val now = System.currentTimeMillis()
+            val existing = editor.noteId?.let { notes.get(it) }
+            notes.save(
+                existing?.copy(text = body, updatedAt = now)
+                    ?: Note(UUID.randomUUID().toString(), bookId, editor.locatorJson, editor.quote, body, editor.progression, now, now),
+            )
+            // SYN-016: sale enseguida, así llega a los otros dispositivos en segundos.
+            noteUploads.requestFlush()
+        }
+    }
+
+    /** ANN-009: el usuario tocó un subrayado; se muestra su nota para leerla, editarla o borrarla. */
+    fun openNote(id: String) {
+        viewModelScope.launch {
+            val note = notes.get(id) ?: return@launch
+            _noteEditor.value = NoteEditor(note.id, note.quote, note.text, note.locatorJson, note.progression)
+        }
+    }
+
+    /** ANN-009: borra la nota abierta (la pantalla ya pidió confirmación); el subrayado se va con ella. */
+    fun deleteNote() {
+        val id = _noteEditor.value?.noteId ?: return
+        _noteEditor.value = null
+        viewModelScope.launch {
+            notes.delete(id)
+            noteUploads.requestFlush()
+        }
+    }
+
+    /** ANN-008: cancelar no guarda nada. */
+    fun closeNote() {
+        _noteEditor.value = null
+    }
+
+    /** PLN-015: en Free, Sepia y Noche abren la hoja de función paga y no cambian la preferencia. */
+    fun setTheme(theme: ReadingTheme) {
+        if (planPrompts.allowReadingOption(plan.value, theme.isPaid)) updateSettings { it.withTheme(theme) }
+    }
+
+    /** PLN-015: en Free, sin serifa y monoespaciada abren la hoja de función paga. */
+    fun setFont(font: ReaderFont) {
+        if (planPrompts.allowReadingOption(plan.value, font.isPaid)) updateSettings { it.withFont(font) }
+    }
     fun setLineSpacing(spacing: LineSpacing) = updateSettings { it.withLineSpacing(spacing) }
     fun biggerFont() = updateSettings { it.biggerFont() }
     fun smallerFont() = updateSettings { it.smallerFont() }
@@ -262,6 +370,8 @@ class ReaderViewModel @Inject constructor(
     fun close() {
         saveAndSendLastPosition()
         release()
+        // LIB-020: si el libro se borró desde otro dispositivo mientras estaba abierto, se quita ahora.
+        readingSession.closed(bookId)
     }
 
     /**
@@ -276,6 +386,7 @@ class ReaderViewModel @Inject constructor(
 
     companion object {
         const val ARG_BOOK_ID = "bookId"
+        const val ARG_NOTE_ID = "noteId"
         private const val STOP_TIMEOUT_MS = 5_000L
         private const val SAVE_DEBOUNCE_MS = 250L
     }

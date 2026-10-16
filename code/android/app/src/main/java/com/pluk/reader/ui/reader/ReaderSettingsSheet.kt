@@ -36,6 +36,13 @@ import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.selected
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.clearAndSetSemantics
+import androidx.compose.ui.semantics.stateDescription
+import androidx.compose.foundation.layout.offset
+import androidx.compose.ui.res.stringResource
+import com.pluk.reader.R
+import com.pluk.reader.domain.plans.isPaid
+import com.pluk.reader.ui.plans.LectorMark
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
@@ -48,16 +55,26 @@ import com.pluk.reader.domain.model.ReaderSettings
 import com.pluk.reader.domain.model.ReadingTheme
 
 // Colores del panel, tomados del diseño (pantalla 07): es oscuro en todos los temas.
-private val SheetBackground = Color(0xFF130000)
-private val SheetInk = Color(0xFFFDFDFD)
-private val SheetAccent = Color(0xFFFBD256)
-private val SheetLine = Color(0xFF4A4840)
+internal val SheetBackground = Color(0xFF130000)
+internal val SheetInk = Color(0xFFFDFDFD)
+internal val SheetAccent = Color(0xFFFBD256)
+internal val SheetLine = Color(0xFF4A4840)
 private val SheetTrack = Color(0xFF33322D)
-private val SheetMuted = Color(0xFFA8A496)
+internal val SheetMuted = Color(0xFFA8A496)
+
+/**
+ * Colores de los chips de letra y los botones de tamaño. El panel del lector usa [Dark]; Perfil (PRF-013) los
+ * reutiliza sobre fondo claro con su propia paleta.
+ */
+internal data class FontControlsPalette(val ink: Color, val accent: Color, val onAccent: Color, val line: Color) {
+    companion object {
+        val Dark = FontControlsPalette(ink = SheetInk, accent = SheetAccent, onAccent = SheetBackground, line = SheetLine)
+    }
+}
 
 /** Fuente de cada opción para dibujar su propia etiqueta; sale de los mismos archivos que usa el libro (ADR 0009). */
 @Composable
-private fun ReaderFont.labelFamily(): FontFamily {
+internal fun ReaderFont.labelFamily(): FontFamily {
     val assets = LocalContext.current.assets
     return remember(this) {
         when (this) {
@@ -108,7 +125,7 @@ class ReaderSettingsActions(
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ReaderSettingsSheet(settings: ReaderSettings, actions: ReaderSettingsActions) {
+fun ReaderSettingsSheet(settings: ReaderSettings, actions: ReaderSettingsActions, locked: Boolean = false) {
     ModalBottomSheet(
         onDismissRequest = actions.onDismiss,
         sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
@@ -125,10 +142,10 @@ fun ReaderSettingsSheet(settings: ReaderSettings, actions: ReaderSettingsActions
             Modifier.fillMaxWidth().padding(horizontal = 20.dp).navigationBarsPadding().padding(bottom = 12.dp),
             verticalArrangement = Arrangement.spacedBy(18.dp),
         ) {
-            FontChips(settings.font, actions.onFont)
+            FontChips(settings.font, actions.onFont, locked = locked)
             SizeButtons(actions.onSmallerFont, actions.onBiggerFont)
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
-                ThemeSwatches(settings.theme, actions.onTheme)
+                ThemeSwatches(settings.theme, actions.onTheme, locked)
                 SpacingToggle(settings.lineSpacing, actions.onLineSpacing)
             }
             ReadingSection(settings, actions)
@@ -137,58 +154,75 @@ fun ReaderSettingsSheet(settings: ReaderSettings, actions: ReaderSettingsActions
 }
 
 @Composable
-private fun FontChips(selected: ReaderFont, onSelect: (ReaderFont) -> Unit) {
+internal fun FontChips(
+    selected: ReaderFont,
+    onSelect: (ReaderFont) -> Unit,
+    palette: FontControlsPalette = FontControlsPalette.Dark,
+    locked: Boolean = false,
+) {
+    val paidSuffix = stringResource(R.string.reader_paid_option)
     Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
         ReaderFont.entries.forEach { font ->
             val isSelected = font == selected
-            Box(
+            // PLN-015: en Free, las letras pagas llevan la marca "Plus".
+            val marked = locked && font.isPaid
+            Row(
                 Modifier
                     .height(40.dp)
                     .clip(RoundedCornerShape(20.dp))
-                    .then(if (isSelected) Modifier.background(SheetAccent) else Modifier.border(BorderStroke(1.5.dp, SheetLine), RoundedCornerShape(20.dp)))
+                    .then(if (isSelected) Modifier.background(palette.accent) else Modifier.border(BorderStroke(1.5.dp, palette.line), RoundedCornerShape(20.dp)))
                     .selectableOption(isSelected) { onSelect(font) }
-                    .padding(horizontal = 16.dp)
+                    .then(if (marked) Modifier.semantics { stateDescription = paidSuffix } else Modifier)
+                    .padding(horizontal = if (marked) 12.dp else 16.dp)
                     .testTag("reader-font-${font.name}"),
-                contentAlignment = Alignment.Center,
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(6.dp),
             ) {
                 Text(
                     font.label(),
-                    color = if (isSelected) SheetBackground else SheetInk,
+                    color = if (isSelected) palette.onAccent else palette.ink,
                     style = TextStyle(fontFamily = font.labelFamily(), fontSize = 15.sp, fontWeight = FontWeight.Medium),
                 )
+                if (marked) LectorMark(Modifier.clearAndSetSemantics {})
             }
         }
     }
 }
 
 @Composable
-private fun SizeButtons(onSmaller: () -> Unit, onBigger: () -> Unit) {
+internal fun SizeButtons(onSmaller: () -> Unit, onBigger: () -> Unit, palette: FontControlsPalette = FontControlsPalette.Dark) {
     Row(
-        Modifier.fillMaxWidth().clip(RoundedCornerShape(20.dp)).border(BorderStroke(1.5.dp, SheetLine), RoundedCornerShape(20.dp)),
+        Modifier.fillMaxWidth().clip(RoundedCornerShape(20.dp)).border(BorderStroke(1.5.dp, palette.line), RoundedCornerShape(20.dp)),
     ) {
-        SizeButton("A−", 14.sp, "Letra más chica", onSmaller, Modifier.weight(1f).testTag("reader-font-smaller"))
-        Box(Modifier.width(1.5.dp).height(48.dp).background(SheetLine))
-        SizeButton("A+", 22.sp, "Letra más grande", onBigger, Modifier.weight(1f).testTag("reader-font-bigger"))
+        SizeButton("A−", 14.sp, "Letra más chica", palette.ink, onSmaller, Modifier.weight(1f).testTag("reader-font-smaller"))
+        Box(Modifier.width(1.5.dp).height(48.dp).background(palette.line))
+        SizeButton("A+", 22.sp, "Letra más grande", palette.ink, onBigger, Modifier.weight(1f).testTag("reader-font-bigger"))
     }
 }
 
 @Composable
-private fun SizeButton(text: String, size: androidx.compose.ui.unit.TextUnit, description: String, onClick: () -> Unit, modifier: Modifier) {
+private fun SizeButton(text: String, size: androidx.compose.ui.unit.TextUnit, description: String, color: Color, onClick: () -> Unit, modifier: Modifier) {
     Box(
         modifier.height(48.dp).clickable(role = Role.Button, onClick = onClick).semantics { contentDescription = description },
         contentAlignment = Alignment.Center,
     ) {
-        Text(text, color = SheetInk, style = TextStyle(fontFamily = ReaderFont.SERIF.labelFamily(), fontSize = size, fontWeight = FontWeight.Medium))
+        Text(text, color = color, style = TextStyle(fontFamily = ReaderFont.SERIF.labelFamily(), fontSize = size, fontWeight = FontWeight.Medium))
     }
 }
 
 @Composable
-private fun ThemeSwatches(selected: ReadingTheme, onSelect: (ReadingTheme) -> Unit) {
+private fun ThemeSwatches(selected: ReadingTheme, onSelect: (ReadingTheme) -> Unit, locked: Boolean) {
+    val paidSuffix = stringResource(R.string.reader_paid_option)
     Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
         listOf(ReadingTheme.LIGHT, ReadingTheme.SEPIA, ReadingTheme.DARK).forEach { theme ->
             val isSelected = theme == selected
+            // PLN-015: en Free, Sepia y Noche llevan la marca "Plus".
+            val marked = locked && theme.isPaid
             Column(
-                Modifier.selectableOption(isSelected) { onSelect(theme) }.testTag("reader-theme-${theme.name}"),
+                Modifier
+                    .selectableOption(isSelected) { onSelect(theme) }
+                    .then(if (marked) Modifier.semantics { stateDescription = paidSuffix } else Modifier)
+                    .testTag("reader-theme-${theme.name}"),
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.spacedBy(4.dp),
             ) {
@@ -204,6 +238,7 @@ private fun ThemeSwatches(selected: ReadingTheme, onSelect: (ReadingTheme) -> Un
                             .background(theme.swatch())
                             .then(if (theme == ReadingTheme.DARK && !isSelected) Modifier.border(1.5.dp, SheetLine, CircleShape) else Modifier),
                     )
+                    if (marked) LectorMark(Modifier.align(Alignment.TopEnd).offset(x = 6.dp, y = (-6).dp).clearAndSetSemantics {})
                 }
                 Text(
                     theme.label(),

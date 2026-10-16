@@ -11,6 +11,7 @@ import com.pluk.reader.domain.repository.BookUploadRepository
 import com.pluk.reader.domain.repository.PendingUpload
 import com.pluk.reader.domain.usecase.UploadBooksUseCase
 import com.pluk.reader.domain.usecase.UploadReport
+import com.pluk.reader.plans.FakeQuotaCache
 import java.io.File
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
@@ -74,7 +75,8 @@ class UploadBooksUseCaseTest {
         files: FakeFiles = FakeFiles(),
         remote: FakeRemote = FakeRemote(),
         quota: QuotaSource = quota(),
-    ) = UploadBooksUseCase(uploads, files, remote, quota)
+        cache: FakeQuotaCache = FakeQuotaCache(),
+    ) = UploadBooksUseCase(uploads, files, remote, quota, cache)
 
     // SYN-001: el archivo va primero (la regla valida tipo, tamaño y cuota) y los metadatos después
     @Test
@@ -187,8 +189,8 @@ class UploadBooksUseCaseTest {
     // LIB-009: lo que no entra en el espacio libre no se sube, pero lo que sí entra sí
     @Test
     fun booksThatDoNotFitAreSkippedAndSmallerOnesStillGo() = runTest {
-        val uploads = FakeUploads(listOf(pending("a", 3 * MIB), pending("b", 3 * MIB), pending("c", 1 * MIB)))
-        val report = useCase(uploads, quota = quota(used = 10 * MIB, limit = 15 * MIB)).invoke()
+        val uploads = FakeUploads(listOf(pending("a", 2 * MIB), pending("b", 2 * MIB), pending("c", 1 * MIB)))
+        val report = useCase(uploads, quota = quota(used = 12 * MIB, limit = 15 * MIB)).invoke()
         assertEquals(UploadReport(uploaded = 2, notEnoughSpace = 1), report)
         assertEquals(listOf("a", "c"), uploads.marked.map { it.first })
         assertTrue("archivo:b" !in calls)
@@ -197,8 +199,8 @@ class UploadBooksUseCaseTest {
     // LIB-009: el espacio libre baja con cada subida de la tanda, aunque el servidor aún no lo refleje
     @Test
     fun spaceConsumedInThisRunCountsAgainstTheNextBooks() = runTest {
-        val uploads = FakeUploads(listOf(pending("a", 4 * MIB), pending("b", 4 * MIB)))
-        val report = useCase(uploads, quota = quota(used = 0, limit = 6 * MIB)).invoke()
+        val uploads = FakeUploads(listOf(pending("a", 2 * MIB), pending("b", 2 * MIB)))
+        val report = useCase(uploads, quota = quota(used = 0, limit = 3 * MIB)).invoke()
         assertEquals(UploadReport(uploaded = 1, notEnoughSpace = 1), report)
     }
 
@@ -208,5 +210,47 @@ class UploadBooksUseCaseTest {
         val files = FakeFiles(mapOf("a" to Result.failure(QuotaExceededException())))
         val report = useCase(uploads, files).invoke()
         assertEquals(UploadReport(uploaded = 1, notEnoughSpace = 1), report)
+    }
+
+    // PLN-009: cada pasada guarda la cuota leída, con lo que subió, para la comprobación al importar y el aviso
+    @Test
+    fun savesTheQuotaReadInThePass() = runTest {
+        val cache = FakeQuotaCache()
+        val uploads = FakeUploads(listOf(pending("a", 2 * MIB), pending("b", 20 * MIB)))
+        useCase(uploads, quota = quota(used = 5 * MIB), cache = cache).invoke()
+        assertEquals(StorageQuota(7 * MIB, 15 * MIB), cache.quota.value)
+    }
+
+    @Test
+    fun anUnreadableQuotaKeepsTheCachedOne() = runTest {
+        val cached = StorageQuota(1 * MIB, 15 * MIB)
+        val cache = FakeQuotaCache(cached)
+        useCase(FakeUploads(listOf(pending("a", MIB))), quota = FakeQuota(Result.failure(RemoteUnavailableException("x"))), cache = cache).invoke()
+        assertEquals(cached, cache.quota.value)
+    }
+
+    // PLN-014: los libros más grandes que el máximo del plan no se suben y cuentan como que no entran
+    @Test
+    fun booksOverThePlanMaximumAreSkipped() = runTest {
+        val uploads = FakeUploads(listOf(pending("grande", 3 * MIB), pending("chico", 1 * MIB)))
+        val report = useCase(uploads).invoke()
+        assertEquals(UploadReport(uploaded = 1, notEnoughSpace = 1), report)
+        assertEquals(listOf("chico" to 1 * MIB), uploads.marked)
+    }
+
+    // ACC-010: el máximo que informa el servidor manda sobre el fijo del plan
+    @Test
+    fun theServerMaximumWins() = runTest {
+        val uploads = FakeUploads(listOf(pending("mediano", 3 * MIB)))
+        val quota = StorageQuota(0, 100 * MIB, plan = "plus", maxFileBytes = 2 * MIB)
+        val report = useCase(uploads, quota = FakeQuota(Result.success(quota))).invoke()
+        assertEquals(UploadReport(notEnoughSpace = 1), report)
+    }
+
+    @Test
+    fun aReaderPlanAllowsBiggerFiles() = runTest {
+        val uploads = FakeUploads(listOf(pending("grande", 3 * MIB)))
+        val report = useCase(uploads, quota = FakeQuota(Result.success(StorageQuota(0, 100 * MIB, plan = "plus")))).invoke()
+        assertEquals(UploadReport(uploaded = 1), report)
     }
 }

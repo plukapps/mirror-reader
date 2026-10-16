@@ -3,7 +3,7 @@ import Foundation
 import ReaderDomain
 
 /// Metadatos en `users/{uid}/books/{bookId}` (ver `backend.md`).
-struct FirestoreRemoteLibrary: RemoteLibrary {
+struct FirestoreRemoteLibrary: RemoteLibrary, RemoteBookChanges {
     func listBooks() async throws -> [RemoteBook] {
         do {
             let snapshot = try await Firestore.firestore().collection("users/\(try currentUid())/books")
@@ -16,7 +16,7 @@ struct FirestoreRemoteLibrary: RemoteLibrary {
                     title: title,
                     authors: (doc.get(Field.authors) as? [String]) ?? [],
                     sizeBytes: (doc.get(Field.sizeBytes) as? NSNumber)?.int64Value ?? 0,
-                    createdAt: (doc.get(Field.createdAt) as? Timestamp)?.dateValue()
+                    createdAt: ((doc.get(Field.addedAt) ?? doc.get(Field.createdAt)) as? Timestamp)?.dateValue()
                 )
             }
         } catch {
@@ -40,8 +40,12 @@ struct FirestoreRemoteLibrary: RemoteLibrary {
                     return nil
                 }
                 if exists {
+                    // Un libro borrado que se vuelve a importar revive (LIB-020) y vuelve a entrar a la biblioteca (LIB-021).
                     transaction.updateData(
-                        [Field.title: book.title, Field.authors: book.authors, Field.updatedAt: FieldValue.serverTimestamp()],
+                        [
+                            Field.title: book.title, Field.authors: book.authors, Field.addedAt: FieldValue.serverTimestamp(),
+                            Field.updatedAt: FieldValue.serverTimestamp(), Field.deletedAt: NSNull(),
+                        ],
                         forDocument: ref
                     )
                 } else {
@@ -52,6 +56,7 @@ struct FirestoreRemoteLibrary: RemoteLibrary {
                             Field.filePath: "users/\(uid)/books/\(book.id).epub",
                             Field.sizeBytes: book.sizeBytes,
                             Field.createdAt: FieldValue.serverTimestamp(),
+                            Field.addedAt: FieldValue.serverTimestamp(),
                             Field.updatedAt: FieldValue.serverTimestamp(),
                             Field.deletedAt: NSNull(),
                         ],
@@ -65,11 +70,44 @@ struct FirestoreRemoteLibrary: RemoteLibrary {
         }
     }
 
+    /// SYN-015: una sola desigualdad sobre `updatedAt`, sin índice compuesto. `deletedAt` se filtra aquí.
+    func observeAlive(since: Int64) -> AsyncThrowingStream<[String], any Error> {
+        AsyncThrowingStream { continuation in
+            let uid: String
+            do {
+                uid = try currentUid()
+            } catch {
+                continuation.finish(throwing: error)
+                return
+            }
+            let registration = Firestore.firestore().collection("users/\(uid)/books")
+                .whereField(Field.updatedAt, isGreaterThan: Timestamp(date: Date(timeIntervalSince1970: Double(since) / 1000)))
+                .addSnapshotListener { snapshot, error in
+                    guard let snapshot else {
+                        continuation.finish(throwing: error.map(remoteError) ?? RemoteUnavailableError("Sin datos de la nube."))
+                        return
+                    }
+                    let alive = snapshot.documents.filter { $0.get(Field.deletedAt) == nil || $0.get(Field.deletedAt) is NSNull }
+                    continuation.yield(alive.map(\.documentID))
+                }
+            let listener = ListenerBox(registration)
+            continuation.onTermination = { _ in listener.remove() }
+        }
+    }
+
+    /// El registro del SDK no se declara `Sendable`, pero `remove()` se puede llamar desde cualquier hilo.
+    private final class ListenerBox: @unchecked Sendable {
+        private let registration: any ListenerRegistration
+        init(_ registration: any ListenerRegistration) { self.registration = registration }
+        func remove() { registration.remove() }
+    }
+
     private enum Field {
         static let title = "title"
         static let authors = "authors"
         static let sizeBytes = "sizeBytes"
         static let createdAt = "createdAt"
+        static let addedAt = "addedAt"
         static let updatedAt = "updatedAt"
         static let filePath = "filePath"
         static let deletedAt = "deletedAt"

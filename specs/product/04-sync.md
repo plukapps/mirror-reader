@@ -10,7 +10,7 @@ Mismo estado en todos los dispositivos, sin acción manual, sin perder datos.
 - **SYN-002** Se sincronizan: archivos de libros, metadatos, colecciones, posición, marcadores, subrayados, notas y preferencias.
 - **SYN-003** Posición: gana la lectura más reciente (la que se hizo después, no la que se envió último). Si la diferencia con la local es grande (más del 2 % del libro), la app pregunta si continuar desde la posición del otro dispositivo; si es chica, continúa desde la más reciente sin preguntar.
 - **SYN-004** Marcadores y subrayados: se unen entre dispositivos, cada uno con ID único.
-- **SYN-005** Notas: si dos dispositivos editan la misma nota sin conexión, se conservan ambas versiones como copia de conflicto y el usuario decide.
+- **SYN-005** Notas: si dos dispositivos editan la misma nota, gana el último cambio, es decir, la edición que se hizo después, no la que llegó último. Cambiado el 2026-10-14 a pedido del usuario: antes pedía conservar las dos versiones como copia de conflicto.
 - **SYN-006** Metadatos y colecciones: gana el último cambio.
 - **SYN-007** Los borrados se propagan mediante marcas de borrado.
 - **SYN-008** Estado visible: sincronizado, pendiente o con error. Reintentos automáticos.
@@ -19,12 +19,20 @@ Mismo estado en todos los dispositivos, sin acción manual, sin perder datos.
 - **SYN-011** La posición de lectura se guarda al instante en el dispositivo y se envía al cerrar el libro, es decir, al salir del lector o al mandar la app a segundo plano. Un solo envío por sesión de lectura, no uno por página. Si no hay conexión, o la app se cierra sin avisar, la posición queda pendiente y se envía en la próxima oportunidad.
 - **SYN-012** La posición y el porcentaje de lo leído en otros dispositivos se mantienen al día solos mientras la app está a la vista, sin esperar a la sincronización de la biblioteca. Al abrir un libro se consulta su posición más reciente antes de mostrarlo.
 - **SYN-013** Si mientras se lee un libro otro dispositivo avanza ese mismo libro, se ofrece seguir desde allí con un aviso discreto, siempre que haya leído más adelante por unas pocas páginas (más del 0,5 % del libro). La página nunca se mueve sola.
+- **SYN-014** La posición de lectura recuerda el texto que estaba al comienzo de la página, no solo la proporción del capítulo. Al continuar en otro dispositivo, o en el mismo con otra letra, márgenes o tamaño de pantalla, se abre la página que contiene ese texto, aunque los dos paginen distinto. Si el libro no permite ubicar el texto (maquetación fija, escritura de derecha a izquierda o vertical), se usa la proporción del capítulo.
+- **SYN-016** Las notas (ANN-003) se sincronizan: una nota creada, editada o borrada en un dispositivo aparece igual en mis otros dispositivos al sincronizar (SYN-001) y, mientras la app está a la vista, en segundos. Una nota se guarda primero en el dispositivo y queda pendiente hasta que se sube.
+- **SYN-017** La sincronización de notas se puede prender o apagar sin publicar una versión nueva de la app, para todas las cuentas o según el plan de la cuenta (ACC-011). Apagada, las notas se crean, editan y borran igual en el dispositivo, pero no se suben ni se bajan; nunca se borra nada de la nube. Al prenderla, se suben las pendientes y se bajan las de la nube. Si la app no pudo saber todavía si está prendida, vale prendida.
+- **SYN-015** Mientras la app está a la vista, un libro que agrego (o vuelvo a importar) en otro dispositivo aparece solo en segundos, sin esperar a la sincronización de la biblioteca de SYN-001. Si la app estaba en segundo plano, aparece al volver a ella.
 
 ## Escenarios
 
-- Dado dos dispositivos sin conexión que editan la misma nota, cuando ambos se conectan, entonces existen dos versiones y el usuario elige.
+- Dado dos dispositivos sin conexión que editan la misma nota, cuando ambos se conectan, entonces los dos muestran la edición que se hizo después.
+- Dado que escribo una nota en el teléfono, cuando abro el mismo libro en la tablet con la app a la vista, entonces en unos segundos la nota está subrayada y en el detalle del libro.
+- Dado la sincronización de notas apagada, cuando creo una nota y después se prende, entonces la nota se sube y aparece en mis otros dispositivos.
 - Dado que borro un subrayado en A, cuando B sincroniza, entonces desaparece en B.
+- Dado que leo en el teléfono una página que empieza con "y entonces la puerta", cuando abro el mismo libro en la tablet, entonces la página que se muestra contiene "y entonces la puerta".
 - Dado que pierdo conexión durante una subida, cuando vuelve, entonces continúa sin duplicar el libro.
+- Dado mi teléfono y mi tablet con la app abierta, cuando importo un libro en el teléfono, entonces en unos segundos aparece en la tablet sin tocar nada.
 
 ## Fuera de alcance
 

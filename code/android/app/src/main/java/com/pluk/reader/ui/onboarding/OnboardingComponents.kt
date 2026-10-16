@@ -36,6 +36,7 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.ReadOnlyComposable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
@@ -90,6 +91,8 @@ internal object OnbColors {
 /** En tablet el contenido no se estira (ONB-022). */
 private val MaxContentWidth = 560.dp
 
+@Composable
+@ReadOnlyComposable
 internal fun onbText(size: TextUnit, weight: FontWeight = FontWeight.Normal, color: Color = MarginColors.Ink, letterSpacing: TextUnit = 0.sp, lineHeight: TextUnit = TextUnit.Unspecified) =
     TextStyle(fontFamily = HostGrotesk, fontSize = size, fontWeight = weight, color = color, letterSpacing = letterSpacing, lineHeight = lineHeight)
 
@@ -126,7 +129,7 @@ internal fun OnboardingPage(
     }
 }
 
-/** Logo y "margin.", anunciados juntos (WEL-007). */
+/** Logo y "tuck.", anunciados juntos (WEL-007). */
 @Composable
 internal fun Brand(modifier: Modifier = Modifier) {
     val name = stringResource(R.string.welcome_brand)
@@ -227,7 +230,7 @@ internal fun PrimaryButton(
     trailing: ImageVector? = OnboardingIcons.ArrowForward,
 ) {
     val active = enabled && !busy
-    val background = if (enabled || busy) MarginColors.Ink else OnbColors.Line
+    val background = if (enabled || busy) MarginColors.InkFill else OnbColors.Line
     val content = if (enabled || busy) MarginColors.Yellow else MarginColors.Muted
     Row(
         modifier
@@ -429,7 +432,7 @@ internal fun RuleRow(text: String, met: Boolean) {
         horizontalArrangement = Arrangement.spacedBy(8.dp),
     ) {
         if (met) {
-            Box(Modifier.size(18.dp).clip(CircleShape).background(MarginColors.Ink), contentAlignment = Alignment.Center) {
+            Box(Modifier.size(18.dp).clip(CircleShape).background(MarginColors.InkFill), contentAlignment = Alignment.Center) {
                 Icon(OnboardingIcons.Check, contentDescription = null, tint = MarginColors.Yellow, modifier = Modifier.size(14.dp))
             }
         } else {
@@ -476,7 +479,7 @@ internal fun TermsCheckbox(checked: Boolean, onCheckedChange: (Boolean) -> Unit,
     }
 }
 
-/** Fila de texto con un enlace subrayado al final ("¿Nuevo en margin.? Crear cuenta"). */
+/** Fila de texto con un enlace subrayado al final ("¿Nuevo en tuck.? Crear cuenta"). */
 @Composable
 internal fun TextLink(text: String, onClick: () -> Unit, modifier: Modifier = Modifier, size: TextUnit = 14.sp, color: Color = MarginColors.Ink) {
     Text(

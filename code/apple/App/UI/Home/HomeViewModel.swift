@@ -15,23 +15,29 @@ final class HomeViewModel {
     private(set) var readerBookId: String?
     /// Avisos pendientes de mostrar, el primero arriba (resultado de importar, LIB-001).
     private(set) var messages: [String] = []
+    /// P02: un libro recién importado no entra en la nube (PLN-007 a PLN-009), o nil.
+    private(set) var quotaBlock: QuotaBlockNotice?
 
     private let library: LibraryRepository
     private let importer: BookImporter?
     private let requestSync: @MainActor () -> Void
+    private let quotaCheck: ImportQuotaCheck?
 
     /// - Parameters:
     ///   - importer: nil donde no hay motor de EPUB (la Mac, ADR 0013): no se importa ni se abre el lector.
+    ///   - quotaCheck: si los libros importados entran en la nube (PLN-009); nil, sin comprobación.
     ///   - requestSync: pide una pasada de sincronización (`SyncCoordinator.request`), tras importar (SYN-001).
     init(
         library: LibraryRepository,
         now: Date = .now,
         calendar: Calendar = .current,
         importer: BookImporter? = nil,
+        quotaCheck: ImportQuotaCheck? = nil,
         requestSync: @escaping @MainActor () -> Void = {}
     ) {
         self.library = library
         self.importer = importer
+        self.quotaCheck = quotaCheck
         self.requestSync = requestSync
         greeting = ReaderDomain.greeting(forHour: calendar.component(.hour, from: now))
     }
@@ -53,6 +59,9 @@ final class HomeViewModel {
         for url in urls { outcomes.append(await importer.importBook(from: url)) }
         messages += Self.messages(for: outcomes)
         await reload()
+        // PLN-007 a PLN-009: lo importado se puede leer igual; si no entra en la nube, la hoja lo explica.
+        let imported = outcomes.compactMap { if case let .imported(bookId, _) = $0 { bookId } else { nil } }
+        if let quotaCheck, let block = await quotaCheck(imported: imported) { quotaBlock = block }
         // SYN-001: lo importado sube en cuanto se pueda, sin esperar al próximo regreso a la app.
         requestSync()
     }
@@ -79,6 +88,14 @@ final class HomeViewModel {
     }
 
     func closeReader() { readerBookId = nil }
+
+    /// "Ahora no" o "Ver planes": el libro queda en el dispositivo y se vuelve a intentar en la próxima pasada.
+    func dismissQuotaBlock() { quotaBlock = nil }
+
+    /// Aviso de otra parte de la app (acciones del libro, LIB-016), en el mismo lugar que los de importar.
+    func show(_ message: String) {
+        messages.append(message)
+    }
 
     func dismissMessage() {
         if !messages.isEmpty { messages.removeFirst() }

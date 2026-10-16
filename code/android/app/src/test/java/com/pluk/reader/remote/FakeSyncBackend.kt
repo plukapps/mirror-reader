@@ -1,5 +1,6 @@
 package com.pluk.reader.remote
 
+import com.pluk.reader.domain.usecase.NoteFlusher
 import com.pluk.reader.domain.account.QuotaSource
 import com.pluk.reader.domain.account.StorageQuota
 import com.pluk.reader.domain.remote.BookFileStore
@@ -10,6 +11,8 @@ import com.pluk.reader.domain.repository.BookUploadRepository
 import com.pluk.reader.domain.repository.CloudBooksRepository
 import com.pluk.reader.domain.repository.CoverFile
 import com.pluk.reader.domain.repository.PendingUpload
+import com.pluk.reader.domain.sync.SyncGate
+import com.pluk.reader.domain.usecase.CloudRemovals
 import com.pluk.reader.domain.usecase.DownloadBookUseCase
 import com.pluk.reader.domain.usecase.PositionFlusher
 import com.pluk.reader.domain.usecase.SyncCoversUseCase
@@ -52,14 +55,26 @@ class FakeSyncBackend : BookUploadRepository, BookFileStore, RemoteLibrary, Quot
 
     fun unavailable() = RemoteUnavailableException("sin red")
 
-    fun useCase() = SyncLibraryUseCase(
+    fun useCase(gate: SyncGate = SyncGate.ALWAYS_OPEN) = SyncLibraryUseCase(
         SyncRemoteBooksUseCase(this, this),
-        UploadBooksUseCase(this, this, this, this),
+        UploadBooksUseCase(this, this, this, this, com.pluk.reader.plans.FakeQuotaCache()),
         SyncCoversUseCase(this, this),
-        DownloadBookUseCase(this, this),
+        DownloadBookUseCase(this, this, gate),
         this,
         PositionFlusher { positionFlushes++ },
+        CloudRemovals {
+            removalSyncs++
+            if (offline) Result.failure(unavailable()) else Result.success(Unit)
+        },
+        NoteFlusher { noteFlushes++ },
+        gate,
     )
+
+    /** Cuántas veces la pasada pidió subir las notas pendientes (SYN-016). */
+    var noteFlushes = 0
+
+    /** Cuántas veces la pasada envió y aplicó borrados (LIB-020). */
+    var removalSyncs = 0
 
     fun pendingBook(id: String, sizeBytes: Long = 1) =
         PendingUpload(RemoteBook(id, "T$id", emptyList(), sizeBytes), File("/libros/$id.epub"))
@@ -122,4 +137,10 @@ class FakeSyncBackend : BookUploadRepository, BookFileStore, RemoteLibrary, Quot
     // QuotaSource
     override suspend fun current(): Result<StorageQuota> =
         if (offline) Result.failure(unavailable()) else Result.success(quota)
+}
+
+/** Sin escucha de borrados (pruebas que no la usan). */
+object NoRemovals : com.pluk.reader.domain.usecase.CloudListener {
+    override fun startListening() = Unit
+    override fun stopListening() = Unit
 }

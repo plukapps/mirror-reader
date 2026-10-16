@@ -105,7 +105,7 @@ private struct ScopeChips: View {
                         .foregroundStyle(isSelected ? MarginColors.yellow : MarginColors.ink)
                         .padding(.horizontal, 14)
                         .frame(height: 34)
-                        .background(isSelected ? MarginColors.ink : .clear, in: Capsule())
+                        .background(isSelected ? MarginColors.inkFill : .clear, in: Capsule())
                         .overlay {
                             if !isSelected { Capsule().strokeBorder(MarginColors.ink, lineWidth: 1.5) }
                         }
@@ -159,6 +159,7 @@ private struct Results: View {
                         ResultRow(book: book, showDivider: index < books.count - 1).contentShape(Rectangle())
                     }
                     .buttonStyle(.plain)
+                    .bookContextMenu(book) { onOpen(book.id) }
                 }
             }
             .padding(.horizontal, WindowLayout.horizontalPadding)

@@ -2,10 +2,18 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
-	<!-- Cuenta de desarrollo (K-052, ADR 0012): sale de Signing.local.xcconfig y queda vacía en Release. -->
-	<key>DevAccountEmail</key>
-	<string>$(DEV_ACCOUNT_EMAIL)</string>
-	<key>DevAccountPassword</key>
-	<string>$(DEV_ACCOUNT_PASSWORD)</string>
+	<!-- Vuelta del ingreso con Google (ADR 0015): REVERSED_CLIENT_ID de GoogleService-Info.plist, que copia
+	     tools/copy-google-client.sh a Signing.local.xcconfig. -->
+	<key>CFBundleURLTypes</key>
+	<array>
+		<dict>
+			<key>CFBundleURLRole</key>
+			<string>Editor</string>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>$(GOOGLE_REVERSED_CLIENT_ID)</string>
+			</array>
+		</dict>
+	</array>
 </dict>
 </plist>

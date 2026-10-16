@@ -10,7 +10,6 @@ actor FakeSession: AccountRepository {
     init(_ user: AccountUser?) { self.user = user }
     func set(_ user: AccountUser?) { self.user = user }
     func currentUser() async -> AccountUser? { user }
-    func signIn(email: String, password: String) async throws -> AccountUser { throw RemoteUnavailableError("no") }
 }
 
 /// La nube, la base local y las preferencias de la sincronización de posiciones, en un solo falso, como

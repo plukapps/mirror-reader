@@ -1,11 +1,11 @@
 <resources>
-    <string name="app_name">Reader</string>
+    <string name="app_name">Tuck</string>
 
     <!-- Bienvenida (WEL-004) -->
-    <string name="welcome_brand">margin.</string>
+    <string name="welcome_brand">tuck.</string>
     <string name="welcome_headline">Leé más.\nScrolleá menos.\nPensá despacio.</string>
     <string name="welcome_body">Tus EPUB, en un lugar tranquilo. Sincronizados en todos tus dispositivos.</string>
-    <string name="welcome_footer">margin. 2026 ©</string>
+    <string name="welcome_footer">tuck. 2026 ©</string>
 
     <!-- Onboarding (ONB-001 a ONB-022) -->
     <string name="onb_create_account">Crear cuenta</string>
@@ -98,7 +98,7 @@
     <string name="onb_signin_title">Te damos la\nbienvenida.</string>
     <string name="onb_forgot">¿Olvidaste tu contraseña?</string>
     <string name="onb_signin">Iniciar sesión</string>
-    <string name="onb_new_here">¿Nuevo en margin.?</string>
+    <string name="onb_new_here">¿Nuevo en tuck.?</string>
 
     <string name="onb_forgot_title">¿Olvidaste tu\ncontraseña?</string>
     <string name="onb_forgot_body">Escribí tu email y te enviamos un enlace para elegir una nueva.</string>
@@ -160,8 +160,8 @@
         <item quantity="other">%d libros sin subir</item>
     </plurals>
     <plurals name="library_no_space">
-        <item quantity="one">%d libro no entra en tu espacio. Podés seguir leyendo.</item>
-        <item quantity="other">%d libros no entran en tu espacio. Podés seguir leyendo.</item>
+        <item quantity="one">%d libro no entra en tu plan. Podés seguir leyendo.</item>
+        <item quantity="other">%d libros no entran en tu plan. Podés seguir leyendo.</item>
     </plurals>
     <plurals name="library_sync_failed">
         <item quantity="one">No se pudo sincronizar %d libro.</item>
@@ -169,6 +169,7 @@
     </plurals>
     <string name="library_syncing">Sincronizando…</string>
     <string name="library_sync_offline">Sin conexión con la nube. Tus libros siguen aquí y se sincronizarán más tarde.</string>
+    <string name="library_sync_waiting_wifi">Esperando Wi-Fi para sincronizar.</string>
     <string name="library_sync_retry">%1$s Tocá para reintentar.</string>
 
     <string name="nav_home">Inicio</string>
@@ -177,9 +178,76 @@
     <string name="nav_profile">Perfil</string>
     <string name="nav_coming_soon">Llega más adelante.</string>
 
-    <string name="home_greeting_morning">Buenos días. como te va todo bien?</string>
+    <!-- Perfil (PRF-001 a PRF-019), diseño 09 Profile -->
+    <string name="profile_account_header">Cuenta de %1$s</string>
+    <string name="profile_section_account">Cuenta</string>
+    <string name="profile_storage">Espacio</string>
+    <string name="profile_plan_free">GRATIS</string>
+    <string name="profile_upgrade">Mejorar plan</string>
+    <string name="profile_storage_used">%1$s de %2$s usados</string>
+    <string name="profile_storage_free">%1$s libres</string>
+    <string name="profile_storage_failed">No se pudo cargar el espacio</string>
+    <string name="profile_devices">Dispositivos vinculados</string>
+    <string name="profile_this_device">· este dispositivo</string>
+    <string name="profile_change_password">Cambiar contraseña</string>
+    <string name="profile_password_current">Contraseña actual</string>
+    <string name="profile_password_wrong">La contraseña actual no es correcta.</string>
+    <string name="profile_password_same">Tiene que ser distinta de la actual.</string>
+    <string name="profile_password_save">Guardar</string>
+    <string name="profile_password_updated">Contraseña actualizada.</string>
+    <string name="profile_sign_out">Cerrar sesión</string>
+    <string name="profile_delete_account">Eliminar cuenta</string>
+    <string name="profile_sign_out_title">¿Cerrar sesión?</string>
+    <string name="profile_sign_out_body">Tus libros siguen en tu cuenta. En este dispositivo se borran hasta que vuelvas a entrar.</string>
+    <string name="profile_sign_out_body_pending">Hay libros, progreso de lectura o notas que todavía no se subieron. Si cerrás sesión ahora, se pierden.</string>
+    <string name="profile_sign_out_cancel">Cancelar</string>
+    <string name="profile_sign_out_failed">No se pudo cerrar sesión. Probá de nuevo.</string>
+    <string name="profile_section_reading">Ajustes de lectura</string>
+    <string name="profile_reading_hint">Se aplican a todos tus libros.</string>
+    <string name="profile_reading_preview">Al empezar la mañana, decite: hoy me voy a cruzar con el entrometido, el desagradecido, el soberbio…</string>
+    <string name="profile_font">Letra</string>
+    <string name="profile_font_value">%1$s · %2$d</string>
+    <string name="profile_theme">Tema</string>
+    <string name="profile_theme_light">Clásico</string>
+    <string name="profile_theme_sepia">Sepia</string>
+    <string name="profile_theme_dark">Noche</string>
+    <string name="profile_spacing">Interlineado</string>
+    <string name="profile_spacing_normal">Interlineado normal</string>
+    <string name="profile_spacing_wide">Interlineado amplio</string>
+    <string name="profile_section_app">App</string>
+    <string name="profile_appearance">Apariencia</string>
+    <string name="profile_appearance_light">Claro</string>
+    <string name="profile_appearance_dark">Oscuro</string>
+    <string name="profile_appearance_system">Sistema</string>
+    <string name="profile_wifi_only">Sincronizar solo con Wi-Fi</string>
+    <string name="profile_wifi_only_hint">Ahorra datos móviles</string>
+    <string name="profile_auto_download">Descargar libros automáticamente</string>
+    <string name="profile_auto_download_hint">Libros nuevos de tus otros dispositivos</string>
+    <string name="profile_section_help">Ayuda</string>
+    <string name="profile_faq">Preguntas frecuentes</string>
+    <string name="profile_faq_all">Todas las preguntas</string>
+    <string name="faq_back">Volver</string>
+    <string name="profile_version">tuck. %1$s</string>
+    <string name="profile_terms">Términos</string>
+    <string name="profile_privacy">Privacidad</string>
+    <string name="state_on">activado</string>
+    <string name="state_off">desactivado</string>
+    <string name="faq_epub_question">¿Por qué no abre este EPUB?</string>
+    <string name="faq_books_question">¿Dónde están mis libros?</string>
+    <string name="faq_space_question">¿Cuánto espacio tengo?</string>
+    <string name="faq_epub_answer">tuck. abre libros EPUB sin protección. Los que vienen con DRM (la protección que ponen algunas tiendas) no se pueden abrir: hay que leerlos en la app de esa tienda.\n\nSi el archivo no tiene DRM y aun así no abre, puede estar dañado o incompleto. Probá descargarlo otra vez desde donde lo conseguiste y volvé a importarlo.</string>
+    <string name="faq_books_answer">Tus libros están en tu cuenta, en la nube, y en cada dispositivo donde entrás con ella. Un libro que agregás en un dispositivo aparece solo en los demás.\n\nSi un libro todavía no está en este dispositivo, se descarga cuando lo abrís. Para eso hace falta conexión; después se lee sin ella.</string>
+    <string name="faq_space_answer">Tu plan define cuánto podés guardar en la nube. Lo ves arriba de todo en Perfil, en Espacio: cuánto usás y cuánto te queda.\n\nCuentan los archivos de los libros; las portadas no. Si llegás al límite, los libros nuevos quedan solo en este dispositivo y podés seguir leyendo todo. Para liberar espacio, quitá libros que ya no quieras.</string>
+    <string name="faq_add_question">¿Cómo agrego libros?</string>
+    <string name="faq_add_answer">Desde Inicio o Estantes, con Importar, elegí uno o varios archivos EPUB del teléfono. También podés abrir un EPUB desde otra app (por ejemplo, el correo o Archivos) y elegir tuck.\n\nLos libros nuevos se suben a tu cuenta cuando hay conexión.</string>
+    <string name="faq_sync_question">¿Cómo se sincroniza mi lectura?</string>
+    <string name="faq_sync_answer">Cada vez que leés, tuck. guarda en qué página quedaste y la sube a tu cuenta cuando hay conexión. Al abrir el mismo libro en otro dispositivo, sigue desde ahí.\n\nSi leíste sin conexión, la posición se sube sola la próxima vez que la app tenga red.</string>
+    <string name="faq_remove_question">¿Cómo quito un libro?</string>
+    <string name="faq_remove_answer">Mantené presionada la portada del libro y elegí Quitar de la biblioteca. Se borra de tu cuenta y de todos tus dispositivos, con su progreso.\n\nSi lo querés de vuelta, importá el archivo otra vez.</string>
+
+    <string name="home_greeting_morning">Buenos días.</string>
     <string name="home_greeting_afternoon">Buenas tardes.</string>
-    <string name="home_greeting_night">Buenas noches. como te va todo bien?</string>
+    <string name="home_greeting_night">Buenas noches.</string>
     <string name="home_continue">Continuar leyendo</string>
     <string name="home_nothing_reading_title">Nada en lectura todavía</string>
     <string name="home_nothing_reading_body">Abrí un libro de tu biblioteca y lo retomás desde acá.</string>
@@ -197,6 +265,27 @@
     <string name="reader_resume_continue">Continuar allí</string>
     <string name="reader_resume_stay">Quedarme aquí</string>
     <string name="reader_body_ended">Parece que terminaste el libro</string>
+    <!-- LIB-022, ANN-010 -->
+    <string name="detail_back">Volver</string>
+    <string name="detail_notes_empty">Todavía no hay notas. En el libro, seleccioná un texto y elegí “Nota”.</string>
+    <string name="detail_note_percent">%1$d %%</string>
+    <string name="detail_continue_reading">Continuar leyendo</string>
+    <string name="detail_start_reading">Empezar a leer</string>
+    <string name="book_actions_details">Ver detalle</string>
+    <plurals name="detail_notes_count">
+        <item quantity="one">%1$d nota</item>
+        <item quantity="other">%1$d notas</item>
+    </plurals>
+    <!-- ANN-008, ANN-009 -->
+    <string name="selection_note">Nota</string>
+    <string name="selection_copy">Copiar</string>
+    <string name="selection_share">Compartir</string>
+    <string name="note_placeholder">Escribí tu nota</string>
+    <string name="note_save">Guardar</string>
+    <string name="note_cancel">Cancelar</string>
+    <string name="note_delete">Borrar</string>
+    <string name="note_delete_title">¿Borrar la nota?</string>
+    <string name="note_delete_message">Se borra la nota y su subrayado.</string>
 
     <!-- Búsqueda (LIB-006, LIB-013 a LIB-015) -->
     <string name="search_title">Buscar</string>
@@ -217,4 +306,98 @@
     <string name="reminder_title">Es hora de leer</string>
     <string name="reminder_body_goal">Tu meta de hoy: %1$d minutos.</string>
     <string name="reminder_body">Un rato de lectura tranquila te espera.</string>
+
+    <!-- Acciones del libro (LIB-016 a LIB-020, diseño 05b) -->
+    <string name="book_actions_more">Más acciones</string>
+    <string name="book_actions_read">Leer libro</string>
+    <string name="book_actions_mark_finished">Marcar como terminado</string>
+    <string name="book_actions_mark_unread">Marcar como no leído</string>
+    <string name="book_actions_change_cover">Subir foto de portada</string>
+    <string name="book_actions_remove">Quitar de la biblioteca</string>
+    <string name="book_actions_status_new">Sin empezar</string>
+    <string name="book_actions_remove_title">¿Quitar «%1$s»?</string>
+    <string name="book_actions_remove_body">Se borra de tu cuenta y de todos tus dispositivos, con su progreso. Podés volver a importarlo.</string>
+    <string name="book_actions_remove_confirm">Quitar</string>
+    <string name="book_actions_cancel">Cancelar</string>
+    <string name="book_actions_marked_finished">Marcado como terminado</string>
+    <string name="book_actions_marked_unread">Marcado como no leído</string>
+    <string name="book_actions_cover_failed">No se pudo usar esa foto.</string>
+    <string name="book_actions_removed">Se quitó «%1$s» de la biblioteca.</string>
+
+    <!-- Planes (PLN-001 a PLN-006, PLN-013). Precios de ejemplo; la compra llega en su propia rebanada. -->
+    <string name="plans_close">Cerrar</string>
+    <string name="plans_usage">Usás %1$s de %2$s</string>
+    <string name="plans_usage_percent">%1$d %%</string>
+    <string name="plans_title">Tu biblioteca entera, en todos lados.</string>
+    <string name="plans_billing_monthly">Mensual</string>
+    <string name="plans_billing_annual">Anual</string>
+    <string name="plans_annual_saving">Ahorrás %1$d %%</string>
+    <string name="plans_free">Free</string>
+    <string name="plans_plus">Plus</string>
+    <string name="plans_pro">Pro</string>
+    <string name="plans_pro_short">Pro</string>
+    <string name="plans_free_tagline">Para leer de vez en cuando</string>
+    <string name="plans_plus_tagline">Para quien lee siempre</string>
+    <string name="plans_pro_tagline">Para quien tiene una biblioteca</string>
+    <string name="plans_your_plan">Tu plan</string>
+    <string name="plans_most_chosen">Más elegido</string>
+    <string name="plans_in_cloud">%1$s en la nube</string>
+    <string name="plans_per_year">por año</string>
+    <string name="plans_per_month">por mes</string>
+    <string name="plans_annual_equivalent">Equivale a %1$s por mes</string>
+    <string name="plans_free_forever">Sin costo, para siempre</string>
+    <string name="plans_monthly_note">Pagás mes a mes</string>
+    <string name="plans_see_all">Ver todo lo que incluye</string>
+    <string name="plans_free_includes_1">Lectura y notas sin tope</string>
+    <string name="plans_free_includes_2">Sincroniza en todos tus dispositivos</string>
+    <string name="plans_plus_includes_1">Temas y fuentes</string>
+    <string name="plans_plus_includes_2">Exportá notas a Markdown, Obsidian y Notion</string>
+    <string name="plans_pro_includes_1">Todo lo de Plus</string>
+    <string name="plans_includes_max_file">Archivos de hasta %1$s</string>
+    <string name="plans_row_cloud">Espacio en la nube</string>
+    <string name="plans_row_file_size">Tamaño por archivo</string>
+    <string name="plans_row_themes">Temas y fuentes</string>
+    <string name="plans_row_reading">Lectura, ajustes y anotaciones</string>
+    <string name="plans_row_sync">Sincronización en todos tus dispositivos</string>
+    <string name="plans_row_export">Exportar notas (Markdown, Obsidian, Notion)</string>
+    <string name="plans_value_unlimited">Sin tope</string>
+    <string name="plans_value_yes">Sí</string>
+    <string name="plans_value_no">No</string>
+    <string name="plans_row_description">%1$s: Free, %2$s; Plus, %3$s; Pro, %4$s</string>
+    <string name="plans_card_description">%1$s, %2$s en la nube, %3$s %4$s</string>
+    <string name="plans_reassurance">Si cancelás, no perdés nada: tus libros y notas quedan.</string>
+    <string name="plans_restore">Restaurar compras</string>
+    <string name="plans_cta_choose">Elegir %1$s · %2$s %3$s</string>
+    <string name="plans_cta_note_year">Se renueva cada año. Cancelás cuando quieras.</string>
+    <string name="plans_cta_note_month">Se renueva cada mes. Cancelás cuando quieras.</string>
+    <!-- P02, bloqueos de cuota al importar (PLN-007 a PLN-009). -->
+    <string name="plans_see_plans">Ver planes</string>
+    <string name="plans_not_now">Ahora no</string>
+    <string name="plans_with_plus">Con Plus: %1$s en la nube</string>
+    <string name="plans_sheet_full_title">Llegaste a tu espacio</string>
+    <string name="plans_sheet_full_body">%1$s no se subió a la nube, pero podés leerlo en este dispositivo. Tus otros libros siguen intactos.</string>
+    <string name="plans_sheet_too_big_title">Este libro pesa %1$s</string>
+    <string name="plans_sheet_too_big_body">Te quedan %1$s en la nube. No se subió, pero podés leerlo en este dispositivo.</string>
+    <string name="plans_sheet_book_size">%1$s · te quedan %2$s</string>
+    <string name="plans_sheet_book_limit">%1$s · límite %2$s</string>
+    <string name="plans_sheet_too_large_body">Tu plan admite archivos de hasta %1$s. No se subió a la nube, pero podés leerlo en este dispositivo.</string>
+    <string name="plans_sheet_too_large_upsell">Con %1$s: archivos de hasta %2$s y %3$s en la nube</string>
+    <!-- P03, funciones pagas (PLN-015). -->
+    <string name="plans_paid_themes_title">Leé con tus temas y fuentes</string>
+    <string name="plans_paid_themes_body">Sepia, Noche y todas las letras del lector, en todos tus libros.</string>
+    <string name="reader_paid_option">Incluido en Plus</string>
+    <string name="plans_paid_included">Incluido en %1$s</string>
+    <!-- Aviso suave del 80 % (PLN-011). -->
+    <string name="plans_notice_free">Te quedan %1$s en la nube.</string>
+    <string name="plans_notice_close">Cerrar aviso</string>
+    <!-- P04 Mi plan (PLN-012). -->
+    <string name="plans_my_plan">Mi plan</string>
+    <string name="plans_back_profile">Perfil</string>
+    <string name="plans_my_plan_usage">%1$s de %2$s</string>
+    <string name="plans_devices">Dispositivos</string>
+    <string name="plans_devices_value">Todos, sin límite</string>
+    <string name="plans_change_plan">Cambiar de plan</string>
+    <string name="plans_my_plan_upsell">Archivos de hasta %1$s, temas y fuentes.</string>
+    <string name="plans_with_pro">Con Pro: %1$s en la nube</string>
+    <string name="plans_my_plan_upsell_pro">Archivos de hasta %1$s.</string>
 </resources>
