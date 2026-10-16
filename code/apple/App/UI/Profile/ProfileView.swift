@@ -145,7 +145,8 @@ struct ProfileContent: View {
     let viewModel: ProfileViewModel
     var actions = ProfileActions()
     var onOpenFont: () -> Void = {}
-    var version: String = Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? ""
+    /// APL-001: fuera de producción lleva el entorno (`0.1.0 · dev`).
+    var version: String = BuildEnvironment.versionLabel()
 
     var body: some View {
         VStack(spacing: 0) {
