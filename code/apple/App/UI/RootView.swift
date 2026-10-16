@@ -23,6 +23,10 @@ struct RootView: View {
     var onImportOpened: () -> Void = {}
     /// PRF-009: la sesión se cerró desde Perfil.
     var onSignedOut: () -> Void = {}
+    /// GST-011: el alta corta, desde el banner, el aviso o Perfil.
+    var onCreateAccount: () -> Void = {}
+    /// GST-022: el ingreso, desde Perfil.
+    var onSignIn: () -> Void = {}
     @Environment(\.scenePhase) private var scenePhase
     @State private var tabs = TabBarModel()
     /// LIB-001: selector de Archivos, desde Inicio o desde la biblioteca.
@@ -192,7 +196,7 @@ struct RootView: View {
         case .search: SearchView(viewModel: search, onOpen: home.open(bookId:))
         case .shelves: LibraryView(
             viewModel: library, onImport: importAction ?? tabs.showComingSoon, onOpen: home.open(bookId:),
-            onSeePlans: plans.openPlans
+            onSeePlans: plans.openPlans, onCreateAccount: onCreateAccount
         )
         case .profile:
             ProfileView(
@@ -207,7 +211,10 @@ struct RootView: View {
                 ),
                 onSignedOut: onSignedOut
             )
-        default: HomeView(viewModel: home, onOpenLibrary: openLibrary, onImport: importAction)
+        default: HomeView(
+            viewModel: home, onOpenLibrary: openLibrary, onImport: importAction,
+            onOpenProfile: { tabs.select(.profile) }, onCreateAccount: onCreateAccount
+        )
         }
     }
     #endif

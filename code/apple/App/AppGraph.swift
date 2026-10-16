@@ -96,12 +96,14 @@ enum AppGraph {
             await refs.library?.load()
         }
         let account = firebase ? FirebaseAccountRepository() : nil
+        let guest = account.map { GuestContext(account: $0, notice: UserDefaultsGuestNotice(), flags: flags) }
         let library = LibraryViewModel(
             library: store, sync: sync, quotaCache: quotaCache, usageNotice: UserDefaultsUsageNotice(),
-            isSignedIn: { await account?.currentUser() != nil }
+            isSignedIn: { await account?.currentUser() != nil }, guest: guest
         )
         let home = HomeViewModel(
-            library: store, importer: reader?.importer, quotaCheck: ImportQuotaCheck(uploads: store, cache: quotaCache, account: account)
+            library: store, importer: reader?.importer, quotaCheck: ImportQuotaCheck(uploads: store, cache: quotaCache, account: account),
+            guest: guest
         ) { sync.request() }
         refs.home = home
         refs.library = library

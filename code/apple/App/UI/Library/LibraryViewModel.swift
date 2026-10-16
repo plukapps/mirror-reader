@@ -19,6 +19,9 @@ final class LibraryViewModel {
     private(set) var usageNotice: PlanUsage?
     /// GST-006: sin sesión no hay nada de la nube a la vista (estado de sincronización, aviso del 80 %).
     private(set) var signedIn = true
+    /// GST-010 (L1): el aviso "Tus libros están solo en este dispositivo".
+    private(set) var guestNotice = false
+    private let guest: GuestContext?
     private let isSignedIn: @Sendable () async -> Bool
 
     /// - Parameters:
@@ -27,8 +30,10 @@ final class LibraryViewModel {
     ///   - isSignedIn: si hay sesión; se pregunta en cada lectura (al crear la cuenta, Inicio se arma de nuevo).
     init(
         library: LibraryRepository, sync: SyncCoordinator? = nil, quotaCache: QuotaCache? = nil,
-        usageNotice: UsageNoticePreference? = nil, isSignedIn: @escaping @Sendable () async -> Bool = { true }
+        usageNotice: UsageNoticePreference? = nil, isSignedIn: @escaping @Sendable () async -> Bool = { true },
+        guest: GuestContext? = nil
     ) {
+        self.guest = guest
         self.isSignedIn = isSignedIn
         self.library = library
         self.sync = sync
@@ -40,6 +45,12 @@ final class LibraryViewModel {
     func dismissUsageNotice() {
         usageNoticePreference?.dismiss()
         usageNotice = nil
+    }
+
+    /// GST-010: la cruz esconde el aviso (y el banner de Inicio) por unos días. "Crear cuenta" no lo esconde.
+    func dismissGuestNotice() {
+        guest?.dismiss()
+        guestNotice = false
     }
 
     /// Libros importados en este dispositivo que aún no están en la nube (SYN-008).
@@ -73,6 +84,7 @@ final class LibraryViewModel {
     func load() async {
         allBooks = await library.books()
         signedIn = await isSignedIn()
+        guestNotice = await guest?.state(hasBooks: !allBooks.isEmpty).showNotice ?? false
         loading = false
         // La cuota guardada cambia con cada pasada de sincronización, que vuelve a llamar aquí.
         if !signedIn {

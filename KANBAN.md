@@ -40,7 +40,6 @@ Plan de referencia: `specs/plans/2026-10-06-android-epub-viewer.md`
 
 ## Listo
 
-- **K-360** Uso sin cuenta, iOS: Perfil sin cuenta (09g). GST-009, GST-018. Plan `2026-10-16-ios-no-account.md`, rama `feature/no-account-ios`.
 - **K-361** Uso sin cuenta, iOS: alta corta (B1 → O3 → B3) e ingreso desde adentro. GST-011, GST-021, GST-022. Plan `2026-10-16-ios-no-account.md`, rama `feature/no-account-ios`.
 - **K-362** Uso sin cuenta, iOS: cierre de docs y verificación en el simulador. Plan `2026-10-16-ios-no-account.md`, rama `feature/no-account-ios`.
 - **K-134** Lector iOS, Tarea 7: cierre de docs y verificación a mano en el simulador. Rama `feature/ios-reader`. Era K-125 hasta el merge con `master`.
@@ -49,11 +48,12 @@ Plan de referencia: `specs/plans/2026-10-06-android-epub-viewer.md`
 
 ## En curso
 
-- **K-359** Uso sin cuenta, iOS: cabecera de Inicio con avatar, banner A/B y aviso de la Biblioteca. HOM-012, GST-010, GST-023, GST-025, GST-026. Plan `2026-10-16-ios-no-account.md`, rama `feature/no-account-ios`.
+- **K-360** Uso sin cuenta, iOS: Perfil sin cuenta (09g). GST-009, GST-018. Plan `2026-10-16-ios-no-account.md`, rama `feature/no-account-ios`.
 - **K-176** Posición exacta, Tarea 5: verificación a mano entre el teléfono y el iPhone, cierre de docs. SYN-014.
 
 ## Revisión
 
+- **K-359** Uso sin cuenta, iOS: cabecera de Inicio con avatar, banner A/B y aviso de la Biblioteca. HOM-012, GST-010, GST-023, GST-025, GST-026. Plan `2026-10-16-ios-no-account.md`, rama `feature/no-account-ios`. Hecho: `GuestContext` (sesión, aviso, flags y días), `HomeHeader` con avatar que abre Perfil, `GuestBanner` A/B con `BannerCovers` y SF Symbols, `GuestNoticeCard` en la Biblioteca. "Crear cuenta" abre por ahora el alta completa (el alta corta llega en K-361). Tests: `GuestTests` (251 en iPhone).
 - **K-358** Uso sin cuenta, iOS: sin hojas de cuota, aviso del 80 % ni línea de estado sin sesión; texto de quitar y FAQ. GST-006, GST-008, GST-017. Plan `2026-10-16-ios-no-account.md`, rama `feature/no-account-ios`. Hecho: `LibraryViewModel.signedIn` (pregunta la sesión en cada lectura): sin línea de estado ni aviso del 80 %; las hojas de cuota ya las corta `ImportQuotaCheck` (K-356); texto de quitar según la sesión; FAQ con el caso sin cuenta. Tests: `LibraryViewModelTests`, `SyncCoordinatorTests` (246 en iPhone).
 - **K-357** Uso sin cuenta, iOS: arranque con `welcome_seen`, bienvenida O1 v2, L0 con portadas, alta sin intereses. GST-001 a GST-004, GST-019, ONB-009. Plan `2026-10-16-ios-no-account.md`, rama `feature/no-account-ios`. Hecho: `UserDefaultsWelcome` y `UserDefaultsGuestNotice` (en `accountKeys`), `AppStartViewModel` con la bienvenida, `WelcomeView` O1 v2, `GuestReadyView` (L0) con `ReadyCovers`, ruta `.guestReady`; sin intereses (pasos 1 a 3, meta sin flecha atrás). Tests: `AppStartTests`, `OnboardingViewModelsTests`, `OnboardingDataTests`, `LocalAccountWiperTests` (244 en iPhone).
 - **K-356** Uso sin cuenta, iOS: dominio (`startDestination` con la bienvenida, regla del aviso, `ImportQuotaCheck` sin sesión, flag del banner y números de Remote Config, `AccountUser.initial`). GST-003, GST-006, GST-010, GST-023, GST-025, GST-026. Plan `2026-10-16-ios-no-account.md`, rama `feature/no-account-ios`. Hecho: `startDestination(_:welcomeSeen:)`, `WelcomePreference`, `GuestNotice.swift` (regla, preferencia, variante), `ImportQuotaCheck` con la cuenta, `Feature.guestBannerNoBackup`, `Setting` y `RemoteFlagSource.number` (y en Firebase), `AccountUser.initial`. Tests: dominio 261 (incluye la comparación con el template), app 243 en iPhone.

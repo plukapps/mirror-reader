@@ -64,7 +64,9 @@ struct AppRootView: View {
                 home: screens.home, search: screens.search, library: screens.library, sync: screens.sync, profile: screens.profile,
                 bookActions: screens.bookActions, makeReader: screens.makeReader, makeDetail: screens.makeDetail, plans: screens.plans,
                 importOnAppear: start.pendingImport, onImportOpened: start.importOpened,
-                onSignedOut: { backToOnboarding(.welcome, then: []) }
+                onSignedOut: { backToOnboarding(.welcome, then: []) },
+                onCreateAccount: { backToOnboarding(.welcome, then: [.signUp(name: "", email: "")]) },
+                onSignIn: { backToOnboarding(.welcome, then: [.signIn]) }
             )
             .sheet(item: $resetFromHome) { link in
                 if let onboarding = screens.onboarding {
