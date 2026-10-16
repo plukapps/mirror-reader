@@ -97,7 +97,7 @@ class LibraryViewModelTest {
         ImportQuotaCheck(quotaCache, pendingUploads, prompts, account),
         quotaCache,
         noticePreference,
-        com.pluk.reader.domain.account.GuestNotice(account, library, guestPreference),
+        com.pluk.reader.domain.account.GuestNotice(account, library, guestPreference, com.pluk.reader.flags.FakeFeatureFlags()),
     )
 
     private fun local(id: String, uploaded: Boolean = false, downloaded: Boolean = true) =

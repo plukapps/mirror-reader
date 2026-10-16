@@ -20,6 +20,13 @@
       },
       "description": "Banner sin cuenta de Inicio (GST-023, GST-025, ADR 0016). false: opción A, \"Tus libros, en todos tus dispositivos\". true: opción B, \"Tus libros sin respaldo\". Para una prueba A/B, una condición por porcentaje de usuarios.",
       "valueType": "BOOLEAN"
+    },
+    "guest_notice_snooze_days": {
+      "defaultValue": {
+        "value": "7"
+      },
+      "description": "Días que la cruz esconde el aviso y el banner sin cuenta (GST-010, GST-026, ADR 0016). Por defecto 7. Un negativo vale 0. Para un experimento, condiciones por porcentaje con valores distintos.",
+      "valueType": "NUMBER"
     }
   }
 }

@@ -43,10 +43,17 @@ class RemoteFeatureFlagsTest {
         override suspend fun fetchAndActivate() {
             if (offline) error("sin conexión")
             applied.putAll(server)
+            appliedNumbers.putAll(serverNumbers)
             appliedPlans = serverPlans
         }
 
         override fun value(key: String): Boolean? = applied[key]
+
+        /** Números del servidor; se aplican al bajar. */
+        val serverNumbers = mutableMapOf<String, Long>()
+        private val appliedNumbers = mutableMapOf<String, Long>()
+
+        override fun number(key: String): Long? = appliedNumbers[key]
 
         override fun plans(): List<Plan>? = appliedPlans
 
@@ -126,6 +133,17 @@ class RemoteFeatureFlagsTest {
         flags.startListening()
         dispatcher.scheduler.advanceUntilIdle()
         assertFalse(flags.isEnabled(Feature.NotesSync))
+    }
+
+    // GST-026: los días del aviso sin cuenta valen 7 hasta que llega el valor del servidor
+    @Test
+    fun settingsStartWithTheDefaultAndFollowTheServer() = runTest(dispatcher) {
+        source.serverNumbers["guest_notice_snooze_days"] = 3
+        val flags = flags()
+        assertEquals(7L, flags.setting(com.pluk.reader.domain.flags.Setting.GuestNoticeSnoozeDays).value)
+        flags.startListening()
+        dispatcher.scheduler.advanceUntilIdle()
+        assertEquals(3L, flags.setting(com.pluk.reader.domain.flags.Setting.GuestNoticeSnoozeDays).value)
     }
 
     // SYN-017: con la app a la vista, prender o apagar llega sin esperar otra descarga

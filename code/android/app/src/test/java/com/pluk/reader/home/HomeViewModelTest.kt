@@ -69,7 +69,7 @@ class HomeViewModelTest {
             ImportBooksUseCase(library),
             { syncRequests++ },
             ImportQuotaCheck(quotaCache, pendingUploads, prompts, session),
-            com.pluk.reader.domain.account.GuestNotice(session, library, guestPreference),
+            com.pluk.reader.domain.account.GuestNotice(session, library, guestPreference, flags),
             session,
             flags,
         )

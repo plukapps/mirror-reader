@@ -1,6 +1,7 @@
 package com.pluk.reader.flags
 
 import com.pluk.reader.domain.flags.Feature
+import com.pluk.reader.domain.flags.Setting
 import java.io.File
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
@@ -27,6 +28,17 @@ class FeatureTemplateTest {
             assertNotNull("falta ${feature.key} en remoteconfig.template.json", param)
             assertEquals(feature.key, feature.default.toString(), param!!.groupValues[1])
             assertEquals(feature.key, "BOOLEAN", param.groupValues[2])
+        }
+    }
+
+    // GST-026: cada [Setting] está en el template como número, con el mismo valor por defecto
+    @Test
+    fun everySettingIsInTheTemplateWithTheSameDefault() {
+        for (setting in Setting.entries) {
+            val param = parameter(setting.key)
+            assertNotNull("falta ${setting.key} en remoteconfig.template.json", param)
+            assertEquals(setting.key, setting.default.toString(), param!!.groupValues[1])
+            assertEquals(setting.key, "NUMBER", param.groupValues[2])
         }
     }
 }

@@ -27,6 +27,14 @@ describe("Remote Config (ADR 0016)", () => {
     assert.equal(param.defaultValue.value, "false");
   });
 
+  // GST-026: los días que la cruz esconde el aviso sin cuenta, 7 por defecto
+  it("guest_notice_snooze_days es un número y vale 7 por defecto", () => {
+    const param = template.parameters.guest_notice_snooze_days;
+    assert.ok(param, "falta guest_notice_snooze_days");
+    assert.equal(param.valueType, "NUMBER");
+    assert.equal(param.defaultValue.value, "7");
+  });
+
   it("las condiciones que usan los parámetros existen", () => {
     const names = new Set((template.conditions ?? []).map((c) => c.name));
     for (const [key, param] of Object.entries(template.parameters)) {
