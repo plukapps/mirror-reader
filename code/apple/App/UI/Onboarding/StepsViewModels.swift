@@ -2,37 +2,6 @@ import Foundation
 import Observation
 import ReaderDomain
 
-/// Intereses, O4 (ONB-009), como `InterestsViewModel` de Android.
-@MainActor
-@Observable
-final class InterestsViewModel {
-    private(set) var selected: Set<Genre> = []
-    private(set) var done = false
-
-    @ObservationIgnored private let preferences: OnboardingPreferences
-
-    init(preferences: OnboardingPreferences) {
-        self.preferences = preferences
-    }
-
-    var canContinue: Bool { canContinueInterests(selected) }
-
-    func toggle(_ genre: Genre) {
-        if selected.contains(genre) { selected.remove(genre) } else { selected.insert(genre) }
-    }
-
-    func continueOn() {
-        guard canContinue else { return }
-        preferences.saveInterests(selected)
-        done = true
-    }
-
-    /// "Omitir": sigue sin guardar.
-    func skip() { done = true }
-
-    func onNavigated() { done = false }
-}
-
 /// Meta diaria y recordatorio, O5 (ONB-010, ONB-011), como `GoalViewModel` de Android.
 @MainActor
 @Observable

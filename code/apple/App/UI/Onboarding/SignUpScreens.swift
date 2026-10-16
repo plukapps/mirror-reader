@@ -1,8 +1,10 @@
 import ReaderDomain
 import SwiftUI
 
-/// Bienvenida, O1 (ONB-001, ONB-002).
+/// Bienvenida, diseño O1 v2 (GST-001): "Empezar a leer" sin cuenta y, para sincronizar, "Crear cuenta" e "Iniciar
+/// sesión" (GST-002).
 struct WelcomeView: View {
+    let onStartReading: () -> Void
     let onCreateAccount: () -> Void
     let onSignIn: () -> Void
 
@@ -10,26 +12,34 @@ struct WelcomeView: View {
         OnboardingPage(background: MarginColors.yellow) {
             Brand().padding(.horizontal, 28).padding(.top, 28)
             Text("Leé más.\nScrolleá menos.\nPensá despacio.")
-                .font(.app(54))
-                .tracking(-0.045 * 54)
+                .font(.app(44))
+                .tracking(-0.045 * 44)
                 .lineLimit(3)
-                // "Scrolleá menos." no entra a 54 pt en un teléfono angosto: se achica antes de cortar la línea.
-                .minimumScaleFactor(0.55)
-                .padding(.horizontal, 28)
+                // "Scrolleá menos." no entra a 44 pt en un teléfono angosto: se achica antes de cortar la línea.
+                .minimumScaleFactor(0.6)
+                .padding(.horizontal, 24)
                 .padding(.top, 64)
                 .accessibilityAddTraits(.isHeader)
-            Text("Tus EPUB, en un lugar tranquilo. Sincronizados en todos tus dispositivos.")
+            Text("Tus EPUB, en un lugar tranquilo, en todos tus dispositivos.")
                 .font(.app(15))
                 .foregroundStyle(OnbColors.softOnYellow)
                 .lineSpacing(5)
-                .frame(maxWidth: 260, alignment: .leading)
+                .frame(maxWidth: 270, alignment: .leading)
                 .fixedSize(horizontal: false, vertical: true)
                 .padding(.horizontal, 28)
-                .padding(.top, 24)
+                .padding(.top, 20)
         } bottom: {
-            VStack(spacing: 10) {
-                PrimaryButton(text: "Crear cuenta", action: onCreateAccount)
-                SecondaryButton(text: "Ya tengo una cuenta", action: onSignIn)
+            VStack(spacing: 6) {
+                PrimaryButton(text: "Empezar a leer", action: onStartReading)
+                Text("¿Querés sincronizar?")
+                    .font(.app(13, .medium))
+                    .foregroundStyle(OnbColors.softOnYellow)
+                    .padding(.top, 6)
+                HStack(spacing: 6) {
+                    TextLink(text: "Crear cuenta", action: onCreateAccount)
+                    Text("·").font(.app(14, .semibold)).foregroundStyle(OnbColors.softOnYellow).accessibilityHidden(true)
+                    TextLink(text: "Iniciar sesión", action: onSignIn)
+                }
             }
             .padding(.horizontal, 20)
             TermsText(prefix: "Al continuar aceptás los ", middle: " y la ", suffix: ".")
@@ -38,13 +48,40 @@ struct WelcomeView: View {
                 .multilineTextAlignment(.center)
                 .frame(maxWidth: .infinity)
                 .padding(.horizontal, 28)
-                .padding(.top, 16)
-            Text("tuck. 2026 ©")
-                .font(.app(11))
-                .foregroundStyle(OnbColors.softOnYellow)
-                .frame(maxWidth: .infinity)
-                .padding(.top, 8)
+                .padding(.top, 4)
                 .padding(.bottom, 14)
+        }
+    }
+}
+
+/// "Listo" sin cuenta, diseño L0 (GST-019): las portadas son ilustración, no libros de regalo (la app no trae
+/// contenido). Se llega desde "Empezar a leer" de la bienvenida.
+struct GuestReadyView: View {
+    let onStartReading: () -> Void
+    let onImportBooks: () -> Void
+
+    var body: some View {
+        OnboardingPage(background: MarginColors.yellow) {
+            Spacer().frame(height: 56)
+            OnbTitle(text: "Ya podés\nleer.", size: 54, padding: 28)
+            Text("Empezá importando tus libros. Todo queda en este dispositivo, sin cuenta.")
+                .font(.app(15))
+                .foregroundStyle(OnbColors.softOnYellow)
+                .lineSpacing(5)
+                .frame(maxWidth: 270, alignment: .leading)
+                .fixedSize(horizontal: false, vertical: true)
+                .padding(.horizontal, 28)
+                .padding(.top, 16)
+            ReadyCovers().padding(.horizontal, 28).padding(.top, 28)
+        } bottom: {
+            VStack(spacing: 10) {
+                PrimaryButton(text: "Empezar a leer", action: onStartReading)
+                SecondaryButton(text: "Importar mis libros", leading: {
+                    Image(systemName: "plus").font(.system(size: 17, weight: .semibold))
+                }, action: onImportBooks)
+            }
+            .padding(.horizontal, 20)
+            .padding(.bottom, 16)
         }
     }
 }
@@ -190,100 +227,6 @@ struct VerifyEmailView: View {
     }
 }
 
-/// Intereses, O4 (ONB-009).
-struct InterestsView: View {
-    @State private var viewModel: InterestsViewModel
-    let onDone: () -> Void
-
-    init(viewModel: InterestsViewModel, onDone: @escaping () -> Void) {
-        _viewModel = State(initialValue: viewModel)
-        self.onDone = onDone
-    }
-
-    var body: some View {
-        let vm = viewModel
-        OnboardingPage(background: MarginColors.paper) {
-            StepHeader(onBack: nil, onSkip: vm.skip)
-            StepBar(step: 3)
-            HStack(spacing: 4) {
-                Text("Paso 3 de 4 · Email verificado").font(.app(12, .semibold)).foregroundStyle(MarginColors.muted)
-                Image(systemName: "checkmark.circle.fill").font(.system(size: 12))
-            }
-            .padding(.horizontal, 20)
-            .padding(.top, 20)
-            .accessibilityElement(children: .combine)
-            OnbTitle(text: "¿Qué te gusta\nleer?").padding(.top, 8)
-            OnbBody(text: "Elegí al menos 3.").padding(.top, 10)
-            FlowLayout(spacing: 8) {
-                ForEach(Genre.allCases, id: \.self) { genre in
-                    GenreChip(text: genre.label, selected: vm.selected.contains(genre)) { vm.toggle(genre) }
-                }
-            }
-            .padding(.horizontal, 20)
-            .padding(.top, 20)
-        } bottom: {
-            Text(vm.selected.count == 1 ? "1 elegido" : "\(vm.selected.count) elegidos")
-                .font(.app(12, .medium))
-                .foregroundStyle(MarginColors.muted)
-                .frame(maxWidth: .infinity)
-            PrimaryButton(text: "Continuar", enabled: vm.canContinue, action: vm.continueOn)
-                .padding(.horizontal, 20)
-                .padding(.top, 10)
-                .padding(.bottom, 14)
-        }
-        .onChange(of: vm.done) { _, done in
-            guard done else { return }
-            vm.onNavigated()
-            onDone()
-        }
-    }
-}
-
-private struct GenreChip: View {
-    let text: String
-    let selected: Bool
-    let action: () -> Void
-
-    var body: some View {
-        Button(action: action) {
-            HStack(spacing: 4) {
-                if selected { Image(systemName: "checkmark").font(.system(size: 13, weight: .bold)) }
-                Text(text).font(.app(14, .semibold))
-            }
-            .foregroundStyle(selected ? MarginColors.yellow : MarginColors.ink)
-            .padding(.leading, selected ? 10 : 16)
-            .padding(.trailing, selected ? 14 : 16)
-            .frame(height: 40)
-            .background(selected ? MarginColors.ink : .clear, in: Capsule())
-            .overlay(Capsule().strokeBorder(MarginColors.ink, lineWidth: selected ? 0 : 1.5))
-            .contentShape(Capsule())
-        }
-        .buttonStyle(.plain)
-        .accessibilityLabel(text)
-        .accessibilityAddTraits(selected ? [.isButton, .isSelected] : .isButton)
-    }
-}
-
-extension Genre {
-    var label: String {
-        switch self {
-        case .philosophy: "Filosofía"
-        case .classics: "Clásicos"
-        case .poetry: "Poesía"
-        case .sciFi: "Ciencia ficción"
-        case .history: "Historia"
-        case .essays: "Ensayo"
-        case .mystery: "Misterio"
-        case .romance: "Romance"
-        case .biography: "Biografía"
-        case .horror: "Terror"
-        case .science: "Ciencia"
-        case .travel: "Viajes"
-        case .drama: "Drama"
-        }
-    }
-}
-
 /// Fila que salta de línea cuando no entra, como `FlowRow` de Compose.
 struct FlowLayout: Layout {
     var spacing: CGFloat
@@ -335,12 +278,12 @@ struct FlowLayout: Layout {
 /// Meta diaria y recordatorio, O5 (ONB-010, ONB-011).
 struct GoalView: View {
     @State private var viewModel: GoalViewModel
-    let onBack: () -> Void
+    let onBack: (() -> Void)?
     let onDone: () -> Void
     @State private var pickingTime = false
     @State private var deniedNotice = false
 
-    init(viewModel: GoalViewModel, onBack: @escaping () -> Void, onDone: @escaping () -> Void) {
+    init(viewModel: GoalViewModel, onBack: (() -> Void)?, onDone: @escaping () -> Void) {
         _viewModel = State(initialValue: viewModel)
         self.onBack = onBack
         self.onDone = onDone
@@ -350,8 +293,8 @@ struct GoalView: View {
         @Bindable var vm = viewModel
         OnboardingPage(background: MarginColors.paper) {
             StepHeader(onBack: onBack, onSkip: vm.skip)
-            StepBar(step: 4)
-            Text(stepLabel(4)).font(.app(12, .semibold)).foregroundStyle(MarginColors.muted)
+            StepBar(step: 3)
+            Text(stepLabel(3)).font(.app(12, .semibold)).foregroundStyle(MarginColors.muted)
                 .padding(.horizontal, 20).padding(.top, 20)
             OnbTitle(text: "¿Cuánto querés\nleer por día?").padding(.top, 8)
             VStack(spacing: 8) {

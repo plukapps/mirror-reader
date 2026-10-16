@@ -5,9 +5,10 @@ import SwiftUI
 /// Pantallas del onboarding (O1 a O9).
 enum OnboardingRoute: Hashable {
     case welcome
+    /// L0 (GST-019).
+    case guestReady
     case signUp(name: String, email: String)
     case verify(justSent: Bool)
-    case interests
     case goal
     case allSet
     case signIn
@@ -68,6 +69,8 @@ struct OnboardingFlow: View {
     @Bindable var router: OnboardingRouter
     let dependencies: OnboardingDependencies
     let onFinish: (_ importBooks: Bool) -> Void
+    /// GST-002: "Empezar a leer".
+    let onStartReading: () -> Void
 
     var body: some View {
         NavigationStack(path: $router.path) {
@@ -84,9 +87,15 @@ struct OnboardingFlow: View {
         switch route {
         case .welcome:
             WelcomeView(
+                onStartReading: {
+                    onStartReading()
+                    router.startOver(.guestReady)
+                },
                 onCreateAccount: { router.push(.signUp(name: "", email: "")) },
                 onSignIn: { router.push(.signIn) }
             )
+        case .guestReady:
+            GuestReadyView(onStartReading: { onFinish(false) }, onImportBooks: { onFinish(true) })
         case let .signUp(name, email):
             SignUpView(
                 viewModel: SignUpViewModel(auth: deps.auth, name: name, email: email),
@@ -96,7 +105,7 @@ struct OnboardingFlow: View {
                     switch next {
                     // Con la cuenta creada, crear cuenta ya no está detrás.
                     case .verifyEmail: router.replaceTop(with: .verify(justSent: true))
-                    case .interests: router.startOver(.interests)
+                    case .goal: router.startOver(.goal)
                     }
                 },
                 onSignIn: { router.replaceTop(with: .signIn) }
@@ -106,18 +115,17 @@ struct OnboardingFlow: View {
                 viewModel: VerifyEmailViewModel(auth: deps.auth, account: deps.account, justSent: justSent),
                 onNext: { next in
                     switch next {
-                    case .interests: router.startOver(.interests)
+                    case .goal: router.startOver(.goal)
                     // ONB-008: de vuelta a crear cuenta, con la bienvenida detrás.
                     case let .change(name, email): router.startOver(.welcome, then: [.signUp(name: name, email: email)])
                     }
                 }
             )
-        case .interests:
-            InterestsView(viewModel: InterestsViewModel(preferences: deps.preferences)) { router.push(.goal) }
         case .goal:
             GoalView(
                 viewModel: GoalViewModel(preferences: deps.preferences, scheduler: deps.scheduler),
-                onBack: router.pop,
+                // Con la cuenta ya creada, no hay paso anterior (era intereses, ONB-009 retirado).
+                onBack: nil,
                 onDone: { router.startOver(.allSet) }
             )
         case .allSet:

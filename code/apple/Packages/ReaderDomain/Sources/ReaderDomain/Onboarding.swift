@@ -62,29 +62,6 @@ public protocol WelcomePreference: Sendable {
     func markSeen()
 }
 
-/// Géneros de O4, en el orden del diseño (ONB-009). El valor es el que guarda Android.
-public enum Genre: String, CaseIterable, Sendable {
-    case philosophy = "Philosophy"
-    case classics = "Classics"
-    case poetry = "Poetry"
-    case sciFi = "SciFi"
-    case history = "History"
-    case essays = "Essays"
-    case mystery = "Mystery"
-    case romance = "Romance"
-    case biography = "Biography"
-    case horror = "Horror"
-    case science = "Science"
-    case travel = "Travel"
-    case drama = "Drama"
-}
-
-public let minInterests = 3
-
-public func canContinueInterests(_ selected: Set<Genre>) -> Bool {
-    selected.count >= minInterests
-}
-
 /// Opciones de O5 (ONB-010).
 public enum ReadingGoal: Int, CaseIterable, Sendable {
     case casual = 10
@@ -116,10 +93,8 @@ public struct DailyReminder: Equatable, Sendable {
 
 /// Lo elegido en el onboarding. Vive en el dispositivo (ADR 0015).
 public protocol OnboardingPreferences: Sendable {
-    func interests() -> Set<Genre>
     func goal() -> ReadingGoal?
     func reminder() -> DailyReminder?
-    func saveInterests(_ genres: Set<Genre>)
     func saveGoal(_ goal: ReadingGoal, reminder: DailyReminder)
 }
 

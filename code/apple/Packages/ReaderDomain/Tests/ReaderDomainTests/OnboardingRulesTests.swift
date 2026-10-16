@@ -53,12 +53,6 @@ struct OnboardingRulesTests {
         #expect(AccountUser(id: "u", email: nil).initial == "")
     }
 
-    @Test("ONB-009: hacen falta al menos 3 intereses")
-    func interests() {
-        #expect(!canContinueInterests([.poetry, .drama]))
-        #expect(canContinueInterests([.poetry, .drama, .essays]))
-    }
-
     @Test("ONB-010: las opciones de la meta son las del diseño")
     func goals() {
         #expect(ReadingGoal.allCases.map(\.minutes) == [10, 20, 30, 60])

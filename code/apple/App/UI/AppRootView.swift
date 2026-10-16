@@ -50,9 +50,12 @@ struct AppRootView: View {
             MarginColors.paper.ignoresSafeArea()
         case .welcome, .verifyEmail:
             if let onboarding = screens.onboarding {
-                OnboardingFlow(router: router, dependencies: onboarding) { importBooks in
-                    start.enterHome(importBooks: importBooks)
-                }
+                OnboardingFlow(
+                    router: router,
+                    dependencies: onboarding,
+                    onFinish: { importBooks in start.enterHome(importBooks: importBooks) },
+                    onStartReading: { start.markWelcomeSeen() }
+                )
                 // PRF-021: el onboarding se ve siempre como su diseño (O1 a O9).
                 .environment(\.colorScheme, .light)
             }

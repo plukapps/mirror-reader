@@ -157,7 +157,7 @@ enum AppGraph {
             plans: PlansPresenter(cache: quotaCache),
             appearance: appearance,
             network: network,
-            start: AppStartViewModel(account: account),
+            start: AppStartViewModel(account: account, welcome: UserDefaultsWelcome()),
             onboarding: account.map { account in
                 OnboardingDependencies(
                     auth: account,

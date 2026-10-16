@@ -40,7 +40,6 @@ Plan de referencia: `specs/plans/2026-10-06-android-epub-viewer.md`
 
 ## Listo
 
-- **K-358** Uso sin cuenta, iOS: sin hojas de cuota, aviso del 80 % ni línea de estado sin sesión; texto de quitar y FAQ. GST-006, GST-008, GST-017. Plan `2026-10-16-ios-no-account.md`, rama `feature/no-account-ios`.
 - **K-359** Uso sin cuenta, iOS: cabecera de Inicio con avatar, banner A/B y aviso de la Biblioteca. HOM-012, GST-010, GST-023, GST-025, GST-026. Plan `2026-10-16-ios-no-account.md`, rama `feature/no-account-ios`.
 - **K-360** Uso sin cuenta, iOS: Perfil sin cuenta (09g). GST-009, GST-018. Plan `2026-10-16-ios-no-account.md`, rama `feature/no-account-ios`.
 - **K-361** Uso sin cuenta, iOS: alta corta (B1 → O3 → B3) e ingreso desde adentro. GST-011, GST-021, GST-022. Plan `2026-10-16-ios-no-account.md`, rama `feature/no-account-ios`.
@@ -51,11 +50,12 @@ Plan de referencia: `specs/plans/2026-10-06-android-epub-viewer.md`
 
 ## En curso
 
-- **K-357** Uso sin cuenta, iOS: arranque con `welcome_seen`, bienvenida O1 v2, L0 con portadas, alta sin intereses. GST-001 a GST-004, GST-019, ONB-009. Plan `2026-10-16-ios-no-account.md`, rama `feature/no-account-ios`.
+- **K-358** Uso sin cuenta, iOS: sin hojas de cuota, aviso del 80 % ni línea de estado sin sesión; texto de quitar y FAQ. GST-006, GST-008, GST-017. Plan `2026-10-16-ios-no-account.md`, rama `feature/no-account-ios`.
 - **K-176** Posición exacta, Tarea 5: verificación a mano entre el teléfono y el iPhone, cierre de docs. SYN-014.
 
 ## Revisión
 
+- **K-357** Uso sin cuenta, iOS: arranque con `welcome_seen`, bienvenida O1 v2, L0 con portadas, alta sin intereses. GST-001 a GST-004, GST-019, ONB-009. Plan `2026-10-16-ios-no-account.md`, rama `feature/no-account-ios`. Hecho: `UserDefaultsWelcome` y `UserDefaultsGuestNotice` (en `accountKeys`), `AppStartViewModel` con la bienvenida, `WelcomeView` O1 v2, `GuestReadyView` (L0) con `ReadyCovers`, ruta `.guestReady`; sin intereses (pasos 1 a 3, meta sin flecha atrás). Tests: `AppStartTests`, `OnboardingViewModelsTests`, `OnboardingDataTests`, `LocalAccountWiperTests` (244 en iPhone).
 - **K-356** Uso sin cuenta, iOS: dominio (`startDestination` con la bienvenida, regla del aviso, `ImportQuotaCheck` sin sesión, flag del banner y números de Remote Config, `AccountUser.initial`). GST-003, GST-006, GST-010, GST-023, GST-025, GST-026. Plan `2026-10-16-ios-no-account.md`, rama `feature/no-account-ios`. Hecho: `startDestination(_:welcomeSeen:)`, `WelcomePreference`, `GuestNotice.swift` (regla, preferencia, variante), `ImportQuotaCheck` con la cuenta, `Feature.guestBannerNoBackup`, `Setting` y `RemoteFlagSource.number` (y en Firebase), `AccountUser.initial`. Tests: dominio 261 (incluye la comparación con el template), app 243 en iPhone.
 - **K-202** Apple: la etiqueta 3.9.0 de Readium Swift ya no existe en GitHub (`git ls-remote` pasa de 3.8.0 a 3.10.0), y `project.yml` fija `exactVersion: 3.9.0`. Un clon o worktree nuevo no resuelve los paquetes ("no versions of 'swift-toolkit' match 3.9.0"). Hoy solo compila con una caché de Xcode que ya la tenía (`DerivedData/Reader-gbvs…`, commit `de07026e9`). Decidir: fijar por `revision: de07026e9…` en `project.yml` o pasar a 3.10 (exige Xcode 16.3, ADR 0013). Visto el 2026-10-12. Resuelto (2026-10-16, rama `feature/no-account-ios`): la etiqueta volvió a existir pero apunta a otro commit, que exige Swift 6.2; `project.yml` fija `revision: de07026e9f825a5791f27a7ac4cd6bb1a784ab8d`. Resuelve y compila en un worktree nuevo.
 - **K-354** Uso sin cuenta: los días que la cruz esconde el aviso (7 por defecto) se configuran con Remote Config (`guest_notice_snooze_days`, número, ADR 0016) para ajustarlos y hacer experimentos. GST-010, GST-026. Pedido del usuario (2026-10-16). Rama `feature/no-account`. Hecho: `Setting` y `FeatureFlags.setting` (dominio), `RemoteFlagSource.number`, `guest_notice_snooze_days` en el template con su test, `GuestNotice` lee los días. Tests JVM: `GuestNoticeTest`, `RemoteFeatureFlagsTest`, `FeatureTemplateTest`, `remoteconfig.test.mjs`. Publicado en `mirror-reading-staging` (template v10, 2026-10-16, por el usuario).

@@ -14,7 +14,7 @@ enum OnbColors {
 }
 
 /// Pasos del alta (ONB-003).
-let onboardingSteps = 4
+let onboardingSteps = 3
 
 /// Pantalla del onboarding: fondo de punta a punta, columna de ancho máximo, desplazable si no entra (ONB-022). `top` va
 /// arriba y `bottom` queda pegado abajo cuando sobra lugar; con el teclado abierto el desplazamiento deja ver el botón.
