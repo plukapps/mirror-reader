@@ -43,6 +43,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.testTag
@@ -129,13 +130,18 @@ internal fun OnboardingPage(
     }
 }
 
-/** Logo y "tuck.", anunciados juntos (WEL-007). */
+/** Logo y "tuck.", anunciados juntos (WEL-007). También arriba de Perfil (PRF-024), con el color del modo. */
 @Composable
-internal fun Brand(modifier: Modifier = Modifier) {
+internal fun Brand(modifier: Modifier = Modifier, color: Color = MarginColors.Ink) {
     val name = stringResource(R.string.welcome_brand)
     Row(modifier.clearAndSetSemantics { contentDescription = name }, verticalAlignment = Alignment.CenterVertically) {
-        Image(painterResource(R.drawable.ic_margin_logo), contentDescription = null, modifier = Modifier.size(width = 30.dp, height = 24.dp))
-        Text(name, style = onbText(20.sp, FontWeight.Medium, letterSpacing = (-0.03).em), modifier = Modifier.padding(start = 10.dp))
+        Image(
+            painterResource(R.drawable.ic_margin_logo),
+            contentDescription = null,
+            modifier = Modifier.size(width = 30.dp, height = 24.dp),
+            colorFilter = ColorFilter.tint(color),
+        )
+        Text(name, style = onbText(20.sp, FontWeight.Medium, color, letterSpacing = (-0.03).em), modifier = Modifier.padding(start = 10.dp))
     }
 }
 

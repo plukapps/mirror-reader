@@ -21,6 +21,7 @@ import com.pluk.reader.ui.profile.ProfileContent
 import com.pluk.reader.ui.profile.ProfileUiState
 import com.pluk.reader.ui.profile.StorageUi
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -54,6 +55,17 @@ class ProfileScreenTest {
         compose.onNodeWithText("Dispositivos vinculados").assertDoesNotExist()
         compose.onNodeWithText("Pixel 8 · este dispositivo").assertDoesNotExist()
         compose.onNodeWithText("tuck. 1.0").performScrollTo().assertExists()
+    }
+
+    // PRF-024: la marca de la app arriba, anunciada como un solo elemento
+    @Test
+    fun showsAppBrandAboveAccount() {
+        show()
+        compose.onNodeWithContentDescription("tuck.").assertExists()
+        val brandTop = compose.onNodeWithContentDescription("tuck.").fetchSemanticsNode().boundsInRoot.top
+        val accountTop = compose.onNodeWithContentDescription("Cuenta de Ana Ruiz, ana.ruiz@gmail.com")
+            .fetchSemanticsNode().boundsInRoot.top
+        assertTrue(brandTop < accountTop)
     }
 
     // PRF-008: sin "Cambiar contraseña" para cuentas de Google

@@ -19,7 +19,8 @@ Primera rebanada: Android (teléfono y tablet) e iPhone. La Mac queda afuera has
 
 ### Cabecera
 
-- **PRF-005** Arriba, una tarjeta amarilla con un círculo con la inicial del nombre, el nombre y el email de la cuenta (el email se corta con "…" si no entra) y una flecha. Si la cuenta no tiene nombre, el círculo muestra la inicial del email y en lugar del nombre va el email solo. Tocarla: aviso (PRF-003); la pantalla de cuenta llega más adelante.
+- **PRF-024** Arriba de todo, antes de la tarjeta de PRF-005, la marca de la app: el logo y "tuck.", como en la bienvenida (WEL-007), alineados a la izquierda con los títulos de sección. Se anuncian juntos como "tuck." y no se pueden tocar. En modo oscuro usan el color de texto del modo (PRF-022).
+- **PRF-005** Debajo de la marca (PRF-024), una tarjeta amarilla con un círculo con la inicial del nombre, el nombre y el email de la cuenta (el email se corta con "…" si no entra) y una flecha. Si la cuenta no tiene nombre, el círculo muestra la inicial del email y en lugar del nombre va el email solo. Tocarla: aviso (PRF-003); la pantalla de cuenta llega más adelante.
 
 ### Cuenta
 

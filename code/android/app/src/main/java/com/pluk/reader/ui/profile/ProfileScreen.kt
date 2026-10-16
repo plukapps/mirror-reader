@@ -56,6 +56,7 @@ import com.pluk.reader.domain.model.LineSpacing
 import com.pluk.reader.domain.model.ReaderFont
 import com.pluk.reader.domain.model.ReadingTheme
 import com.pluk.reader.ui.navigation.LocalBottomBarPadding
+import com.pluk.reader.ui.onboarding.Brand
 import com.pluk.reader.ui.theme.MarginColors
 
 /** Lo que se puede tocar en Perfil. Lo que todavía no existe va a [onComingSoon] (PRF-003). */
@@ -147,6 +148,8 @@ fun ProfileContent(
                 .statusBarsPadding()
                 .verticalScroll(rememberScrollState()),
         ) {
+            // PRF-024: la marca de la app, antes de la tarjeta de la cuenta.
+            Brand(Modifier.padding(start = 24.dp, end = 24.dp, top = 20.dp))
             Header(state, actions.onComingSoon)
             SectionTitle(stringResource(R.string.profile_section_account))
             AccountCard(state, isTablet, actions)

@@ -146,6 +146,11 @@ struct ProfileContent: View {
 
     var body: some View {
         VStack(spacing: 0) {
+            // PRF-024: la marca de la app, antes de la tarjeta de la cuenta.
+            Brand()
+                .foregroundStyle(MarginColors.ink)
+                .padding(EdgeInsets(top: 20, leading: 24, bottom: 0, trailing: 24))
+                .frame(maxWidth: .infinity, alignment: .leading)
             header
             ProfileSectionTitle(text: "Cuenta")
             accountCard
