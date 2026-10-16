@@ -9,16 +9,19 @@ struct HomeView: View {
     var onOpenLibrary: (LibraryFilter) -> Void = { _ in }
     /// nil donde no se importa (la Mac, ADR 0013).
     var onImport: (() -> Void)?
+    /// HOM-012: el avatar abre Perfil.
+    var onOpenProfile: () -> Void = {}
+    /// GST-023: "Crear cuenta" del banner sin cuenta.
+    var onCreateAccount: () -> Void = {}
 
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 0) {
-                Text(viewModel.greeting.text)
-                    .font(.app(44))
-                    .tracking(-0.045 * 44)
-                    .foregroundStyle(MarginColors.ink)
-                    .padding(.horizontal, WindowLayout.horizontalPadding)
-                    .padding(.top, 12)
+                HomeHeader(greeting: viewModel.greeting.text, avatarInitial: viewModel.avatarInitial, onOpenProfile: onOpenProfile)
+                if let variant = viewModel.guestBanner {
+                    // GST-010: "Crear cuenta" no esconde el banner; si se vuelve sin crearla, sigue ahí.
+                    GuestBanner(variant: variant, onCreateAccount: onCreateAccount, onDismiss: viewModel.dismissGuestNotice)
+                }
                 if !viewModel.loading {
                     let content = viewModel.content
                     if let book = content.continueReading {

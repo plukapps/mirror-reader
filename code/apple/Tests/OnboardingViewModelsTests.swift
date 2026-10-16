@@ -84,14 +84,11 @@ private final class FakeAuth: AccountRepository, AuthRepository, @unchecked Send
 }
 
 private final class FakePreferences: OnboardingPreferences, @unchecked Sendable {
-    var storedInterests: Set<Genre> = []
     var storedGoal: ReadingGoal?
     var storedReminder: DailyReminder?
 
-    func interests() -> Set<Genre> { storedInterests }
     func goal() -> ReadingGoal? { storedGoal }
     func reminder() -> DailyReminder? { storedReminder }
-    func saveInterests(_ genres: Set<Genre>) { storedInterests = genres }
 
     func saveGoal(_ goal: ReadingGoal, reminder: DailyReminder) {
         storedGoal = goal
@@ -190,11 +187,11 @@ struct SignUpViewModelTests {
     }
 
     @Test("ONB-006: Google salta la verificación")
-    func googleGoesToInterests() async {
+    func googleGoesToTheGoal() async {
         let vm = SignUpViewModel(auth: auth)
         await vm.google(.tokens(tokens))
         #expect(auth.googleSignIns == [tokens])
-        #expect(vm.next == .interests)
+        #expect(vm.next == .goal)
     }
 
     @Test("ONB-020: cancelar Google no muestra error; un fallo, sí")
@@ -233,7 +230,7 @@ struct VerifyEmailViewModelTests {
 
         auth.verified = .success(true)
         await eventually { vm.next != nil }
-        #expect(vm.next == .interests)
+        #expect(vm.next == .goal)
         vm.onHidden()
     }
 
@@ -286,39 +283,13 @@ struct VerifyEmailViewModelTests {
         await vm.change()
 
         #expect(auth.discarded == 0)
-        #expect(vm.next == .interests)
+        #expect(vm.next == .goal)
     }
 }
 
 @MainActor
 struct OnboardingStepsTests {
-    @Test("ONB-009: hacen falta 3 intereses y se guardan")
-    func interestsNeedThree() {
-        let prefs = FakePreferences()
-        let vm = InterestsViewModel(preferences: prefs)
-        vm.toggle(.poetry)
-        vm.toggle(.essays)
-        vm.continueOn()
-        #expect(!vm.done)
 
-        vm.toggle(.drama)
-        vm.toggle(.poetry)
-        vm.toggle(.poetry) // marcar y desmarcar
-        vm.continueOn()
-
-        #expect(prefs.storedInterests == [.poetry, .essays, .drama])
-        #expect(vm.done)
-    }
-
-    @Test("ONB-009: omitir no guarda nada")
-    func skippingInterests() {
-        let prefs = FakePreferences()
-        let vm = InterestsViewModel(preferences: prefs)
-        vm.toggle(.poetry)
-        vm.skip()
-        #expect(vm.done)
-        #expect(prefs.storedInterests.isEmpty)
-    }
 
     @Test("ONB-010, ONB-012: terminar guarda la meta y programa el recordatorio")
     func finishSchedules() async {
@@ -503,11 +474,42 @@ struct PasswordRecoveryTests {
     }
 }
 
+/// GST-002: bienvenida vista, en memoria.
+final class MemoryWelcome: WelcomePreference, @unchecked Sendable {
+    private(set) var marked = false
+    init(seen: Bool = false) { marked = seen }
+    func seen() -> Bool { marked }
+    func markSeen() { marked = true }
+}
+
 @MainActor
 struct AppStartTests {
-    @Test("ONB-019: sin sesión abre la bienvenida")
+    @Test("GST-003: sin sesión, quien ya pasó por la bienvenida entra a Inicio")
+    func withoutSessionAfterTheWelcome() async {
+        let vm = AppStartViewModel(account: FakeAuth(), welcome: MemoryWelcome(seen: true))
+        await vm.load()
+        #expect(vm.start == .home)
+    }
+
+    @Test("GST-004: con sesión la bienvenida no cuenta")
+    func sessionIgnoresTheWelcome() async {
+        let auth = FakeAuth()
+        auth.user = AccountUser(id: "u1", email: "a@b.c")
+        let vm = AppStartViewModel(account: auth, welcome: MemoryWelcome(seen: false))
+        await vm.load()
+        #expect(vm.start == .home)
+    }
+
+    @Test("GST-002: Empezar a leer registra la bienvenida")
+    func startReadingMarksTheWelcome() {
+        let welcome = MemoryWelcome()
+        AppStartViewModel(account: FakeAuth(), welcome: welcome).markWelcomeSeen()
+        #expect(welcome.seen())
+    }
+
+    @Test("GST-003: sin sesión abre la bienvenida")
     func withoutSession() async {
-        let vm = AppStartViewModel(account: FakeAuth())
+        let vm = AppStartViewModel(account: FakeAuth(), welcome: MemoryWelcome())
         #expect(vm.start == .loading)
         await vm.load()
         #expect(vm.start == .welcome)
@@ -517,7 +519,7 @@ struct AppStartTests {
     func unverified() async {
         let auth = FakeAuth()
         auth.user = AccountUser(id: "u1", email: "a@b.c", needsEmailVerification: true)
-        let vm = AppStartViewModel(account: auth)
+        let vm = AppStartViewModel(account: auth, welcome: MemoryWelcome())
         await vm.load()
         #expect(vm.start == .verifyEmail)
     }
@@ -526,7 +528,7 @@ struct AppStartTests {
     func verified() async {
         let auth = FakeAuth()
         auth.user = AccountUser(id: "u1", email: "a@b.c")
-        let vm = AppStartViewModel(account: auth)
+        let vm = AppStartViewModel(account: auth, welcome: MemoryWelcome())
         await vm.load()
         #expect(vm.start == .home)
     }
@@ -535,7 +537,7 @@ struct AppStartTests {
     func decidedOnce() async {
         let auth = FakeAuth()
         auth.user = AccountUser(id: "u1", email: "a@b.c")
-        let vm = AppStartViewModel(account: auth)
+        let vm = AppStartViewModel(account: auth, welcome: MemoryWelcome())
         await vm.load()
         auth.user = nil
         await vm.load()
@@ -544,7 +546,7 @@ struct AppStartTests {
 
     @Test("ADR 0015: sin Firebase la app abre Inicio y funciona en local")
     func localOnly() async {
-        let vm = AppStartViewModel(account: nil)
+        let vm = AppStartViewModel(account: nil, welcome: MemoryWelcome())
         await vm.load()
         #expect(vm.start == .home)
     }

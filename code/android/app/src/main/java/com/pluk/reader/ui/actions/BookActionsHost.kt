@@ -26,6 +26,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.Dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.pluk.reader.R
 import com.pluk.reader.domain.model.LibraryBook
 import com.pluk.reader.ui.theme.MarginColors
@@ -44,6 +45,7 @@ fun BookActionsHost(
 ) {
     val context = LocalContext.current
     val snackbar = remember { SnackbarHostState() }
+    val signedIn by viewModel.signedIn.collectAsStateWithLifecycle()
     LaunchedEffect(viewModel) {
         viewModel.messages.collect { snackbar.showSnackbar(it.toText(context)) }
     }
@@ -85,7 +87,7 @@ fun BookActionsHost(
         AlertDialog(
             onDismissRequest = { confirmRemove = null },
             title = { Text(stringResource(R.string.book_actions_remove_title, book.title)) },
-            text = { Text(stringResource(R.string.book_actions_remove_body)) },
+            text = { Text(stringResource(if (signedIn) R.string.book_actions_remove_body else R.string.book_actions_remove_body_local)) },
             confirmButton = {
                 TextButton(
                     onClick = {

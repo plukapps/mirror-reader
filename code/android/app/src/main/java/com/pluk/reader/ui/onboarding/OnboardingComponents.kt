@@ -136,9 +136,9 @@ internal fun Brand(modifier: Modifier = Modifier, color: Color = MarginColors.In
     val name = stringResource(R.string.welcome_brand)
     Row(modifier.clearAndSetSemantics { contentDescription = name }, verticalAlignment = Alignment.CenterVertically) {
         Image(
-            painterResource(R.drawable.ic_margin_logo),
+            painterResource(R.drawable.ic_logo),
             contentDescription = null,
-            modifier = Modifier.size(width = 30.dp, height = 24.dp),
+            modifier = Modifier.size(width = 24.dp, height = 25.8.dp),
             colorFilter = ColorFilter.tint(color),
         )
         Text(name, style = onbText(20.sp, FontWeight.Medium, color, letterSpacing = (-0.03).em), modifier = Modifier.padding(start = 10.dp))
@@ -206,11 +206,11 @@ internal fun StepHeader(
     }
 }
 
-/** Barra de cuatro tramos (ONB-003). */
+/** Barra de un tramo por paso: tres en el alta (ONB-003), dos en el alta corta (GST-011). */
 @Composable
-internal fun StepBar(step: Int, modifier: Modifier = Modifier) {
+internal fun StepBar(step: Int, modifier: Modifier = Modifier, total: Int = STEPS) {
     Row(modifier.fillMaxWidth().padding(start = 20.dp, end = 20.dp, top = 6.dp).clearAndSetSemantics { }, horizontalArrangement = Arrangement.spacedBy(4.dp)) {
-        repeat(STEPS) { index ->
+        repeat(total) { index ->
             Box(
                 Modifier
                     .weight(1f)
@@ -222,7 +222,10 @@ internal fun StepBar(step: Int, modifier: Modifier = Modifier) {
     }
 }
 
-internal const val STEPS = 4
+internal const val STEPS = 3
+
+/** GST-011: el alta corta desde adentro de la app, crear cuenta y verificar. */
+internal const val SHORT_STEPS = 2
 
 /** Píldora tinta con texto amarillo (y flecha). Mientras [busy], muestra que trabaja y no responde (ONB-021). */
 @Composable

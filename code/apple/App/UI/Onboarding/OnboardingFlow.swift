@@ -5,9 +5,12 @@ import SwiftUI
 /// Pantallas del onboarding (O1 a O9).
 enum OnboardingRoute: Hashable {
     case welcome
+    /// L0 (GST-019).
+    case guestReady
+    /// B3, el final del alta corta (GST-021).
+    case shortAllSet
     case signUp(name: String, email: String)
     case verify(justSent: Bool)
-    case interests
     case goal
     case allSet
     case signIn
@@ -22,6 +25,11 @@ enum OnboardingRoute: Hashable {
 final class OnboardingRouter {
     var root: OnboardingRoute
     var path: [OnboardingRoute] = []
+    /// GST-011, GST-022: alta o ingreso abiertos desde adentro de la app (Perfil, el aviso o el banner). La cruz o
+    /// atrás en el primer paso vuelven a Inicio; el final es B3 o la Biblioteca.
+    var inApp = false
+    /// Cómo volver a Inicio sin terminar (la cruz del alta corta).
+    @ObservationIgnored var onExitInApp: () -> Void = {}
 
     init(root: OnboardingRoute = .welcome) {
         self.root = root
@@ -29,9 +37,11 @@ final class OnboardingRouter {
 
     func push(_ route: OnboardingRoute) { path.append(route) }
 
-    /// Atrás; si no hay nada detrás (se entró por un enlace), a la bienvenida.
+    /// Atrás; si no hay nada detrás (se entró por un enlace), a la bienvenida. Desde adentro de la app, a Inicio.
     func pop() {
-        if path.isEmpty {
+        if path.isEmpty, inApp {
+            onExitInApp()
+        } else if path.isEmpty {
             startOver(.welcome)
         } else {
             path.removeLast()
@@ -68,6 +78,12 @@ struct OnboardingFlow: View {
     @Bindable var router: OnboardingRouter
     let dependencies: OnboardingDependencies
     let onFinish: (_ importBooks: Bool) -> Void
+    /// GST-021, GST-022: con la cuenta lista desde adentro de la app, a la Biblioteca.
+    var onFinishInApp: () -> Void = {}
+    /// GST-021: cuántos libros hay en el dispositivo, para B3.
+    var localBookCount: () async -> Int = { 0 }
+    /// GST-002: "Empezar a leer".
+    let onStartReading: () -> Void
 
     var body: some View {
         NavigationStack(path: $router.path) {
@@ -84,9 +100,17 @@ struct OnboardingFlow: View {
         switch route {
         case .welcome:
             WelcomeView(
+                onStartReading: {
+                    onStartReading()
+                    router.startOver(.guestReady)
+                },
                 onCreateAccount: { router.push(.signUp(name: "", email: "")) },
                 onSignIn: { router.push(.signIn) }
             )
+        case .shortAllSet:
+            ShortAllSetScreen(account: deps.account, localBookCount: localBookCount, onLibrary: onFinishInApp)
+        case .guestReady:
+            GuestReadyView(onStartReading: { onFinish(false) }, onImportBooks: { onFinish(true) })
         case let .signUp(name, email):
             SignUpView(
                 viewModel: SignUpViewModel(auth: deps.auth, name: name, email: email),
@@ -96,28 +120,35 @@ struct OnboardingFlow: View {
                     switch next {
                     // Con la cuenta creada, crear cuenta ya no está detrás.
                     case .verifyEmail: router.replaceTop(with: .verify(justSent: true))
-                    case .interests: router.startOver(.interests)
+                    // GST-011: el alta corta termina en B3, sin meta diaria.
+                    case .goal: router.startOver(router.inApp ? .shortAllSet : .goal)
                     }
                 },
-                onSignIn: { router.replaceTop(with: .signIn) }
+                onSignIn: { router.replaceTop(with: .signIn) },
+                inApp: router.inApp
             )
         case let .verify(justSent):
             VerifyEmailView(
                 viewModel: VerifyEmailViewModel(auth: deps.auth, account: deps.account, justSent: justSent),
+                inApp: router.inApp,
                 onNext: { next in
                     switch next {
-                    case .interests: router.startOver(.interests)
-                    // ONB-008: de vuelta a crear cuenta, con la bienvenida detrás.
-                    case let .change(name, email): router.startOver(.welcome, then: [.signUp(name: name, email: email)])
+                    case .goal: router.startOver(router.inApp ? .shortAllSet : .goal)
+                    // ONB-008: de vuelta a crear cuenta, con la bienvenida detrás (desde adentro, con Inicio detrás).
+                    case let .change(name, email):
+                        if router.inApp {
+                            router.startOver(.signUp(name: name, email: email))
+                        } else {
+                            router.startOver(.welcome, then: [.signUp(name: name, email: email)])
+                        }
                     }
                 }
             )
-        case .interests:
-            InterestsView(viewModel: InterestsViewModel(preferences: deps.preferences)) { router.push(.goal) }
         case .goal:
             GoalView(
                 viewModel: GoalViewModel(preferences: deps.preferences, scheduler: deps.scheduler),
-                onBack: router.pop,
+                // Con la cuenta ya creada, no hay paso anterior (era intereses, ONB-009 retirado).
+                onBack: nil,
                 onDone: { router.startOver(.allSet) }
             )
         case .allSet:
@@ -133,7 +164,8 @@ struct OnboardingFlow: View {
                 onBack: router.pop,
                 onNext: { next, sent in
                     switch next {
-                    case .home: onFinish(false)
+                    // GST-022: desde adentro de la app, al entrar se abre la Biblioteca.
+                    case .home: if router.inApp { onFinishInApp() } else { onFinish(false) }
                     case .verifyEmail: router.startOver(.verify(justSent: sent))
                     }
                 },
@@ -155,5 +187,22 @@ struct OnboardingFlow: View {
                 onRequestLink: { email in router.startOver(.welcome, then: [.signIn, .forgot(email: email)]) }
             )
         }
+    }
+}
+
+/// B3 con sus datos: el nombre de la cuenta y los libros del dispositivo (GST-021).
+private struct ShortAllSetScreen: View {
+    let account: AccountRepository
+    let localBookCount: () async -> Int
+    let onLibrary: () -> Void
+    @State private var name: String?
+    @State private var count = 0
+
+    var body: some View {
+        ShortAllSetView(name: name, bookCount: count, onLibrary: onLibrary)
+            .task {
+                name = firstName(await account.currentUser()?.displayName)
+                count = await localBookCount()
+            }
     }
 }

@@ -44,6 +44,11 @@ import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import com.pluk.reader.ui.navigation.NavIcons
+import androidx.compose.ui.text.withStyle
+import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.res.painterResource
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
@@ -72,6 +77,7 @@ import com.pluk.reader.domain.home.HomeContent
 import com.pluk.reader.domain.home.greetingFor
 import com.pluk.reader.domain.model.LibraryBook
 import com.pluk.reader.ui.library.BookCover
+import com.pluk.reader.domain.account.GuestBannerVariant
 import com.pluk.reader.ui.library.toText
 import com.pluk.reader.ui.navigation.LocalBottomBarPadding
 import com.pluk.reader.ui.theme.MarginColors
@@ -84,6 +90,8 @@ fun HomeScreen(
     onSeeAll: (LibraryFilter?) -> Unit,
     openImportPicker: Boolean = false,
     onImportPickerOpened: () -> Unit = {},
+    onCreateAccount: () -> Unit = {},
+    onOpenProfile: () -> Unit = {},
     viewModel: HomeViewModel = hiltViewModel(),
 ) {
     val state = viewModel.uiState.collectAsStateWithLifecycle().value
@@ -102,6 +110,12 @@ fun HomeScreen(
         onSeeAll = onSeeAll,
         openImportPicker = openImportPicker,
         onImportPickerOpened = onImportPickerOpened,
+        guestBanner = state.guestBanner,
+        avatarInitial = state.avatarInitial,
+        onOpenProfile = onOpenProfile,
+        onDismissGuestNotice = viewModel::onDismissGuestNotice,
+        // GST-010: "Crear cuenta" no esconde el banner; si se vuelve sin crearla, sigue ahí.
+        onCreateAccount = onCreateAccount,
     )
 }
 
@@ -117,6 +131,11 @@ fun HomeContentView(
     onSeeAll: (LibraryFilter?) -> Unit,
     openImportPicker: Boolean = false,
     onImportPickerOpened: () -> Unit = {},
+    guestBanner: GuestBannerVariant? = null,
+    onDismissGuestNotice: () -> Unit = {},
+    onCreateAccount: () -> Unit = {},
+    avatarInitial: String? = null,
+    onOpenProfile: () -> Unit = {},
 ) {
     val picker = rememberLauncherForActivityResult(ActivityResultContracts.OpenMultipleDocuments()) { uris ->
         onImport(uris.map { it.toString() })
@@ -140,16 +159,8 @@ fun HomeContentView(
                 .verticalScroll(rememberScrollState())
                 .padding(bottom = 24.dp + bottomBarPadding),
         ) {
-            Text(
-                text = stringResource(greeting.text()),
-                color = MarginColors.Ink,
-                fontSize = 44.sp,
-                lineHeight = 44.sp,
-                letterSpacing = (-0.045).em,
-                modifier = Modifier
-                    .padding(start = 20.dp, end = 20.dp, top = 12.dp)
-                    .testTag("home-greeting"),
-            )
+            HomeHeader(greeting, avatarInitial, onOpenProfile)
+            guestBanner?.let { GuestBanner(it, onCreateAccount, onDismissGuestNotice) }
             if (!loading) {
                 val reading = content.continueReading
                 if (reading != null) {
@@ -168,6 +179,62 @@ fun HomeContentView(
             }
         }
         SnackbarHost(snackbar, Modifier.align(Alignment.BottomCenter).padding(bottom = bottomBarPadding))
+    }
+}
+
+/**
+ * HOM-012 (diseños "02 — Home" y H0): el logo y "tuck." arriba; debajo, el saludo y el avatar, que abre Perfil.
+ * Con sesión, la inicial; sin cuenta, el ícono de una persona.
+ */
+@Composable
+private fun HomeHeader(greeting: Greeting, avatarInitial: String?, onOpenProfile: () -> Unit) {
+    Row(Modifier.padding(start = 20.dp, end = 20.dp, top = 12.dp), verticalAlignment = Alignment.CenterVertically) {
+        Icon(painterResource(R.drawable.ic_logo), contentDescription = null, tint = MarginColors.Ink, modifier = Modifier.size(width = 20.dp, height = 21.5.dp))
+        Text(
+            buildAnnotatedString {
+                append("tuck")
+                withStyle(SpanStyle(color = MarginColors.ReadingDot)) { append(".") }
+            },
+            color = MarginColors.Ink,
+            fontSize = 18.sp,
+            fontWeight = FontWeight.Medium,
+            letterSpacing = (-0.03).em,
+            modifier = Modifier.padding(start = 10.dp).clearAndSetSemantics { },
+        )
+    }
+    Row(
+        Modifier.fillMaxWidth().padding(start = 20.dp, end = 20.dp, top = 16.dp),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.Top,
+    ) {
+        Text(
+            text = stringResource(greeting.text()),
+            color = MarginColors.Ink,
+            fontSize = 34.sp,
+            lineHeight = 34.sp,
+            letterSpacing = (-0.04).em,
+            modifier = Modifier.weight(1f).testTag("home-greeting"),
+        )
+        val description = stringResource(R.string.home_open_profile)
+        Box(
+            Modifier
+                .size(44.dp)
+                .clip(CircleShape)
+                .background(MarginColors.Yellow)
+                .clickable(role = Role.Button, onClick = onOpenProfile)
+                .clearAndSetSemantics {
+                    contentDescription = description
+                    role = Role.Button
+                }
+                .testTag("home-avatar"),
+            contentAlignment = Alignment.Center,
+        ) {
+            if (avatarInitial != null) {
+                Text(avatarInitial, color = MarginColors.OnYellow, fontSize = 16.sp, fontWeight = FontWeight.Bold)
+            } else {
+                Icon(NavIcons.PersonFilled, contentDescription = null, tint = MarginColors.OnYellow, modifier = Modifier.size(22.dp))
+            }
+        }
     }
 }
 

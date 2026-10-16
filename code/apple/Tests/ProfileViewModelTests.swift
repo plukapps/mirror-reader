@@ -166,14 +166,30 @@ struct ProfileViewModelTests {
         #expect(viewModel.storageFailed)
     }
 
-    @Test("PRF-006: sin cuenta configurada (sin Firebase) no hay espacio que leer")
+    @Test("GST-009: sin cuenta configurada (sin Firebase) es Perfil sin cuenta, sin espacio que leer")
     func withoutBackend() async {
         let viewModel = ProfileViewModel(
             account: nil, quota: nil, cache: MemoryQuotaCache(), deviceName: "iPhone", settings: MemorySettings()
         )
         await viewModel.load()
         #expect(viewModel.email == nil)
-        #expect(viewModel.storageFailed)
+        #expect(!viewModel.signedIn)
+        #expect(!viewModel.storageFailed)
+    }
+
+    @Test("GST-009: sin sesión no se lee la cuota ni se muestra un espacio guardado")
+    func withoutSessionNoQuota() async {
+        let cache = MemoryQuotaCache(StorageQuota(usedBytes: 1, quotaBytes: 2))
+        let viewModel = await loaded(nil, cache: cache)
+        #expect(!viewModel.signedIn)
+        #expect(viewModel.storage == nil)
+        #expect(!viewModel.storageFailed)
+        #expect(cache.saved == StorageQuota(usedBytes: 1, quotaBytes: 2))
+    }
+
+    @Test("GST-009: con sesión, Perfil de la cuenta")
+    func withSessionSignedIn() async {
+        #expect(await loaded(ana).signedIn)
     }
 
     @Test("PRF-007: este dispositivo con su nombre")

@@ -65,6 +65,7 @@ class LocalDataWiperTest {
             it[booleanPreferencesKey("sync_wifi_only")] = true // PRF-023: es del dispositivo
             it[longPreferencesKey("sync_last_positions_seen_at")] = 5
             it[longPreferencesKey("profile_used_bytes")] = 10
+            it[booleanPreferencesKey("welcome_seen")] = true // GST-016: al cerrar sesión se vuelve a la bienvenida
         }
 
         LocalDataWiper(db, files, dataStore).wipe()
@@ -78,6 +79,7 @@ class LocalDataWiperTest {
         assertEquals("DARK", prefs[stringPreferencesKey("appearance")])
         assertEquals(true, prefs[booleanPreferencesKey("sync_wifi_only")])
         assertNull(prefs[longPreferencesKey("sync_last_positions_seen_at")])
+        assertNull(prefs[booleanPreferencesKey("welcome_seen")])
         assertNull(prefs[longPreferencesKey("profile_used_bytes")])
     }
 }

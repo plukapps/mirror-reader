@@ -10,6 +10,7 @@ El lector de Android usa Readium Kotlin Toolkit 3.4.0. El ADR 0004 elige Readium
 
 - **Readium Swift Toolkit 3.9.0**, por Swift Package Manager en `project.yml`, productos `ReadiumShared`, `ReadiumStreamer` y `ReadiumNavigator`.
 - **Versión:** 3.10 y 3.11 dependen de SQLite.swift 0.16, que exige Swift 6.1 (Xcode 16.3). Esta máquina tiene Xcode 16.2 (K-080). 3.9.0 es la última que resuelve y compila. Se sube cuando se actualice Xcode.
+- **Fijada por commit (K-202, 2026-10-16):** la etiqueta 3.9.0 se borró de GitHub y después se volvió a crear apuntando a otro commit, que exige Swift 6.2. `project.yml` fija `revision: de07026e9f825a5791f27a7ac4cd6bb1a784ab8d`, el commit original de la 3.9.0, que sigue en el repositorio.
 - **Solo iOS:** Readium Swift declara solo iOS. En el target único (ADR 0010) los productos se enlazan con `destinationFilters: [iOS]` y el código que los usa va con `#if os(iOS)`. En la Mac no hay lector ni importación hasta que haya un motor para ella (K-079).
 - **Integración:** `EPUBNavigatorViewController` envuelto en SwiftUI con `UIViewControllerRepresentable`, como indica la guía oficial (`docs/Guides/Navigator/SwiftUI.md`). Sin servidor HTTP: desde la 3.0 el navegador no lo necesita.
 - **Concurrencia:** Readium compila en modo Swift 5; la app (Swift 6) lo importa con `@preconcurrency import` y toca el navegador solo desde el hilo principal.

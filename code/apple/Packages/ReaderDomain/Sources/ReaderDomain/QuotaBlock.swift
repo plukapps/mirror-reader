@@ -40,18 +40,22 @@ public struct QuotaBlockNotice: Equatable, Sendable, Identifiable {
 /// PLN-009, PLN-014: después de importar, ¿alguno de los libros nuevos no entra en la nube? Usa la última cuota
 /// conocida (sin red) y descuenta los pendientes de subir en el mismo orden en que se suben (`UploadBooks`): un
 /// pendiente que no entra no ocupa lugar. Sin cuota conocida solo se comprueba el tamaño máximo de Free (vale LIB-009
-/// para el espacio). Devuelve el primero que no entra.
+/// para el espacio). Devuelve el primero que no entra. GST-006: sin sesión (o sin cuenta posible) nada se sube, así
+/// que no hay hoja.
 public struct ImportQuotaCheck: Sendable {
     private let uploads: BookUploadRepository
     private let cache: QuotaCache
+    private let account: AccountRepository?
 
-    public init(uploads: BookUploadRepository, cache: QuotaCache) {
+    public init(uploads: BookUploadRepository, cache: QuotaCache, account: AccountRepository?) {
         self.uploads = uploads
         self.cache = cache
+        self.account = account
     }
 
     public func callAsFunction(imported: [String]) async -> QuotaBlockNotice? {
-        guard !imported.isEmpty, let pending = try? await uploads.pending() else { return nil }
+        guard !imported.isEmpty, await account?.currentUser() != nil else { return nil }
+        guard let pending = try? await uploads.pending() else { return nil }
         let quota = cache.last()
         let newBooks = Set(imported)
         let maxFile = PlanCatalog.maxFileBytes(quota)

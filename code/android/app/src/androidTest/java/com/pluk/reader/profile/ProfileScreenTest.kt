@@ -193,4 +193,24 @@ class ProfileScreenTest {
         show(state.copy(readingOptionsLocked = false))
         compose.onNodeWithContentDescription("Sepia").performScrollTo().assertExists()
     }
+
+    // GST-009, GST-018 (09g): sin cuenta, la tarjeta invita a crearla y "Cuenta" tiene solo "Ya tengo una cuenta"
+    @Test
+    fun withoutAccountShowsTheInvitationAndHidesAccountRows() {
+        var create = 0
+        var signIn = 0
+        show(
+            ProfileUiState(signedIn = false, deviceName = "Pixel 8"),
+            ProfileActions(onCreateAccount = { create++ }, onSignIn = { signIn++ }),
+        )
+        compose.onNodeWithContentDescription("Sin cuenta. Crear una cuenta").assertExists().performClick()
+        compose.onNodeWithText("Ya tengo una cuenta").performClick()
+        compose.waitForIdle()
+        assertEquals(listOf(1, 1), listOf(create, signIn))
+        compose.onNodeWithText("Cerrar sesión").assertDoesNotExist()
+        compose.onNodeWithText("Eliminar cuenta").assertDoesNotExist()
+        compose.onNodeWithText("Cambiar contraseña").assertDoesNotExist()
+        compose.onNodeWithText("Sincronizar solo con Wi-Fi").assertDoesNotExist()
+        compose.onNodeWithTag("profile-storage").assertDoesNotExist()
+    }
 }

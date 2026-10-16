@@ -35,7 +35,7 @@ class ReminderReceiver : BroadcastReceiver() {
         val minutes = intent.getIntExtra(EXTRA_GOAL_MINUTES, 0)
         val body = if (minutes > 0) context.getString(R.string.reminder_body_goal, minutes) else context.getString(R.string.reminder_body)
         val notification = NotificationCompat.Builder(context, CHANNEL_ID)
-            .setSmallIcon(R.drawable.ic_margin_logo)
+            .setSmallIcon(R.drawable.ic_stat_libros)
             .setContentTitle(context.getString(R.string.reminder_title))
             .setContentText(body)
             .setContentIntent(open)

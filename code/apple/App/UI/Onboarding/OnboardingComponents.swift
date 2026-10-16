@@ -14,7 +14,7 @@ enum OnbColors {
 }
 
 /// Pasos del alta (ONB-003).
-let onboardingSteps = 4
+let onboardingSteps = 3
 
 /// Pantalla del onboarding: fondo de punta a punta, columna de ancho máximo, desplazable si no entra (ONB-022). `top` va
 /// arriba y `bottom` queda pegado abajo cuando sobra lugar; con el teclado abierto el desplazamiento deja ver el botón.
@@ -61,27 +61,12 @@ extension OnboardingPage where Bottom == EmptyView {
     }
 }
 
-/// Logo de margin.: cuatro barras, la primera inclinada (diseño 01, 110 × 88).
-struct MarginLogo: Shape {
-    func path(in rect: CGRect) -> Path {
-        let sx = rect.width / 110
-        let sy = rect.height / 88
-        func point(_ x: CGFloat, _ y: CGFloat) -> CGPoint { CGPoint(x: rect.minX + x * sx, y: rect.minY + y * sy) }
-        var path = Path()
-        path.addLines([point(0, 88), point(15, 88), point(41, 0), point(26, 0)])
-        path.closeSubpath()
-        for x in [51.0, 73.5, 96.0] {
-            path.addRect(CGRect(x: rect.minX + x * sx, y: rect.minY, width: 14 * sx, height: rect.height))
-        }
-        return path
-    }
-}
-
 /// Logo y "tuck.", anunciados juntos. También arriba de Perfil (PRF-024).
 struct Brand: View {
     var body: some View {
         HStack(spacing: 10) {
-            MarginLogo().frame(width: 30, height: 24)
+            // Los libros parados (WEL-009): `Logo` es el SVG del paquete recortado a su caja, en plantilla.
+            Image("Logo").resizable().frame(width: 24, height: 25.8)
             Text("tuck.").font(.app(20, .medium)).tracking(-0.03 * 20)
         }
         .accessibilityElement(children: .ignore)
@@ -157,15 +142,19 @@ struct StepHeader: View {
     }
 }
 
-func stepLabel(_ step: Int) -> String { "Paso \(step) de \(onboardingSteps)" }
+func stepLabel(_ step: Int, of total: Int = onboardingSteps) -> String { "Paso \(step) de \(total)" }
 
-/// Barra de cuatro tramos (ONB-003).
+/// GST-011: el alta corta desde adentro de la app, crear cuenta y verificar.
+let shortOnboardingSteps = 2
+
+/// Barra de un tramo por paso: tres en el alta (ONB-003), dos en el alta corta (GST-011).
 struct StepBar: View {
     let step: Int
+    var total = onboardingSteps
 
     var body: some View {
         HStack(spacing: 4) {
-            ForEach(0..<onboardingSteps, id: \.self) { index in
+            ForEach(0..<total, id: \.self) { index in
                 RoundedRectangle(cornerRadius: 2)
                     .fill(index < step ? MarginColors.ink : OnbColors.line)
                     .frame(height: 4)

@@ -7,6 +7,7 @@ import com.pluk.reader.domain.account.AuthRepository
 import com.pluk.reader.domain.model.ImportOutcome
 import com.pluk.reader.domain.repository.LibraryRepository
 import com.pluk.reader.domain.onboarding.StartDestination
+import com.pluk.reader.domain.onboarding.WelcomePreference
 import com.pluk.reader.domain.onboarding.startDestination
 import com.pluk.reader.domain.usecase.LibrarySync
 import com.pluk.reader.domain.plans.ImportQuotaCheck
@@ -22,7 +23,7 @@ import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 /**
- * Decide la pantalla de arranque (ONB-019) y recibe EPUB de "Abrir con" (AND-003): los importa a la
+ * Decide la pantalla de arranque (GST-003) y recibe EPUB de "Abrir con" (AND-003): los importa a la
  * biblioteca y devuelve cómo abrirlos.
  */
 @HiltViewModel
@@ -34,17 +35,19 @@ class MainViewModel @Inject constructor(
     private val accounts: AccountRepository,
     private val auth: AuthRepository,
     private val importQuotaCheck: ImportQuotaCheck,
+    private val welcome: WelcomePreference,
 ) : ViewModel() {
 
     enum class Start { Loading, Welcome, VerifyEmail, Home }
 
     /**
-     * ONB-019, WEL-006: se decide una vez por arranque, con la sesión que el dispositivo ya conoce (sin red).
+     * GST-003, WEL-006: se decide una vez por arranque, con la sesión que el dispositivo ya conoce (sin red) y si
+     * ya se pasó por la bienvenida.
      * Si la sesión cambia con la app abierta, no se reubica al usuario: el onboarding navega por su cuenta.
      */
     val start: StateFlow<Start> = flow {
         emit(
-            when (startDestination(accounts.user.first())) {
+            when (startDestination(accounts.user.first(), welcome.seen.first())) {
                 StartDestination.Welcome -> Start.Welcome
                 StartDestination.VerifyEmail -> Start.VerifyEmail
                 StartDestination.Home -> Start.Home

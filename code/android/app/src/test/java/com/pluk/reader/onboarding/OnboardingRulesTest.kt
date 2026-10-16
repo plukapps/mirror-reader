@@ -3,11 +3,9 @@ package com.pluk.reader.onboarding
 import com.pluk.reader.domain.account.AccountUser
 import com.pluk.reader.domain.account.AuthLink
 import com.pluk.reader.domain.account.parseAuthLink
-import com.pluk.reader.domain.onboarding.Genre
 import com.pluk.reader.domain.onboarding.PasswordStrength
 import com.pluk.reader.domain.onboarding.ReadingGoal
 import com.pluk.reader.domain.onboarding.StartDestination
-import com.pluk.reader.domain.onboarding.canContinueInterests
 import com.pluk.reader.domain.onboarding.checkPassword
 import com.pluk.reader.domain.onboarding.firstName
 import com.pluk.reader.domain.onboarding.isValidEmail
@@ -57,19 +55,15 @@ class OnboardingRulesTest {
         assertFalse(isValidEmail(""))
     }
 
-    // ONB-019
+    // GST-003, GST-004
     @Test
-    fun startDependsOnSessionAndVerification() {
-        assertEquals(StartDestination.Welcome, startDestination(null))
-        assertEquals(StartDestination.VerifyEmail, startDestination(AccountUser("u", "a@b.c", needsEmailVerification = true)))
-        assertEquals(StartDestination.Home, startDestination(AccountUser("u", "a@b.c")))
-    }
-
-    // ONB-009
-    @Test
-    fun interestsNeedAtLeastThree() {
-        assertFalse(canContinueInterests(setOf(Genre.Poetry, Genre.Drama)))
-        assertTrue(canContinueInterests(setOf(Genre.Poetry, Genre.Drama, Genre.Essays)))
+    fun startDependsOnSessionVerificationAndWelcome() {
+        assertEquals(StartDestination.Welcome, startDestination(null, welcomeSeen = false))
+        assertEquals(StartDestination.Home, startDestination(null, welcomeSeen = true))
+        for (seen in listOf(false, true)) {
+            assertEquals(StartDestination.VerifyEmail, startDestination(AccountUser("u", "a@b.c", needsEmailVerification = true), seen))
+            assertEquals(StartDestination.Home, startDestination(AccountUser("u", "a@b.c"), seen))
+        }
     }
 
     // ONB-010

@@ -6,7 +6,7 @@ Que abrir la app se sienta inmediato y con identidad propia, y que quien llega p
 
 ## Requisitos
 
-- **WEL-001** Al abrir la app, la pantalla de arranque del sistema debe tener el fondo amarillo de la marca y el logo de las cuatro barras en tinta, centrado.
+- **WEL-001** Al abrir la app, la pantalla de arranque del sistema debe tener el fondo amarillo de la marca y el logo de los libros parados en tinta, centrado (antes, las cuatro barras).
 - **WEL-002** La pantalla de arranque no debe agregar espera: se retira en cuanto la app puede dibujar, sin demora fija, animación de espera ni condición que la retenga (ni sesión, ni sincronización, ni datos).
 - **WEL-003** ~~Debe mostrar la pantalla de bienvenida si nunca se completó, o si no hay sesión iniciada.~~ Reemplazado por ONB-019: la bienvenida se muestra si no hay sesión; con sesión de email sin verificar se abre la verificación; si no, Inicio (HOM-005).
 - **WEL-004** ~~Reemplazado por ONB-001 (diseño O1).~~ La bienvenida seguía el diseño 01: fondo amarillo, logo y "margin." arriba a la izquierda; titular en tres líneas "Leé más. / Scrolleá menos. / Pensá despacio."; bajada "Tus EPUB, en un lugar tranquilo, en todos tus dispositivos."; botón "Comenzar" con flecha; pie "margin. 2026 ©".
@@ -14,6 +14,7 @@ Que abrir la app se sienta inmediato y con identidad propia, y que quien llega p
 - **WEL-006** Mientras se decide entre bienvenida e Inicio, la app muestra el mismo fondo amarillo, sin parpadeo de otro color ni de Inicio.
 - **WEL-007** Debe funcionar en teléfono y tablet, en vertical y apaisado (el contenido no se corta y se puede desplazar si no entra), y ser compatible con TalkBack: el logo se anuncia como "tuck." y cada botón con su texto (AND-001, AND-002).
 - **WEL-008** Si la app se abre con un EPUB ("Abrir con"), el libro se importa y abre igual que hoy, aunque corresponda la bienvenida.
+- **WEL-009** El ícono de la app en todas las plataformas es el de los libros parados: libros en tinta sobre fondo amarillo (`design/icons/`). Donde el sistema lo permite, también sus variantes oscura, tintada y monocroma. Dentro de la app, el logo es el mismo dibujo sin fondo.
 
 ## Escenarios
 

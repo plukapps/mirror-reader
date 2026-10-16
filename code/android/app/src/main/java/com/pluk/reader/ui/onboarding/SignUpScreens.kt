@@ -12,8 +12,6 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.ExperimentalLayoutApi
-import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -67,7 +65,6 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.pluk.reader.R
 import com.pluk.reader.domain.account.AuthError
 import com.pluk.reader.domain.onboarding.DailyReminder
-import com.pluk.reader.domain.onboarding.Genre
 import com.pluk.reader.domain.onboarding.PasswordStrength
 import com.pluk.reader.domain.onboarding.ReadingGoal
 import com.pluk.reader.ui.theme.MarginColors
@@ -77,15 +74,16 @@ import com.pluk.reader.ui.theme.MarginColors
 fun SignUpScreen(
     onBack: () -> Unit,
     onVerifyEmail: () -> Unit,
-    onInterests: () -> Unit,
+    onGoal: () -> Unit,
     onSignIn: () -> Unit,
+    inApp: Boolean = false,
     viewModel: SignUpViewModel = hiltViewModel(),
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
     LaunchedEffect(state.next) {
         when (state.next) {
             SignUpViewModel.Next.VerifyEmail -> onVerifyEmail()
-            SignUpViewModel.Next.Interests -> onInterests()
+            SignUpViewModel.Next.Goal -> onGoal()
             null -> return@LaunchedEffect
         }
         viewModel.onNavigated()
@@ -103,8 +101,15 @@ fun SignUpScreen(
             )
         },
     ) {
-        StepHeader(onBack, stepLabel = stringResource(R.string.onb_step, 1, STEPS))
-        StepBar(step = 1)
+        // GST-011: desde adentro de la app, cruz en lugar de flecha y dos pasos.
+        val total = if (inApp) SHORT_STEPS else STEPS
+        StepHeader(
+            onBack,
+            backIcon = if (inApp) OnboardingIcons.Close else OnboardingIcons.ArrowBack,
+            backLabel = stringResource(if (inApp) R.string.onb_close else R.string.onb_back),
+            stepLabel = stringResource(R.string.onb_step, 1, total),
+        )
+        StepBar(step = 1, total = total)
         OnbTitle(stringResource(R.string.onb_signup_title), Modifier.padding(top = 20.dp))
         GoogleButton(google, enabled = !state.busy, modifier = Modifier.padding(start = 20.dp, end = 20.dp, top = 18.dp))
         OrDivider(stringResource(R.string.onb_or_email), Modifier.padding(top = 16.dp))
@@ -162,6 +167,7 @@ internal fun PasswordStrength.label(): String = when (this) {
 fun VerifyEmailScreen(
     onVerified: () -> Unit,
     onChange: (name: String, email: String) -> Unit,
+    inApp: Boolean = false,
     viewModel: VerifyEmailViewModel = hiltViewModel(),
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
@@ -172,7 +178,7 @@ fun VerifyEmailScreen(
     }
     LaunchedEffect(state.next) {
         when (val next = state.next) {
-            VerifyEmailViewModel.Next.Interests -> onVerified()
+            VerifyEmailViewModel.Next.Goal -> onVerified()
             is VerifyEmailViewModel.Next.Change -> onChange(next.name, next.email)
             null -> return@LaunchedEffect
         }
@@ -180,8 +186,9 @@ fun VerifyEmailScreen(
     }
     BackHandler(onBack = viewModel::change)
     OnboardingPage(background = MarginColors.Paper) {
-        StepHeader(viewModel::change, stepLabel = stringResource(R.string.onb_step, 2, STEPS))
-        StepBar(step = 2)
+        val total = if (inApp) SHORT_STEPS else STEPS
+        StepHeader(viewModel::change, stepLabel = stringResource(R.string.onb_step, 2, total))
+        StepBar(step = 2, total = total)
         IconBadge(OnboardingIcons.MarkEmailUnread, Modifier.padding(top = 22.dp))
         OnbTitle(stringResource(R.string.onb_verify_title), Modifier.padding(top = 16.dp))
         OnbBody(stringResource(R.string.onb_verify_body, state.email), Modifier.padding(top = 10.dp))
@@ -213,93 +220,48 @@ fun VerifyEmailScreen(
     }
 }
 
-/** Intereses, O4 (ONB-009). */
-@OptIn(ExperimentalLayoutApi::class)
+/** "Ya estás adentro" del alta corta, B3 (GST-021). "Volver a la biblioteca" abre la Biblioteca. */
 @Composable
-fun InterestsScreen(onBack: (() -> Unit)?, onDone: () -> Unit, viewModel: InterestsViewModel = hiltViewModel()) {
+fun ShortAllSetScreen(onLibrary: () -> Unit, viewModel: ShortAllSetViewModel = hiltViewModel()) {
     val state by viewModel.state.collectAsStateWithLifecycle()
-    LaunchedEffect(state.done) {
-        if (state.done) {
-            onDone()
-            viewModel.onNavigated()
-        }
-    }
+    ShortAllSetContent(state.name, state.bookCount, onLibrary)
+}
+
+/** B3 sin ViewModel, para poder probarla. */
+@Composable
+fun ShortAllSetContent(name: String?, bookCount: Int, onLibrary: () -> Unit) {
     OnboardingPage(
-        background = MarginColors.Paper,
+        background = MarginColors.Yellow,
         bottom = {
-            Text(
-                pluralStringResource(R.plurals.onb_interests_selected, state.selected.size, state.selected.size),
-                style = onbText(12.sp, FontWeight.Medium, MarginColors.Muted).copy(textAlign = TextAlign.Center),
-                modifier = Modifier.fillMaxWidth(),
-            )
             PrimaryButton(
-                stringResource(R.string.onb_continue),
-                viewModel::continueOn,
-                Modifier.padding(start = 20.dp, end = 20.dp, top = 10.dp, bottom = 14.dp).testTag("interests-continue"),
-                enabled = state.canContinue,
+                stringResource(R.string.onb_short_back_to_library),
+                onLibrary,
+                Modifier.padding(start = 20.dp, end = 20.dp, bottom = 16.dp).testTag("short-allset-library"),
             )
         },
     ) {
-        StepHeader(onBack, onSkip = viewModel::skip)
-        StepBar(step = 3)
-        Row(Modifier.padding(start = 20.dp, end = 20.dp, top = 20.dp), verticalAlignment = Alignment.CenterVertically) {
-            Text(stringResource(R.string.onb_email_verified), style = onbText(12.sp, FontWeight.SemiBold, MarginColors.Muted))
-            Icon(OnboardingIcons.CheckCircle, contentDescription = null, tint = MarginColors.Ink, modifier = Modifier.padding(start = 4.dp).size(14.dp))
-        }
-        OnbTitle(stringResource(R.string.onb_interests_title), Modifier.padding(top = 8.dp))
-        OnbBody(stringResource(R.string.onb_interests_body), Modifier.padding(top = 10.dp))
-        FlowRow(
-            Modifier.padding(start = 20.dp, end = 20.dp, top = 20.dp),
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp),
-        ) {
-            Genre.entries.forEach { genre ->
-                GenreChip(genre.label(), selected = genre in state.selected, onToggle = { viewModel.toggle(genre) })
-            }
-        }
+        Brand(Modifier.padding(start = 28.dp, end = 28.dp, top = 28.dp))
+        Spacer(Modifier.height(28.dp))
+        OnbTitle(
+            name?.let { stringResource(R.string.onb_allset_title, it) } ?: stringResource(R.string.onb_allset_title_anonymous),
+            size = 54.sp,
+            padding = 28.dp,
+        )
+        Text(
+            if (bookCount > 0) {
+                pluralStringResource(R.plurals.onb_short_allset_books, bookCount, bookCount)
+            } else {
+                stringResource(R.string.onb_short_allset_no_books)
+            },
+            style = onbText(15.sp, color = OnbColors.SoftOnYellow, lineHeight = 1.45.em),
+            modifier = Modifier.padding(start = 28.dp, end = 28.dp, top = 16.dp).widthIn(max = 270.dp),
+        )
     }
 }
-
-@Composable
-private fun GenreChip(text: String, selected: Boolean, onToggle: () -> Unit) {
-    val shape = RoundedCornerShape(20.dp)
-    Row(
-        Modifier
-            .height(40.dp)
-            .clip(shape)
-            .then(if (selected) Modifier.background(MarginColors.Ink) else Modifier.border(1.5.dp, MarginColors.Ink, shape))
-            .toggleable(value = selected, role = Role.Checkbox, onValueChange = { onToggle() })
-            .padding(start = if (selected) 10.dp else 16.dp, end = if (selected) 14.dp else 16.dp),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(4.dp),
-    ) {
-        if (selected) Icon(OnboardingIcons.Check, contentDescription = null, tint = MarginColors.Yellow, modifier = Modifier.size(18.dp))
-        Text(text, style = onbText(14.sp, FontWeight.SemiBold, if (selected) MarginColors.Yellow else MarginColors.Ink))
-    }
-}
-
-@Composable
-private fun Genre.label(): String = stringResource(
-    when (this) {
-        Genre.Philosophy -> R.string.genre_philosophy
-        Genre.Classics -> R.string.genre_classics
-        Genre.Poetry -> R.string.genre_poetry
-        Genre.SciFi -> R.string.genre_scifi
-        Genre.History -> R.string.genre_history
-        Genre.Essays -> R.string.genre_essays
-        Genre.Mystery -> R.string.genre_mystery
-        Genre.Romance -> R.string.genre_romance
-        Genre.Biography -> R.string.genre_biography
-        Genre.Horror -> R.string.genre_horror
-        Genre.Science -> R.string.genre_science
-        Genre.Travel -> R.string.genre_travel
-        Genre.Drama -> R.string.genre_drama
-    },
-)
 
 /** Meta diaria y recordatorio, O5 (ONB-010, ONB-011). */
 @Composable
-fun GoalScreen(onBack: () -> Unit, onDone: () -> Unit, viewModel: GoalViewModel = hiltViewModel()) {
+fun GoalScreen(onBack: (() -> Unit)?, onDone: () -> Unit, viewModel: GoalViewModel = hiltViewModel()) {
     val state by viewModel.state.collectAsStateWithLifecycle()
     val context = LocalContext.current
     var pickingTime by rememberSaveable { mutableStateOf(false) }
@@ -329,8 +291,8 @@ fun GoalScreen(onBack: () -> Unit, onDone: () -> Unit, viewModel: GoalViewModel 
         },
     ) {
         StepHeader(onBack, onSkip = viewModel::skip)
-        StepBar(step = 4)
-        Text(stringResource(R.string.onb_step, 4, STEPS), style = onbText(12.sp, FontWeight.SemiBold, MarginColors.Muted), modifier = Modifier.padding(start = 20.dp, end = 20.dp, top = 20.dp))
+        StepBar(step = 3)
+        Text(stringResource(R.string.onb_step, 3, STEPS), style = onbText(12.sp, FontWeight.SemiBold, MarginColors.Muted), modifier = Modifier.padding(start = 20.dp, end = 20.dp, top = 20.dp))
         OnbTitle(stringResource(R.string.onb_goal_title), Modifier.padding(top = 8.dp))
         Column(Modifier.padding(start = 20.dp, end = 20.dp, top = 20.dp).selectableGroup(), verticalArrangement = Arrangement.spacedBy(8.dp)) {
             ReadingGoal.entries.forEach { goal ->

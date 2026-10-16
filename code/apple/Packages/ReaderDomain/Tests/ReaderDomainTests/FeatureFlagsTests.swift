@@ -23,9 +23,14 @@ struct FeatureFlagsTests {
         func fetchAndActivate() async throws {
             if offline { throw RemoteUnavailableError("sin red") }
             applied.merge(server) { $1 }
+            appliedNumbers.merge(serverNumbers) { $1 }
             appliedPlans = serverPlans
         }
         func value(_ key: String) async -> Bool? { applied[key] }
+        var serverNumbers: [String: Int] = [:]
+        private var appliedNumbers: [String: Int] = [:]
+        func setServerNumber(_ key: String, _ value: Int) { serverNumbers[key] = value }
+        func number(_ key: String) async -> Int? { appliedNumbers[key] }
         func plans() async -> [Plan]? { appliedPlans }
         nonisolated func updates() -> AsyncStream<Void> {
             let (stream, continuation) = AsyncStream<Void>.makeStream()
@@ -94,6 +99,38 @@ struct FeatureFlagsTests {
         await settle()
         #expect(await flags.isEnabled(.notesSync))
         #expect(await FeatureFlags(source: nil).isEnabled(.notesSync))
+    }
+
+    @Test("GST-025, GST-026: el banner arranca en la opción A y los días en 7, hasta que llega el valor del servidor")
+    func guestDefaultsAndServerValues() async {
+        let source = FakeSource()
+        await source.setServerNumber("guest_notice_snooze_days", 3)
+        await source.setServer("guest_banner_no_backup_enabled", true)
+        let flags = FeatureFlags(source: source, catalog: PlanCatalogStore())
+        #expect(await flags.setting(.guestNoticeSnoozeDays) == 7)
+        #expect(await !flags.isEnabled(.guestBannerNoBackup))
+        await flags.startListening()
+        await settle()
+        #expect(await flags.setting(.guestNoticeSnoozeDays) == 3)
+        #expect(await flags.isEnabled(.guestBannerNoBackup))
+    }
+
+    @Test("ADR 0016: cada función y cada número está en el template de Remote Config con el mismo valor por defecto")
+    func template() throws {
+        let url = URL(filePath: #filePath).deletingLastPathComponent()
+            .appending(path: "../../../../../backend/v1/remoteconfig.template.json").standardized
+        let json = try JSONSerialization.jsonObject(with: Data(contentsOf: url)) as? [String: Any]
+        let params = try #require(json?["parameters"] as? [String: [String: Any]])
+        for feature in Feature.allCases {
+            let param = try #require(params[feature.key], "falta \(feature.key)")
+            #expect(param["valueType"] as? String == "BOOLEAN")
+            #expect((param["defaultValue"] as? [String: Any])?["value"] as? String == String(feature.defaultValue))
+        }
+        for setting in Setting.allCases {
+            let param = try #require(params[setting.key], "falta \(setting.key)")
+            #expect(param["valueType"] as? String == "NUMBER")
+            #expect((param["defaultValue"] as? [String: Any])?["value"] as? String == String(setting.defaultValue))
+        }
     }
 
     @Test("SYN-017, ACC-011: apagada en el servidor, se apaga al bajar la configuración")

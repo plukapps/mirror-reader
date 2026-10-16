@@ -6,7 +6,8 @@ Una pantalla de inicio que lleva al usuario de vuelta a su lectura en un toque. 
 
 ## Requisitos
 
-- **HOM-001** Debe mostrar un saludo según la hora del día (mañana, tarde, noche). Mientras no exista cuenta (ACC), el saludo no lleva nombre ni avatar.
+- **HOM-001** Debe mostrar un saludo según la hora del día (mañana, tarde, noche). Mientras no exista cuenta (ACC), el saludo no lleva nombre ni avatar. Cambiado por HOM-012: el avatar se agrega.
+- **HOM-012** Arriba de Inicio, el logo y "tuck." y, debajo, el saludo a la izquierda y un círculo amarillo a la derecha: con sesión, la inicial del nombre (o del email, como PRF-005); sin cuenta, el ícono de una persona. Tocarlo abre Perfil. Diseño: "02 — Home" y H0. Pedido del usuario (2026-10-16).
 - **HOM-002** Debe mostrar "Continuar leyendo" con el libro abierto más recientemente que esté en lectura (no nuevo ni terminado): portada, título, autor, barra de progreso y porcentaje. Tocarlo abre el libro en su última posición.
 - **HOM-003** Si no hay ningún libro en lectura, en lugar de "Continuar leyendo" debe invitar a abrir la biblioteca o a importar un libro. Si la biblioteca está vacía, ofrece importar (LIB-001).
 - **HOM-004** Retirado: "Para ti" se reemplaza por HOM-008 a HOM-010 (el diseño cambió). No se reutiliza el ID.

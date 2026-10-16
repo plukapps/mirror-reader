@@ -6,7 +6,7 @@ import ReaderDomain
 @MainActor
 @Observable
 final class SignUpViewModel {
-    enum Next: Equatable { case verifyEmail, interests }
+    enum Next: Equatable { case verifyEmail, goal }
 
     var name: String { didSet { error = nil } }
     var email: String { didSet { error = nil } }
@@ -62,7 +62,7 @@ final class SignUpViewModel {
             error = nil
             do {
                 _ = try await auth.signInWithGoogle(tokens)
-                next = .interests
+                next = .goal
             } catch {
                 self.error = error.authError
             }
