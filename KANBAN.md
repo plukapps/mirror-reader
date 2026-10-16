@@ -33,7 +33,6 @@ Plan de referencia: `specs/plans/2026-10-06-android-epub-viewer.md`
 
 ## Listo
 
-- **K-163** Ícono, Tarea 4: ícono de iOS (claro, oscuro, tintado) y de Mac (forma redondeada generada con un script). WEL-009.
 - **K-164** Ícono, Tarea 5: arranque amarillo de iOS con los libros al centro (`UILaunchScreen`). WEL-001, WEL-002.
 - **K-165** Ícono, Tarea 6: cierre de docs y verificación a mano.
 - **K-134** Lector iOS, Tarea 7: cierre de docs y verificación a mano en el simulador. Rama `feature/ios-reader`. Era K-125 hasta el merge con `master`.
@@ -42,10 +41,11 @@ Plan de referencia: `specs/plans/2026-10-06-android-epub-viewer.md`
 
 ## En curso
 
-- **K-162** Ícono, Tarea 3: logo de los libros dentro de Android (bienvenida y onboarding, arranque, notificación del recordatorio) en lugar de las cuatro barras. WEL-001, WEL-007.
+- **K-163** Ícono, Tarea 4: ícono de iOS (claro, oscuro, tintado) y de Mac (forma redondeada generada con un script). WEL-009.
 
 ## Revisión
 
+- **K-162** Ícono, Tarea 3: logo de los libros dentro de Android (bienvenida y onboarding, arranque, notificación del recordatorio) en lugar de las cuatro barras. WEL-001, WEL-007. Hecho: `ic_logo.xml` (trazado del SVG recortado, en `margin_ink`) en `Brand()` y en el arranque de Android 8 a 11; `splash_icon.xml` con los libros dentro del círculo seguro; `ic_stat_libros` en la notificación; se borró `ic_margin_logo.xml`. Compila, pasan los tests JVM y compilan los de emulador. Falta verlo en el teléfono.
 - **K-161** Ícono, Tarea 2: ícono de Android (adaptable, monocromo y PNG clásicos) desde `design/icons/`. WEL-009. Plan `2026-10-16-app-icon.md`, rama `claude/word-tree-iconos-f95ca0`. Hecho: recursos del paquete, sin los de la plantilla (robot verde). Compila y pasan los tests JVM. Falta verlo en el teléfono.
 - **K-159** Bug: al iniciar sesión con una cuenta de email sin verificar, la app pasaba a O3 sin enviar el email de verificación (solo salía al crear la cuenta), y O3 decía "te enviamos un enlace". Visto por el usuario en el SM-S711B (2026-10-10) con la cuenta de desarrollo, que nunca se verificó. ONB-007, ONB-016. Rama `feature/onboarding`. Hecho: `SignInViewModel` envía el email al ingresar con la cuenta sin verificar y O3 arranca con la espera de 60 s si salió; texto de O3 que no promete un envío; ONB-016 actualizado. 2 tests JVM nuevos (vistos en rojo); 317 pasan. Falta verlo en el teléfono.
 - **K-144** Onboarding, Tarea 7: cierre de docs, verificación y PR. Rama `feature/onboarding`. Hecho: `android.md`, `AGENTS.md`, resultado y lista de verificación a mano en el plan, K-156 a K-158 en Backlog, PR. Falta la verificación a mano (no había dispositivo conectado).
