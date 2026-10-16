@@ -23,6 +23,12 @@ Colores: amarillo `#F7C34B`, tinta `#1C0A06`, fondo oscuro `#1A1714`.
 
 Los PNG de 1024 no tienen canal alfa, como exige App Store Connect. iOS redondea las esquinas solo, por eso los íconos son cuadrados.
 
+**Mac (`mac/`)**: macOS 14 no recorta el ícono, así que el de Mac va ya redondeado (824 × 824 sobre 1024, con sombra). `make_mac_icon.swift` arma los 10 tamaños desde `originales/libros-amarillo-1024.png`:
+
+```
+swift design/icons/mac/make_mac_icon.swift design/icons/originales/libros-amarillo-1024.png design/icons/mac
+```
+
 ## Android
 
 **`android/app/src/main/res/`**: copiá su contenido sobre el `res/` de tu app (reemplazá los `ic_launcher` existentes).
