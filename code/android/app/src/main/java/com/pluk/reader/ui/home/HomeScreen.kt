@@ -189,7 +189,7 @@ fun HomeContentView(
 @Composable
 private fun HomeHeader(greeting: Greeting, avatarInitial: String?, onOpenProfile: () -> Unit) {
     Row(Modifier.padding(start = 20.dp, end = 20.dp, top = 12.dp), verticalAlignment = Alignment.CenterVertically) {
-        Icon(painterResource(R.drawable.ic_margin_logo), contentDescription = null, tint = MarginColors.Ink, modifier = Modifier.size(width = 26.dp, height = 21.dp))
+        Icon(painterResource(R.drawable.ic_logo), contentDescription = null, tint = MarginColors.Ink, modifier = Modifier.size(width = 20.dp, height = 21.5.dp))
         Text(
             buildAnnotatedString {
                 append("tuck")

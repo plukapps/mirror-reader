@@ -208,9 +208,11 @@ struct ProfileContent: View {
     private var guestHeader: some View {
         Button(action: actions.createAccount ?? actions.comingSoon) {
             HStack(spacing: 14) {
-                MarginLogo()
-                    .fill(MarginColors.yellow)
-                    .frame(width: 26, height: 21)
+                Image("Logo")
+                    .renderingMode(.template)
+                    .resizable()
+                    .foregroundStyle(MarginColors.yellow)
+                    .frame(width: 22, height: 23.6)
                     .frame(width: 56, height: 56)
                     // Va sobre la cabecera amarilla: tinta fija en los dos modos (PRF-022).
                     .background(Circle().fill(MarginColors.onYellow))

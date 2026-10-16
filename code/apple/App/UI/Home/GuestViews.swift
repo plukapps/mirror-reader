@@ -11,7 +11,7 @@ struct HomeHeader: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
             HStack(spacing: 10) {
-                MarginLogo().fill(MarginColors.ink).frame(width: 26, height: 21)
+                Image("Logo").renderingMode(.template).resizable().foregroundStyle(MarginColors.ink).frame(width: 20, height: 21.5)
                 (Text("tuck") + Text(".").foregroundStyle(MarginColors.readingDot))
                     .font(.app(18, .medium))
                     .tracking(-0.03 * 18)

@@ -278,7 +278,7 @@ private fun GuestHeader(onCreateAccount: () -> Unit) {
                 .background(MarginColors.OnYellow),
             contentAlignment = Alignment.Center,
         ) {
-            Icon(painterResource(R.drawable.ic_margin_logo), contentDescription = null, tint = MarginColors.Yellow, modifier = Modifier.size(width = 26.dp, height = 21.dp))
+            Icon(painterResource(R.drawable.ic_logo), contentDescription = null, tint = MarginColors.Yellow, modifier = Modifier.size(width = 22.dp, height = 23.6.dp))
         }
         Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(4.dp)) {
             Text(
