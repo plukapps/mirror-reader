@@ -34,17 +34,17 @@ Plan de referencia: `specs/plans/2026-10-06-android-epub-viewer.md`
 
 ## Listo
 
-- **K-165** Ícono, Tarea 6: cierre de docs y verificación a mano.
 - **K-134** Lector iOS, Tarea 7: cierre de docs y verificación a mano en el simulador. Rama `feature/ios-reader`. Era K-125 hasta el merge con `master`.
 - **K-038** Inicio, Tarea 4: cierre de docs y verificación a mano. Rama `feature/home`.
 - **K-024** Quitar el padding vertical de Readium (40 dp arriba y abajo en modo paginado) y reservar la barra de estado desde la pantalla. RDR-002. Rama `feat/page-turn-animation`.
 
 ## En curso
 
-- **K-164** Ícono, Tarea 5: arranque amarillo de iOS con los libros al centro (`UILaunchScreen`). WEL-001, WEL-002.
+- **K-165** Ícono, Tarea 6: cierre de docs y verificación a mano.
 
 ## Revisión
 
+- **K-164** Ícono, Tarea 5: arranque amarillo de iOS con los libros al centro (`UILaunchScreen`). WEL-001, WEL-002. Hecho: `UILaunchScreen` en `Info-iOS.plist` con `LaunchBackground` (`#FBD256`, `MarginColors.yellow`) y `LaunchLogo`; sin `INFOPLIST_KEY_UILaunchScreen_Generation`. Visto en el simulador del iPhone 16 (arranque y ícono). Pasan los tests de la app en Mac (90, con `ENABLE_HARDENED_RUNTIME=NO` por K-123) y en iPhone (96), y `swift test` (149).
 - **K-163** Ícono, Tarea 4: ícono de iOS (claro, oscuro, tintado) y de Mac (forma redondeada generada con un script). WEL-009. Hecho: `design/icons/mac/make_mac_icon.swift` genera los 10 PNG de Mac (forma redondeada de 824 sobre 1024, sombra suave); `AppIcon.appiconset` con Mac e iOS (claro, oscuro, tintado). Compila en Mac y en el simulador sin advertencias del catálogo; el `AppIcon.icns` del build se ve bien. Falta verlo en el Dock y en el simulador.
 - **K-162** Ícono, Tarea 3: logo de los libros dentro de Android (bienvenida y onboarding, arranque, notificación del recordatorio) en lugar de las cuatro barras. WEL-001, WEL-007. Hecho: `ic_logo.xml` (trazado del SVG recortado, en `margin_ink`) en `Brand()` y en el arranque de Android 8 a 11; `splash_icon.xml` con los libros dentro del círculo seguro; `ic_stat_libros` en la notificación; se borró `ic_margin_logo.xml`. Compila, pasan los tests JVM y compilan los de emulador. Falta verlo en el teléfono.
 - **K-161** Ícono, Tarea 2: ícono de Android (adaptable, monocromo y PNG clásicos) desde `design/icons/`. WEL-009. Plan `2026-10-16-app-icon.md`, rama `claude/word-tree-iconos-f95ca0`. Hecho: recursos del paquete, sin los de la plantilla (robot verde). Compila y pasan los tests JVM. Falta verlo en el teléfono.

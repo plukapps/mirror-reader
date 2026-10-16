@@ -73,9 +73,8 @@ targets:
         "CODE_SIGN_ENTITLEMENTS[sdk=macosx*]": App/Reader.entitlements
         "INFOPLIST_KEY_LSApplicationCategoryType[sdk=macosx*]": public.app-category.books
         "ENABLE_HARDENED_RUNTIME[sdk=macosx*]": YES
-        # iOS: solo iPhone por ahora (iPad corre en modo compatible), pantalla de arranque vacía.
+        # iOS: solo iPhone por ahora (iPad corre en modo compatible). La pantalla de arranque va en App/Info-iOS.plist.
         TARGETED_DEVICE_FAMILY: "1"
-        INFOPLIST_KEY_UILaunchScreen_Generation: YES
         INFOPLIST_KEY_UIApplicationSceneManifest_Generation: YES
         INFOPLIST_KEY_UISupportedInterfaceOrientations: UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight
         # Firma local ("Sign to Run Locally"): no requiere cuenta de Apple Developer.
