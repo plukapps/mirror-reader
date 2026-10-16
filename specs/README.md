@@ -22,12 +22,12 @@ Fuente de verdad del producto (SDD: primero spec, después código). Si el códi
   - [13-no-account.md](product/13-no-account.md)
 - [data-model.md](data-model.md)
 - platforms/[android.md](platforms/android.md), [apple.md](platforms/apple.md) (borrador)
-- adr/ — decisiones técnicas ([0001](adr/0001-native-clients.md), [0002](adr/0002-offline-first.md), [0003](adr/0003-backend-supabase.md), [0004](adr/0004-epub-engine-readium.md), [0005](adr/0005-android-stack-and-architecture.md), [0006](adr/0006-library-local-storage.md), [0007](adr/0007-backend-firebase.md), [0008](adr/0008-quota-accounting.md), [0009](adr/0009-reader-fonts.md), [0010](adr/0010-apple-stack-and-architecture.md), [0011](adr/0011-reading-position-sync.md), [0012](adr/0012-apple-persistence-and-firebase.md), [0013](adr/0013-apple-epub-engine.md), [0014](adr/0014-android-authentication.md), [0015](adr/0015-apple-authentication.md), [0016](adr/0016-feature-flags-remote-config.md), [0017](adr/0017-plan-catalog-remote-config.md), [0018](adr/0018-crash-reporting-crashlytics.md), [0019](adr/0019-local-data-without-account.md), [0020](adr/0020-android-build-environments.md))
+- adr/ — decisiones técnicas ([0001](adr/0001-native-clients.md), [0002](adr/0002-offline-first.md), [0003](adr/0003-backend-supabase.md), [0004](adr/0004-epub-engine-readium.md), [0005](adr/0005-android-stack-and-architecture.md), [0006](adr/0006-library-local-storage.md), [0007](adr/0007-backend-firebase.md), [0008](adr/0008-quota-accounting.md), [0009](adr/0009-reader-fonts.md), [0010](adr/0010-apple-stack-and-architecture.md), [0011](adr/0011-reading-position-sync.md), [0012](adr/0012-apple-persistence-and-firebase.md), [0013](adr/0013-apple-epub-engine.md), [0014](adr/0014-android-authentication.md), [0015](adr/0015-apple-authentication.md), [0016](adr/0016-feature-flags-remote-config.md), [0017](adr/0017-plan-catalog-remote-config.md), [0018](adr/0018-crash-reporting-crashlytics.md), [0019](adr/0019-local-data-without-account.md), [0020](adr/0020-android-build-environments.md), [0021](adr/0021-apple-build-environments.md))
 
 ## Convenciones
 
 - Idioma: español. IDs y términos técnicos en inglés.
-- Requisitos con ID estable: `LIB-001`, `RDR-001`, `ANN-001`, `SYN-001`, `ACC-001`, `CMP-001`, `WEL-001`, `ONB-001`, `PRF-001`, `PLN-001`, `GST-001`. No se reutilizan IDs.
+- Requisitos con ID estable: `LIB-001`, `RDR-001`, `ANN-001`, `SYN-001`, `ACC-001`, `CMP-001`, `WEL-001`, `ONB-001`, `PRF-001`, `PLN-001`, `GST-001`, `AND-001`, `APL-001`. No se reutilizan IDs.
 - Verbos: **debe** (obligatorio v1), **puede** (opcional).
 - Escenarios en formato Dado / Cuando / Entonces.
 - Código, tests y commits referencian el ID (ej. `LIB-003`).

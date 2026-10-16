@@ -18,6 +18,11 @@ Requisitos de iOS (borrador, plan `specs/plans/2026-10-09-ios-layout.md`):
 - **IOS-001** Debe verse completa en un iPhone en vertical desde 375 pt de ancho: sin contenido cortado ni scroll horizontal de la pantalla, respetando las áreas seguras (isla, barra de estado, indicador de inicio).
 - **IOS-002** La barra de estado debe leerse sobre el fondo de la app.
 
+Requisitos de Mac e iOS:
+
+- **APL-001** Debe haber cuatro entornos (desarrollo, stage, beta y producción) que se instalan a la vez en el mismo aparato, con un nombre y un ícono que los distingan. Desarrollo y stage son builds de depuración; beta y producción, de release. Como AND-007. ADR 0021.
+- **APL-002** La configuración que cambia por entorno debe definirse en un solo lugar del proyecto, y la app debe poder saber en qué entorno corre. Como AND-008. ADR 0021.
+
 ## Arquitectura
 
 Stack y capas en `specs/adr/0010-apple-stack-and-architecture.md` (provisional): SwiftUI, MVVM en capas con el dominio en un paquete Swift local, proyecto generado con XcodeGen, Swift Testing. Base local con SwiftData y SDK de Firebase para Apple: `specs/adr/0012-apple-persistence-and-firebase.md` (provisional). Motor de EPUB: Readium Swift Toolkit 3.9.0, solo en iOS (`specs/adr/0013-apple-epub-engine.md`, provisional).
@@ -74,6 +79,8 @@ Stack y capas en `specs/adr/0010-apple-stack-and-architecture.md` (provisional):
   - **Sincronizar:** actor `NoteSync` en `ReaderDomain`. Sube las pendientes al guardar en el lector, al final de `LibrarySync` y al prenderse la función, y escucha `users/{uid}/notes` desde `sync.lastNotesSeenAt` (`FirestoreNotes`) con la app a la vista (`SyncCoordinator`). Apagada (`notes_sync_enabled`) o sin red permitida, no hace nada.
   - **Cerrar sesión:** `hasPending` cuenta las notas sin subir; con la función apagada, todas.
 - Cierres inesperados (CMP-010, ADR 0018, K-335): `FirebaseCrashlytics` 12.14.0. `CrashReporter` y `CrashReportIdentity` en `ReaderDomain`; `CrashReportSession` (App/Data/Remote) escucha el estado de Firebase Auth y manda el `uid`, o vacío sin sesión. Arranca en `AppGraph` solo con Firebase (nunca en los tests). `DEBUG_INFORMATION_FORMAT = dwarf-with-dsym` y la fase final `Crashlytics` de `project.yml` sube los dSYM; sin `GoogleService-Info.plist` no hace nada. Plan `specs/plans/2026-10-15-crashlytics.md`.
+
+- Entornos (APL-001, APL-002, ADR 0021): configuraciones `Dev`, `Stage`, `Beta` y `Prod` en `project.yml`, cada una con su esquema, bundle ID, nombre, ícono con etiqueta (`tools/make_env_icons.swift`), `GoogleService-Info` (`App/Firebase/`) y esquema de URL de Google. La app lee `AppEnvironment` del `Info.plist` (`BuildEnvironment`); Perfil muestra `versión · entorno` fuera de producción. Plan `specs/plans/2026-10-16-apple-environments.md`.
 
 ## Criterio de terminado
 
