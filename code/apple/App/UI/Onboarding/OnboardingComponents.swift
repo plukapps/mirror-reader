@@ -61,7 +61,7 @@ extension OnboardingPage where Bottom == EmptyView {
     }
 }
 
-/// Logo y "tuck.", anunciados juntos.
+/// Logo y "tuck.", anunciados juntos. También arriba de Perfil (PRF-024).
 struct Brand: View {
     var body: some View {
         HStack(spacing: 10) {
