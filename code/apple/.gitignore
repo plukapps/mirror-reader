@@ -7,5 +7,6 @@ xcuserdata/
 .swiftpm/
 # Equipo de firma de cada máquina (ver Signing.xcconfig)
 Signing.local.xcconfig
-# Configuración de Firebase de cada máquina (ADR 0012); se baja de la consola
+# Configuración de Firebase de cada máquina (ADR 0012); se baja de la consola, una por entorno (ADR 0021)
 App/GoogleService-Info.plist
+App/Firebase/

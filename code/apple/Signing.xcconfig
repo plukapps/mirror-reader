@@ -2,7 +2,11 @@
 // Los datos de cada máquina van en Signing.local.xcconfig, que no va al repo:
 //   DEVELOPMENT_TEAM = ABCDE12345     (Xcode → Settings → Accounts, o el equipo personal gratuito)
 //   BUNDLE_ID_SUFFIX = .santilod      (opcional, si Apple no acepta com.pluk.reader para el equipo)
-//   GOOGLE_REVERSED_CLIENT_ID = ...   (esquema de URL de vuelta de Google, ADR 0015; ver tools/copy-google-client.sh)
+//   GOOGLE_REVERSED_CLIENT_ID_DEV = ...   (esquema de URL de vuelta de Google de cada entorno, ADR 0015 y 0021;
+//   GOOGLE_REVERSED_CLIENT_ID_STAGE, _BETA y _PROD igual. Los escribe tools/copy-google-client.sh)
 BUNDLE_ID_SUFFIX =
-GOOGLE_REVERSED_CLIENT_ID =
+GOOGLE_REVERSED_CLIENT_ID_DEV =
+GOOGLE_REVERSED_CLIENT_ID_STAGE =
+GOOGLE_REVERSED_CLIENT_ID_BETA =
+GOOGLE_REVERSED_CLIENT_ID_PROD =
 #include? "Signing.local.xcconfig"

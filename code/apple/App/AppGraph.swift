@@ -35,6 +35,8 @@ enum AppGraph {
     }
 
     static func makeScreens() -> Screens {
+        // APL-002, ADR 0021: falla aquí, al arrancar, si la configuración no declara un entorno conocido.
+        _ = BuildEnvironment.current()
         let files = LibraryFiles.standard
         let store = LibraryStore(container: container(), files: files)
         // Los tests corren dentro de la app: nunca tocan el proyecto real.

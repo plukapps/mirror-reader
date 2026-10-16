@@ -2,6 +2,9 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
+	<!-- Entorno de la configuración de build (APL-002, ADR 0021): dev, stage, beta o prod. -->
+	<key>AppEnvironment</key>
+	<string>$(APP_ENVIRONMENT)</string>
 	<!-- Vuelta del ingreso con Google (ADR 0015): REVERSED_CLIENT_ID de GoogleService-Info.plist, que copia
 	     tools/copy-google-client.sh a Signing.local.xcconfig. -->
 	<key>CFBundleURLTypes</key>
