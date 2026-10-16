@@ -61,27 +61,12 @@ extension OnboardingPage where Bottom == EmptyView {
     }
 }
 
-/// Logo de margin.: cuatro barras, la primera inclinada (diseño 01, 110 × 88).
-struct MarginLogo: Shape {
-    func path(in rect: CGRect) -> Path {
-        let sx = rect.width / 110
-        let sy = rect.height / 88
-        func point(_ x: CGFloat, _ y: CGFloat) -> CGPoint { CGPoint(x: rect.minX + x * sx, y: rect.minY + y * sy) }
-        var path = Path()
-        path.addLines([point(0, 88), point(15, 88), point(41, 0), point(26, 0)])
-        path.closeSubpath()
-        for x in [51.0, 73.5, 96.0] {
-            path.addRect(CGRect(x: rect.minX + x * sx, y: rect.minY, width: 14 * sx, height: rect.height))
-        }
-        return path
-    }
-}
-
 /// Logo y "tuck.", anunciados juntos.
 struct Brand: View {
     var body: some View {
         HStack(spacing: 10) {
-            MarginLogo().frame(width: 30, height: 24)
+            // Los libros parados (WEL-009): `Logo` es el SVG del paquete recortado a su caja, en plantilla.
+            Image("Logo").resizable().frame(width: 24, height: 25.8)
             Text("tuck.").font(.app(20, .medium)).tracking(-0.03 * 20)
         }
         .accessibilityElement(children: .ignore)

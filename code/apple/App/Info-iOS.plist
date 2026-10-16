@@ -32,6 +32,14 @@
 			</array>
 		</dict>
 	</array>
+	<!-- Arranque (WEL-001, WEL-002): el amarillo de la marca (MarginColors.yellow) con los libros al centro. -->
+	<key>UILaunchScreen</key>
+	<dict>
+		<key>UIColorName</key>
+		<string>LaunchBackground</string>
+		<key>UIImageName</key>
+		<string>LaunchLogo</string>
+	</dict>
 	<key>LSSupportsOpeningDocumentsInPlace</key>
 	<false/>
 </dict>

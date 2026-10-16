@@ -134,7 +134,7 @@ internal fun OnboardingPage(
 internal fun Brand(modifier: Modifier = Modifier) {
     val name = stringResource(R.string.welcome_brand)
     Row(modifier.clearAndSetSemantics { contentDescription = name }, verticalAlignment = Alignment.CenterVertically) {
-        Image(painterResource(R.drawable.ic_margin_logo), contentDescription = null, modifier = Modifier.size(width = 30.dp, height = 24.dp))
+        Image(painterResource(R.drawable.ic_logo), contentDescription = null, modifier = Modifier.size(width = 24.dp, height = 25.8.dp))
         Text(name, style = onbText(20.sp, FontWeight.Medium, letterSpacing = (-0.03).em), modifier = Modifier.padding(start = 10.dp))
     }
 }
