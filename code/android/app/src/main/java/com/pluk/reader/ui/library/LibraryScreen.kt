@@ -97,10 +97,8 @@ fun LibraryScreen(
             onSeePlans()
         },
         onDismissGuestNotice = viewModel::onDismissGuestNotice,
-        onCreateAccount = {
-            viewModel.onDismissGuestNotice()
-            onCreateAccount()
-        },
+        // GST-010: "Crear cuenta" no esconde el aviso; si se vuelve sin crearla, sigue ahí.
+        onCreateAccount = onCreateAccount,
     )
 }
 

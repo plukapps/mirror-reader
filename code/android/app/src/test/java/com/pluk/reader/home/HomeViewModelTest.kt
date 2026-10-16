@@ -109,7 +109,7 @@ class HomeViewModelTest {
         vm.onDismissGuestNotice()
         advanceUntilIdle()
         assertFalse(vm.uiState.first { !it.loading }.guestBanner != null)
-        assertTrue(guestPreference.dismissed.value)
+        assertTrue(guestPreference.dismissedAt.value != null)
     }
 
     @Test

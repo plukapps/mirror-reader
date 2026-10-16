@@ -80,7 +80,7 @@ class HomeViewModel @Inject constructor(
         }
     }
 
-    /** GST-010: cerrar el aviso o tocar "Crear cuenta" lo descarta en Inicio y en la Biblioteca. */
+    /** GST-010: la cruz esconde el banner por 7 días en Inicio y en la Biblioteca. */
     fun onDismissGuestNotice() {
         viewModelScope.launch { guestNotice.dismiss() }
     }

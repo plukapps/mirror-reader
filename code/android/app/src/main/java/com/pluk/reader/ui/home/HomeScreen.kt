@@ -114,10 +114,8 @@ fun HomeScreen(
         avatarInitial = state.avatarInitial,
         onOpenProfile = onOpenProfile,
         onDismissGuestNotice = viewModel::onDismissGuestNotice,
-        onCreateAccount = {
-            viewModel.onDismissGuestNotice()
-            onCreateAccount()
-        },
+        // GST-010: "Crear cuenta" no esconde el banner; si se vuelve sin crearla, sigue ahí.
+        onCreateAccount = onCreateAccount,
     )
 }
 

@@ -44,7 +44,7 @@ private object BannerColors {
 
 /**
  * GST-023 (diseños H0b "6e" y H0 "6b"): banner sin cuenta de Inicio. Toda la tarjeta abre el alta corta; la cruz lo
- * descarta (GST-010). La opción la elige GST-025.
+ * esconde por 7 días (GST-010). La opción la elige GST-025.
  */
 @Composable
 fun GuestBanner(variant: GuestBannerVariant, onCreateAccount: () -> Unit, onDismiss: () -> Unit, modifier: Modifier = Modifier) {

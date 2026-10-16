@@ -104,7 +104,7 @@ class LibraryViewModel @Inject constructor(
         viewModelScope.launch { usageNoticePreference.dismiss() }
     }
 
-    /** GST-010: cerrar el aviso sin cuenta o tocar "Crear cuenta" lo descarta en Inicio y en la Biblioteca. */
+    /** GST-010: la cruz esconde el aviso sin cuenta por 7 días en Inicio y en la Biblioteca. */
     fun onDismissGuestNotice() {
         viewModelScope.launch { guestNotice.dismiss() }
     }
