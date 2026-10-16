@@ -54,6 +54,11 @@ Plan de referencia: `specs/plans/2026-10-06-android-epub-viewer.md`
 
 ## Revisión
 
+- **K-382** Entornos Apple: apps de iOS `.dev`, `.stage` y `.beta` en Firebase (MCP), docs y verificación en el simulador. APL-001. Plan `2026-10-16-apple-environments.md`, rama `claude/ios-environments`. Hecho: apps de iOS `…:8898f0bbdc2636207feb86` (dev), `…:64d09ab5fea684057feb86` (stage) y `…:ef45b336e013217e7feb86` (beta) en `mirror-reading-staging`; los cuatro plist en `App/Firebase/` del checkout principal y el worktree; `GOOGLE_REVERSED_CLIENT_ID_*` en `Signing.local.xcconfig`. README, AGENTS y `apple.md`. En el simulador "iPhone 16": Dev, Stage, Beta y Prod instaladas juntas; Dev abre en la bienvenida con Firebase. Falta mirar los íconos y Perfil a mano.
+- **K-381** Entornos Apple: ícono con la etiqueta del entorno (DEV, STAGE, BETA), `tools/make_env_icons.swift`. APL-001. Plan `2026-10-16-apple-environments.md`, rama `claude/ios-environments`. Hecho: `tools/make_env_icons.swift`, catálogos `AppIcon-Dev`, `-Stage` y `-Beta` (iPhone claro, oscuro y tintado; Mac). Revisados en una vista previa.
+- **K-380** Entornos Apple: `AppEnvironment` en `ReaderDomain`, leído del `Info.plist` en `AppGraph`, y el entorno junto a la versión en Perfil. APL-002. Plan `2026-10-16-apple-environments.md`, rama `claude/ios-environments`. Hecho: `AppEnvironment` (dominio), `BuildEnvironment` (lee el `Info.plist`, falla con un valor desconocido), `AppGraph` y Perfil. Tests: `AppEnvironmentTests` (dominio, 263) y `BuildEnvironmentTests` (app, 260 en iPhone).
+- **K-379** Entornos Apple: configuraciones `Dev`, `Stage`, `Beta`, `Prod`, esquemas y `GoogleService-Info` por entorno en `project.yml`. APL-001, APL-002. Plan `2026-10-16-apple-environments.md`, rama `claude/ios-environments`. Hecho: `configs` y `settings.configs` en `project.yml`, cuatro esquemas, `AppEnvironment` en los `Info.plist`, fase "Firebase del entorno", Crashlytics con el plist del entorno, `copy-google-client.sh` por entorno.
+
 - **K-376** Entornos Android: entorno `beta` nuevo y un solo tipo de build por entorno (dev y stage en debug; beta y prod en release). Beta se firma por ahora con la clave de debug. AND-007, ADR 0020. Pedido del usuario (2026-10-16). Plan `2026-10-16-android-environments.md`, rama `claude/android-multi-environment-setup-aa0245`. Hecho: flavor `beta`, `ENVIRONMENT_BUILD_TYPE` con `beforeVariants`, ícono BETA (sale `prodDebug`), `AppEnvironment.BETA`, app `…:7d1ed923f263006f7feb86` en Firebase con el SHA-1 de debug. Tests JVM: 543 en dev y stage. Beta, Dev y Stage instaladas en el SM-S711B.
 
 - **K-375** Entornos Android: ícono con la etiqueta del entorno (DEV, STAGE, DEBUG en `prodDebug`), como Chrome Beta. AND-007. Pedido del usuario (2026-10-16). Plan `2026-10-16-android-environments.md`, rama `claude/android-multi-environment-setup-aa0245`. Hecho: `tools/make_env_icons.py`, `ic_launcher_foreground` e `ic_launcher_monochrome` en `src/dev`, `src/stage` y `src/prodDebug`. Las cuatro variantes compilan; dev y stage instalados en el SM-S711B.
@@ -235,6 +240,8 @@ Plan de referencia: `specs/plans/2026-10-06-android-epub-viewer.md`
 - **K-023** Margen de página de Readium en 0 (`pageMargins`), para que el texto use todo el ancho y alto disponibles. RDR-002. Rama `feat/page-turn-animation`.
 
 ## Hecho
+
+- **K-378** Entornos Apple: ADR 0021, APL-001 y APL-002, plan y tarjetas. Pedido del usuario (2026-10-16): rama y PR para iOS partiendo de los entornos de Android. Plan `2026-10-16-apple-environments.md`, rama `claude/ios-environments`.
 
 - **K-370** Entornos Android: ADR 0020, AND-007 y AND-008, plan y tarjetas. Pedido del usuario (2026-10-16). Plan `2026-10-16-android-environments.md`, rama `claude/android-multi-environment-setup-aa0245`. Plan aprobado por el usuario (2026-10-16).
 
