@@ -207,7 +207,9 @@ struct RootView: View {
                     openPlansAfterSheet: plans.openPlansAfterSheet,
                     sheetDismissed: plans.sheetDismissed,
                     notify: { home.show($0) },
-                    setTabBarHidden: { tabs.barHidden = $0 }
+                    setTabBarHidden: { tabs.barHidden = $0 },
+                    createAccount: onCreateAccount,
+                    signIn: onSignIn
                 ),
                 onSignedOut: onSignedOut
             )
