@@ -26,7 +26,9 @@ packages:
   # Motor de EPUB (ADR 0004, ADR 0013). Solo soporta iOS: en la Mac no se enlaza.
   Readium:
     url: https://github.com/readium/swift-toolkit
-    exactVersion: 3.9.0
+    # 3.9.0 por commit (K-202): la etiqueta se borró y después se volvió a crear apuntando a otro commit, que exige
+    # Swift 6.2 (Xcode 16.2 trae 6.0). Este es el commit original de la 3.9.0 (ADR 0013).
+    revision: de07026e9f825a5791f27a7ac4cd6bb1a784ab8d
 targets:
   # Un solo target para Mac e iOS (ADR 0010). Lo que es solo de Mac va condicionado con [sdk=macosx*].
   Reader:
