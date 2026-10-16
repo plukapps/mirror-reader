@@ -29,7 +29,7 @@ final class AppStartViewModel {
             start = .home
             return
         }
-        start = switch startDestination(await account.currentUser()) {
+        start = switch startDestination(await account.currentUser(), welcomeSeen: false) {
         case .welcome: .welcome
         case .verifyEmail: .verifyEmail
         case .home: .home

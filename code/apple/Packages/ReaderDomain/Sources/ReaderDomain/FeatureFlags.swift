@@ -5,13 +5,31 @@ import Foundation
 public enum Feature: String, CaseIterable, Sendable {
     /// SYN-017: sincronizar las notas.
     case notesSync = "notes_sync_enabled"
+    /// GST-025: el banner sin cuenta de Inicio usa la opción B ("Tus libros sin respaldo").
+    case guestBannerNoBackup = "guest_banner_no_backup_enabled"
 
     public var key: String { rawValue }
 
-    /// Vale mientras no se sabe el valor remoto. SYN-017: si no se sabe, prendida.
+    /// Vale mientras no se sabe el valor remoto. SYN-017: si no se sabe, prendida. GST-025: si no se sabe, la A.
     public var defaultValue: Bool {
         switch self {
         case .notesSync: true
+        case .guestBannerNoBackup: false
+        }
+    }
+}
+
+/// Números que se ajustan sin publicar una versión nueva, para afinarlos o probar valores (ADR 0016). Como `Setting`
+/// de Android.
+public enum Setting: String, CaseIterable, Sendable {
+    /// GST-026: días que la cruz esconde el aviso sin cuenta (GST-010).
+    case guestNoticeSnoozeDays = "guest_notice_snooze_days"
+
+    public var key: String { rawValue }
+
+    public var defaultValue: Int {
+        switch self {
+        case .guestNoticeSnoozeDays: 7
         }
     }
 }
@@ -26,10 +44,16 @@ public protocol RemoteFlagSource: Sendable {
     func fetchAndActivate() async throws
     /// El valor aplicado de `key`, o nil si todavía no hay uno remoto.
     func value(_ key: String) async -> Bool?
+    /// El número aplicado de `key`, o nil si todavía no hay uno remoto (o no es un número).
+    func number(_ key: String) async -> Int?
     /// El catálogo de planes aplicado (`plans`), o nil si es inválido (ACC-007, ACC-008, ADR 0017).
     func plans() async -> [Plan]?
     /// Avisa cada vez que cambian los valores en el servidor, mientras se recorre.
     func updates() -> AsyncStream<Void>
+}
+
+extension RemoteFlagSource {
+    public func number(_ key: String) async -> Int? { nil }
 }
 
 /// Funciones prendidas o apagadas según la configuración remota (ACC-011, SYN-017, ADR 0016), como
@@ -43,6 +67,7 @@ public actor FeatureFlags {
     private let plan: @Sendable () -> String
     private let catalog: PlanCatalogStore
     private var values: [Feature: Bool] = Dictionary(uniqueKeysWithValues: Feature.allCases.map { ($0, $0.defaultValue) })
+    private var settings: [Setting: Int] = Dictionary(uniqueKeysWithValues: Setting.allCases.map { ($0, $0.defaultValue) })
     private var subscribers: [UUID: (Feature, AsyncStream<Bool>.Continuation)] = [:]
     private var listening: Task<Void, Never>?
 
@@ -61,6 +86,11 @@ public actor FeatureFlags {
 
     public func isEnabled(_ feature: Feature) -> Bool {
         values[feature] ?? feature.defaultValue
+    }
+
+    /// GST-026: el valor actual de `setting` (el de la app hasta que llega el remoto).
+    public func setting(_ setting: Setting) -> Int {
+        settings[setting] ?? setting.defaultValue
     }
 
     /// El valor actual de `feature` y cada cambio.
@@ -105,6 +135,9 @@ public actor FeatureFlags {
             for (wanted, continuation) in subscribers.values where wanted == feature {
                 continuation.yield(value)
             }
+        }
+        for setting in Setting.allCases {
+            settings[setting] = await source.number(setting.key) ?? setting.defaultValue
         }
         // ACC-007, ACC-008, K-290: el catálogo de planes viaja con la misma configuración; inválido, los por defecto.
         catalog.update(await source.plans())

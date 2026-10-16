@@ -95,9 +95,10 @@ enum AppGraph {
             await refs.home?.reload()
             await refs.library?.load()
         }
+        let account = firebase ? FirebaseAccountRepository() : nil
         let library = LibraryViewModel(library: store, sync: sync, quotaCache: quotaCache, usageNotice: UserDefaultsUsageNotice())
         let home = HomeViewModel(
-            library: store, importer: reader?.importer, quotaCheck: ImportQuotaCheck(uploads: store, cache: quotaCache)
+            library: store, importer: reader?.importer, quotaCheck: ImportQuotaCheck(uploads: store, cache: quotaCache, account: account)
         ) { sync.request() }
         refs.home = home
         refs.library = library
@@ -118,7 +119,6 @@ enum AppGraph {
             },
             notify: { [weak home] in home?.show($0) }
         )
-        let account = firebase ? FirebaseAccountRepository() : nil
         let appearance = AppearanceSettings(repository: UserDefaultsAppearance())
         return Screens(
             home: home,

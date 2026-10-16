@@ -26,6 +26,13 @@ public struct AccountUser: Equatable, Sendable {
     }
 }
 
+extension AccountUser {
+    /// PRF-005, HOM-012: la inicial del nombre o, si no hay, del email, en mayúscula. Vacía si no hay ninguno.
+    public var initial: String {
+        (displayName ?? email)?.trimmingCharacters(in: .whitespaces).first.map { String($0).uppercased() } ?? ""
+    }
+}
+
 public protocol AccountRepository: Sendable {
     /// Usuario actual, o nil si no hay sesión. Lo que el dispositivo ya conoce, sin red.
     func currentUser() async -> AccountUser?

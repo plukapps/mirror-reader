@@ -45,8 +45,13 @@ private func pendingBook(_ id: String, _ title: String, _ size: Int64) -> Pendin
 private func quotaCheck(used: Int64?, _ items: [PendingUpload], plan: String = "pro") -> ImportQuotaCheck {
     ImportQuotaCheck(
         uploads: PendingBooks(items: items),
-        cache: PlansMemoryQuotaCache(used.map { StorageQuota(usedBytes: $0, quotaBytes: 15 * mib, plan: plan) })
+        cache: PlansMemoryQuotaCache(used.map { StorageQuota(usedBytes: $0, quotaBytes: 15 * mib, plan: plan) }),
+        account: SignedInAccount()
     )
+}
+
+private struct SignedInAccount: AccountRepository {
+    func currentUser() async -> AccountUser? { AccountUser(id: "u1", email: nil) }
 }
 
 @MainActor

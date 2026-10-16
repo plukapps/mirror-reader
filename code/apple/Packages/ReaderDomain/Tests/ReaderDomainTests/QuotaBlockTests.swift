@@ -17,12 +17,19 @@ private final class Cache: QuotaCache, @unchecked Sendable {
     func save(_ quota: StorageQuota) {}
 }
 
+private struct Signed: AccountRepository {
+    let user: AccountUser?
+    func currentUser() async -> AccountUser? { user }
+}
+
+private let session = Signed(user: AccountUser(id: "u1", email: nil))
+
 private func item(_ id: String, _ size: Int64) -> PendingUpload {
     PendingUpload(book: RemoteBook(id: id, title: "Libro \(id)", authors: [], sizeBytes: size), file: URL(filePath: "/\(id).epub"))
 }
 
 private func check(used: Int64, _ items: [PendingUpload], quota: Int64 = 15 * mib, plan: String = "free") -> ImportQuotaCheck {
-    ImportQuotaCheck(uploads: Pending(items: items), cache: Cache(StorageQuota(usedBytes: used, quotaBytes: quota, plan: plan)))
+    ImportQuotaCheck(uploads: Pending(items: items), cache: Cache(StorageQuota(usedBytes: used, quotaBytes: quota, plan: plan)), account: session)
 }
 
 @Test("PLN-007, PLN-008: lleno, no entra o entra justo")
@@ -60,7 +67,7 @@ func firstThatDoesNotFit() async {
 @Test("PLN-009: si entra, o si nunca se leyó la cuota y no supera 2 MB, no hay hoja")
 func noNotice() async {
     #expect(await check(used: 0, [item("a", mib)])(imported: ["a"]) == nil)
-    let unknown = ImportQuotaCheck(uploads: Pending(items: [item("a", 2 * mib)]), cache: Cache(nil))
+    let unknown = ImportQuotaCheck(uploads: Pending(items: [item("a", 2 * mib)]), cache: Cache(nil), account: session)
     #expect(await unknown(imported: ["a"]) == nil)
     #expect(await check(used: 15 * mib, [item("a", mib)])(imported: []) == nil)
 }
@@ -110,7 +117,7 @@ func serverMaxFileBytesWins() async {
     #expect(PlanCatalog.maxFileBytes(StorageQuota(usedBytes: 0, quotaBytes: 1, plan: "plus")) == 50 * mib)
     #expect(PlanCatalog.maxFileBytes(StorageQuota(usedBytes: 0, quotaBytes: 1, plan: "plus", maxFileBytes: 7 * mib)) == 7 * mib)
     let cache = Cache(StorageQuota(usedBytes: 0, quotaBytes: 15 * mib, maxFileBytes: 1 * mib))
-    let notice = await ImportQuotaCheck(uploads: Pending(items: [item("a", 1 * mib + 1)]), cache: cache)(imported: ["a"])
+    let notice = await ImportQuotaCheck(uploads: Pending(items: [item("a", 1 * mib + 1)]), cache: cache, account: session)(imported: ["a"])
     #expect(notice?.block == .tooLarge(bookBytes: 1 * mib + 1, maxBytes: 1 * mib))
 }
 
@@ -122,7 +129,7 @@ func oversizePendingTakesNoSpace() async {
 
 @Test("PLN-014: sin cuota leída, el tamaño se comprueba con el máximo de Free")
 func tooLargeWithoutQuota() async {
-    let check = ImportQuotaCheck(uploads: Pending(items: [item("a", 3 * mib)]), cache: Cache(nil))
+    let check = ImportQuotaCheck(uploads: Pending(items: [item("a", 3 * mib)]), cache: Cache(nil), account: session)
     let notice = await check(imported: ["a"])
     #expect(notice?.block == .tooLarge(bookBytes: 3 * mib, maxBytes: 2 * mib))
     #expect(notice?.quota == nil)
@@ -133,4 +140,12 @@ func nextPlan() {
     #expect(PlanCatalog.nextPlan(after: .free) == .plus)
     #expect(PlanCatalog.nextPlan(after: .plus) == .pro)
     #expect(PlanCatalog.nextPlan(after: .pro) == nil)
+}
+
+@Test("GST-006: sin sesión, o sin cuenta posible, no hay hoja: ni de espacio ni de archivo muy grande")
+func noSheetWithoutSession() async {
+    let items = [item("a", 3 * mib), item("b", 14 * mib)]
+    let full = Cache(StorageQuota(usedBytes: 15 * mib, quotaBytes: 15 * mib, plan: "free"))
+    #expect(await ImportQuotaCheck(uploads: Pending(items: items), cache: full, account: Signed(user: nil))(imported: ["a", "b"]) == nil)
+    #expect(await ImportQuotaCheck(uploads: Pending(items: items), cache: full, account: nil)(imported: ["a", "b"]) == nil)
 }

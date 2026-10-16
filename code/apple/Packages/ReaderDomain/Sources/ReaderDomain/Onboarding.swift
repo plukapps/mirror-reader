@@ -44,14 +44,22 @@ public func firstName(_ displayName: String?) -> String? {
     displayName?.split(whereSeparator: \.isWhitespace).first.map(String.init)
 }
 
-/// Pantalla con la que abre la app (ONB-019).
+/// Pantalla con la que abre la app (GST-003, reemplaza ONB-019).
 public enum StartDestination: Equatable, Sendable {
     case welcome, verifyEmail, home
 }
 
-public func startDestination(_ user: AccountUser?) -> StartDestination {
-    guard let user else { return .welcome }
+/// GST-003: con sesión decide la sesión (GST-004: no depende de la bienvenida); sin sesión, Inicio si en este
+/// dispositivo ya se pasó por la bienvenida ("Empezar a leer", GST-002), y la bienvenida si no.
+public func startDestination(_ user: AccountUser?, welcomeSeen: Bool) -> StartDestination {
+    guard let user else { return welcomeSeen ? .home : .welcome }
     return user.needsEmailVerification ? .verifyEmail : .home
+}
+
+/// GST-002: en este dispositivo ya se pasó por la bienvenida sin cuenta. Se borra al cerrar sesión (GST-016, ADR 0019).
+public protocol WelcomePreference: Sendable {
+    func seen() -> Bool
+    func markSeen()
 }
 
 /// Géneros de O4, en el orden del diseño (ONB-009). El valor es el que guarda Android.

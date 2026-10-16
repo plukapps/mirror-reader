@@ -36,11 +36,21 @@ struct OnboardingRulesTests {
         #expect(!isValidEmail(""))
     }
 
-    @Test("ONB-019: el arranque depende de la sesión y de la verificación")
+    @Test("GST-003, GST-004: el arranque depende de la sesión, la verificación y la bienvenida")
     func start() {
-        #expect(startDestination(nil) == .welcome)
-        #expect(startDestination(AccountUser(id: "u", email: "a@b.c", needsEmailVerification: true)) == .verifyEmail)
-        #expect(startDestination(AccountUser(id: "u", email: "a@b.c")) == .home)
+        #expect(startDestination(nil, welcomeSeen: false) == .welcome)
+        #expect(startDestination(nil, welcomeSeen: true) == .home)
+        for seen in [false, true] {
+            #expect(startDestination(AccountUser(id: "u", email: "a@b.c", needsEmailVerification: true), welcomeSeen: seen) == .verifyEmail)
+            #expect(startDestination(AccountUser(id: "u", email: "a@b.c"), welcomeSeen: seen) == .home)
+        }
+    }
+
+    @Test("PRF-005, HOM-012: la inicial del nombre o del email")
+    func initial() {
+        #expect(AccountUser(id: "u", email: "b@mail.com", displayName: "ana Ruiz").initial == "A")
+        #expect(AccountUser(id: "u", email: "bea@mail.com").initial == "B")
+        #expect(AccountUser(id: "u", email: nil).initial == "")
     }
 
     @Test("ONB-009: hacen falta al menos 3 intereses")
